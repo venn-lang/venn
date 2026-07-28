@@ -1,5 +1,5 @@
 /**
- * `@venn/load`: the verbs that describe a load shape (`ramp`, `constant`,
+ * `@venn-lang/load`: the verbs that describe a load shape (`ramp`, `constant`,
  * `spike`), the `LoadRunner` port that drives it, and the metrics it yields.
  */
 

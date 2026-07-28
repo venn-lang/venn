@@ -1,5 +1,5 @@
 {
-  "name": "@venn/benchmarks",
+  "name": "@venn-lang/benchmarks",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/contracts": "workspace:*",
-    "@venn/core": "workspace:*",
-    "@venn/runtime": "workspace:*",
-    "@venn/stdlib": "workspace:*"
+    "@venn-lang/contracts": "workspace:*",
+    "@venn-lang/core": "workspace:*",
+    "@venn-lang/runtime": "workspace:*",
+    "@venn-lang/stdlib": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

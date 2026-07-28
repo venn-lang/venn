@@ -1,5 +1,5 @@
-import { type ActionDefinition, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { MailClientPort } from "../port/index.js";
 
 /**

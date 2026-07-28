@@ -8,8 +8,8 @@ import {
   type Problem,
   ProblemError,
   typeName,
-} from "@venn/core";
-import type { ZodType } from "@venn/sdk";
+} from "@venn-lang/core";
+import type { ZodType } from "@venn-lang/sdk";
 import { nodeSpan } from "./node-span.js";
 import { unknownOptions } from "./unknown-option.js";
 

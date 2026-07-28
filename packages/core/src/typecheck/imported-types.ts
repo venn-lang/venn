@@ -1,4 +1,4 @@
-import type { TypeSpec } from "@venn/types";
+import type { TypeSpec } from "@venn-lang/types";
 import type { Document } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { isPackageSpecifier } from "../module/index.js";

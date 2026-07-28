@@ -1,4 +1,4 @@
-import { formatOptionsFrom, formatText } from "@venn/core";
+import { formatOptionsFrom, formatText } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { Formatter } from "langium/lsp";
 import type {
@@ -14,7 +14,7 @@ import type { VennServices } from "../services/lsp.types.js";
 import type { ImportResolver } from "../workspace/index.js";
 
 /**
- * Formatting runs through `@venn/core`, so the editor and `venn fmt` produce
+ * Formatting runs through `@venn-lang/core`, so the editor and `venn fmt` produce
  * byte-identical output. Project settings come from `[format]` in `venn.toml`;
  * the editor's own indent settings fill in what the project left unset.
  */

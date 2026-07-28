@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { addDependency, removeDependency } from "@venn/contracts";
-import { createNodeFs, createNodeSpawn } from "@venn/contracts/node";
+import { addDependency, removeDependency } from "@venn-lang/contracts";
+import { createNodeFs, createNodeSpawn } from "@venn-lang/contracts/node";
 import {
   describeDrift,
   isSafeSpec,
@@ -15,7 +15,7 @@ import {
   targetDir,
   verifyLock,
   writeLockfile,
-} from "@venn/project";
+} from "@venn-lang/project";
 import { selectPackages, unknownPackage } from "../project/index.js";
 import { deriveTypes } from "../run/package-types.js";
 

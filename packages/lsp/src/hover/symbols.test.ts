@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { fixture, positionOf } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "@venn/fmt"
+const SOURCE = `use "venn/fmt"
 
 const people = [{ name: "Ada", age: 36 }]
 const nums = [1, 2, 3]
@@ -54,7 +54,7 @@ describe("namespaces", () => {
 
     expect(markdown).toContain("namespace fmt");
     expect(markdown).toContain("Verbs");
-    expect(markdown).toContain("@venn/fmt");
+    expect(markdown).toContain("venn/fmt");
   });
 
   it("documents a namespace verb reached inside an interpolation", async () => {

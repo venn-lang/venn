@@ -23,7 +23,7 @@ export interface NodeHttpServer extends HttpServer {
  * The real implementation: a bound socket, on the port the OS gave it.
  *
  * Only this file reaches for `node:http`, which is why it sits behind the
- * `@venn/http/node` subpath. The rest of the package stays platform-neutral and
+ * `@venn-lang/http/node` subpath. The rest of the package stays platform-neutral and
  * runs wherever the language runs, the editor's worker included.
  *
  * @throws VN7020 if the port is taken, VN7021 if the socket refuses to bind.

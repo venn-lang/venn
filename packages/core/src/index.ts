@@ -1,4 +1,4 @@
-// @venn/core: the fixed kernel. Worker-safe, with no `node:*` (enforced by
+// @venn-lang/core: the fixed kernel. Worker-safe, with no `node:*` (enforced by
 // tsdown platform "neutral" and a tsconfig without @types/node).
 
 export * from "./ast/index.js";

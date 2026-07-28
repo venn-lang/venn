@@ -1,4 +1,4 @@
-import { type ParamSpec, paramSpecs } from "@venn/sdk";
+import { type ParamSpec, paramSpecs } from "@venn-lang/sdk";
 import type { ActionEntry, MatcherEntry, SymbolCatalog } from "../catalog/index.js";
 import { code, fence, labelled, rule, sections } from "../markdown/index.js";
 import { callShape, type ShownArg, shownArgs } from "../signature/index.js";

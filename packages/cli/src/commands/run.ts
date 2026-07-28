@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { createNodeHost, createNodeSignals } from "@venn/contracts/node";
-import { createFetchClient } from "@venn/http";
-import { createNodeServer } from "@venn/http/node";
-import type { RunFilter } from "@venn/runtime";
+import { createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
+import { createFetchClient } from "@venn-lang/http";
+import { createNodeServer } from "@venn-lang/http/node";
+import type { RunFilter } from "@venn-lang/runtime";
 import { loadEnv, loadManifest } from "../manifest/index.js";
 import type { Reporter, RunTotals } from "../reporters/index.js";
 import { pickReporter, reportProblems } from "../reporters/index.js";

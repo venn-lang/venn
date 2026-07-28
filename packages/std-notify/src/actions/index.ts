@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { email } from "./email.js";
 import { slack } from "./slack.js";
 import { webhook } from "./webhook.js";

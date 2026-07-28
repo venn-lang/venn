@@ -1,4 +1,4 @@
-import type { RecordSpec, TypeSpec } from "@venn/types";
+import type { RecordSpec, TypeSpec } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { browserActions } from "./actions/index.js";
 import { createFakeBrowserDriver } from "./drivers/index.js";

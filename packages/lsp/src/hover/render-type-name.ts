@@ -1,6 +1,6 @@
-import { BUILTIN_TYPES, KIND_SPECS, TARGET_KINDS } from "@venn/core";
-import type { RecordSpec, TypeSpec } from "@venn/types";
-import { showSpec } from "@venn/types";
+import { BUILTIN_TYPES, KIND_SPECS, TARGET_KINDS } from "@venn-lang/core";
+import type { RecordSpec, TypeSpec } from "@venn-lang/types";
+import { showSpec } from "@venn-lang/types";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { code, fence, labelled, rule, sections } from "../markdown/index.js";
 

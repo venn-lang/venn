@@ -16,7 +16,7 @@ import {
   isRepeatStmt,
   isValueImport,
   type ParamList,
-} from "@venn/core";
+} from "@venn-lang/core";
 
 /** A name the program has bound, and the node that bound it. */
 export interface ScopedName {

@@ -90,7 +90,7 @@ describe("built-in names that are not keywords", () => {
     expect(markdown).toContain("venn.toml");
     expect(markdown).toContain("--env");
     expect(markdown).toContain("**Example**");
-    expect(markdown).toContain('use "@venn/env"');
+    expect(markdown).toContain('use "venn/env"');
   });
 
   it("tells anyone still writing `capture` what replaced it", () => {

@@ -1,4 +1,4 @@
-import { dottedPath, type Expr, isActionCall, isLetStmt, type LetStmt } from "@venn/core";
+import { dottedPath, type Expr, isActionCall, isLetStmt, type LetStmt } from "@venn-lang/core";
 import { type AstNode, AstUtils, type LangiumDocument } from "langium";
 
 /** A call written without brackets, wherever the language allows one. */

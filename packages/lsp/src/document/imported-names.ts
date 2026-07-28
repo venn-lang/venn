@@ -1,4 +1,4 @@
-import { type Document, isValueImport, type ValueImport } from "@venn/core";
+import { type Document, isValueImport, type ValueImport } from "@venn-lang/core";
 
 /** The names a document pulls in via `import { a, b } from "…"`. */
 export function importedNames(document: Document): string[] {

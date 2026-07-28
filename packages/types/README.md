@@ -1,4 +1,4 @@
-# @venn/types
+# @venn-lang/types
 
 > The language's type vocabulary as plain data: ten shapes, no dependencies, no compiler.
 
@@ -16,7 +16,7 @@ runtime is one object literal (`t`) and one function (`showSpec`).
 Write the type of a verb, and the types it takes and gives back:
 
 ```ts
-import { t, type TypeSpec } from "@venn/types";
+import { t, type TypeSpec } from "@venn-lang/types";
 
 // http.on server handler
 const signature = t.fn(
@@ -36,7 +36,7 @@ const request: TypeSpec = t.record({
 That is the whole mechanism behind an editor knowing what `req` is with nothing written down:
 
 ```ruby
-use "@venn/http"
+use "venn/http"
 
 const api = http.serve { port: 0 }
 http.on(api, route)
@@ -125,17 +125,17 @@ types is still a plugin that works, and a Venn program with zero annotations sti
 
 | Package | What it does with a `TypeSpec` |
 | --- | --- |
-| [`@venn/sdk`](../sdk) | `defineAction` derives an action's `FnSpec` from the `args` and `result` an author named; a plugin's named types go in `typeDefs`. |
-| [`@venn/core`](../core) | `specToType` reads a spec into the checker's own type, with `ref` resolved through a callback. The handle kinds in `kind-types.ts` are themselves written as specs. |
-| [`@venn/runtime`](../runtime) | `createTypeCatalog` qualifies what the loaded plugins publish (`Request` becomes `http.Request`) and answers the checker's questions. |
-| [`@venn/dts`](../dts) | Reads a package's TypeScript declarations through the compiler and emits specs. The CLI stores the result under `target/types/`. |
-| [`@venn/lsp`](../lsp) | `showSpec` for hover, completion detail and signature help. |
+| [`@venn-lang/sdk`](../sdk) | `defineAction` derives an action's `FnSpec` from the `args` and `result` an author named; a plugin's named types go in `typeDefs`. |
+| [`@venn-lang/core`](../core) | `specToType` reads a spec into the checker's own type, with `ref` resolved through a callback. The handle kinds in `kind-types.ts` are themselves written as specs. |
+| [`@venn-lang/runtime`](../runtime) | `createTypeCatalog` qualifies what the loaded plugins publish (`Request` becomes `http.Request`) and answers the checker's questions. |
+| [`@venn-lang/dts`](../dts) | Reads a package's TypeScript declarations through the compiler and emits specs. The CLI stores the result under `target/types/`. |
+| [`@venn-lang/lsp`](../lsp) | `showSpec` for hover, completion detail and signature help. |
 
 See [`docs/type-system.md`](../../docs/type-system.md) for how the pieces fit together, what runs
 today and what does not.
 
 ## See also
 
-- [`@venn/sdk`](../sdk), where plugin authors reach for `t`
-- [`@venn/core`](../core), the checker that reads what was published
-- [`@venn/dts`](../dts), TypeScript declarations turned into specs
+- [`@venn-lang/sdk`](../sdk), where plugin authors reach for `t`
+- [`@venn-lang/core`](../core), the checker that reads what was published
+- [`@venn-lang/dts`](../dts), TypeScript declarations turned into specs

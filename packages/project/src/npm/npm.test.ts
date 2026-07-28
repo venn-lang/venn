@@ -1,4 +1,4 @@
-import { createMemoryFs, defaultManifest, type FileSystem } from "@venn/contracts";
+import { createMemoryFs, defaultManifest, type FileSystem } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { writeLockfile } from "./lockfile.js";
 import { isSafeSpec, managerCommand } from "./manager-command.js";

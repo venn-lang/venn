@@ -1,4 +1,4 @@
-import { type Document, type ImportDecl, isUseDecl, isValueImport } from "@venn/core";
+import { type Document, type ImportDecl, isUseDecl, isValueImport } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { Position, TextEdit } from "vscode-languageserver";
 

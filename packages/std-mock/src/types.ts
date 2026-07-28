@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The types `@venn/mock` publishes: `mock.Mock`, `mock.Interceptor` and
+ * The types `@venn-lang/mock` publishes: `mock.Mock`, `mock.Interceptor` and
  * `mock.Response`.
  *
  * They mirror `state/mock-state.types.ts` by hand, dropping the prefix the

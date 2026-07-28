@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import type { FakeWsClient, WsExpectQuery } from "../port/index.js";
 import type { Message } from "../types/index.js";
 

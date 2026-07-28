@@ -1,6 +1,6 @@
-import { type Document, isFragmentDecl, showType, specToType } from "@venn/core";
-import { type ActionDefinition, paramSpecs } from "@venn/sdk";
-import { showSpec } from "@venn/types";
+import { type Document, isFragmentDecl, showType, specToType } from "@venn-lang/core";
+import { type ActionDefinition, paramSpecs } from "@venn-lang/sdk";
+import { showSpec } from "@venn-lang/types";
 import { type CompletionItem, CompletionItemKind, type Range } from "vscode-languageserver";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { type DecoInfo, decoratesLabel } from "../deco/index.js";
@@ -50,8 +50,8 @@ const PRELUDE = [
 
 /**
  * Every item carries an explicit `textEdit` over `range`. VS Code's default word
- * rules stop at `@` and `/`, so without it accepting `@venn/http` inside
- * `"@venn/"` would paste the prefix twice.
+ * rules stop at `@` and `/`, so without it accepting `@venn-lang/http` inside
+ * `"@venn-lang/"` would paste the prefix twice.
  */
 export function item(args: {
   label: string;

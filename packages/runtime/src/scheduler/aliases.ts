@@ -1,4 +1,4 @@
-import { type Document, isLetStmt, isUseDecl } from "@venn/core";
+import { type Document, isLetStmt, isUseDecl } from "@venn-lang/core";
 import type { Registry } from "../registry/index.js";
 
 /**
@@ -32,7 +32,7 @@ export function collectBoundNames(document: Document): Set<string> {
   return names;
 }
 
-/** `use "@venn/http" as h` → `{ h → "http" }`, resolved through the registry. */
+/** `use "venn/http" as h` → `{ h → "http" }`, resolved through the registry. */
 export function collectAliases(document: Document, registry: Registry): Map<string, string> {
   const aliases = new Map<string, string>();
   for (const decl of document.imports) {

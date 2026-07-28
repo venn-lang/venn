@@ -1,8 +1,8 @@
-# @venn/ws
+# @venn-lang/ws
 
 > The `ws` namespace: open a WebSocket, send, wait for a message, close.
 
-Venn's grammar knows no verbs. `@venn/ws` registers the `ws` namespace with the runtime, so
+Venn's grammar knows no verbs. `@venn-lang/ws` registers the `ws` namespace with the runtime, so
 `ws.connect` resolves to an action and `ws.expect` hands back a typed message. The socket itself lives
 behind the `WsClient` port, not in a handle the flow carries around, so a host swaps the whole
 transport by binding a different implementation.
@@ -10,10 +10,10 @@ transport by binding a different implementation.
 ## Install
 
 Nothing to install yet. The package is unpublished (version `0.0.0`) and ships inside
-`@venn/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
+`@venn-lang/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
 
 ```ruby
-use "@venn/ws"
+use "venn/ws"
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ use "@venn/ws"
 ```ruby
 module demo.stream
 
-use "@venn/ws"
+use "venn/ws"
 
 flow "Stock stream" {
   step "the socket accepts the subscription" {
@@ -84,7 +84,7 @@ expect msg.type == "ack"
   `send` on `sent`, so a test asserts on what the flow put on the wire without a wire:
 
 ```ts
-import { createFakeWsClient } from "@venn/ws";
+import { createFakeWsClient } from "@venn-lang/ws";
 
 const client = createFakeWsClient({ incoming: [{ type: "ack", data: { ok: true } }] });
 await client.connect({ url: "wss://example.test", auth: "token" });
@@ -95,12 +95,12 @@ await client.send({ type: "ping", data: 1 });
 `expect` prefers the matching message over the first one, and falls back to the first when nothing
 matches. An empty queue raises `VN8091`.
 
-That matters for `ws.expect` in a `.vn` file: `@venn/stdlib` binds `createFakeWsClient({ incoming: [] })`
+That matters for `ws.expect` in a `.vn` file: `@venn-lang/stdlib` binds `createFakeWsClient({ incoming: [] })`
 by default, so the verb has nothing to resolve and fails with `VN8091` until a host binds a client
 seeded with messages.
 
 ## See also
 
-- [`@venn/mqtt`](../std-mqtt), the same shape over topics rather than a socket.
-- [`@venn/http`](../std-http), the reference plugin, with a real client and a real server.
-- [`@venn/stdlib`](../stdlib) for the plugin list and the default port bindings.
+- [`@venn-lang/mqtt`](../std-mqtt), the same shape over topics rather than a socket.
+- [`@venn-lang/http`](../std-http), the reference plugin, with a real client and a real server.
+- [`@venn-lang/stdlib`](../stdlib) for the plugin list and the default port bindings.

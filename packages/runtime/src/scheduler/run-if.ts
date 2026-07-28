@@ -1,4 +1,4 @@
-import { evaluate, type IfStmt, isIfStmt, truthy } from "@venn/core";
+import { evaluate, type IfStmt, isIfStmt, truthy } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";

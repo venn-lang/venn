@@ -1,4 +1,4 @@
-import type { RunResult } from "@venn/runtime";
+import type { RunResult } from "@venn-lang/runtime";
 
 /**
  * The number a run hands to the process.

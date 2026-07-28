@@ -2,7 +2,7 @@
 # Run it with:  venn test examples/testing/04-groups.vn
 # Only the smoke ones:  venn test examples/testing/04-groups.vn --tags=smoke
 
-use "@venn/assert"
+use "venn/assert"
 
 const catalogue = [
   { sku: "pen-01", price: 250, stock: 12 },

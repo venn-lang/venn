@@ -1,4 +1,4 @@
-import { type FlowDecl, isFlowDecl, parse } from "@venn/core";
+import { type FlowDecl, isFlowDecl, parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import { stepTitlesOf } from "./step-titles.js";
 

@@ -1,5 +1,12 @@
-import { type ActionDefinition, type ActionInput, arg, Duration, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import {
+  type ActionDefinition,
+  type ActionInput,
+  arg,
+  Duration,
+  defineAction,
+  z,
+} from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { type RampProfile, rampProfile } from "../profiles/index.js";
 
 const rampParams = z.object({ over: Duration.optional(), hold: Duration.optional() });

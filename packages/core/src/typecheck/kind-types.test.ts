@@ -1,4 +1,4 @@
-import type { RecordSpec } from "@venn/types";
+import type { RecordSpec } from "@venn-lang/types";
 import type { AstNode } from "langium";
 import { describe, expect, it } from "vitest";
 import { walkAst } from "../ast/index.js";

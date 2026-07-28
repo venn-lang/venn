@@ -1,5 +1,5 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { type GrpcCall, GrpcClientPort } from "../port/index.js";
 
 const requestParams = z.record(z.string(), z.unknown()).optional();

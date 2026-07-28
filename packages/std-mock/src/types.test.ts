@@ -1,4 +1,4 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { mockActions } from "./actions/index.js";
 import { mockPlugin } from "./plugin.js";

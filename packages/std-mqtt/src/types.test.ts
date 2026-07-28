@@ -1,4 +1,4 @@
-import type { TypeSpec } from "@venn/types";
+import type { TypeSpec } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { mqttActions } from "./actions/index.js";
 import { mqttPlugin } from "./plugin.js";

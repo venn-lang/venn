@@ -1,4 +1,4 @@
-import type { ParamSpec } from "@venn/sdk";
+import type { ParamSpec } from "@venn-lang/sdk";
 import type { ParameterInformation, SignatureInformation } from "vscode-languageserver";
 import type { CallShape, ShownArg } from "./call-shape.types.js";
 

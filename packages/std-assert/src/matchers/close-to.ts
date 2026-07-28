@@ -1,5 +1,5 @@
-import { arg, defineMatcher, type MatcherDefinition, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { arg, defineMatcher, type MatcherDefinition, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { failureLine } from "./failure-line.js";
 
 const DEFAULT_WITHIN = 0.01;

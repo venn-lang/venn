@@ -1,4 +1,4 @@
-import type { Dependency, Manifest, PackageInfo } from "@venn/contracts";
+import type { Dependency, Manifest, PackageInfo } from "@venn-lang/contracts";
 
 /**
  * A member manifest with what the workspace root supplies filled in.

@@ -1,5 +1,5 @@
-import type { PluginDefinition } from "@venn/sdk";
-import type { TypeSpec } from "@venn/types";
+import type { PluginDefinition } from "@venn-lang/sdk";
+import type { TypeSpec } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { allPlugins } from "./plugins.js";
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CompletionItemKind } from "vscode-languageserver";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const HEAD = `use "@venn/http"
+const HEAD = `use "venn/http"
 
 type Preco { id: number }
 

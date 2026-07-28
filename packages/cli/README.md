@@ -1,10 +1,10 @@
-# @venn/cli
+# @venn-lang/cli
 
 > The `venn` binary: one command for starting, checking, running and testing a Venn project.
 
 This is the only package that touches `node:*`. It builds the `Host`, binds the real
 implementations behind every port (filesystem, HTTP client, HTTP server, console, spawn) and hands
-them to the runtime. Everything below it (`@venn/core`, `@venn/runtime`, `@venn/sdk`) stays
+them to the runtime. Everything below it (`@venn-lang/core`, `@venn-lang/runtime`, `@venn-lang/sdk`) stays
 platform-neutral, which is why the same compiler runs in a Web Worker for the editor.
 
 ## Usage
@@ -13,8 +13,8 @@ platform-neutral, which is why the same compiler runs in a Web Worker for the ed
 # tests/hello.vn
 module demo.hello
 
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -31,7 +31,7 @@ venn test tests/hello.vn
 The repository is not published, so from a source checkout the binary is:
 
 ```bash
-pnpm --filter @venn/cli build
+pnpm --filter @venn-lang/cli build
 node packages/cli/dist/bin/venn.mjs test examples/
 ```
 
@@ -52,6 +52,7 @@ node packages/cli/dist/bin/venn.mjs test examples/
 | `venn fmt [target]` | Format `.vn` files in place |
 | `venn check [target]` | Statically check without running |
 | `venn verify-plugin <path>` | Inspect a plugin module and check its shape |
+| `venn upgrade` | Move a global install to the latest published version |
 
 ### Starting a project
 
@@ -156,6 +157,29 @@ Imports the module, takes its default export (or the first export that looks lik
 prints the name, the namespace and how many actions, matchers and resources it declares. Exits 1
 when the shape is wrong.
 
+### upgrade
+
+```bash
+venn upgrade              # ask first, then run the install
+venn upgrade --dry-run    # print the command that would run, change nothing
+venn upgrade --yes        # skip the question, for a script
+```
+
+Finds which manager installed this copy by reading the path it is running from, then runs that
+manager's own global install. It does not rewrite its own files: the CLI cannot replace itself while
+it is executing, and on Windows the running executable is locked.
+
+The path is the signal because `npm_config_user_agent`, the obvious alternative, is only set while a
+package script runs and is empty when the binary is invoked directly, which is every real use.
+
+Two cases are refused rather than guessed at. A copy the project owns is left alone, since its
+version is pinned in the manifest and the next install would undo the upgrade; the message says to
+update it there instead. A path that matches no manager is refused outright, with the install command
+to run by hand. Both exit 1.
+
+A prerelease is never offered to someone on a stable version, since opting into one is a decision
+rather than an update.
+
 ## Targets: what a bare command means
 
 A path given outright always wins and is never second-guessed. With no path, the nearest `venn.toml`
@@ -219,14 +243,14 @@ The package also exports the seam the commands are built on, for embedding a run
 `runFile` takes the ports it should use, so a test can drive it entirely offline:
 
 ```ts
-import { createTestHost } from "@venn/contracts";
-import { createFakeClient, okResponse } from "@venn/http";
-import { createMemorySink } from "@venn/runtime";
-import { runFile } from "@venn/cli";
+import { createTestHost } from "@venn-lang/contracts";
+import { createFakeClient, okResponse } from "@venn-lang/http";
+import { createMemorySink } from "@venn-lang/runtime";
+import { runFile } from "@venn-lang/cli";
 
 const source = `module demo.hello
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -254,7 +278,7 @@ outcome.result?.passed; // 1
 
 ## See also
 
-- [`@venn/runtime`](../runtime) for the scheduler, the plugin registry and the event stream.
-- [`@venn/project`](../project) for manifests, workspaces, lockfiles and build profiles.
-- [`@venn/contracts`](../contracts) for the ports and the Node implementations bound here.
-- [`@venn/lsp`](../lsp) for the same compiler behind an editor.
+- [`@venn-lang/runtime`](../runtime) for the scheduler, the plugin registry and the event stream.
+- [`@venn-lang/project`](../project) for manifests, workspaces, lockfiles and build profiles.
+- [`@venn-lang/contracts`](../contracts) for the ports and the Node implementations bound here.
+- [`@venn-lang/lsp`](../lsp) for the same compiler behind an editor.

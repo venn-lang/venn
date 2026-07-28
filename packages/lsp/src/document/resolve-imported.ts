@@ -1,4 +1,4 @@
-import type { AstNode, Document, ValueImport } from "@venn/core";
+import type { AstNode, Document, ValueImport } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments, URI } from "langium";
 import type { ImportResolver } from "../workspace/index.js";
 import { findDeclaration } from "./find-binding.js";

@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { authActions } from "./actions/index.js";
 import { authTypeDefs, Token } from "./types/index.js";
 
@@ -10,7 +10,7 @@ import { authTypeDefs, Token } from "./types/index.js";
  * and is refused at load time on a host that cannot offer it.
  */
 export const authPlugin: PluginDefinition = definePlugin({
-  name: "@venn/auth",
+  name: "venn/auth",
   version: "0.0.0",
   namespace: "auth",
   requires: ["net"],

@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
-import { ConsolePort, createHost } from "@venn/contracts";
-import { checkTypes, type Document, parse } from "@venn/core";
-import { createRunner } from "@venn/runtime";
-import { allPlugins, stdlibPortBindings } from "@venn/stdlib";
+import { ConsolePort, createHost } from "@venn-lang/contracts";
+import { checkTypes, type Document, parse } from "@venn-lang/core";
+import { createRunner } from "@venn-lang/runtime";
+import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
 import { capture } from "./capture.ts";
 import type { Program } from "./program.types.ts";
 

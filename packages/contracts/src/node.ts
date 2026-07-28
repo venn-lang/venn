@@ -1,4 +1,4 @@
-// @venn/contracts/node: the corner backed by `node:*`. Only Node consumers (the
+// @venn-lang/contracts/node: the corner backed by `node:*`. Only Node consumers (the
 // CLI) import this; the main entry stays neutral so it runs in a Web Worker.
 
 export { createNodeHost } from "./host/create-node-host.js";

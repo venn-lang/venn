@@ -7,7 +7,7 @@ import {
   isStepDecl,
   type PlannedStep,
   type RunPlan,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { createScope, type Scope } from "../scope/index.js";
 import { absorbExit } from "./absorb-exit.js";
 import { hasAnnotation, readTags } from "./annotations.js";

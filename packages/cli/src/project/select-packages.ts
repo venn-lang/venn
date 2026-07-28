@@ -1,5 +1,5 @@
-import { createNodeFs } from "@venn/contracts/node";
-import { findProject, normalise, type Package, type Project } from "@venn/project";
+import { createNodeFs } from "@venn-lang/contracts/node";
+import { findProject, normalise, type Package, type Project } from "@venn-lang/project";
 
 export interface Selection {
   project: Project;

@@ -1,7 +1,7 @@
 // biome-ignore-all lint/suspicious/noTemplateCurlyInString: ${name} is a placeholder in a dotenv path, not a JavaScript template.
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { dotenvFiles, type Manifest, parseDotenv } from "@venn/contracts";
+import { dotenvFiles, type Manifest, parseDotenv } from "@venn-lang/contracts";
 
 export interface EnvArgs {
   manifest: Manifest | undefined;

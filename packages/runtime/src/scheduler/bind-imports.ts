@@ -4,7 +4,7 @@ import {
   isPackageSpecifier,
   isValueImport,
   type ValueImport,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { bindFunctions, bindPlainValues } from "./bind-globals.js";
 

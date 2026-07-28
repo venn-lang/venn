@@ -1,7 +1,7 @@
 /**
  * Where the cursor sits, and from which character the completion should
  * replace. Without that range VS Code falls back to its own word rules, which
- * break on `@` and `/`: accepting `@venn/http` inside `"@venn/"` would paste
+ * break on `@` and `/`: accepting `@venn-lang/http` inside `"@venn-lang/"` would paste
  * the prefix twice.
  */
 export type CompletionContext =

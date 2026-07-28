@@ -1,5 +1,5 @@
 /**
- * `@venn/notify`: the verbs that tell someone what a run did (`slack`,
+ * `@venn-lang/notify`: the verbs that tell someone what a run did (`slack`,
  * `webhook`, `email`) and the `Notifier` port they dispatch through.
  */
 

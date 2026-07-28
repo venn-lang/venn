@@ -1,13 +1,13 @@
-import { ALL_CAPABILITIES } from "@venn/contracts";
-import type { Document, Problem, VennAstType } from "@venn/core";
+import { ALL_CAPABILITIES } from "@venn-lang/contracts";
+import type { Document, Problem, VennAstType } from "@venn-lang/core";
 import {
   buildRegistry,
   checkDocument,
   checkImports,
   collectFragments,
   type Registry,
-} from "@venn/runtime";
-import { allPlugins } from "@venn/stdlib";
+} from "@venn-lang/runtime";
+import { allPlugins } from "@venn-lang/stdlib";
 import {
   AstUtils,
   type LangiumDocument,

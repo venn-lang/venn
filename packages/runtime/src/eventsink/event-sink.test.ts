@@ -1,4 +1,4 @@
-import type { Envelope } from "@venn/core";
+import type { Envelope } from "@venn-lang/core";
 import { eventSinkConformance } from "./event-sink.suite.js";
 import { createMemorySink } from "./memory-sink.js";
 import { createNdjsonSink } from "./ndjson-sink.js";

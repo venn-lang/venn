@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { dataActions } from "./actions/index.js";
 import { dataTypeDefs } from "./types.js";
 
@@ -9,7 +9,7 @@ import { dataTypeDefs } from "./types.js";
  * same values. Nothing here does I/O, so there is no capability and no port to bind.
  */
 export const dataPlugin: PluginDefinition = definePlugin({
-  name: "@venn/data",
+  name: "venn/data",
   version: "0.0.0",
   namespace: "data",
   actions: dataActions,

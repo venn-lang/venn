@@ -1,0 +1,62 @@
+name: Benchmark
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    # Only when something that executes changed. Documentation cannot slow the
+    # interpreter down.
+    paths:
+      - "packages/core/src/**"
+      - "packages/runtime/src/**"
+      - "benchmarks/**"
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm -r --sort run build
+
+      # Three runs, because a shared runner is noisy: variance between runs was
+      # measured at 5 to 11 percent locally, which is larger than most real
+      # regressions. One number here would be a coin toss reported as a fact.
+      - name: Measure
+        run: |
+          for i in 1 2 3; do
+            echo "### run $i"
+            pnpm run bench 2>&1 | tee -a bench.txt
+          done
+
+      - name: Summarise
+        run: |
+          {
+            echo "## Benchmark"
+            echo
+            echo "Three runs on a shared runner. Compare the ratios, not the milliseconds."
+            echo
+            echo '```'
+            grep -E "^(case|───|fib|reduce|branch|pipeline|loop|records|strings|Against|Spread)" bench.txt || cat bench.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark
+          path: bench.txt
+          retention-days: 90

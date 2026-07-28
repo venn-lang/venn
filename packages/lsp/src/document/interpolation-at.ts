@@ -1,4 +1,9 @@
-import { type AstNode, type InterpolationSlot, isStringLit, scanInterpolations } from "@venn/core";
+import {
+  type AstNode,
+  type InterpolationSlot,
+  isStringLit,
+  scanInterpolations,
+} from "@venn-lang/core";
 import { CstUtils, type LangiumDocument } from "langium";
 
 /** A dotted path of identifiers, e.g. `env.KEYCLOAK_URL`. */

@@ -15,7 +15,7 @@ import type {
   StepDecl,
   TryStmt,
   WhileStmt,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";

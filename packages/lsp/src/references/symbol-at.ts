@@ -16,7 +16,7 @@ import {
   isRunStmt,
   isTypeDecl,
   isValueImport,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { AstUtils, type CstNode, CstUtils, type LangiumDocument } from "langium";
 import type { Position } from "vscode-languageserver";
 import { findBinding } from "../document/index.js";

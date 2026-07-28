@@ -1,4 +1,4 @@
-import { type Document, isDecoDecl } from "@venn/core";
+import { type Document, isDecoDecl } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments } from "langium";
 
 /** Whether any open document declares a `deco` by this name. */

@@ -6,7 +6,7 @@ import {
   type Param,
   type SingleType,
   type TypeRef,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import { readDoc, renderDoc } from "../docs/index.js";
 import type { DecoInfo } from "./deco.types.js";

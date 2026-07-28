@@ -1,4 +1,4 @@
-import { defineMatcher, type MatcherDefinition } from "@venn/sdk";
+import { defineMatcher, type MatcherDefinition } from "@venn-lang/sdk";
 
 /**
  * `expect element visible`.

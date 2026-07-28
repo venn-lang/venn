@@ -1,4 +1,4 @@
-import type { ParamSpec } from "@venn/sdk";
+import type { ParamSpec } from "@venn-lang/sdk";
 import type { Range } from "vscode-languageserver";
 import { type CompletionItem, InsertTextFormat } from "vscode-languageserver";
 import { ICON } from "./icons.js";

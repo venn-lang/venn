@@ -6,7 +6,7 @@
  * the way the CLI does.
  */
 
-export type { BuildTarget, Dependency, Manifest, PackageInfo, Profile } from "@venn/contracts";
+export type { BuildTarget, Dependency, Manifest, PackageInfo, Profile } from "@venn-lang/contracts";
 export {
   conventionalTargets,
   findProject,

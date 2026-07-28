@@ -1,4 +1,4 @@
-import type { PackageManagerName } from "@venn/contracts";
+import type { PackageManagerName } from "@venn-lang/contracts";
 
 /** The four verbs Venn proxies to whichever package manager the project chose. */
 export type ProxiedVerb = "add" | "remove" | "update" | "install";

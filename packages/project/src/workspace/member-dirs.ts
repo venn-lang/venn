@@ -1,4 +1,4 @@
-import type { FileSystem, WorkspaceSettings } from "@venn/contracts";
+import type { FileSystem, WorkspaceSettings } from "@venn-lang/contracts";
 import { expandMembers } from "../glob/index.js";
 import { isInside, join, normalise } from "../paths/index.js";
 

@@ -7,7 +7,7 @@ import {
   isFragmentDecl,
   isGroupDecl,
   isStepDecl,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { DocumentSymbolProvider } from "langium/lsp";
 import { type DocumentSymbol, SymbolKind } from "vscode-languageserver";

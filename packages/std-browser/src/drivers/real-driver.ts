@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { type BrowserDriver, BrowserDriverPort } from "../port/index.js";
 
 function notImplemented(): VennError {

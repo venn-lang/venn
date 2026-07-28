@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction, optionalArg } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction, optionalArg } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { toCsv } from "../render/csv.js";
 import { toJson } from "../render/json.js";
 import { toTable } from "../render/table.js";

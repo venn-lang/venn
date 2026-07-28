@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { mqttConnect } from "./connect.js";
 import { mqttExpect } from "./expect.js";
 import { mqttPublish } from "./publish.js";

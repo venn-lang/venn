@@ -1,6 +1,6 @@
-import { checkTypes, parse, showType, type Type } from "@venn/core";
-import { defineAction, definePlugin } from "@venn/sdk";
-import { t } from "@venn/types";
+import { checkTypes, parse, showType, type Type } from "@venn-lang/core";
+import { defineAction, definePlugin } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { createTypeCatalog } from "./create-type-catalog.js";
 

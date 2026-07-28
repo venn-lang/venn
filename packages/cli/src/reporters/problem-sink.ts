@@ -1,5 +1,5 @@
-import type { Problem } from "@venn/core";
-import type { EventSink } from "@venn/runtime";
+import type { Problem } from "@venn-lang/core";
+import type { EventSink } from "@venn-lang/runtime";
 import { reportProblems } from "./problem-reporter.js";
 
 /**

@@ -1,4 +1,4 @@
-import { isCallable, isNamespaceValue, memberValue } from "@venn/core";
+import { isCallable, isNamespaceValue, memberValue } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 
 /**

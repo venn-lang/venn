@@ -1,4 +1,4 @@
-import type { AstNode } from "@venn/core";
+import type { AstNode } from "@venn-lang/core";
 import { CstUtils, type LangiumDocument } from "langium";
 
 /** A bracketed call the cursor is inside, read from the text. */

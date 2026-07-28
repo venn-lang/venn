@@ -1,5 +1,5 @@
-import type { ArgSpec } from "@venn/sdk";
-import type { TypeSpec } from "@venn/types";
+import type { ArgSpec } from "@venn-lang/sdk";
+import type { TypeSpec } from "@venn-lang/types";
 import type { Rng } from "../rng/index.js";
 
 /**

@@ -1,4 +1,4 @@
-import type { EventData, EventKind, NodePath } from "@venn/core";
+import type { EventData, EventKind, NodePath } from "@venn-lang/core";
 
 /** The single place `seq` increments and `ts` is stamped. Handlers emit only here. */
 export interface Emitter {

@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The named types `@venn/data` publishes to scripts, keyed by their bare name.
+ * The named types `@venn-lang/data` publishes to scripts, keyed by their bare name.
  *
  * Hand-mirrored from `csv/csv.types.ts`: the two must agree, so change them together.
  */

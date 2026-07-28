@@ -1,4 +1,4 @@
-// @venn/lsp: the Venn language server. Diagnostics, semantic highlighting,
+// @venn-lang/lsp: the Venn language server. Diagnostics, semantic highlighting,
 // hover, go-to-definition, completion and the document outline.
 
 export type { ActionEntry, MatcherEntry, SymbolCatalog } from "./catalog/index.js";

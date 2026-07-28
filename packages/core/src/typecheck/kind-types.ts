@@ -1,4 +1,4 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 import { TARGET_KINDS, type TargetKind } from "../expand/index.js";
 import { specToType } from "./spec-to-type.js";
 import type { Type } from "./type.types.js";

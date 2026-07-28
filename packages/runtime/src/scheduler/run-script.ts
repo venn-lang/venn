@@ -1,4 +1,4 @@
-import type { Document } from "@venn/core";
+import type { Document } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { absorbExit } from "./absorb-exit.js";
 import { createBaseScope } from "./base-scope.js";

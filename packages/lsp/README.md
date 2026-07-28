@@ -1,4 +1,4 @@
-# @venn/lsp
+# @venn-lang/lsp
 
 > The Venn language server: diagnostics, hover, completion, definition, references, rename, signature help, semantic tokens, formatting, document highlight and quick fixes for `.vn` files.
 
@@ -9,14 +9,14 @@ Venn's grammar is deliberately tiny, so the parser alone cannot tell `http.get` 
 Run the server from a shell. With no transport flag it defaults to stdio, so a bare invocation works.
 
 ```bash
-pnpm --filter @venn/lsp build
+pnpm --filter @venn-lang/lsp build
 node packages/lsp/dist/bin/venn-lsp.mjs --stdio
 ```
 
 To host it yourself, hand `startVennServer` a connection. This is the whole server entry point of the VS Code extension:
 
 ```ts
-import { startVennServer } from "@venn/lsp";
+import { startVennServer } from "@venn-lang/lsp";
 import { createConnection, ProposedFeatures } from "vscode-languageserver/node";
 
 startVennServer(createConnection(ProposedFeatures.all));
@@ -25,7 +25,7 @@ startVennServer(createConnection(ProposedFeatures.all));
 To drive the providers directly (tests, a custom editor, a node graph UI), build the services and call them:
 
 ```ts
-import { createVennLspServices } from "@venn/lsp";
+import { createVennLspServices } from "@venn-lang/lsp";
 import { EmptyFileSystem } from "langium";
 
 const { shared, Venn } = createVennLspServices(EmptyFileSystem);
@@ -108,7 +108,7 @@ Each is registered by `createVennLspServices`; export them for direct use or for
 | **Signature help** | Space is a trigger character alongside `(` and `,`, because a Venn call needs no brackets: `http.on ` already has an argument due. The options map counts as the last parameter. |
 | **Semantic tokens** | The namespace of `http.get` is coloured apart from the verb, a matcher is a `method`, an annotation is a `decorator`, a `run` target is a `macro`, and anything the catalog knows carries the `defaultLibrary` modifier. |
 | **Outline** | Flows with their nested steps and groups, plus fragments and `deco` declarations. |
-| **Formatting** | Runs through `formatText` in `@venn/core`, so the editor and `venn fmt` produce byte-identical output. `[format]` in `venn.toml` wins; the editor's indent settings fill in the rest. On-type formatting triggers on `}` and newline. |
+| **Formatting** | Runs through `formatText` in `@venn-lang/core`, so the editor and `venn fmt` produce byte-identical output. `[format]` in `venn.toml` wins; the editor's indent settings fill in the rest. On-type formatting triggers on `}` and newline. |
 | **Quick fixes** | `VN2007` offers `Add use "<pkg>"` for every package providing the namespace, inserted above the imports. `VN2005` offers `Import <name> from "…"` for every module that publishes it. `VN5001` replaces `capture` with `let`. |
 
 ## Documenting a declaration
@@ -161,7 +161,7 @@ vim.lsp.enable("venn")
 
 ## See also
 
-- [`@venn/core`](../core) for the grammar, the AST, type inference and the formatter.
-- [`@venn/runtime`](../runtime) for the static check and the plugin registry the diagnostics use.
-- [`@venn/stdlib`](../stdlib) for the plugins the catalog indexes.
+- [`@venn-lang/core`](../core) for the grammar, the AST, type inference and the formatter.
+- [`@venn-lang/runtime`](../runtime) for the static check and the plugin registry the diagnostics use.
+- [`@venn-lang/stdlib`](../stdlib) for the plugins the catalog indexes.
 - [`packages/vscode`](../vscode) for the client that ships this server.

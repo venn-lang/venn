@@ -1,4 +1,4 @@
-import { BUILTIN_TYPES, type Document, isTypeDecl } from "@venn/core";
+import { BUILTIN_TYPES, type Document, isTypeDecl } from "@venn-lang/core";
 import type { CompletionItem, Range } from "vscode-languageserver";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { ICON } from "./icons.js";

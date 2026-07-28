@@ -1,5 +1,5 @@
-import { type ActionDefinition, Duration, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, Duration, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { MailClientPort } from "../port/index.js";
 
 const waitForParams = z.object({

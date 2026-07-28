@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { fakerActions } from "./faker-actions.js";
 import { csv, json } from "./parse-actions.js";
 import { oneOf, range, shuffle } from "./random-actions.js";

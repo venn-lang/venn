@@ -1,6 +1,6 @@
-import { createTestHost } from "@venn/contracts";
-import { AROUND_KEYS, addDecoration, nativeFn, parse } from "@venn/core";
-import { defineAction, type defineDecorator, definePlugin } from "@venn/sdk";
+import { createTestHost } from "@venn-lang/contracts";
+import { AROUND_KEYS, addDecoration, nativeFn, parse } from "@venn-lang/core";
+import { defineAction, type defineDecorator, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
 import { createRunner } from "../run/create-runner.js";

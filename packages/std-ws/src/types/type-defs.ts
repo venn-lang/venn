@@ -1,4 +1,4 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
  * The types the plugin publishes to flows, as `ws.Message`.

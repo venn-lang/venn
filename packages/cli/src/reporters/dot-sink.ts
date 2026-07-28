@@ -1,5 +1,5 @@
-import type { Envelope } from "@venn/core";
-import type { EventSink } from "@venn/runtime";
+import type { Envelope } from "@venn-lang/core";
+import type { EventSink } from "@venn-lang/runtime";
 
 /** Terminal reporter: one char per assertion, a summary line at the end. */
 export function createDotSink(): EventSink {

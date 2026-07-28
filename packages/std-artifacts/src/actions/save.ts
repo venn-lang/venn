@@ -1,5 +1,5 @@
-import { type ActionDefinition, defineAction, restArg } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, defineAction, restArg } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { ArtifactStorePort } from "../store/index.js";
 import type { ArtifactRef } from "../types/index.js";
 

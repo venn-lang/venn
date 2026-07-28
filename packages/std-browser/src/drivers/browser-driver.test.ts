@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { createFakeBrowserDriver } from "./fake-driver.js";
 import { createRealBrowserDriver } from "./real-driver.js";

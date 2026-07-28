@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { dbActions } from "./actions/index.js";
 import { dbTypeDefs, RowSchema } from "./types/index.js";
 
@@ -10,7 +10,7 @@ import { dbTypeDefs, RowSchema } from "./types/index.js";
  * host offers the `net` capability.
  */
 export const dbPlugin: PluginDefinition = definePlugin({
-  name: "@venn/db",
+  name: "venn/db",
   version: "0.0.0",
   namespace: "db",
   requires: ["net"],

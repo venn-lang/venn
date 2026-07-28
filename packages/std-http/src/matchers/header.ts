@@ -1,5 +1,5 @@
-import { arg, defineMatcher, type MatcherDefinition, optionalArg } from "@venn/sdk";
-import { t } from "@venn/types";
+import { arg, defineMatcher, type MatcherDefinition, optionalArg } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 
 /**
  * `expect res header "content-type"`: passes if the response carries the header.

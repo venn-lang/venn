@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { resolveAlias } from "@venn/contracts";
-import type { ModuleIo } from "@venn/runtime";
+import { resolveAlias } from "@venn-lang/contracts";
+import type { ModuleIo } from "@venn-lang/runtime";
 
 /** Where a `#alias/…` specifier is resolved from. */
 interface Roots {

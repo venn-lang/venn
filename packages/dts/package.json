@@ -1,5 +1,5 @@
 {
-  "name": "@venn/dts",
+  "name": "@venn-lang/dts",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/types": "workspace:*",
+    "@venn-lang/types": "workspace:*",
     "tsc-api": "npm:typescript@^5.9.0"
   },
   "devDependencies": {

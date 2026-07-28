@@ -12,9 +12,15 @@
 Faster than CPython. Beats hand-written TypeScript on three of seven benchmarks.<br>
 Small enough to read in an afternoon.
 
+[![CI](https://github.com/venn-lang/venn/actions/workflows/ci.yml/badge.svg)](https://github.com/venn-lang/venn/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/venn-lang/venn/branch/main/graph/badge.svg)](https://codecov.io/gh/venn-lang/venn)
+[![Security](https://github.com/venn-lang/venn/actions/workflows/security.yml/badge.svg)](https://github.com/venn-lang/venn/actions/workflows/security.yml)
+[![License](https://img.shields.io/github/license/venn-lang/venn)](LICENSE)
+[![Node](https://img.shields.io/badge/node-24-informational)](package.json)
+
 <sub>
 
-[Why Venn](#why-venn-exists) · [Performance](#performance) · [The language](#the-language) · [Testing](#testing) · [Examples](examples) · [Getting started](#getting-started)
+[Why Venn](#why-venn-exists) · [Performance](#performance) · [The language](#the-language) · [Testing](#testing) · [Examples](examples) · [Roadmap](ROADMAP.md) · [Getting started](#getting-started)
 
 </sub>
 
@@ -23,7 +29,7 @@ Small enough to read in an afternoon.
 <br>
 
 ```ruby
-use "@venn/http"
+use "venn/http"
 
 flow "Checkout" {
   let cart = http.post "https://shop.test/cart" { body: { sku: "A-12" } }
@@ -242,8 +248,8 @@ A `flow` is a test. A `step` is a named piece of one, and it is what appears in
 the report and in the failure trace.
 
 ```ruby
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Sign-up" {
   let created = http.post "https://api.test/users" { body: { email: "a@b.c" } }
@@ -290,7 +296,7 @@ arrives through `use`:
 `notify` · `ws`
 
 Plugins are ordinary packages. Writing one means calling `definePlugin` from
-[`@venn/sdk`](packages/sdk), and a single `defineAction` feeds the runtime, the
+[`@venn-lang/sdk`](packages/sdk), and a single `defineAction` feeds the runtime, the
 language server and the node graph at once.
 
 ## Errors
@@ -365,14 +371,14 @@ concurrency.
 
 | package | what it is |
 | :--- | :--- |
-| [`@venn/core`](packages/core) | Grammar, parser, type checker, expression compiler, IR |
-| [`@venn/runtime`](packages/runtime) | Scheduler, plugin registry, scopes, event stream |
-| [`@venn/contracts`](packages/contracts) | Ports, host capabilities, conformance harness |
-| [`@venn/sdk`](packages/sdk) | Everything a plugin author touches |
-| [`@venn/cli`](packages/cli) | The `venn` binary |
-| [`@venn/lsp`](packages/lsp) | Language server |
-| [`@venn/types`](packages/types) | The type vocabulary as plain data |
-| [`@venn/project`](packages/project) | Manifests, workspaces, build profiles |
+| [`@venn-lang/core`](packages/core) | Grammar, parser, type checker, expression compiler, IR |
+| [`@venn-lang/runtime`](packages/runtime) | Scheduler, plugin registry, scopes, event stream |
+| [`@venn-lang/contracts`](packages/contracts) | Ports, host capabilities, conformance harness |
+| [`@venn-lang/sdk`](packages/sdk) | Everything a plugin author touches |
+| [`@venn-lang/cli`](packages/cli) | The `venn` binary |
+| [`@venn-lang/lsp`](packages/lsp) | Language server |
+| [`@venn-lang/types`](packages/types) | The type vocabulary as plain data |
+| [`@venn-lang/project`](packages/project) | Manifests, workspaces, build profiles |
 | `packages/std-*` | The standard library, one package per namespace |
 
 ## Status

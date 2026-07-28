@@ -1,4 +1,4 @@
-import type { MatcherDefinition, MatcherDetail } from "@venn/sdk";
+import type { MatcherDefinition, MatcherDetail } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { assertMatchers } from "./matchers/index.js";
 

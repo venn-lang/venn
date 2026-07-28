@@ -7,4 +7,4 @@ export type {
   SpawnArgs,
 } from "./process-provider.types.js";
 // node-spawn is deliberately absent: like node-fs it lives behind
-// @venn/contracts/node, so this barrel stays Worker-safe.
+// @venn-lang/contracts/node, so this barrel stays Worker-safe.

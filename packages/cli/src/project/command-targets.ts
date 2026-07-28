@@ -1,5 +1,5 @@
-import { createNodeFs } from "@venn/contracts/node";
-import { type BuildTarget, join, type Package } from "@venn/project";
+import { createNodeFs } from "@venn-lang/contracts/node";
+import { type BuildTarget, join, type Package } from "@venn-lang/project";
 
 const TESTS_DIR = "tests";
 

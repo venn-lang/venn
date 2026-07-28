@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 import type { LoadMetrics } from "./load-metrics.types.js";
 
 /** Runtime validator for the nominal `load.Metrics` type. */

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { envPlugin } from "./plugin.js";
 
-describe("@venn/env", () => {
+describe("venn/env", () => {
   it("contributes the `env` namespace and nothing else", () => {
     expect(envPlugin.namespace).toBe("env");
-    expect(envPlugin.name).toBe("@venn/env");
+    expect(envPlugin.name).toBe("venn/env");
   });
 
   it("has no verbs — `env.NAME` is a read, not a call", () => {

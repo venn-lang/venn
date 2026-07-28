@@ -5,8 +5,8 @@ import {
   parseDotenv,
   resolveAlias,
   tomlDocs,
-} from "@venn/contracts";
-import type { TypeSpec } from "@venn/types";
+} from "@venn-lang/contracts";
+import type { TypeSpec } from "@venn-lang/types";
 import { type URI, UriUtils } from "langium";
 
 /**

@@ -1,5 +1,5 @@
-import { type ActionDefinition, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { WsClientPort } from "../port/index.js";
 
 /** `ws.close`: hang up the connection the port is holding. Takes nothing. */

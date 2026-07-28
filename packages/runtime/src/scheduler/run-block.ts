@@ -1,4 +1,4 @@
-import { type Block, isLifecycleDecl, type LifecycleDecl, type Statement } from "@venn/core";
+import { type Block, isLifecycleDecl, type LifecycleDecl, type Statement } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { type BlockPlan, planOf, type Step } from "./block-plan.js";
 import type { Engine } from "./engine.types.js";

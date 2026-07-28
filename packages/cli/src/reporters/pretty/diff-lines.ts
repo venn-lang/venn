@@ -1,4 +1,4 @@
-import { type Diff, type DiffEntry, formatValue } from "@venn/core";
+import { type Diff, type DiffEntry, formatValue } from "@venn-lang/core";
 import { bold, dim, green, red } from "../colors.js";
 
 const INDENT = "     ";

@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { DbClientPort, type DbSnapshot } from "../port/index.js";
 
 /** `db.restore(snapshot)`: put the tables back as `db.snapshot` found them. */

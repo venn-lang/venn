@@ -1,4 +1,4 @@
-import { type ActionDefinition, defineAction } from "@venn/sdk";
+import { type ActionDefinition, defineAction } from "@venn-lang/sdk";
 import { allFakerSpecs, type FakerSpec } from "../faker/index.js";
 import { rng } from "../rng/index.js";
 

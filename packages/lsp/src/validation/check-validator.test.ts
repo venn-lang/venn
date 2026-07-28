@@ -22,7 +22,7 @@ describe("diagnostics", () => {
   });
 
   it("stays silent on a document whose references all resolve", async () => {
-    const found = await codes(`use "@venn/http"
+    const found = await codes(`use "venn/http"
 
 flow "F" {
   step "s" {

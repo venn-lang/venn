@@ -1,6 +1,12 @@
-import { VennError } from "@venn/contracts";
-import { buildDiff, type Diff, type ExpectStmt, evaluate, type MatcherClause } from "@venn/core";
-import type { MatcherArgs, MatcherDefinition } from "@venn/sdk";
+import { VennError } from "@venn-lang/contracts";
+import {
+  buildDiff,
+  type Diff,
+  type ExpectStmt,
+  evaluate,
+  type MatcherClause,
+} from "@venn-lang/core";
+import type { MatcherArgs, MatcherDefinition } from "@venn-lang/sdk";
 import type { ResolvedMatcher } from "../registry/index.js";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";

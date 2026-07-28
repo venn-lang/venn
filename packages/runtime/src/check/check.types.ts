@@ -1,4 +1,4 @@
-import type { Document } from "@venn/core";
+import type { Document } from "@venn-lang/core";
 import type { Registry } from "../registry/index.js";
 
 /** Inputs to a static name-resolution pass over a parsed document. */

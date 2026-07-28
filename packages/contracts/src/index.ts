@@ -1,4 +1,4 @@
-// @venn/contracts: the neutral core. Everything reachable from here is
+// @venn-lang/contracts: the neutral core. Everything reachable from here is
 // Worker-safe. Implementations backed by `node:*` live behind the "./node"
 // subpath, conformance suites behind "./testing".
 export * from "./capabilities/index.js";

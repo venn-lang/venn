@@ -1,18 +1,18 @@
-# @venn/dts
+# @venn-lang/dts
 
 > Reads the types an installed npm package publishes and returns them as Venn `TypeSpec`s.
 
 A Venn file can import from a package it installed: `import { z } from "zod"`. For the checker to say
 anything at all about `z`, something has to work out what `zod` publishes. That is this package. It
 asks the TypeScript compiler rather than parsing `.d.ts` text, and hands back plain data that
-[`@venn/core`](../core) can check against without ever learning what npm is.
+[`@venn-lang/core`](../core) can check against without ever learning what npm is.
 
 Node only: it loads the TypeScript compiler API.
 
 ## Usage
 
 ```ts
-import { readPackageTypes } from "@venn/dts";
+import { readPackageTypes } from "@venn-lang/dts";
 
 const types = readPackageTypes({
   package: "zod",
@@ -66,7 +66,7 @@ The answer is an empty result, and every imported name is `dynamic`, which is th
 
 ## How a TypeScript type is projected
 
-Everything TypeScript can say lands on one of the shapes in [`@venn/types`](../types) or degrades to
+Everything TypeScript can say lands on one of the shapes in [`@venn-lang/types`](../types) or degrades to
 `dynamic`. It never fails.
 
 | TypeScript | `TypeSpec` |
@@ -123,6 +123,6 @@ it will not use.
 
 ## See also
 
-- [`@venn/types`](../types) defines `TypeSpec`, the vocabulary everything here is converted into.
-- [`@venn/core`](../core) binds these specs to imported names and checks the calls against them.
-- [`@venn/cli`](../cli) runs the derivation at install time and reads the result at check time.
+- [`@venn-lang/types`](../types) defines `TypeSpec`, the vocabulary everything here is converted into.
+- [`@venn-lang/core`](../core) binds these specs to imported names and checks the calls against them.
+- [`@venn-lang/cli`](../cli) runs the derivation at install time and reads the result at check time.

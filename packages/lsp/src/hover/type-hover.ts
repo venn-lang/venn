@@ -1,4 +1,4 @@
-import { type AstNode, isExpr, prune, showType, type Type } from "@venn/core";
+import { type AstNode, isExpr, prune, showType, type Type } from "@venn-lang/core";
 import { AstUtils, type CstNode } from "langium";
 import type { TypeService } from "../types/index.js";
 

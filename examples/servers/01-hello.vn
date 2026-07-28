@@ -1,7 +1,7 @@
 # The smallest server that answers, and a request to it, in the same file.
 # Run: venn run examples/servers/01-hello.vn
 
-use "@venn/http"
+use "venn/http"
 
 # Port 0 asks the operating system for a free port, so two runs never clash.
 const api = http.serve { port: 0 }

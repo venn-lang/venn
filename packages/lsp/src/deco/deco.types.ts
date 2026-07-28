@@ -1,4 +1,4 @@
-import type { DecoDecl } from "@venn/core";
+import type { DecoDecl } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 
 /**

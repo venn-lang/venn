@@ -1,4 +1,4 @@
-// @venn/sdk: the plugin authoring API. Thin, typed builders that return plain
+// @venn-lang/sdk: the plugin authoring API. Thin, typed builders that return plain
 // definition objects the runtime registry ingests.
 
 export { defineAction } from "./define-action.js";

@@ -1,4 +1,4 @@
-import type { FnSpec } from "@venn/types";
+import type { FnSpec } from "@venn-lang/types";
 import type { ZodType } from "zod";
 import type { ArgSpec } from "../schema/args.types.js";
 import type { ActionContext, ActionInput } from "./context.types.js";

@@ -6,7 +6,7 @@ import {
   isFragmentDecl,
   isLifecycleDecl,
   type LifecycleDecl,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { createScope } from "../scope/index.js";
 
 /** Top-level lifecycle blocks, grouped by hook. */

@@ -18,6 +18,9 @@ catalogs:
     '@types/node':
       specifier: ^24
       version: 24.13.3
+    '@vitest/coverage-v8':
+      specifier: ^4.1.10
+      version: 4.1.10
     '@vscode/vsce':
       specifier: ^3.2.2
       version: 3.9.2
@@ -52,6 +55,9 @@ catalogs:
       specifier: ^4.4.3
       version: 4.4.3
 
+overrides:
+  brace-expansion: '>=5.0.8'
+
 importers:
 
   .:
@@ -59,31 +65,37 @@ importers:
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.5.5
+      '@changesets/changelog-github':
+        specifier: ^0.7.0
+        version: 0.7.0
       '@changesets/cli':
         specifier: 'catalog:'
         version: 2.31.1(@types/node@24.13.3)
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 4.1.10(vitest@4.1.10)
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   benchmarks:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../packages/contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../packages/core
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../packages/runtime
-      '@venn/stdlib':
+      '@venn-lang/stdlib':
         specifier: workspace:*
         version: link:../packages/stdlib
     devDependencies:
@@ -96,37 +108,37 @@ importers:
 
   packages/cli:
     dependencies:
-      '@venn/assert':
+      '@venn-lang/assert':
         specifier: workspace:*
         version: link:../std-assert
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
-      '@venn/dts':
+      '@venn-lang/dts':
         specifier: workspace:*
         version: link:../dts
-      '@venn/http':
+      '@venn-lang/http':
         specifier: workspace:*
         version: link:../std-http
-      '@venn/io':
+      '@venn-lang/io':
         specifier: workspace:*
         version: link:../std-io
-      '@venn/project':
+      '@venn-lang/project':
         specifier: workspace:*
         version: link:../project
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/stdlib':
+      '@venn-lang/stdlib':
         specifier: workspace:*
         version: link:../stdlib
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       citty:
@@ -144,13 +156,13 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/contracts:
     devDependencies:
       '@fast-check/vitest':
         specifier: 'catalog:'
-        version: 0.4.1(vitest@4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3)))
+        version: 0.4.1(vitest@4.1.10)
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -162,14 +174,14 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/core:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       langium:
@@ -178,7 +190,7 @@ importers:
     devDependencies:
       '@fast-check/vitest':
         specifier: 'catalog:'
-        version: 0.4.1(vitest@4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3)))
+        version: 0.4.1(vitest@4.1.10)
       langium-cli:
         specifier: 'catalog:'
         version: 4.3.0
@@ -190,11 +202,11 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/dts:
     dependencies:
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       tsc-api:
@@ -209,26 +221,26 @@ importers:
         version: 0.22.14(typescript@7.0.2)
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/lsp:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/stdlib':
+      '@venn-lang/stdlib':
         specifier: workspace:*
         version: link:../stdlib
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       langium:
@@ -252,11 +264,11 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/project:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
     devDependencies:
@@ -268,20 +280,20 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/runtime:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -293,14 +305,14 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/sdk:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       zod:
@@ -315,17 +327,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-artifacts:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -337,14 +349,14 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-assert:
     dependencies:
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -356,17 +368,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-auth:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -378,17 +390,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-browser:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -400,17 +412,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-crypto:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -422,17 +434,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-data:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -444,17 +456,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-db:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -466,11 +478,11 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-env:
     dependencies:
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
@@ -482,14 +494,14 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-fmt:
     dependencies:
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -501,17 +513,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-graphql:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -523,17 +535,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-grpc:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -545,17 +557,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-http:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -570,23 +582,23 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-io:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
       '@fast-check/vitest':
         specifier: 'catalog:'
-        version: 0.4.1(vitest@4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3)))
+        version: 0.4.1(vitest@4.1.10)
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)
@@ -595,17 +607,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-load:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -617,17 +629,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-mail:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -639,17 +651,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-mock:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -661,17 +673,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-mqtt:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -683,17 +695,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-notify:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -705,17 +717,17 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/std-ws:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -727,77 +739,77 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/stdlib:
     dependencies:
-      '@venn/artifacts':
+      '@venn-lang/artifacts':
         specifier: workspace:*
         version: link:../std-artifacts
-      '@venn/assert':
+      '@venn-lang/assert':
         specifier: workspace:*
         version: link:../std-assert
-      '@venn/auth':
+      '@venn-lang/auth':
         specifier: workspace:*
         version: link:../std-auth
-      '@venn/browser':
+      '@venn-lang/browser':
         specifier: workspace:*
         version: link:../std-browser
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/crypto':
+      '@venn-lang/crypto':
         specifier: workspace:*
         version: link:../std-crypto
-      '@venn/data':
+      '@venn-lang/data':
         specifier: workspace:*
         version: link:../std-data
-      '@venn/db':
+      '@venn-lang/db':
         specifier: workspace:*
         version: link:../std-db
-      '@venn/env':
+      '@venn-lang/env':
         specifier: workspace:*
         version: link:../std-env
-      '@venn/fmt':
+      '@venn-lang/fmt':
         specifier: workspace:*
         version: link:../std-fmt
-      '@venn/graphql':
+      '@venn-lang/graphql':
         specifier: workspace:*
         version: link:../std-graphql
-      '@venn/grpc':
+      '@venn-lang/grpc':
         specifier: workspace:*
         version: link:../std-grpc
-      '@venn/http':
+      '@venn-lang/http':
         specifier: workspace:*
         version: link:../std-http
-      '@venn/io':
+      '@venn-lang/io':
         specifier: workspace:*
         version: link:../std-io
-      '@venn/load':
+      '@venn-lang/load':
         specifier: workspace:*
         version: link:../std-load
-      '@venn/mail':
+      '@venn-lang/mail':
         specifier: workspace:*
         version: link:../std-mail
-      '@venn/mock':
+      '@venn-lang/mock':
         specifier: workspace:*
         version: link:../std-mock
-      '@venn/mqtt':
+      '@venn-lang/mqtt':
         specifier: workspace:*
         version: link:../std-mqtt
-      '@venn/notify':
+      '@venn-lang/notify':
         specifier: workspace:*
         version: link:../std-notify
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
-      '@venn/ws':
+      '@venn-lang/ws':
         specifier: workspace:*
         version: link:../std-ws
     devDependencies:
@@ -809,7 +821,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/types:
     devDependencies:
@@ -821,11 +833,11 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   packages/vscode:
     dependencies:
-      '@venn/lsp':
+      '@venn-lang/lsp':
         specifier: workspace:*
         version: link:../lsp
       vscode-languageclient:
@@ -849,7 +861,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
 packages:
 
@@ -907,13 +919,30 @@ packages:
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/helper-string-parser@7.29.7':
+    resolution: {integrity: sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/helper-validator-identifier@7.29.7':
     resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/parser@7.29.7':
+    resolution: {integrity: sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
   '@babel/runtime@7.29.7':
     resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
     engines: {node: '>=6.9.0'}
+
+  '@babel/types@7.29.7':
+    resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
+    engines: {node: '>=6.9.0'}
+
+  '@bcoe/v8-coverage@1.0.2':
+    resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
+    engines: {node: '>=18'}
 
   '@biomejs/biome@2.5.5':
     resolution: {integrity: sha512-r1S8nFsAG1MY+vJFZALzIvwXAJv6ejDQ0mxP21Tgr9YK3ZFtjrvbBwDdNhx1rUqvccEIeNg20cYCNzl6Cr69pQ==}
@@ -981,6 +1010,9 @@ packages:
   '@changesets/changelog-git@0.2.1':
     resolution: {integrity: sha512-x/xEleCFLH28c3bQeQIyeZf8lFXyDFVn1SgcBiR2Tw/r4IAWlk1fzxCEZ6NxQAjF2Nwtczoen3OA2qR+UawQ8Q==}
 
+  '@changesets/changelog-github@0.7.0':
+    resolution: {integrity: sha512-rBsbRvc4TVn+FvFnOVM3LxlFJfTXXCp8gfVJ+0BubxWNSVnLuAzowi5j+IEraLLP52w8AAs9QfKbPS3MMiXQJA==}
+
   '@changesets/cli@2.31.1':
     resolution: {integrity: sha512-uO05WTcRBwuVOJVSW8Cmpqw6q0WDL53ajGCMyszutvOe5toOnunbpM4jZzf+qxBOz7i0AzopZ8diBuewjmF40w==}
     hasBin: true
@@ -993,6 +1025,9 @@ packages:
 
   '@changesets/get-dependents-graph@2.1.4':
     resolution: {integrity: sha512-ZsS00x6WvmHq3sQv8oCMwL0f/z3wbXCVuSVTJwCnnmbC/iBdNJGFx1EcbMG4PC6sXRyH69liM4A2WKXzn/kRPg==}
+
+  '@changesets/get-github-info@0.8.0':
+    resolution: {integrity: sha512-cRnC+xdF0JIik7coko3iUP9qbnfi1iJQ3sAa6dE+Tx3+ET8bjFEm63PA4WEohgjYcmsOikPHWzPsMWWiZmntOQ==}
 
   '@changesets/get-release-plan@4.0.16':
     resolution: {integrity: sha512-2K5Om6CrMPm45rtvckfzWo7e9jOVCKLCnXia5eUPaURH7/LWzri7pK1TycdzAuAtehLkW7VPbWLCSExTHmiI6g==}
@@ -1071,8 +1106,15 @@ packages:
       '@types/node':
         optional: true
 
+  '@jridgewell/resolve-uri@3.1.2':
+    resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
+    engines: {node: '>=6.0.0'}
+
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
+
+  '@jridgewell/trace-mapping@0.3.31':
+    resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -1518,6 +1560,15 @@ packages:
     resolution: {integrity: sha512-JVUD8X2tfDMWjcjLs4yVxxVrS8yR5vnh386GAXT9Qj79nBxxXSaHFQZg5FweLmT8HlPQ3kii6noUB+Z9RN7DvQ==}
     engines: {node: '>=22.0.0'}
 
+  '@vitest/coverage-v8@4.1.10':
+    resolution: {integrity: sha512-IM49HmthevbgAO4anp1hwtoT9wYe59w0LR00gr+eagHE+ZJ5lK4sLPeO0ubgoJcwLk6dehU3R24N+FbEEKDc8g==}
+    peerDependencies:
+      '@vitest/browser': 4.1.10
+      vitest: 4.1.10
+    peerDependenciesMeta:
+      '@vitest/browser':
+        optional: true
+
   '@vitest/expect@4.1.10':
     resolution: {integrity: sha512-YsCn+qAk1GWjQOWFEsEcL2gNQ0zmVmQu3T03qP6UyjhtmdtwtbuI+DASn/7iQB3HGTXkdBwGddzxPlmiql5vlA==}
 
@@ -1770,6 +1821,9 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
+  ast-v8-to-istanbul@1.0.5:
+    resolution: {integrity: sha512-UPAgKJFSEGMWSDr3LX4tqnAb4f7KGT8O40Tyx8wbYmmZ/yn58lNCm8h3svs3eXgiGd5AXxz8NDOvXWvicq+rJA==}
+
   astral-regex@2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
     engines: {node: '>=8'}
@@ -1779,9 +1833,6 @@ packages:
 
   azure-devops-node-api@12.5.0:
     resolution: {integrity: sha512-R5eFskGvOm3U/GzeAuxRkUsAl0hrAwGgWn6zAd2KrZmrEhWZVqLew4OOupbQlXUuojUzpGtq62SmdhJ06N88og==}
-
-  balanced-match@1.0.2:
-    resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
@@ -1806,9 +1857,6 @@ packages:
 
   boundary@2.0.0:
     resolution: {integrity: sha512-rJKn5ooC9u8q13IMCrW0RSp31pxBCHE3y9V/tp3TdWSLf8Em3p6Di4NBpfzbJge9YjjFEsD0RtFEjtvHL5VyEA==}
-
-  brace-expansion@2.1.2:
-    resolution: {integrity: sha512-w5JZcKgdhDOgOwm8H+KgbosopHMuGcl6qbulwjtz3SM7I7P3yW1eAjzMPLrIE+NQ9vjgANKHWeMHnrT0OXW1oA==}
 
   brace-expansion@5.0.8:
     resolution: {integrity: sha512-JZyDyq3D4AUifKTPOB7DELf6XsB3WdPuNxCtob1vFXPsSXhdAiHBWJ/tJ8HAc9aH84BK+5JFZLNkJKx3G9kzQg==}
@@ -1917,6 +1965,9 @@ packages:
     resolution: {integrity: sha512-u/O3vwbptzhMs3L1fQE82ZSLHQQfto5gyZzwteVIEyeaY5Fc7R4dapF/BvRoSYFeqfBk4m0V1Vafq5Pjv25wvA==}
     engines: {node: '>= 6'}
 
+  dataloader@1.4.0:
+    resolution: {integrity: sha512-68s5jYdlvasItOJnCuI2Q9s4q98g0pCyL3HrcKJu8KNugUl8ahgmZYg38ysLTgQjjXX3H8CJLkAvWrclWfcalw==}
+
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
@@ -1977,6 +2028,10 @@ packages:
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
+
+  dotenv@8.6.0:
+    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
+    engines: {node: '>=10'}
 
   dts-resolver@3.0.0:
     resolution: {integrity: sha512-1T1f+z+4tl9XD+m+0HBgWoL/nm0bOIffyWaUuUSBlFg/86IWvfx+wjNaO/ybU0AJzG9/Mi5hBUgGV6zCmWEN7Q==}
@@ -2195,6 +2250,9 @@ packages:
     resolution: {integrity: sha512-puUZAUKT5m8Zzvs72XWy3HtvVbTWljRE66cP60bxJzAqf2DgICo7lYTY2IHUmLnNpjYvw5bvmoHvPc0QO2a62w==}
     engines: {node: ^16.14.0 || >=18.0.0}
 
+  html-escaper@2.0.2:
+    resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
+
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
 
@@ -2284,9 +2342,24 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  istanbul-lib-coverage@3.2.2:
+    resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
+    engines: {node: '>=8'}
+
+  istanbul-lib-report@3.0.1:
+    resolution: {integrity: sha512-GCfE1mtsHGOELCU8e/Z7YWzpmybrx/+dSTfLrvY8qRmaY6zXTKWn6WQIjaAFw069icm6GVMNkgu0NzI4iPZUNw==}
+    engines: {node: '>=10'}
+
+  istanbul-reports@3.2.0:
+    resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
+    engines: {node: '>=8'}
+
   istextorbinary@9.5.0:
     resolution: {integrity: sha512-5mbUj3SiZXCuRf9fT3ibzbSSEWiy63gFfksmGfdOzujPjW3k+z8WvIBxcJHBoQNlaZaiyB25deviif2+osLmLw==}
     engines: {node: '>=4'}
+
+  js-tokens@10.0.0:
+    resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -2476,6 +2549,13 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
+  magicast@0.5.3:
+    resolution: {integrity: sha512-pVKE4UdSQ7DvHzivsCIFx2BJn1mHG6KsyrFcaxFx6tONdneEuThrDx0Cj3AMg58KyN4pzYT+LHOotxDQDjNvkw==}
+
+  make-dir@4.0.0:
+    resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
+    engines: {node: '>=10'}
+
   markdown-it@14.3.0:
     resolution: {integrity: sha512-RCEsPjR+sr0x+AuYp601tKTkgFG4YEPLCzHST3cQ/fhlJkqAkz1L2/Qbp1j9qw5SBwQHFBoW8+hoN5xssOF0Tw==}
     hasBin: true
@@ -2554,6 +2634,15 @@ packages:
 
   node-addon-api@4.3.0:
     resolution: {integrity: sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==}
+
+  node-fetch@2.7.0:
+    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
 
   node-sarif-builder@3.4.0:
     resolution: {integrity: sha512-tGnJW6OKRii9u/b2WiUViTJS+h7Apxx17qsMUjsUeNDiMMX5ZFf8F8Fcz7PAQ6omvOxHZtvDTmOYKJQwmfpjeg==}
@@ -2974,6 +3063,9 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  tr46@0.0.3:
+    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+
   tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
@@ -3213,6 +3305,9 @@ packages:
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
 
+  webidl-conversions@3.0.1:
+    resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
+
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
@@ -3221,6 +3316,9 @@ packages:
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
     engines: {node: '>=18'}
+
+  whatwg-url@5.0.0:
+    resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -3365,9 +3463,22 @@ snapshots:
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
+  '@babel/helper-string-parser@7.29.7': {}
+
   '@babel/helper-validator-identifier@7.29.7': {}
 
+  '@babel/parser@7.29.7':
+    dependencies:
+      '@babel/types': 7.29.7
+
   '@babel/runtime@7.29.7': {}
+
+  '@babel/types@7.29.7':
+    dependencies:
+      '@babel/helper-string-parser': 7.29.7
+      '@babel/helper-validator-identifier': 7.29.7
+
+  '@bcoe/v8-coverage@1.0.2': {}
 
   '@biomejs/biome@2.5.5':
     optionalDependencies:
@@ -3433,6 +3544,14 @@ snapshots:
     dependencies:
       '@changesets/types': 6.1.0
 
+  '@changesets/changelog-github@0.7.0':
+    dependencies:
+      '@changesets/get-github-info': 0.8.0
+      '@changesets/types': 6.1.0
+      dotenv: 8.6.0
+    transitivePeerDependencies:
+      - encoding
+
   '@changesets/cli@2.31.1(@types/node@24.13.3)':
     dependencies:
       '@changesets/apply-release-plan': 7.1.1
@@ -3485,6 +3604,13 @@ snapshots:
       '@manypkg/get-packages': 1.1.3
       picocolors: 1.1.1
       semver: 7.8.5
+
+  '@changesets/get-github-info@0.8.0':
+    dependencies:
+      dataloader: 1.4.0
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
 
   '@changesets/get-release-plan@4.0.16':
     dependencies:
@@ -3589,10 +3715,10 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@fast-check/vitest@0.4.1(vitest@4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3)))':
+  '@fast-check/vitest@0.4.1(vitest@4.1.10)':
     dependencies:
       fast-check: 4.9.0
-      vitest: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3))
+      vitest: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
 
   '@inquirer/external-editor@1.0.3(@types/node@24.13.3)':
     dependencies:
@@ -3601,7 +3727,14 @@ snapshots:
     optionalDependencies:
       '@types/node': 24.13.3
 
+  '@jridgewell/resolve-uri@3.1.2': {}
+
   '@jridgewell/sourcemap-codec@1.5.5': {}
+
+  '@jridgewell/trace-mapping@0.3.31':
+    dependencies:
+      '@jridgewell/resolve-uri': 3.1.2
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   '@manypkg/find-root@1.1.0':
     dependencies:
@@ -3954,6 +4087,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@vitest/coverage-v8@4.1.10(vitest@4.1.10)':
+    dependencies:
+      '@bcoe/v8-coverage': 1.0.2
+      '@vitest/utils': 4.1.10
+      ast-v8-to-istanbul: 1.0.5
+      istanbul-lib-coverage: 3.2.2
+      istanbul-lib-report: 3.0.1
+      istanbul-reports: 3.2.0
+      magicast: 0.5.3
+      obug: 2.1.4
+      std-env: 4.2.0
+      tinyrainbow: 3.1.0
+      vitest: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+
   '@vitest/expect@4.1.10':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -4173,6 +4320,12 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
+  ast-v8-to-istanbul@1.0.5:
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      estree-walker: 3.0.3
+      js-tokens: 10.0.0
+
   astral-regex@2.0.0: {}
 
   asynckit@0.4.0: {}
@@ -4181,8 +4334,6 @@ snapshots:
     dependencies:
       tunnel: 0.0.6
       typed-rest-client: 1.8.11
-
-  balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
 
@@ -4207,10 +4358,6 @@ snapshots:
   boolbase@1.0.0: {}
 
   boundary@2.0.0: {}
-
-  brace-expansion@2.1.2:
-    dependencies:
-      balanced-match: 1.0.2
 
   brace-expansion@5.0.8:
     dependencies:
@@ -4332,6 +4479,8 @@ snapshots:
 
   css-what@6.2.2: {}
 
+  dataloader@1.4.0: {}
+
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
@@ -4382,6 +4531,8 @@ snapshots:
       dom-serializer: 2.0.0
       domelementtype: 2.3.0
       domhandler: 5.0.3
+
+  dotenv@8.6.0: {}
 
   dts-resolver@3.0.0: {}
 
@@ -4602,6 +4753,8 @@ snapshots:
     dependencies:
       lru-cache: 10.4.3
 
+  html-escaper@2.0.2: {}
+
   htmlparser2@10.1.0:
     dependencies:
       domelementtype: 2.3.0
@@ -4678,11 +4831,26 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  istanbul-lib-coverage@3.2.2: {}
+
+  istanbul-lib-report@3.0.1:
+    dependencies:
+      istanbul-lib-coverage: 3.2.2
+      make-dir: 4.0.0
+      supports-color: 7.2.0
+
+  istanbul-reports@3.2.0:
+    dependencies:
+      html-escaper: 2.0.2
+      istanbul-lib-report: 3.0.1
+
   istextorbinary@9.5.0:
     dependencies:
       binaryextensions: 6.11.0
       editions: 6.22.0
       textextensions: 6.11.0
+
+  js-tokens@10.0.0: {}
 
   js-tokens@4.0.0: {}
 
@@ -4862,6 +5030,16 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  magicast@0.5.3:
+    dependencies:
+      '@babel/parser': 7.29.7
+      '@babel/types': 7.29.7
+      source-map-js: 1.2.1
+
+  make-dir@4.0.0:
+    dependencies:
+      semver: 7.8.5
+
   markdown-it@14.3.0:
     dependencies:
       argparse: 2.0.1
@@ -4899,7 +5077,7 @@ snapshots:
 
   minimatch@5.1.9:
     dependencies:
-      brace-expansion: 2.1.2
+      brace-expansion: 5.0.8
 
   minimist@1.2.8:
     optional: true
@@ -4927,6 +5105,10 @@ snapshots:
 
   node-addon-api@4.3.0:
     optional: true
+
+  node-fetch@2.7.0:
+    dependencies:
+      whatwg-url: 5.0.0
 
   node-sarif-builder@3.4.0:
     dependencies:
@@ -5394,6 +5576,8 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
+  tr46@0.0.3: {}
+
   tree-kill@1.2.2: {}
 
   tsdown@0.22.14(typescript@7.0.2):
@@ -5509,7 +5693,7 @@ snapshots:
       '@types/node': 24.13.3
       fsevents: 2.3.3
 
-  vitest@4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3)):
+  vitest@4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3)):
     dependencies:
       '@vitest/expect': 4.1.10
       '@vitest/mocker': 4.1.10(vite@8.1.5(@types/node@24.13.3))
@@ -5533,6 +5717,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.13.3
+      '@vitest/coverage-v8': 4.1.10(vitest@4.1.10)
     transitivePeerDependencies:
       - msw
 
@@ -5575,11 +5760,18 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
+  webidl-conversions@3.0.1: {}
+
   whatwg-encoding@3.1.1:
     dependencies:
       iconv-lite: 0.6.3
 
   whatwg-mimetype@4.0.0: {}
+
+  whatwg-url@5.0.0:
+    dependencies:
+      tr46: 0.0.3
+      webidl-conversions: 3.0.1
 
   which@2.0.2:
     dependencies:

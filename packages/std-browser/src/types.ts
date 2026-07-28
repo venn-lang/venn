@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The types `@venn/browser` publishes to the checker, under the `browser`
+ * The types `@venn-lang/browser` publishes to the checker, under the `browser`
  * namespace.
  *
  * `Browser` and `Page` are opaque because they are live things, and their

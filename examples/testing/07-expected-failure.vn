@@ -2,7 +2,7 @@
 # an error looks like once it is a value.
 # Run it with:  venn test examples/testing/07-expected-failure.vn
 
-use "@venn/assert"
+use "venn/assert"
 
 ## Pure, so it belongs to `fn` rather than `fragment`: no steps, no I/O.
 fn withdraw(balance, amount) => amount > balance ? "insufficient" : "ok"

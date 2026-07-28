@@ -1,5 +1,5 @@
-import type { DecoratorDefinition, DecoratorSource } from "@venn/core";
-import type { PluginDefinition } from "@venn/sdk";
+import type { DecoratorDefinition, DecoratorSource } from "@venn-lang/core";
+import type { PluginDefinition } from "@venn-lang/sdk";
 import { builtinDecorators } from "./builtin-decorators.js";
 
 /**

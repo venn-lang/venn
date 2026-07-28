@@ -1,5 +1,5 @@
-import { optionalArg } from "@venn/sdk";
-import { t } from "@venn/types";
+import { optionalArg } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import type { Rng } from "../rng/index.js";
 import type { FakerSpec } from "./faker.types.js";
 import { ALNUM, chars, digits, floatBetween, HEX, intBetween, numArg } from "./primitives.js";

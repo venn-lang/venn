@@ -1,4 +1,4 @@
-import { ALL_SIGNALS, type SignalSource, type SystemSignal } from "@venn/contracts";
+import { ALL_SIGNALS, type SignalSource, type SystemSignal } from "@venn-lang/contracts";
 import type { Leave, Unregister } from "./shutdown.types.js";
 
 /** What the shell means by each signal, in exit codes. */

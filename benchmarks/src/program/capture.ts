@@ -1,4 +1,4 @@
-import { type Console, createMemoryConsole } from "@venn/contracts";
+import { type Console, createMemoryConsole } from "@venn-lang/contracts";
 
 /** A console that records, plus a way to read only what the last run wrote. */
 export interface Capture {

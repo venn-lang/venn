@@ -1,4 +1,4 @@
-# @venn/graphql
+# @venn-lang/graphql
 
 > The `gql` namespace: GraphQL queries, mutations and subscriptions as Venn verbs.
 
@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-use "@venn/graphql"
+use "venn/graphql"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ use "@venn/graphql"
 ```ruby
 module demo.profile
 
-use "@venn/graphql"
+use "venn/graphql"
 
 flow "Profile" {
   step "read the profile" {
@@ -87,12 +87,12 @@ real transport is wired in this build. The conformance suite lives in
 `src/clients/gql-client.suite.ts` and the fake runs it today; the real client joins it the day it
 answers instead of throwing.
 
-`@venn/stdlib` binds `createFakeClient()` with no configuration, so out of the box every call answers
+`@venn-lang/stdlib` binds `createFakeClient()` with no configuration, so out of the box every call answers
 `{ data: {}, errors: undefined }`: `noGraphqlErrors` passes and field assertions have nothing to read.
 To assert on real data, bind a fake of your own:
 
 ```ts
-import { createFakeClient, GqlClientPort, okGraphqlResponse } from "@venn/graphql";
+import { createFakeClient, GqlClientPort, okGraphqlResponse } from "@venn-lang/graphql";
 
 const binding = {
   port: GqlClientPort,
@@ -120,6 +120,6 @@ const binding = {
 
 ## See also
 
-- [`@venn/grpc`](../std-grpc), the same port pattern over gRPC.
-- [`@venn/http`](../std-http), the HTTP verbs and the `Response` type.
-- [`@venn/sdk`](../sdk), `defineAction` / `defineMatcher` / `definePlugin`.
+- [`@venn-lang/grpc`](../std-grpc), the same port pattern over gRPC.
+- [`@venn-lang/http`](../std-http), the HTTP verbs and the `Response` type.
+- [`@venn-lang/sdk`](../sdk), `defineAction` / `defineMatcher` / `definePlugin`.

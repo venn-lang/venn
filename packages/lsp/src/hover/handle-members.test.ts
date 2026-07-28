@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CompletionItem } from "vscode-languageserver";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "@venn/http"
+const SOURCE = `use "venn/http"
 
 const api = http.serve { port: 0 }
 defer { api.close() }

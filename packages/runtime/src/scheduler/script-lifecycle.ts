@@ -1,4 +1,4 @@
-import type { Document } from "@venn/core";
+import type { Document } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { collectHooks } from "./collect.js";
 import type { Engine } from "./engine.types.js";

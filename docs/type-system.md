@@ -22,7 +22,7 @@ nada, e não tinha como saber o que `http.serve` devolve.
 
 ## As três peças
 
-### 1. `TypeSpec` — a moeda (`@venn/types`)
+### 1. `TypeSpec` — a moeda (`@venn-lang/types`)
 
 O vocabulário de tipos como **dado puro**: sem funções, sem `Map`, sem variáveis de inferência.
 Sobrevive a `JSON.stringify`, e é por isso que uma assinatura escrita à mão hoje e uma gerada de um
@@ -33,7 +33,7 @@ Sobrevive a `JSON.stringify`, e é por isso que uma assinatura escrita à mão h
 O `Type` interno do compilador é outra coisa (tem variáveis que a unificação escreve). A separação é
 deliberada: nada mutável entra num manifesto.
 
-### 2. `TypeCatalog` — o canal (`@venn/core` pergunta, `@venn/runtime` responde)
+### 2. `TypeCatalog` — o canal (`@venn-lang/core` pergunta, `@venn-lang/runtime` responde)
 
 ```ts
 interface TypeCatalog {
@@ -115,10 +115,10 @@ fora, e a passada real começa dali, como se estivesse escrito.
 
 ## O que falta
 
-1. **`@venn/tsgen`** — ler `.d.ts` e emitir `TypeSpec`. A tabela acima vira o TCK do gerador.
+1. **`@venn-lang/tsgen`** — ler `.d.ts` e emitir `TypeSpec`. A tabela acima vira o TCK do gerador.
    Enquanto não existe, as assinaturas são escritas à mão (ver `std-http/src/types.ts`); quando existir,
    aquele arquivo some e **nenhum consumidor muda**.
-2. **Assinar o resto da stdlib** — hoje só `@venn/http` está tipado.
+2. **Assinar o resto da stdlib** — hoje só `@venn-lang/http` está tipado.
 3. **`map` de verdade no checker** — hoje um `map(V)` vira record aberto, então `headers.auth` é
    `dynamic` em vez de `string`.
 4. **Inferir `fn` de topo pelo uso** — `fn route(req)` sem anotação continua livre. Anotar é a saída

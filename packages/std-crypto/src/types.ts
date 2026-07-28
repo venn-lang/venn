@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The named types `@venn/crypto` publishes to scripts, keyed by their bare name.
+ * The named types `@venn-lang/crypto` publishes to scripts, keyed by their bare name.
  *
  * One name is enough: every other verb answers with a string or a boolean, which
  * reads better inline than behind a name that adds nothing. Hand-mirrored from

@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { NpmModules } from "@venn/runtime";
+import type { NpmModules } from "@venn-lang/runtime";
 
 /**
  * Loading an installed package, the way Node loads one.

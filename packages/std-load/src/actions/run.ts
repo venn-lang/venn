@@ -1,5 +1,5 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, type ActionInput, arg, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import type { LoadProfile } from "../profiles/index.js";
 import { LoadRunnerPort } from "../runner/index.js";
 

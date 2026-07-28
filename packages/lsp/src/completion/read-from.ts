@@ -1,4 +1,4 @@
-import { type AstNode, isMember, prune, type Type } from "@venn/core";
+import { type AstNode, isMember, prune, type Type } from "@venn-lang/core";
 import { type CstNode, CstUtils, type LangiumDocument } from "langium";
 
 export interface ReadFromArgs {

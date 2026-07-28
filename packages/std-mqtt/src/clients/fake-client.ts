@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import type { FakeMqttClient, MqttPublishArgs } from "../port/index.js";
 import type { MqttMessage } from "../types/index.js";
 

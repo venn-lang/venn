@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { cryptoActions } from "./actions/index.js";
 import { cryptoTypeDefs } from "./types.js";
 
@@ -10,7 +10,7 @@ import { cryptoTypeDefs } from "./types.js";
  * required: WebCrypto is present in Node and in the browser alike.
  */
 export const cryptoPlugin: PluginDefinition = definePlugin({
-  name: "@venn/crypto",
+  name: "venn/crypto",
   version: "0.1.0",
   namespace: "crypto",
   actions: cryptoActions,

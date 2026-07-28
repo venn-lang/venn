@@ -3,7 +3,7 @@ import type { CompletionItem } from "vscode-languageserver";
 import { fixture } from "../testing/lsp-fixture.js";
 
 // `·` is the space just typed; an editor would trim a real one away.
-const SOURCE = `use "@venn/http"
+const SOURCE = `use "venn/http"
 
 const api = http.serve { port: 8099 }
 const address = "https://example.com"

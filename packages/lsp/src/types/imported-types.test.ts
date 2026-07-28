@@ -1,4 +1,4 @@
-import { showType } from "@venn/core";
+import { showType } from "@venn-lang/core";
 import { AstUtils } from "langium";
 import { describe, expect, it } from "vitest";
 import { fixture } from "../testing/lsp-fixture.js";

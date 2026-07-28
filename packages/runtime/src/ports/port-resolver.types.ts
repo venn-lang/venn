@@ -1,4 +1,4 @@
-import type { AnyPort, Port } from "@venn/contracts";
+import type { AnyPort, Port } from "@venn-lang/contracts";
 
 /** A port paired with the implementation a host/CLI chose to bind. */
 export interface PortBinding {

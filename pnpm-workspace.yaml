@@ -35,3 +35,9 @@ minimumReleaseAgeExclude:
 allowBuilds:
   '@vscode/vsce-sign': false
   keytar: false
+
+# Pinned above the advisory rather than waiting for vscode-languageclient to
+# update its own minimatch. GHSA-mh99-v99m-4gvg: unbounded expansion crashes
+# the process.
+overrides:
+  brace-expansion: ">=5.0.8"

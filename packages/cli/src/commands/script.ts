@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn/contracts/node";
-import { createFetchClient } from "@venn/http";
-import { createNodeServer, type NodeHttpServer } from "@venn/http/node";
+import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
+import { createFetchClient } from "@venn-lang/http";
+import { createNodeServer, type NodeHttpServer } from "@venn-lang/http/node";
 import { envDirOf, loadEnv, loadManifest } from "../manifest/index.js";
 import { createProblemSink, errorLine, reportProblems } from "../reporters/index.js";
 import type { Ending } from "../run/ending.types.js";

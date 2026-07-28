@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 import type { RequestParams } from "./request.types.js";
 
 const scalar = z.union([z.string(), z.number(), z.boolean()]);

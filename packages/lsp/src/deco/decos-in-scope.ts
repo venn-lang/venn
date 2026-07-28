@@ -1,4 +1,4 @@
-import { type Document, isValueImport, type ValueImport } from "@venn/core";
+import { type Document, isValueImport, type ValueImport } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments } from "langium";
 import type { ImportResolver } from "../workspace/index.js";
 import { builtinDecos } from "./builtin-decos.js";

@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { attachmentsAction } from "./attachments.js";
 import { clearAction } from "./clear.js";
 import { inboxAction } from "./inbox.js";

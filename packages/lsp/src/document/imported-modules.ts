@@ -1,4 +1,4 @@
-import { type Document, isFragmentDecl, isValueImport } from "@venn/core";
+import { type Document, isFragmentDecl, isValueImport } from "@venn-lang/core";
 import { type LangiumDocument, type LangiumDocuments, URI } from "langium";
 import type { ImportResolver } from "../workspace/index.js";
 

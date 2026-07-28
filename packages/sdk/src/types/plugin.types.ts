@@ -1,5 +1,5 @@
-import type { HostCapability } from "@venn/contracts";
-import type { TypeSpec } from "@venn/types";
+import type { HostCapability } from "@venn-lang/contracts";
+import type { TypeSpec } from "@venn-lang/types";
 import type { ZodType } from "zod";
 import type { ActionDefinition } from "./action.types.js";
 import type { DecoratorDefinition } from "./decorator.types.js";

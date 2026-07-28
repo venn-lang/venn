@@ -1,4 +1,4 @@
-import type { Cell } from "@venn/core";
+import type { Cell } from "@venn-lang/core";
 import type { Scope } from "./scope.types.js";
 
 /**

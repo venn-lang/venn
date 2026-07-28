@@ -14,7 +14,7 @@ order; each one assumes the ones before it and nothing else.
 | [`05-fragments.vn`](05-fragments.vn) | a `fragment` reused across flows with `run … as` |
 | [`06-lifecycle.vn`](06-lifecycle.vn) | `setup`, `teardown`, `beforeEach`, `afterEach`, `defer`, `on`, and their order |
 | [`07-expected-failure.vn`](07-expected-failure.vn) | `try`/`catch`/`finally` when the failure is the thing under test |
-| [`08-fakes.vn`](08-fakes.vn) | `@venn/mock`: canned replies, feature flags, a clock you control |
+| [`08-fakes.vn`](08-fakes.vn) | `@venn-lang/mock`: canned replies, feature flags, a clock you control |
 | [`09-concurrency.vn`](09-concurrency.vn) | `parallel`, `race`, and `forEach { concurrency: 4 }` |
 | [`10-matrix.vn`](10-matrix.vn) | `matrix` running one flow across every variant |
 
@@ -36,7 +36,7 @@ Notes worth having before you start:
 - Use `venn test`, not `venn run`. `run` executes a file's statements top to
   bottom; a file whose content is `flow` declarations does nothing under it.
 - Nothing here touches the network. Every assertion is against a value the file
-  computes, or against `@venn/mock`, so the suite runs anywhere.
+  computes, or against `@venn-lang/mock`, so the suite runs anywhere.
 - `venn list examples/testing/` prints the flows and steps that would run
   without running them.
 - `log` shows up under its step in the default reporter. `print` is the

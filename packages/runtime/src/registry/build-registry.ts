@@ -1,5 +1,5 @@
-import { type HostCapability, missingCapabilities, VennError } from "@venn/contracts";
-import type { ActionDefinition, PluginDefinition } from "@venn/sdk";
+import { type HostCapability, missingCapabilities, VennError } from "@venn-lang/contracts";
+import type { ActionDefinition, PluginDefinition } from "@venn-lang/sdk";
 import type { Registry, ResolvedAction, ResolvedMatcher } from "./registry.types.js";
 
 /**

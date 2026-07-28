@@ -1,17 +1,17 @@
-# @venn/project
+# @venn-lang/project
 
 > What a Venn project *is*: its manifest, its workspace members, what it builds, and where the build goes.
 
 Every command needs the same three answers before it can do anything: which project this path
 belongs to, what that project builds, and where derived files live. This package answers them once.
-It touches the disk only through the `FileSystem` port from [`@venn/contracts`](../contracts), and
+It touches the disk only through the `FileSystem` port from [`@venn-lang/contracts`](../contracts), and
 imports no `node:*`, so the language server reads a workspace exactly the way the CLI does.
 
 ## Usage
 
 ```ts
-import { createNodeFs } from "@venn/contracts/node";
-import { findProject } from "@venn/project";
+import { createNodeFs } from "@venn-lang/contracts/node";
+import { findProject } from "@venn-lang/project";
 
 const { project, problems } = await findProject({ fs: createNodeFs(), from: process.cwd() });
 if (!project) throw new Error(problems[0]?.title);
@@ -51,7 +51,7 @@ folder is not membership. When nothing is found, `project` is absent and `proble
 | `ProjectProblem` | `{ code, title, path? }`. Never a raw error from the disk. |
 
 `Manifest`, `PackageInfo`, `BuildTarget`, `Dependency` and `Profile` are re-exported from
-[`@venn/contracts`](../contracts), which owns the TOML reader.
+[`@venn-lang/contracts`](../contracts), which owns the TOML reader.
 
 ### Workspaces
 
@@ -171,6 +171,6 @@ differently or a file edited by hand.
 
 ## See also
 
-- [`@venn/contracts`](../contracts) - the `FileSystem` port and the TOML manifest reader.
-- [`@venn/cli`](../cli) - the commands built on this: `new`, `build`, `add`, `install`.
-- [`@venn/lsp`](../lsp) - the other reader of the same project model.
+- [`@venn-lang/contracts`](../contracts) - the `FileSystem` port and the TOML manifest reader.
+- [`@venn-lang/cli`](../cli) - the commands built on this: `new`, `build`, `add`, `install`.
+- [`@venn-lang/lsp`](../lsp) - the other reader of the same project model.

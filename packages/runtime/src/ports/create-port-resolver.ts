@@ -1,4 +1,4 @@
-import { bindPort, type HostCapability, type Port, VennError } from "@venn/contracts";
+import { bindPort, type HostCapability, type Port, VennError } from "@venn-lang/contracts";
 import type { PortBinding, PortResolver } from "./port-resolver.types.js";
 
 /**

@@ -1,4 +1,4 @@
-import { evaluate, type MapLit } from "@venn/core";
+import { evaluate, type MapLit } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 
 /** Read a numeric field from an options map literal (e.g. `{ concurrency: 4 }`). */

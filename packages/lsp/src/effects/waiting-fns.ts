@@ -6,7 +6,7 @@ import {
   isFnDecl,
   isMember,
   isRef,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { AstUtils } from "langium";
 import type { SymbolCatalog } from "../catalog/index.js";
 
@@ -19,7 +19,7 @@ import type { SymbolCatalog } from "../catalog/index.js";
  * hover say so.
  *
  * It lives here rather than in the checker because deciding whether a dotted
- * path names a verb needs the plugin registry, and `@venn/core` deliberately
+ * path names a verb needs the plugin registry, and `@venn-lang/core` deliberately
  * knows nothing about plugins. Being an editor's answer, it may be approximate:
  * missing one costs a hint, never a wrong program.
  */

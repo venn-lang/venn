@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { constantAction } from "./constant.js";
 import { rampAction } from "./ramp.js";
 import { runAction } from "./run.js";

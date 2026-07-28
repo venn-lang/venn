@@ -12,7 +12,7 @@ import {
   type Problem,
   type RunStmt,
   walkAst,
-} from "@venn/core";
+} from "@venn-lang/core";
 import {
   collectAliases,
   collectBoundNames,

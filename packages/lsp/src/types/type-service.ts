@@ -10,10 +10,10 @@ import {
   type Problem,
   type Type,
   type TypeCatalog,
-} from "@venn/core";
-import { createTypeCatalog } from "@venn/runtime";
-import { allPlugins } from "@venn/stdlib";
-import type { TypeSpec } from "@venn/types";
+} from "@venn-lang/core";
+import { createTypeCatalog } from "@venn-lang/runtime";
+import { allPlugins } from "@venn-lang/stdlib";
+import type { TypeSpec } from "@venn-lang/types";
 import type { LangiumDocument } from "langium";
 import { importedDecos } from "../deco/index.js";
 import { importedModules, type ModuleGraph } from "../document/index.js";

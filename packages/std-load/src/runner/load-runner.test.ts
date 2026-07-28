@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { expect, it } from "vitest";
 import { constantProfile } from "../profiles/index.js";
 import { createFakeLoadRunner } from "./fake-runner.js";

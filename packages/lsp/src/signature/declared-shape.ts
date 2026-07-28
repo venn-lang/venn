@@ -8,7 +8,7 @@ import {
   isLetStmt,
   type ParamList,
   showTypes,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { TypeService } from "../types/index.js";
 import type { CallShape } from "./call-shape.types.js";

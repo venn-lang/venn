@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { consoleActions } from "./actions/console-actions.js";
 
 /**
@@ -9,7 +9,7 @@ import { consoleActions } from "./actions/console-actions.js";
  * mid-run.
  */
 export const ioPlugin: PluginDefinition = definePlugin({
-  name: "@venn/io",
+  name: "venn/io",
   version: "0.0.0",
   namespace: "io",
   requires: ["io"],

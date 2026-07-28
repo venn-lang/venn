@@ -1,4 +1,4 @@
-import type { Port } from "@venn/contracts";
+import type { Port } from "@venn-lang/contracts";
 import type { MqttClient } from "./mqtt-client.types.js";
 
 /**

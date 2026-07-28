@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { fmtActions } from "./actions/fmt-actions.js";
 
 /**
@@ -8,7 +8,7 @@ import { fmtActions } from "./actions/fmt-actions.js";
  * the LSP included. What comes back is a string, yours to print, compare or send.
  */
 export const fmtPlugin: PluginDefinition = definePlugin({
-  name: "@venn/fmt",
+  name: "venn/fmt",
   version: "0.0.0",
   namespace: "fmt",
   actions: fmtActions,

@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { httpActions } from "./actions/index.js";
 import { httpMatchers } from "./matchers/index.js";
 import { httpTypeDefs } from "./types.js";
@@ -12,7 +12,7 @@ import { httpTypeDefs } from "./types.js";
  * a third-party plugin.
  */
 export const httpPlugin: PluginDefinition = definePlugin({
-  name: "@venn/http",
+  name: "venn/http",
   version: "0.0.0",
   namespace: "http",
   requires: ["net"],

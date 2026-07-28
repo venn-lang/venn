@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { hmacHex } from "../crypto/index.js";
 
 const params = z.object({ algo: z.string().optional() }).optional();

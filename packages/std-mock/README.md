@@ -1,4 +1,4 @@
-# @venn/mock
+# @venn-lang/mock
 
 > The `mock` namespace: named mocks, HTTP interceptors, feature flags and a virtual clock.
 
@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-use "@venn/mock"
+use "venn/mock"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ use "@venn/mock"
 ```ruby
 module demo.checkout
 
-use "@venn/mock"
+use "venn/mock"
 
 setup {
   mock.start "payments" { from: "./mocks/stripe.yaml" }
@@ -84,7 +84,7 @@ Every verb reads and writes one process-wide `MockState`. A test that drives the
 TypeScript inspects it directly:
 
 ```ts
-import { getMockState, resetMockState } from "@venn/mock";
+import { getMockState, resetMockState } from "@venn-lang/mock";
 
 resetMockState();
 // ... run the flow ...
@@ -110,6 +110,6 @@ state.frozenInstant; // epoch ms, or undefined while the clock is live
 
 ## See also
 
-- [`@venn/http`](../std-http), whose verbs the interceptors are written for.
-- [`@venn/data`](../std-data), for deterministic fake values.
-- [`@venn/sdk`](../sdk), `defineAction` / `definePlugin`.
+- [`@venn-lang/http`](../std-http), whose verbs the interceptors are written for.
+- [`@venn-lang/data`](../std-data), for deterministic fake values.
+- [`@venn-lang/sdk`](../sdk), `defineAction` / `definePlugin`.

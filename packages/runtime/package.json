@@ -1,5 +1,5 @@
 {
-  "name": "@venn/runtime",
+  "name": "@venn-lang/runtime",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -17,10 +17,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/contracts": "workspace:*",
-    "@venn/core": "workspace:*",
-    "@venn/sdk": "workspace:*",
-    "@venn/types": "workspace:*"
+    "@venn-lang/contracts": "workspace:*",
+    "@venn-lang/core": "workspace:*",
+    "@venn-lang/sdk": "workspace:*",
+    "@venn-lang/types": "workspace:*"
   },
   "devDependencies": {
     "tsdown": "catalog:",

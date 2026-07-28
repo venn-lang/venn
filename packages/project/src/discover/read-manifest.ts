@@ -1,4 +1,4 @@
-import { createTomlManifest, type FileSystem, type Manifest } from "@venn/contracts";
+import { createTomlManifest, type FileSystem, type Manifest } from "@venn-lang/contracts";
 import { join } from "../paths/index.js";
 
 /** The file that makes a directory a package or a workspace root. */

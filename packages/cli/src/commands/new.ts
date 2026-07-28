@@ -1,12 +1,12 @@
 import { resolve } from "node:path";
-import { createNodeFs } from "@venn/contracts/node";
+import { createNodeFs } from "@venn-lang/contracts/node";
 import {
   MANIFEST_FILE,
   normalise,
   type ScaffoldFile,
   type ScaffoldKind,
   scaffold,
-} from "@venn/project";
+} from "@venn-lang/project";
 import { insideWorkspace } from "./inside-workspace.js";
 
 export interface NewArgs {

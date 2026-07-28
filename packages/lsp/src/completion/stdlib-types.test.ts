@@ -17,7 +17,7 @@ async function completeAfter(source: string, needle: string): Promise<Completion
 }
 
 const SERVER = [
-  'use "@venn/http"',
+  'use "venn/http"',
   "const api = http.serve { port: 0 }",
   "http.on api req => req.",
 ].join("\n");
@@ -40,7 +40,7 @@ describe("stdlib types in the editor", () => {
   });
 
   it("offers what a response carries", async () => {
-    const source = ['use "@venn/http"', 'const res = http.get "https://x.test"', "res."].join("\n");
+    const source = ['use "venn/http"', 'const res = http.get "https://x.test"', "res."].join("\n");
 
     const labels = (await completeAfter(source, "\nres.")).map((item) => item.label);
 
@@ -50,7 +50,7 @@ describe("stdlib types in the editor", () => {
 
   it("offers a request's fields inside a named fn that annotated it", async () => {
     const source = [
-      'use "@venn/http"',
+      'use "venn/http"',
       "fn route(req: http.Request) {",
       "  const path = req.",
       "}",
@@ -65,7 +65,7 @@ describe("stdlib types in the editor", () => {
   // A namespace deals in things, not only in verbs, and those things are what
   // an annotation is written with.
   it("offers a namespace's published types beside its verbs", async () => {
-    const items = await completeAfter('use "@venn/http"\nhttp.', "\nhttp.");
+    const items = await completeAfter('use "venn/http"\nhttp.', "\nhttp.");
     const labels = items.map((item) => item.label);
 
     expect(labels).toContain("serve");
@@ -80,7 +80,7 @@ describe("stdlib types in the editor", () => {
    * editor that is supposed to teach it.
    */
   it("offers what the handle publishes, and nothing a map answers to", async () => {
-    const source = ['use "@venn/http"', "const api = http.serve { port: 0 }", "api."].join("\n");
+    const source = ['use "venn/http"', "const api = http.serve { port: 0 }", "api."].join("\n");
 
     const labels = (await completeAfter(source, "\napi.")).map((item) => item.label);
 

@@ -1,4 +1,4 @@
-import type { Envelope } from "@venn/core";
+import type { Envelope } from "@venn-lang/core";
 import { describe, expect, it, vi } from "vitest";
 import { createProblemSink } from "./problem-sink.js";
 

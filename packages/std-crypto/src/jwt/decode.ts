@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { fromBase64Url, fromBytes } from "../bytes/index.js";
 import type { DecodedJwt } from "./jwt.types.js";
 

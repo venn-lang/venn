@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 
 /** `auth.bearer(token)`: an `Authorization: Bearer …` header. Pure, no network. */
 export const bearer: ActionDefinition = defineAction({

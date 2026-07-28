@@ -4,7 +4,7 @@ import {
   isAnnotation,
   isMatcherClause,
   isRunStmt,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { GrammarUtils } from "langium";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
 import type { HighlightArgs } from "./highlight.types.js";

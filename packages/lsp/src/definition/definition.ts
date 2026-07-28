@@ -1,4 +1,4 @@
-import { type AstNode, isAnnotation, isRef, isRunStmt, isValueImport } from "@venn/core";
+import { type AstNode, isAnnotation, isRef, isRunStmt, isValueImport } from "@venn-lang/core";
 import { CstUtils, type LangiumDocument, type LangiumDocuments, type URI } from "langium";
 import type { DefinitionProvider } from "langium/lsp";
 import type { DefinitionParams, LocationLink } from "vscode-languageserver";

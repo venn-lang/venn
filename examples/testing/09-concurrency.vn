@@ -2,7 +2,7 @@
 # on `forEach`. Three words, three different meanings, on purpose.
 # Run it with:  venn test examples/testing/09-concurrency.vn
 
-use "@venn/assert"
+use "venn/assert"
 
 const REGIONS = ["eu-west", "us-east", "ap-south", "sa-east"]
 

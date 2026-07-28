@@ -1,4 +1,4 @@
-import type { SignalSource } from "@venn/contracts";
+import type { SignalSource } from "@venn-lang/contracts";
 import { createLeave } from "./create-leave.js";
 import { installExitHook } from "./install-exit-hook.js";
 import { installFaultHooks } from "./install-fault-hooks.js";

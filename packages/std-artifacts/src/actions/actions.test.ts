@@ -1,4 +1,4 @@
-import type { ActionContext, ActionInput } from "@venn/sdk";
+import type { ActionContext, ActionInput } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { type ArtifactStore, createMemoryArtifactStore } from "../store/index.js";
 import { attachAction } from "./attach.js";

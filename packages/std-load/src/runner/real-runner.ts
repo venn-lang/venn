@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import type { LoadRunner } from "./load-runner.types.js";
 
 /**

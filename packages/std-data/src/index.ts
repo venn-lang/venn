@@ -1,4 +1,4 @@
-// @venn/data: pure, deterministic test-data generators (faker, oneOf, range,
+// @venn-lang/data: pure, deterministic test-data generators (faker, oneOf, range,
 // shuffle, csv, json). A module-level mulberry32 PRNG (seed 1) keeps output reproducible.
 
 export { dataActions } from "./actions/index.js";

@@ -1,6 +1,6 @@
-import type { Clock, LockProvider } from "@venn/contracts";
-import type { FragmentDecl } from "@venn/core";
-import type { ActionContext } from "@venn/sdk";
+import type { Clock, LockProvider } from "@venn-lang/contracts";
+import type { FragmentDecl } from "@venn-lang/core";
+import type { ActionContext } from "@venn-lang/sdk";
 import type { Emitter } from "../emit/index.js";
 import type { Registry } from "../registry/index.js";
 import type { ImportGraph } from "./bind-imports.js";

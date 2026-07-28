@@ -1,4 +1,4 @@
-import type { DecoratorDefinition, ExpandContext } from "@venn/core";
+import type { DecoratorDefinition, ExpandContext } from "@venn-lang/core";
 import type { RetrySpec } from "../scheduler/annotations.js";
 
 /** Where each of these may sit. Named once, so a wrong target is caught, not ignored. */

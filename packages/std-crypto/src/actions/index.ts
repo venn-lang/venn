@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { encodingActions } from "./encoding-actions.js";
 import { hashActions } from "./hash-actions.js";
 import { jwtActions } from "./jwt-actions.js";

@@ -1,4 +1,4 @@
-import type { AstNode } from "@venn/core";
+import type { AstNode } from "@venn-lang/core";
 import type { SemanticTokenAcceptor } from "langium/lsp";
 import type { SymbolCatalog } from "../catalog/index.js";
 

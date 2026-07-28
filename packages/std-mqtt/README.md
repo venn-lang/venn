@@ -1,8 +1,8 @@
-# @venn/mqtt
+# @venn-lang/mqtt
 
 > The `mqtt` namespace: connect to a broker, publish, subscribe, wait for a message on a topic.
 
-Venn's grammar knows no verbs. `@venn/mqtt` registers the `mqtt` namespace with the runtime, so
+Venn's grammar knows no verbs. `@venn-lang/mqtt` registers the `mqtt` namespace with the runtime, so
 `mqtt.publish` resolves to an action and `mqtt.expect` hands back a typed message. The connection and
 the subscriptions live behind the `MqttClient` port, not in a handle the flow carries around, so a
 host swaps the whole transport by binding a different implementation.
@@ -10,10 +10,10 @@ host swaps the whole transport by binding a different implementation.
 ## Install
 
 Nothing to install yet. The package is unpublished (version `0.0.0`) and ships inside
-`@venn/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
+`@venn-lang/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
 
 ```ruby
-use "@venn/mqtt"
+use "venn/mqtt"
 ```
 
 ## Usage
@@ -21,8 +21,8 @@ use "@venn/mqtt"
 ```ruby
 module demo.inventory
 
-use "@venn/mqtt"
-use "@venn/assert"
+use "venn/mqtt"
+use "venn/assert"
 
 flow "Inventory" {
   step "the broker relays the stock change" {
@@ -88,7 +88,7 @@ The plugin publishes one type, `mqtt.Message`, with `topic`, `payload`, and opti
   broker. Subscriptions land on `subscriptions`.
 
 ```ts
-import { createFakeMqttClient } from "@venn/mqtt";
+import { createFakeMqttClient } from "@venn-lang/mqtt";
 
 const client = createFakeMqttClient();
 await client.subscribe({ topic: "inventory/ack" });
@@ -97,11 +97,11 @@ const message = await client.expect({ topic: "inventory/ack" });
 // message.payload === { ok: true }
 ```
 
-`expect` on an empty topic raises `VN8091`. `@venn/stdlib` binds the fake by default, so the flow in
+`expect` on an empty topic raises `VN8091`. `@venn-lang/stdlib` binds the fake by default, so the flow in
 [Usage](#usage) runs offline with no host wiring at all.
 
 ## See also
 
-- [`@venn/ws`](../std-ws), the same shape over a socket rather than topics.
-- [`@venn/http`](../std-http), the reference plugin, with a real client and a real server.
-- [`@venn/stdlib`](../stdlib) for the plugin list and the default port bindings.
+- [`@venn-lang/ws`](../std-ws), the same shape over a socket rather than topics.
+- [`@venn-lang/http`](../std-http), the reference plugin, with a real client and a real server.
+- [`@venn-lang/stdlib`](../stdlib) for the plugin list and the default port bindings.

@@ -1,4 +1,4 @@
-import type { FileSystem, Manifest } from "@venn/contracts";
+import type { FileSystem, Manifest } from "@venn-lang/contracts";
 import type { FoundProject, Package } from "../model/project.types.js";
 import { ancestors, join, normalise } from "../paths/index.js";
 import { memberDirs } from "../workspace/index.js";

@@ -1,4 +1,4 @@
-import { t } from "@venn/types";
+import { t } from "@venn-lang/types";
 import type { Rng } from "../rng/index.js";
 import {
   FIRST_NAMES,

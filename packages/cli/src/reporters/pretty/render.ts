@@ -1,5 +1,5 @@
 import { relative } from "node:path";
-import type { Problem } from "@venn/core";
+import type { Problem } from "@venn-lang/core";
 import { bold, cyan, dim, green, inverse, red } from "../colors.js";
 import { diffLines } from "./diff-lines.js";
 import type { Failure } from "./pretty.types.js";

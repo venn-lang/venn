@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { parse } from "@venn/core";
+import { parse } from "@venn-lang/core";
 import type { BenchCase, CaseResult } from "./bench.types.ts";
 import { CASES } from "./cases/index.ts";
 import { measure, sink } from "./harness/index.ts";

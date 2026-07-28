@@ -1,7 +1,7 @@
 import { dirname, resolve } from "node:path";
-import type { Manifest } from "@venn/contracts";
-import { createNodeFs } from "@venn/contracts/node";
-import { findProject, isInside, normalise, type Package, type Project } from "@venn/project";
+import type { Manifest } from "@venn-lang/contracts";
+import { createNodeFs } from "@venn-lang/contracts/node";
+import { findProject, isInside, normalise, type Package, type Project } from "@venn-lang/project";
 
 export interface LoadedManifest {
   manifest: Manifest;

@@ -12,7 +12,7 @@ import type { SecretProvider } from "../ports/secret-provider/index.js";
  * passed inward. The core receives this and imports nothing else.
  *
  * Three assemblers build one: `createHost.worker`, `createHost.test`, and
- * `createNodeHost` from `@venn/contracts/node`.
+ * `createNodeHost` from `@venn-lang/contracts/node`.
  */
 export interface Host {
   readonly fs: FileSystem;

@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 
 /** The nominal `Row` type: an opaque record of column values. */
 export type Row = Record<string, unknown>;

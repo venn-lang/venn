@@ -1,5 +1,5 @@
-import type { DecoratorDefinition } from "@venn/core";
-import { builtinDecorators } from "@venn/runtime";
+import type { DecoratorDefinition } from "@venn-lang/core";
+import { builtinDecorators } from "@venn-lang/runtime";
 import { decoratorDoc } from "./builtin-docs.js";
 import type { DecoInfo } from "./deco.types.js";
 import { kindOf } from "./kind-of.js";

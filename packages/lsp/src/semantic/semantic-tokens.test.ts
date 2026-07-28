@@ -5,7 +5,7 @@ import { fixture } from "../testing/lsp-fixture.js";
 
 const SOURCE = `module demo.aliasimport
 
-use "@venn/http" as h
+use "venn/http" as h
 import { login } from "#shared/auth.vn"
 
 fragment helper(user) {
@@ -76,7 +76,7 @@ describe("semantic tokens", () => {
     const at = (needle: string) => typeAt(document, tokens, needle);
 
     expect(at("demo.aliasimport")).toBe("namespace");
-    expect(at('"@venn/http"')).toBe("string");
+    expect(at('"venn/http"')).toBe("string");
     expect(at("h\n")).toBe("namespace");
     expect(at("login }")).toBe("function");
     expect(at('"#shared/auth.vn"')).toBe("string");
@@ -140,7 +140,7 @@ describe("interpolated strings", () => {
   });
 });
 
-const BOUND_CALL = `use "@venn/http"
+const BOUND_CALL = `use "venn/http"
 
 flow "t" {
   step "s" {
@@ -166,7 +166,7 @@ describe("an action bound with let", () => {
   });
 });
 
-const MEMBERS = `use "@venn/fmt"
+const MEMBERS = `use "venn/fmt"
 
 flow "t" {
   step "s" {
@@ -204,7 +204,7 @@ describe("member access", () => {
   });
 });
 
-const IN_STRING = `use "@venn/fmt"
+const IN_STRING = `use "venn/fmt"
 
 flow "t" {
   step "s" {

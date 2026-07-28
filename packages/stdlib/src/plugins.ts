@@ -1,23 +1,23 @@
-import { artifactsPlugin } from "@venn/artifacts";
-import { assertPlugin } from "@venn/assert";
-import { authPlugin } from "@venn/auth";
-import { browserPlugin } from "@venn/browser";
-import { cryptoPlugin } from "@venn/crypto";
-import { dataPlugin } from "@venn/data";
-import { dbPlugin } from "@venn/db";
-import { envPlugin } from "@venn/env";
-import { fmtPlugin } from "@venn/fmt";
-import { gqlPlugin } from "@venn/graphql";
-import { grpcPlugin } from "@venn/grpc";
-import { httpPlugin } from "@venn/http";
-import { ioPlugin } from "@venn/io";
-import { loadPlugin } from "@venn/load";
-import { mailPlugin } from "@venn/mail";
-import { mockPlugin } from "@venn/mock";
-import { mqttPlugin } from "@venn/mqtt";
-import { notifyPlugin } from "@venn/notify";
-import type { PluginDefinition } from "@venn/sdk";
-import { wsPlugin } from "@venn/ws";
+import { artifactsPlugin } from "@venn-lang/artifacts";
+import { assertPlugin } from "@venn-lang/assert";
+import { authPlugin } from "@venn-lang/auth";
+import { browserPlugin } from "@venn-lang/browser";
+import { cryptoPlugin } from "@venn-lang/crypto";
+import { dataPlugin } from "@venn-lang/data";
+import { dbPlugin } from "@venn-lang/db";
+import { envPlugin } from "@venn-lang/env";
+import { fmtPlugin } from "@venn-lang/fmt";
+import { gqlPlugin } from "@venn-lang/graphql";
+import { grpcPlugin } from "@venn-lang/grpc";
+import { httpPlugin } from "@venn-lang/http";
+import { ioPlugin } from "@venn-lang/io";
+import { loadPlugin } from "@venn-lang/load";
+import { mailPlugin } from "@venn-lang/mail";
+import { mockPlugin } from "@venn-lang/mock";
+import { mqttPlugin } from "@venn-lang/mqtt";
+import { notifyPlugin } from "@venn-lang/notify";
+import type { PluginDefinition } from "@venn-lang/sdk";
+import { wsPlugin } from "@venn-lang/ws";
 
 /**
  * Every plugin the tooling loads, as one list.

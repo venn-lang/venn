@@ -47,7 +47,7 @@ is an ordinary `fn`, so routing is an expression rather than a framework.
 These are the only examples in the repository that use the network, and they only ever talk to
 themselves on `127.0.0.1`. Nothing here reaches the internet.
 
-There is no WebSocket example. `@venn/ws` has connect, send, expect and close but no server verb,
+There is no WebSocket example. `@venn-lang/ws` has connect, send, expect and close but no server verb,
 and its real client is a stub in this build, so an echo could not be written as something that
 actually runs.
 

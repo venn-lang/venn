@@ -1,5 +1,5 @@
-import { type ActionDefinition, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { WsClientPort } from "../port/index.js";
 
 const params = z.object({ type: z.string().optional(), data: z.unknown().optional() });

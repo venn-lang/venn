@@ -9,7 +9,7 @@ module examples.language.modules
 #
 #   use     brings capabilities: verbs, matchers, resources. Packages only.
 #   import  brings values: fn, fragment, deco, and whole namespaces.
-use "@venn/fmt"
+use "venn/fmt"
 
 import { slug, initials } from "./shared/text.vn"
 import * as text from "./shared/text.vn"

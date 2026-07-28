@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The types `@venn/load` publishes to the checker, under the `load` namespace:
+ * The types `@venn-lang/load` publishes to the checker, under the `load` namespace:
  * the three profiles its builders return, the union `load.run` accepts, and the
  * metrics it yields. They mirror `profiles/load-profile.types.ts` and
  * `metrics/load-metrics.types.ts` field by field, dropping the `Load` and

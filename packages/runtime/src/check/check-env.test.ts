@@ -1,13 +1,13 @@
 // biome-ignore-all lint/suspicious/noTemplateCurlyInString: these strings are Venn source under test, where ${…} is the language's own interpolation.
-import { ALL_CAPABILITIES } from "@venn/contracts";
-import { parse } from "@venn/core";
-import { defineAction, definePlugin, z } from "@venn/sdk";
+import { ALL_CAPABILITIES } from "@venn-lang/contracts";
+import { parse } from "@venn-lang/core";
+import { defineAction, definePlugin, z } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { buildRegistry } from "../registry/index.js";
 import { collectFragments } from "../scheduler/index.js";
 import { checkDocument } from "./check-document.js";
 
-// A stand-in for @venn/http: stdlib depends on runtime, so runtime cannot use it.
+// A stand-in for @venn-lang/http: stdlib depends on runtime, so runtime cannot use it.
 const plugin = definePlugin({
   name: "@t/http",
   version: "0",
@@ -25,7 +25,7 @@ const plugin = definePlugin({
 });
 
 // `env` is a namespace like any other: reading configuration needs a `use`.
-const envPlugin = definePlugin({ name: "@venn/env", version: "0", namespace: "env" });
+const envPlugin = definePlugin({ name: "venn/env", version: "0", namespace: "env" });
 
 const registry = buildRegistry({ plugins: [plugin, envPlugin], caps: ALL_CAPABILITIES });
 
@@ -44,7 +44,7 @@ const DECLARED = ["BASE_URL", "TOKEN"];
 
 /** Every read of `env` needs the import, so the fixtures carry it. */
 function withEnv(body: string): string {
-  return `use "@venn/env"\nflow "f" { step "s" { ${body} } }`;
+  return `use "venn/env"\nflow "f" { step "s" { ${body} } }`;
 }
 
 describe("env checking", () => {
@@ -52,11 +52,11 @@ describe("env checking", () => {
     expect(check(withEnv("expect env.BASE_URL"), DECLARED)).toEqual([]);
   });
 
-  it('refuses to read env without `use "@venn/env"`', () => {
+  it('refuses to read env without `use "venn/env"`', () => {
     const found = check('flow "f" { step "s" { expect env.BASE_URL } }', DECLARED);
 
     expect(found[0]).toContain("VN2007");
-    expect(found[0]).toContain('add `use "@venn/env"`');
+    expect(found[0]).toContain('add `use "venn/env"`');
   });
 
   it("asks for the import even when the read hides inside a string", () => {

@@ -1,4 +1,4 @@
-import { type FnSpec, type TypeSpec, t } from "@venn/types";
+import { type FnSpec, type TypeSpec, t } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { gqlPlugin } from "./plugin.js";
 import { gqlTypeDefs } from "./types.js";

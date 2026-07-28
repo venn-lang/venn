@@ -1,0 +1,58 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # A dependency becomes vulnerable while you are not looking, so this runs
+    # whether or not anyone pushed.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Audit
+        run: pnpm audit --audit-level=high
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # The compiler is the product here, so query it properly rather than
+          # with the default set.
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+
+  osv:
+    name: OSV scanner
+    # Called as a reusable workflow, not as a step: the repository's action.yml
+    # carries only metadata and has no `runs:` section, so it cannot be a step.
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    with:
+      # Covers advisories the npm registry's own database does not carry.
+      scan-args: |-
+        --lockfile=./pnpm-lock.yaml

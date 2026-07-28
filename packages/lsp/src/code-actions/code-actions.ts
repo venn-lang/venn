@@ -5,7 +5,7 @@ import {
   isMatcherClause,
   isRunStmt,
   isStringLit,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { CstUtils, type LangiumDocument } from "langium";
 import type { CodeActionProvider } from "langium/lsp";
 import {

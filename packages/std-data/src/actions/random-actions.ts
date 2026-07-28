@@ -1,5 +1,11 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction, restArg } from "@venn/sdk";
-import { t } from "@venn/types";
+import {
+  type ActionDefinition,
+  type ActionInput,
+  arg,
+  defineAction,
+  restArg,
+} from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { rng, shuffleWith } from "../rng/index.js";
 
 /** `data.oneOf("free", "pro")`: pick one of the given values via the shared PRNG. */

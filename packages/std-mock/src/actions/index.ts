@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { clockAdvance, clockFreeze } from "./clock-actions.js";
 import { flag } from "./flag-actions.js";
 import { intercept, respond } from "./intercept-actions.js";

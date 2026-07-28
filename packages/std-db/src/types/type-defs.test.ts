@@ -1,4 +1,4 @@
-import { type FnSpec, type TypeSpec, t } from "@venn/types";
+import { type FnSpec, type TypeSpec, t } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { dbPlugin } from "../plugin.js";
 import { dbTypeDefs } from "./type-defs.js";

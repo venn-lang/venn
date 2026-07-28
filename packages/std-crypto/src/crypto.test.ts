@@ -1,4 +1,4 @@
-import type { ActionContext, ActionDefinition } from "@venn/sdk";
+import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { cryptoActions } from "./actions/index.js";
 import { fromBytes, toBase64Url, toBytes } from "./bytes/index.js";

@@ -2,7 +2,7 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { defaultManifest, type Manifest } from "@venn/contracts";
+import { defaultManifest, type Manifest } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { loadEnv } from "./load-env.js";
 

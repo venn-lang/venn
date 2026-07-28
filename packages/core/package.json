@@ -1,5 +1,5 @@
 {
-  "name": "@venn/core",
+  "name": "@venn-lang/core",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -19,8 +19,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/contracts": "workspace:*",
-    "@venn/types": "workspace:*",
+    "@venn-lang/contracts": "workspace:*",
+    "@venn-lang/types": "workspace:*",
     "langium": "catalog:"
   },
   "devDependencies": {

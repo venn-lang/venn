@@ -1,4 +1,4 @@
-import type { ParallelStmt, Statement } from "@venn/core";
+import type { ParallelStmt, Statement } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { branchEngine } from "./branch-engine.js";
 import { runPool } from "./concurrency.js";

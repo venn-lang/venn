@@ -1,4 +1,4 @@
-import type { Span } from "@venn/core";
+import type { Span } from "@venn-lang/core";
 
 /** Minimal structural view of a Langium CST node (avoids importing langium). */
 interface CstView {

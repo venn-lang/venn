@@ -1,4 +1,4 @@
-import type { FnSpec, TypeSpec } from "@venn/types";
+import type { FnSpec, TypeSpec } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { loadActions } from "./actions/index.js";
 import { loadPlugin } from "./plugin.js";

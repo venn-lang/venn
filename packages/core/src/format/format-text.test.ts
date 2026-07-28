@@ -4,9 +4,9 @@ import { formatText } from "./format-text.js";
 
 const MESSY = `module demo
 
-use "@venn/assert"
+use "venn/assert"
 import { login } from "#shared/auth.vn"
-use "@venn/http"
+use "venn/http"
 
 flow "F" {
 step "s" {
@@ -18,8 +18,8 @@ describe("formatText", () => {
   it("groups every `use` above every `import`", () => {
     const formatted = formatText(MESSY);
 
-    expect(formatted).toContain('use "@venn/assert"\nuse "@venn/http"\n');
-    expect(formatted.indexOf('use "@venn/http"')).toBeLessThan(formatted.indexOf("import {"));
+    expect(formatted).toContain('use "venn/assert"\nuse "venn/http"\n');
+    expect(formatted.indexOf('use "venn/http"')).toBeLessThan(formatted.indexOf("import {"));
   });
 
   it("re-indents by bracket depth", () => {
@@ -44,11 +44,11 @@ describe("formatText", () => {
   it("leaves the header alone when organising is off", () => {
     const formatted = formatText(MESSY, { organizeHeader: false });
 
-    expect(formatted.indexOf("import {")).toBeLessThan(formatted.indexOf('use "@venn/http"'));
+    expect(formatted.indexOf("import {")).toBeLessThan(formatted.indexOf('use "venn/http"'));
   });
 
   it("sorts each group when asked", () => {
-    const formatted = formatText('use "@venn/http"\nuse "@venn/assert"\n\nflow "F" { }', {
+    const formatted = formatText('use "venn/http"\nuse "venn/assert"\n\nflow "F" { }', {
       sortHeader: true,
     });
 

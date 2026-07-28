@@ -45,21 +45,14 @@ jobs:
 
   osv:
     name: OSV scanner
-    runs-on: ubuntu-latest
+    # Called as a reusable workflow, not as a step: the repository's action.yml
+    # carries only metadata and has no `runs:` section, so it cannot be a step.
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
     permissions:
       contents: read
       security-events: write
-    steps:
-      - uses: actions/checkout@v4
-      # Covers advisories that the npm registry's own database does not.
-      - uses: google/osv-scanner-action@v2.3.8
-        with:
-          scan-args: |-
-            --lockfile=./pnpm-lock.yaml
-            --format=sarif
-            --output=results.sarif
-        continue-on-error: true
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: results.sarif
+      actions: read
+    with:
+      # Covers advisories the npm registry's own database does not carry.
+      scan-args: |-
+        --lockfile=./pnpm-lock.yaml

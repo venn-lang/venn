@@ -52,6 +52,7 @@ node packages/cli/dist/bin/venn.mjs test examples/
 | `venn fmt [target]` | Format `.vn` files in place |
 | `venn check [target]` | Statically check without running |
 | `venn verify-plugin <path>` | Inspect a plugin module and check its shape |
+| `venn upgrade` | Move a global install to the latest published version |
 
 ### Starting a project
 
@@ -155,6 +156,29 @@ venn verify-plugin ./dist/index.mjs
 Imports the module, takes its default export (or the first export that looks like a plugin) and
 prints the name, the namespace and how many actions, matchers and resources it declares. Exits 1
 when the shape is wrong.
+
+### upgrade
+
+```bash
+venn upgrade              # ask first, then run the install
+venn upgrade --dry-run    # print the command that would run, change nothing
+venn upgrade --yes        # skip the question, for a script
+```
+
+Finds which manager installed this copy by reading the path it is running from, then runs that
+manager's own global install. It does not rewrite its own files: the CLI cannot replace itself while
+it is executing, and on Windows the running executable is locked.
+
+The path is the signal because `npm_config_user_agent`, the obvious alternative, is only set while a
+package script runs and is empty when the binary is invoked directly, which is every real use.
+
+Two cases are refused rather than guessed at. A copy the project owns is left alone, since its
+version is pinned in the manifest and the next install would undo the upgrade; the message says to
+update it there instead. A path that matches no manager is refused outright, with the install command
+to run by hand. Both exit 1.
+
+A prerelease is never offered to someone on a stable version, since opting into one is a decision
+rather than an update.
 
 ## Targets: what a bare command means
 

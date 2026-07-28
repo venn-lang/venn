@@ -1,0 +1,173 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Venn",
+  "scopeName": "source.venn",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#annotation"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#module"
+    },
+    {
+      "include": "#run"
+    },
+    {
+      "include": "#declaration"
+    },
+    {
+      "include": "#lifecycle"
+    },
+    {
+      "include": "#control"
+    },
+    {
+      "include": "#constant"
+    },
+    {
+      "include": "#type"
+    },
+    {
+      "include": "#instant"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#action"
+    },
+    {
+      "include": "#member"
+    },
+    {
+      "include": "#property"
+    },
+    {
+      "include": "#operator"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.venn"
+    },
+    "annotation": {
+      "match": "@[A-Za-z_]\\w*",
+      "name": "entity.name.decorator.venn"
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.venn",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.venn"
+        },
+        {
+          "begin": "\\$\\{",
+          "end": "\\}",
+          "name": "meta.embedded.venn",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.template-expression.venn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.template-expression.venn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "$self"
+            }
+          ]
+        }
+      ]
+    },
+    "module": {
+      "match": "\\b(module)\\s+([A-Za-z_][\\w.]*)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.import.venn"
+        },
+        "2": {
+          "name": "entity.name.namespace.venn"
+        }
+      }
+    },
+    "run": {
+      "match": "\\b(run)\\s+([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.venn"
+        },
+        "2": {
+          "name": "entity.name.function.venn"
+        }
+      }
+    },
+    "declaration": {
+      "match": "\\b(module|use|import|from|as|pub|flow|fragment|fn|deco|type|factory|dataset|resource|config|matrix|report|const|let)\\b",
+      "name": "storage.type.venn"
+    },
+    "lifecycle": {
+      "match": "\\b(setup|teardown|beforeEach|afterEach|defer|on)\\b",
+      "name": "keyword.control.lifecycle.venn"
+    },
+    "control": {
+      "match": "\\b(if|else|forEach|in|repeat|while|parallel|race|try|catch|finally|break|continue|return|run|expect|capture|step|group|not|all|soft)\\b",
+      "name": "keyword.control.venn"
+    },
+    "constant": {
+      "match": "\\b(true|false|null)\\b",
+      "name": "constant.language.venn"
+    },
+    "instant": {
+      "match": "\\b\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z\\b",
+      "name": "constant.numeric.instant.venn"
+    },
+    "number": {
+      "match": "\\b\\d+(\\.\\d+)?(ms|kb|mb|gb|b|s|m|h|%)?\\b",
+      "name": "constant.numeric.venn"
+    },
+    "action": {
+      "comment": "Only at the start of a statement — elsewhere a dot is member access, which the language server colours correctly.",
+      "match": "^\\s*([a-z][\\w]*)\\.([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "entity.name.namespace.venn"
+        },
+        "2": {
+          "name": "entity.name.function.venn"
+        }
+      }
+    },
+    "operator": {
+      "match": "=>|->|==|!=|~=|<=|>=|&&|\\|\\||\\?\\?|\\?\\.|[-+*/%<>!=?:]",
+      "name": "keyword.operator.venn"
+    },
+    "type": {
+      "comment": "Type names, so the type a hover renders in a `venn` fence is coloured.",
+      "match": "\\b(number|string|bool|null|void|dynamic|list|map|fn|duration|size|percent|instant|never)\\b",
+      "name": "support.type.venn"
+    },
+    "member": {
+      "comment": "A name after a dot that is called: a method.",
+      "match": "(?<=\\.)([a-zA-Z_]\\w*)(?=\\s*\\()",
+      "name": "entity.name.function.member.venn"
+    },
+    "property": {
+      "comment": "Any other name after a dot: a property read.",
+      "match": "(?<=\\.)([a-zA-Z_]\\w*)",
+      "name": "variable.other.property.venn"
+    }
+  }
+}

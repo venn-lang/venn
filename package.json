@@ -22,7 +22,7 @@
     "vscode:install": "pnpm run vscode:build && node scripts/install-vscode-extension.mjs",
     "vscode:uninstall": "node scripts/install-vscode-extension.mjs --remove",
     "test:coverage": "vitest run --coverage",
-    "release": "pnpm -r --sort run build && changeset publish"
+    "release": "pnpm -r --sort run build && changeset publish --no-git-tag"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",

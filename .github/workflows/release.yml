@@ -14,6 +14,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      # Empty on a run that only refreshed the version pull request, which is
+      # how the SBOM job knows there is no release to attach anything to.
+      tag: ${{ steps.release.outputs.tag }}
     permissions:
       contents: write
       pull-requests: write
@@ -66,13 +70,21 @@ jobs:
 
       # Keeps a "Version Packages" pull request up to date while changesets
       # accumulate. Merging it is what publishes.
+      #
+      # Releases and tags are left off: the action makes one of each per
+      # package, which for a language whose packages all share a version means
+      # twenty-nine of them saying the same thing, most reading only "Updated
+      # dependencies". The step below makes the one release this actually is.
       - name: Version or publish
+        id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
           publish: pnpm release
           commit: "chore(release): version packages"
           title: "chore(release): version packages"
+          create-github-releases: false
+          push-git-tags: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
@@ -84,10 +96,31 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # One tag and one release for the version, since that is what shipped.
+      # Runs only when something was actually published, so an ordinary merge
+      # that just refreshes the version pull request tags nothing.
+      - name: Tag and release the version
+        id: release
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          version=$(node -p "require('./packages/cli/package.json').version")
+          node scripts/release-notes.mjs "$version" > notes.md
+          git tag -a "v$version" -m "Venn $version"
+          git push origin "v$version"
+          gh release create "v$version" --title "Venn $version" --notes-file notes.md
+          rm notes.md
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   sbom:
     name: SBOM
     needs: release
-    if: github.ref == 'refs/heads/main'
+    # Only when a release exists to attach it to. It used to run on every push
+    # to main and find the newest tag with `git describe`, which after a merge
+    # that published nothing meant attaching today's tree to last week's
+    # release.
+    if: needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -106,9 +139,7 @@ jobs:
       - name: Generate CycloneDX SBOM
         run: pnpm dlx @cyclonedx/cyclonedx-npm --output-format json --output-file sbom.json --omit dev
 
-      - name: Attach to the latest release
-        run: |
-          tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
-          if [ -n "$tag" ]; then gh release upload "$tag" sbom.json --clobber; fi
+      - name: Attach to the release
+        run: gh release upload "${{ needs.release.outputs.tag }}" sbom.json --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

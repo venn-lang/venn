@@ -1,4 +1,4 @@
-import type { Port, SecretProvider } from "@venn/contracts";
+import type { Port, SecretProvider } from "@venn-lang/contracts";
 
 /** What an action's `run` receives. Ports are how a plugin reaches I/O. */
 export interface ActionContext {

@@ -16,7 +16,7 @@ export function isKnownSignal(signal: SystemSignal): boolean {
 /**
  * The real one: the signals this process receives.
  *
- * Lives behind `@venn/contracts/node` because it touches `node:process`, so the
+ * Lives behind `@venn-lang/contracts/node` because it touches `node:process`, so the
  * main entry stays neutral and still runs in the editor's worker.
  */
 export function createNodeSignals(): SignalSource {

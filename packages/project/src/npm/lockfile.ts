@@ -1,4 +1,4 @@
-import type { FileSystem } from "@venn/contracts";
+import type { FileSystem } from "@venn-lang/contracts";
 import { join } from "../paths/index.js";
 import { LOCK_FILE, LOCK_VERSION, type Lockfile } from "./lockfile.types.js";
 import { readInstalled } from "./read-installed.js";

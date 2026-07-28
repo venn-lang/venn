@@ -1,4 +1,4 @@
-// @venn/contracts/testing: the conformance harness (TCK). It imports vitest and
+// @venn-lang/contracts/testing: the conformance harness (TCK). It imports vitest and
 // fast-check, so it stays out of the runtime bundle. Any package can run these
 // suites against its own implementation.
 export type { ConformanceSpec, PortFactory } from "./conformance/index.js";

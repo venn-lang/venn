@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 
 /**
  * One line for one failure, however it reached us.

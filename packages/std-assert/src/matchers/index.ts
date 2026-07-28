@@ -1,4 +1,4 @@
-import type { MatcherDefinition } from "@venn/sdk";
+import type { MatcherDefinition } from "@venn-lang/sdk";
 import { closeTo } from "./close-to.js";
 import { contains } from "./contains.js";
 import { equals } from "./equals.js";

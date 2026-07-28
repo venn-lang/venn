@@ -1,4 +1,4 @@
-# @venn/load
+# @venn-lang/load
 
 > The `load` namespace: describe a load profile, run it, assert on the metrics.
 
@@ -8,12 +8,12 @@ profile is plain data, so a flow can hold it, pass it and read it before anythin
 
 ## Install
 
-Nothing to install. `@venn/load` is part of the standard library, and the CLI and the language
-server both load [`@venn/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
+Nothing to install. `@venn-lang/load` is part of the standard library, and the CLI and the language
+server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
 namespace with one line.
 
 ```ruby
-use "@venn/load"
+use "venn/load"
 ```
 
 ## Usage
@@ -21,8 +21,8 @@ use "@venn/load"
 ```ruby
 module demo.load
 
-use "@venn/load"
-use "@venn/assert"
+use "venn/load"
+use "venn/assert"
 
 flow "Checkout under load" {
   step "ramp to 200 VUs" {
@@ -81,7 +81,7 @@ Two implementations ship together, which is what makes this a port rather than a
 interface:
 
 - `createFakeLoadRunner()` derives canned metrics from the profile's peak VUs, with no real traffic.
-  This is the one [`@venn/stdlib`](../stdlib) binds, so a load flow is runnable offline.
+  This is the one [`@venn-lang/stdlib`](../stdlib) binds, so a load flow is runnable offline.
 - `createRealLoadRunner()` is a stub. Every call throws a `VennError` with code `VN8090`, because
   this repository is the language and drives no real load.
 
@@ -110,8 +110,8 @@ peak.
 Binding a different runner means one entry in the runner's port list:
 
 ```ts
-import { createFakeLoadRunner, LoadRunnerPort } from "@venn/load";
-import { createRunner } from "@venn/runtime";
+import { createFakeLoadRunner, LoadRunnerPort } from "@venn-lang/load";
+import { createRunner } from "@venn-lang/runtime";
 
 const runner = createRunner({
   host,
@@ -124,6 +124,6 @@ const runner = createRunner({
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `definePlugin`, `defineAction` and the `Duration` schema.
-- [`@venn/http`](../std-http) for the requests a load profile is usually pointed at.
-- [`@venn/artifacts`](../std-artifacts) for filing what a run produced.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin`, `defineAction` and the `Duration` schema.
+- [`@venn-lang/http`](../std-http) for the requests a load profile is usually pointed at.
+- [`@venn-lang/artifacts`](../std-artifacts) for filing what a run produced.

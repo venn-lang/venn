@@ -1,4 +1,4 @@
-import { t } from "@venn/types";
+import { t } from "@venn-lang/types";
 import type { Rng } from "../rng/index.js";
 import { CITIES, COUNTRIES, NOUNS, STREET_TYPES, TIMEZONES } from "./data/index.js";
 import type { FakerSpec } from "./faker.types.js";

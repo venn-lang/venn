@@ -16,7 +16,7 @@ import {
   isStepDecl,
   isTryStmt,
   isTypeDecl,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
 import type { HighlightArgs } from "./highlight.types.js";
 

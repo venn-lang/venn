@@ -1,4 +1,4 @@
-import { defineResource, type ResourceDefinition } from "@venn/sdk";
+import { defineResource, type ResourceDefinition } from "@venn-lang/sdk";
 
 /**
  * A worker-scoped browser: one engine per worker, shared by every flow that

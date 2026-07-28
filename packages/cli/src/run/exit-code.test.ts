@@ -1,5 +1,5 @@
-import type { RunId } from "@venn/core";
-import type { RunResult } from "@venn/runtime";
+import type { RunId } from "@venn-lang/core";
+import type { RunResult } from "@venn-lang/runtime";
 import { describe, expect, it } from "vitest";
 import { exitCodeOf } from "./exit-code.js";
 

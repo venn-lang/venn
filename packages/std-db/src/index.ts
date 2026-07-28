@@ -1,4 +1,4 @@
-// @venn/db: table verbs and a nominal Row type, riding the DbClient port so the
+// @venn-lang/db: table verbs and a nominal Row type, riding the DbClient port so the
 // database is injected at the host boundary rather than baked into the plugin.
 
 export * from "./clients/index.js";

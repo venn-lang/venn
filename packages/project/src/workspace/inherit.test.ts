@@ -1,4 +1,4 @@
-import { createMemoryFs, type FileSystem } from "@venn/contracts";
+import { createMemoryFs, type FileSystem } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { findProject } from "../discover/index.js";
 import { reanchor } from "../paths/index.js";

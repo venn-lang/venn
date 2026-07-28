@@ -1,4 +1,4 @@
-// @venn/runtime: the registry and the sequential runner. Depends only on core,
+// @venn-lang/runtime: the registry and the sequential runner. Depends only on core,
 // contracts and sdk (types); no concrete node impls, no `node:*`.
 
 export * from "./check/index.js";

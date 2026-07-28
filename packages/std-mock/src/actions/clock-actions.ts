@@ -1,5 +1,11 @@
-import { type ActionDefinition, type ActionInput, arg, Duration, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import {
+  type ActionDefinition,
+  type ActionInput,
+  arg,
+  Duration,
+  defineAction,
+} from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { getMockState } from "../state/index.js";
 
 /**

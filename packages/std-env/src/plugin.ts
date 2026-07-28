@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 
 /**
  * The `env` plugin: the namespace behind `env.NAME`.
@@ -9,7 +9,7 @@ import { definePlugin, type PluginDefinition } from "@venn/sdk";
  * values come from the `[env.*]` tables of `venn.toml`, chosen with `--env`.
  */
 export const envPlugin: PluginDefinition = definePlugin({
-  name: "@venn/env",
+  name: "venn/env",
   version: "0.0.0",
   namespace: "env",
 });

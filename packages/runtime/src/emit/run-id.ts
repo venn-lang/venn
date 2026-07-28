@@ -1,5 +1,5 @@
-import type { Clock, Random } from "@venn/contracts";
-import type { RunId } from "@venn/core";
+import type { Clock, Random } from "@venn-lang/contracts";
+import type { RunId } from "@venn-lang/core";
 
 /**
  * Mint a run id from the host clock and random source, so a seeded run is

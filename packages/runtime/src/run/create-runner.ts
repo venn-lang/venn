@@ -1,4 +1,10 @@
-import { type Document, expand, type FragmentDecl, type Problem, type RunId } from "@venn/core";
+import {
+  type Document,
+  expand,
+  type FragmentDecl,
+  type Problem,
+  type RunId,
+} from "@venn-lang/core";
 import { createActionContext } from "../context/index.js";
 import { createDecoratorSource } from "../decorators/index.js";
 import { createEmitter, newRunId } from "../emit/index.js";

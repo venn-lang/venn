@@ -4,7 +4,7 @@
  * Longer than the one-line `doc` a `DecoratorDefinition` carries, because a
  * hover is where someone actually reads it. A name here that no decorator
  * implements is still documented: the editor can explain `@load` long before
- * `@venn/load` contributes it.
+ * `@venn-lang/load` contributes it.
  */
 const DOCS: Record<string, string> = {
   doc: "Documentation shown in the editor and the node tooltip.",
@@ -17,7 +17,7 @@ const DOCS: Record<string, string> = {
   scope: "Resource lifetime: `suite`, `worker`, `flow` or `step`.",
   flaky: "Declared flakiness tolerance, e.g. `@flaky(ratio: 0.05)`.",
   tags: "Tags matched by the runner's `--tags` filter.",
-  load: "Run the flow as a load test (from `@venn/load`).",
+  load: "Run the flow as a load test (from `@venn-lang/load`).",
 };
 
 /** The prose for a decorator the language documents, if it documents one. */

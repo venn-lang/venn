@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { connectAction } from "./connect.js";
 import { execAction } from "./exec.js";
 import { queryAction } from "./query.js";

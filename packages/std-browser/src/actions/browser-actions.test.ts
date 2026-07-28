@@ -1,4 +1,4 @@
-import type { ActionContext } from "@venn/sdk";
+import type { ActionContext } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { createFakeBrowserDriver, type FakeBrowserDriver } from "../drivers/index.js";
 import { browserActions } from "./index.js";

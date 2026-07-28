@@ -1,4 +1,4 @@
-import type { FnSpec, TypeSpec } from "@venn/types";
+import type { FnSpec, TypeSpec } from "@venn-lang/types";
 import type { ZodType, z } from "zod";
 import { signatureOf } from "./schema/arg.js";
 import type { ArgSpec } from "./schema/args.types.js";

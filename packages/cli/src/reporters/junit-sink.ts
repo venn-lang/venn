@@ -1,4 +1,4 @@
-import type { EventSink } from "@venn/runtime";
+import type { EventSink } from "@venn-lang/runtime";
 
 interface FlowResult {
   title: string;

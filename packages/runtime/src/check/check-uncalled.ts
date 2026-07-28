@@ -7,7 +7,7 @@ import {
   isMember,
   type Member,
   type Problem,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { actionTarget, nodeSpan, resolveTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 

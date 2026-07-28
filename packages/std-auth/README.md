@@ -1,4 +1,4 @@
-# @venn/auth
+# @venn-lang/auth
 
 > The `auth` namespace: build the header a request needs, or fetch a token for it.
 
@@ -9,12 +9,12 @@ uses the global Web Crypto (`crypto.subtle`), so nothing here imports `node:*`.
 
 ## Install
 
-Nothing to install. `@venn/auth` is part of the standard library, and the CLI and the language
-server both load [`@venn/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
+Nothing to install. `@venn-lang/auth` is part of the standard library, and the CLI and the language
+server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
 namespace with one line.
 
 ```ruby
-use "@venn/auth"
+use "venn/auth"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "@venn/auth"
 ```ruby
 module demo.auth
 
-use "@venn/auth"
-use "@venn/assert"
+use "venn/auth"
+use "venn/assert"
 
 flow "Signed in" {
   step "a bearer header carries the token" {
@@ -91,7 +91,7 @@ Two implementations ship together, which is what makes this a port rather than a
 interface:
 
 - `createFakeAuthClient()` returns a canned token derived from the principal, with no network. This
-  is the one [`@venn/stdlib`](../stdlib) binds, so `auth.oauth2` resolves offline. Pass
+  is the one [`@venn-lang/stdlib`](../stdlib) binds, so `auth.oauth2` resolves offline. Pass
   `{ token: { expires_in: 60 } }` to override any field of what it hands back.
 - `createRealAuthClient()` is a stub. Every call throws a `VennError` with code `VN8090`, because
   this repository is the language and ships no live token exchange.
@@ -121,8 +121,8 @@ refused with a legible diagnostic before the run starts, rather than failing som
 Binding a different client means one entry in the runner's port list:
 
 ```ts
-import { AuthClientPort, createFakeAuthClient } from "@venn/auth";
-import { createRunner } from "@venn/runtime";
+import { AuthClientPort, createFakeAuthClient } from "@venn-lang/auth";
+import { createRunner } from "@venn-lang/runtime";
 
 const runner = createRunner({
   host,
@@ -135,6 +135,6 @@ const runner = createRunner({
 
 ## See also
 
-- [`@venn/http`](../std-http) for the requests these headers are attached to.
-- [`@venn/crypto`](../std-crypto) for hashing and encoding outside an auth flow.
-- [`@venn/sdk`](../sdk) for `definePlugin` and `defineAction`.
+- [`@venn-lang/http`](../std-http) for the requests these headers are attached to.
+- [`@venn-lang/crypto`](../std-crypto) for hashing and encoding outside an auth flow.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin` and `defineAction`.

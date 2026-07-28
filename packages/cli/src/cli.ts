@@ -1,5 +1,5 @@
 import { basename } from "node:path";
-import type { ProxiedVerb, ScaffoldKind } from "@venn/project";
+import type { ProxiedVerb, ScaffoldKind } from "@venn-lang/project";
 import { defineCommand, runMain } from "citty";
 import { buildCommand } from "./commands/build.js";
 import { checkCommand } from "./commands/check.js";

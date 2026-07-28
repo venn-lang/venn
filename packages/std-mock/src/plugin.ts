@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { mockActions } from "./actions/index.js";
 import { mockTypeDefs } from "./types.js";
 
@@ -10,7 +10,7 @@ import { mockTypeDefs } from "./types.js";
  * `mock.Response` so a flow can name what its verbs hand back.
  */
 export const mockPlugin: PluginDefinition = definePlugin({
-  name: "@venn/mock",
+  name: "venn/mock",
   version: "0.0.0",
   namespace: "mock",
   actions: mockActions,

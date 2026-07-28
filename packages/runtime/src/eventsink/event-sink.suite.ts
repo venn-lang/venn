@@ -1,4 +1,4 @@
-import type { Envelope, RunId } from "@venn/core";
+import type { Envelope, RunId } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import type { EventSink } from "./event-sink.types.js";
 

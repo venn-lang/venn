@@ -1,5 +1,5 @@
-import type { FnSpec, TypeSpec } from "@venn/types";
-import { t } from "@venn/types";
+import type { FnSpec, TypeSpec } from "@venn-lang/types";
+import { t } from "@venn-lang/types";
 import type { ArgSpec } from "./args.types.js";
 
 /** One required positional argument: `arg("url", t.string, "Where to send it.")`. */

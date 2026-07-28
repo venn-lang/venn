@@ -5,7 +5,7 @@ import {
   isLifecycleDecl,
   type LetStmt,
   type Statement,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { actionCall } from "./invocation.js";

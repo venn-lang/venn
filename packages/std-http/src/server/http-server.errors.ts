@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 
 /** VN7020: the address the flow asked for is already taken by something else. */
 export function portInUse(args: { port: number; host: string }): VennError {

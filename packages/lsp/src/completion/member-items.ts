@@ -9,7 +9,7 @@ import {
   resolveMember,
   showType,
   type Type,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { CompletionItem, CompletionItemKind, Range } from "vscode-languageserver";
 import { findBinding } from "../document/index.js";

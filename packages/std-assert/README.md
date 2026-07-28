@@ -1,4 +1,4 @@
-# @venn/assert
+# @venn-lang/assert
 
 > The words that follow `expect`: `equals`, `contains`, `oneOf` and `closeTo`.
 
@@ -9,11 +9,11 @@ contributes no verbs, declares no types and needs no host capability.
 
 ## Install
 
-`@venn/assert` is part of the stdlib the `venn` CLI and the language server load, so there is
+`@venn-lang/assert` is part of the stdlib the `venn` CLI and the language server load, so there is
 nothing to install. A file that asserts brings the namespace in:
 
 ```ruby
-use "@venn/assert"
+use "venn/assert"
 ```
 
 A matcher used without that line is `VN2007`; a word no plugin registered is `VN2004`. Both are
@@ -24,7 +24,7 @@ reported by `venn check`, before anything runs.
 ```ruby
 module demo.matchers
 
-use "@venn/assert"
+use "venn/assert"
 
 flow "Bareword matchers" {
   step "checks" {
@@ -97,7 +97,7 @@ actual 200" explains nothing.
 A matcher is a plain object, so it can be exercised directly:
 
 ```ts
-import { assertMatchers } from "@venn/assert";
+import { assertMatchers } from "@venn-lang/assert";
 
 const equals = assertMatchers.find((matcher) => matcher.name === "equals");
 
@@ -111,6 +111,6 @@ equals?.detail?.({ subject: { status: "pending" }, args: [{ status: "paid" }], p
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `defineMatcher` and the definition types used here.
-- [`@venn/runtime`](../runtime) for the registry that resolves a bareword and emits `VN6001`.
-- [`@venn/fmt`](../std-fmt) for turning a value into text you can assert against.
+- [`@venn-lang/sdk`](../sdk) for `defineMatcher` and the definition types used here.
+- [`@venn-lang/runtime`](../runtime) for the registry that resolves a bareword and emits `VN6001`.
+- [`@venn-lang/fmt`](../std-fmt) for turning a value into text you can assert against.

@@ -37,7 +37,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      # Build first: typecheck resolves @venn/* through the emitted declarations
+      # Build first: typecheck resolves @venn-lang/* through the emitted declarations
       # in dist, so it has nothing to read until the packages are built.
       - name: Build
         run: pnpm -r --sort run build

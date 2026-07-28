@@ -1,4 +1,4 @@
-# @venn/crypto
+# @venn-lang/crypto
 
 > The `crypto` namespace: digests, HMACs, base64, PBKDF2 password hashing and JSON Web Tokens.
 
@@ -13,7 +13,7 @@ The package is part of the stdlib the `venn` CLI loads, so nothing to install. R
 flow with a `use` line:
 
 ```ruby
-use "@venn/crypto"
+use "venn/crypto"
 ```
 
 The plugin requires no host capability: cryptography here is computation, not I/O.
@@ -23,8 +23,8 @@ The plugin requires no host capability: cryptography here is computation, not I/
 ```ruby
 module demo.session
 
-use "@venn/assert"
-use "@venn/crypto"
+use "venn/assert"
+use "venn/crypto"
 
 flow "A session token round-trips" {
   const secret = "s3cret"
@@ -129,6 +129,6 @@ boolean, which the signature says inline.
 
 ## See also
 
-- [`@venn/data`](../std-data) for the passwords and identities to hash.
-- [`@venn/auth`](../std-auth) for building the headers a token goes into.
-- [`@venn/contracts`](../contracts) for `Port`, `Host` and capability negotiation.
+- [`@venn-lang/data`](../std-data) for the passwords and identities to hash.
+- [`@venn-lang/auth`](../std-auth) for building the headers a token goes into.
+- [`@venn-lang/contracts`](../contracts) for `Port`, `Host` and capability negotiation.

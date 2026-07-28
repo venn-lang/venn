@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 
 const params = z.object({ header: z.string().optional() }).optional();
 

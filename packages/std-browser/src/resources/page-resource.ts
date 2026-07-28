@@ -1,4 +1,4 @@
-import { defineResource, type ResourceDefinition } from "@venn/sdk";
+import { defineResource, type ResourceDefinition } from "@venn-lang/sdk";
 
 /**
  * A flow-scoped page: one isolated context per flow, so two flows never share

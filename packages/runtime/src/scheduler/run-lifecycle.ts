@@ -1,4 +1,4 @@
-import { buildProblem, CODES, type LifecycleDecl, type Problem } from "@venn/core";
+import { buildProblem, CODES, type LifecycleDecl, type Problem } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";

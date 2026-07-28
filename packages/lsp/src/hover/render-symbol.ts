@@ -8,7 +8,7 @@ import {
   resolveMember,
   showType,
   type Type,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { code, fence, labelled, rule, sections } from "../markdown/index.js";
 

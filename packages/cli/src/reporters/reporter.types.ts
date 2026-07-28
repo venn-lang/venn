@@ -1,4 +1,4 @@
-import type { EventSink } from "@venn/runtime";
+import type { EventSink } from "@venn-lang/runtime";
 
 /** Totals across every file a single `venn run` covered. */
 export interface RunTotals {

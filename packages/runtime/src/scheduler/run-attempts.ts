@@ -1,5 +1,5 @@
-import { VennError } from "@venn/contracts";
-import type { Annotation } from "@venn/core";
+import { VennError } from "@venn-lang/contracts";
+import type { Annotation } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { type RetrySpec, readRetry, readTimeout } from "./annotations.js";
 import type { Engine } from "./engine.types.js";

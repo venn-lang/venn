@@ -1,4 +1,4 @@
-import { type AstNode, isForEachStmt, isRepeatStmt } from "@venn/core";
+import { type AstNode, isForEachStmt, isRepeatStmt } from "@venn-lang/core";
 
 /**
  * Which property of a declaration carries the name it binds.

@@ -1,4 +1,4 @@
-import { expectVennError } from "@venn/contracts/testing";
+import { expectVennError } from "@venn-lang/contracts/testing";
 import { describe, expect, it } from "vitest";
 import type { HttpServer, ServerReply, ServerRequest } from "./http-server.types.js";
 

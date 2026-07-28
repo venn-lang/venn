@@ -1,4 +1,4 @@
-# @venn/io
+# @venn-lang/io
 
 > The `io` namespace: standard output, standard error, standard input and the process arguments.
 
@@ -8,11 +8,11 @@ its console. This plugin names the parts of it that need naming, on top of the `
 
 ## Install
 
-`@venn/io` is part of the stdlib the `venn` CLI and the language server load, so there is nothing to
+`@venn-lang/io` is part of the stdlib the `venn` CLI and the language server load, so there is nothing to
 install. A file that uses it says so:
 
 ```ruby
-use "@venn/io"
+use "venn/io"
 ```
 
 The plugin declares `requires: ["io"]`. A host that offers no console (the Web Worker host behind
@@ -23,7 +23,7 @@ the editor offers `fs`, `clock`, `random`, `secrets` and `log`) refuses it at lo
 
 ```ruby
 # greet.vn, run with `venn run greet.vn Ada`
-use "@venn/io"
+use "venn/io"
 
 const argv = io.args
 io.print "arguments: ${argv}"
@@ -60,7 +60,7 @@ Arguments reach `io.args` from the command line: `venn run greet.vn Ada` gives `
 ## The Console port
 
 The verbs above are a thin layer over one port, which lives in
-[`@venn/contracts`](../contracts) because a console is a host capability like the filesystem or the
+[`@venn-lang/contracts`](../contracts) because a console is a host capability like the filesystem or the
 clock, not something this plugin owns.
 
 | | |
@@ -71,13 +71,13 @@ clock, not something this plugin owns.
 | Methods | `write`, `writeError`, `readLine`, `args` |
 
 Two implementations ship with it, and both pass the same conformance suite: `createNodeConsole` from
-`@venn/contracts/node`, which writes to Node's real streams and opens stdin lazily on the first
+`@venn-lang/contracts/node`, which writes to Node's real streams and opens stdin lazily on the first
 `readLine`, and `createMemoryConsole`, which records instead of printing and reads from a scripted
 input. `venn run` binds the real one, with the command line's arguments; a test binds the recorder
 and reads back exactly what the program wrote:
 
 ```ts
-import { createMemoryConsole } from "@venn/io";
+import { createMemoryConsole } from "@venn-lang/io";
 
 const console = createMemoryConsole({ input: ["Ada"], argv: ["--name", "ada"] });
 
@@ -94,12 +94,12 @@ console.args(); // ["--name", "ada"]
 | --- | --- |
 | `ioPlugin` (also the default export) | The `PluginDefinition`: namespace `io`, requires the `io` capability, five actions, no types. |
 | `consoleActions` | The five `ActionDefinition`s, in the order listed above. |
-| `ConsolePort` | The port descriptor, re-exported from `@venn/contracts`. |
+| `ConsolePort` | The port descriptor, re-exported from `@venn-lang/contracts`. |
 | `Console` | The port's interface (type only). |
 | `createMemoryConsole` | The recording implementation, for tests. |
 
 ## See also
 
-- [`@venn/contracts`](../contracts) for the port, its Node implementation and the host capabilities.
-- [`@venn/fmt`](../std-fmt) for turning a value into the text you print.
-- [`@venn/cli`](../cli) for `venn run`, which binds the real console and passes the arguments in.
+- [`@venn-lang/contracts`](../contracts) for the port, its Node implementation and the host capabilities.
+- [`@venn-lang/fmt`](../std-fmt) for turning a value into the text you print.
+- [`@venn-lang/cli`](../cli) for `venn run`, which binds the real console and passes the arguments in.

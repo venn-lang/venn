@@ -5,7 +5,7 @@ import {
   type ForEachStmt,
   ProblemError,
   typeName,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { planOf } from "./block-plan.js";
 import { runPool } from "./concurrency.js";

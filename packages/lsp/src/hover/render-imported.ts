@@ -1,4 +1,4 @@
-import { isDecoDecl, isFragmentDecl } from "@venn/core";
+import { isDecoDecl, isFragmentDecl } from "@venn-lang/core";
 import { UriUtils } from "langium";
 import { declaredDeco, decoHover } from "../deco/index.js";
 import type { ImportedLocation } from "../document/index.js";

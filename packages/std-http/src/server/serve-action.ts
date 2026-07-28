@@ -1,5 +1,5 @@
-import { type ActionDefinition, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { HttpServerPort } from "./http-server.port.js";
 import type { ServerReply, ServerRequest } from "./http-server.types.js";
 

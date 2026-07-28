@@ -27,7 +27,7 @@ export default defineConfig([
     // threw on load — and it is 10 MB that every `venn run` would have paid
     // for to do something almost no command does.
     deps: { alwaysBundle: [/.*/] },
-    external: ["tsc-api", "@venn/dts"],
+    external: ["tsc-api", "@venn-lang/dts"],
     dts: false,
   },
   // The launcher that turns on V8's compile cache before loading the engine.

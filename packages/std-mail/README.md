@@ -1,4 +1,4 @@
-# @venn/mail
+# @venn-lang/mail
 
 > The `mail` namespace: five verbs for waiting on an inbox and reading what arrived.
 
@@ -9,7 +9,7 @@ Half of an end-to-end test lands in an email: a verification code, a password re
 Nothing to install: the plugin ships inside the CLI's stdlib. Declare it in the file that needs it, and the runner loads it.
 
 ```ruby
-use "@venn/mail"
+use "venn/mail"
 ```
 
 ## Usage
@@ -17,8 +17,8 @@ use "@venn/mail"
 ```ruby
 module demo.signup
 
-use "@venn/mail"
-use "@venn/assert"
+use "venn/mail"
+use "venn/assert"
 
 flow "Signup sends a verification email" {
   step "wait for the message" {
@@ -79,7 +79,7 @@ One port, with a real implementation and a double, which is the condition for be
 | `createRealMailClient()` | The real-backend stub. Every method throws `VN8090`, because backend integration is out of scope for the language repository. |
 
 ```ts
-import { createFakeMailClient } from "@venn/mail";
+import { createFakeMailClient } from "@venn-lang/mail";
 
 const client = createFakeMailClient({
   inbox: [
@@ -115,11 +115,11 @@ Failures are `Problem` objects with stable codes. `VN8091` when no email matched
 
 ## Binding a client
 
-A host chooses the implementation once, at startup. `@venn/stdlib` binds an empty fake inbox, which is why the Usage flow above needs a client of its own to pass. Pass a binding to override it.
+A host chooses the implementation once, at startup. `@venn-lang/stdlib` binds an empty fake inbox, which is why the Usage flow above needs a client of its own to pass. Pass a binding to override it.
 
 ```ts
-import { createFakeMailClient, MailClientPort } from "@venn/mail";
-import { createRunner } from "@venn/runtime";
+import { createFakeMailClient, MailClientPort } from "@venn-lang/mail";
+import { createRunner } from "@venn-lang/runtime";
 
 const runner = createRunner({
   host,
@@ -147,7 +147,7 @@ const runner = createRunner({
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `definePlugin` and `defineAction`, the API this package is built on.
-- [`@venn/contracts`](../contracts) for `Port`, `Host` and capability negotiation.
-- [`@venn/stdlib`](../stdlib) for the plugin list and the default port bindings the CLI runs with.
-- [`@venn/browser`](../std-browser) for the sibling plugin whose flows trigger the emails checked here.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin` and `defineAction`, the API this package is built on.
+- [`@venn-lang/contracts`](../contracts) for `Port`, `Host` and capability negotiation.
+- [`@venn-lang/stdlib`](../stdlib) for the plugin list and the default port bindings the CLI runs with.
+- [`@venn-lang/browser`](../std-browser) for the sibling plugin whose flows trigger the emails checked here.

@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 
 /** The handle `browser.launch` yields. */
 const Browser = z.object({ id: z.string(), engine: z.string() });

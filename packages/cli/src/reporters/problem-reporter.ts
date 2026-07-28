@@ -1,4 +1,4 @@
-import type { Problem } from "@venn/core";
+import type { Problem } from "@venn-lang/core";
 
 /**
  * Print compile-time problems to stderr, one code and title per problem with

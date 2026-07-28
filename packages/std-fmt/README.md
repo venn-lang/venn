@@ -1,4 +1,4 @@
-# @venn/fmt
+# @venn-lang/fmt
 
 > The `fmt` namespace: a value in, formatted text out. JSON, tables, YAML, CSV and XML.
 
@@ -8,18 +8,18 @@ ever reaches a terminal. The plugin is pure: it needs no host capability and tou
 
 ## Install
 
-`@venn/fmt` is part of the stdlib the `venn` CLI and the language server load, so there is nothing
+`@venn-lang/fmt` is part of the stdlib the `venn` CLI and the language server load, so there is nothing
 to install. A file that formats says so:
 
 ```ruby
-use "@venn/fmt"
+use "venn/fmt"
 ```
 
 ## Usage
 
 ```ruby
 # report.vn, run with `venn run report.vn`
-use "@venn/fmt"
+use "venn/fmt"
 
 const people = [
   { name: "Ada",   age: 36 },
@@ -86,7 +86,7 @@ strip the keys a caller wrote there.
 The renderers are plain functions with no context and no ports, so they are usable on their own:
 
 ```ts
-import { toCsv, toYaml } from "@venn/fmt";
+import { toCsv, toYaml } from "@venn-lang/fmt";
 
 toCsv([{ text: 'say "hi", now', plain: "ok" }]);
 // 'text,plain\n"say ""hi"", now",ok'
@@ -97,6 +97,6 @@ toYaml({ name: "Ada", tags: ["a", "b"], nested: { n: 1 } });
 
 ## See also
 
-- [`@venn/io`](../std-io) for writing the resulting text to standard output or standard error.
-- [`@venn/assert`](../std-assert) for asserting on it once it is a string.
-- [`@venn/sdk`](../sdk) for `defineAction` and the typed argument helpers used here.
+- [`@venn-lang/io`](../std-io) for writing the resulting text to standard output or standard error.
+- [`@venn-lang/assert`](../std-assert) for asserting on it once it is a string.
+- [`@venn-lang/sdk`](../sdk) for `defineAction` and the typed argument helpers used here.

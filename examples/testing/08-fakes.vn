@@ -1,9 +1,9 @@
-# Standing in for the world with `@venn/mock`: canned replies, feature flags and
+# Standing in for the world with `@venn-lang/mock`: canned replies, feature flags and
 # a clock you control. Everything here is in memory, so nothing opens a socket.
 # Run it with:  venn test examples/testing/08-fakes.vn
 
-use "@venn/assert"
-use "@venn/mock"
+use "venn/assert"
+use "venn/mock"
 
 # A fake is state, and state between tests is how a suite starts lying. Clear it
 # on both sides of the run.

@@ -1,4 +1,4 @@
-# @venn/artifacts
+# @venn-lang/artifacts
 
 > The `artifacts` namespace: record the traces, videos, HARs and screenshots a run produces.
 
@@ -9,12 +9,12 @@ language.
 
 ## Install
 
-Nothing to install. `@venn/artifacts` is part of the standard library, and the CLI and the language
-server both load [`@venn/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
+Nothing to install. `@venn-lang/artifacts` is part of the standard library, and the CLI and the language
+server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
 namespace with one line.
 
 ```ruby
-use "@venn/artifacts"
+use "venn/artifacts"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "@venn/artifacts"
 ```ruby
 module demo.checkout
 
-use "@venn/artifacts"
-use "@venn/assert"
+use "venn/artifacts"
+use "venn/assert"
 
 afterEach { artifacts.flush }
 
@@ -78,7 +78,7 @@ Two implementations ship together, which is what makes this a port rather than a
 interface:
 
 - `createMemoryArtifactStore()` keeps a `Map` of stored refs plus a pending buffer. This is the one
-  [`@venn/stdlib`](../stdlib) binds, so the verbs work offline.
+  [`@venn-lang/stdlib`](../stdlib) binds, so the verbs work offline.
 - `createRealArtifactStore()` is a stub. Every call throws a `VennError` with code `VN8090`, because
   this repository is the language and ships no real storage backend.
 
@@ -106,8 +106,8 @@ nobody checks at load time, and it would surface as a `TypeError` mid-run instea
 Binding a different store means one entry in the runner's port list:
 
 ```ts
-import { ArtifactStorePort, createMemoryArtifactStore } from "@venn/artifacts";
-import { createRunner } from "@venn/runtime";
+import { ArtifactStorePort, createMemoryArtifactStore } from "@venn-lang/artifacts";
+import { createRunner } from "@venn-lang/runtime";
 
 const runner = createRunner({
   host,
@@ -120,6 +120,6 @@ const runner = createRunner({
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `definePlugin` and `defineAction`.
-- [`@venn/contracts`](../contracts) for `Port`, `assertPortShape` and `VennError`.
-- [`@venn/notify`](../std-notify) for telling someone about a run that failed.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin` and `defineAction`.
+- [`@venn-lang/contracts`](../contracts) for `Port`, `assertPortShape` and `VennError`.
+- [`@venn-lang/notify`](../std-notify) for telling someone about a run that failed.

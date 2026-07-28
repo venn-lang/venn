@@ -1,4 +1,10 @@
-import { BIN_DIR, type BuildTarget, type FileSystem, LIB_ROOT, MAIN_ROOT } from "@venn/contracts";
+import {
+  BIN_DIR,
+  type BuildTarget,
+  type FileSystem,
+  LIB_ROOT,
+  MAIN_ROOT,
+} from "@venn-lang/contracts";
 import { join } from "../paths/index.js";
 
 /**

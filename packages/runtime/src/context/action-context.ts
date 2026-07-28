@@ -1,6 +1,6 @@
-import type { Host, Port } from "@venn/contracts";
-import { invoke } from "@venn/core";
-import type { ActionContext } from "@venn/sdk";
+import type { Host, Port } from "@venn-lang/contracts";
+import { invoke } from "@venn-lang/core";
+import type { ActionContext } from "@venn-lang/sdk";
 import type { PortResolver } from "../ports/index.js";
 
 /** Build the context an action's `run` receives from the host and port resolver. */

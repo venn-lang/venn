@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { SignatureHelp } from "vscode-languageserver";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const HEAD = `use "@venn/assert"
-use "@venn/fmt"
+const HEAD = `use "venn/assert"
+use "venn/fmt"
 
 fn saudacao(nome, idade) => nome
 fragment login(user, plan) { step "s" { expect true } }

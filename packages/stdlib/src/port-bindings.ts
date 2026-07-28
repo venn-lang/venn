@@ -1,29 +1,29 @@
-import { ArtifactStorePort, createMemoryArtifactStore } from "@venn/artifacts";
-import { AuthClientPort, createFakeAuthClient } from "@venn/auth";
+import { ArtifactStorePort, createMemoryArtifactStore } from "@venn-lang/artifacts";
+import { AuthClientPort, createFakeAuthClient } from "@venn-lang/auth";
 import {
   BrowserDriverPort,
   createFakeBrowserDriver,
   createNonePreviewProvider,
   PreviewProviderPort,
-} from "@venn/browser";
-import { ConsolePort, createMemoryConsole } from "@venn/contracts";
-import { CryptoEnginePort, createWebCryptoEngine } from "@venn/crypto";
-import { createFakeDbClient, DbClientPort } from "@venn/db";
-import { createFakeClient as createFakeGqlClient, GqlClientPort } from "@venn/graphql";
-import { createFakeClient as createFakeGrpcClient, GrpcClientPort } from "@venn/grpc";
-import { createMemoryServer, HttpServerPort } from "@venn/http";
-import { createFakeLoadRunner, LoadRunnerPort } from "@venn/load";
-import { createFakeMailClient, MailClientPort } from "@venn/mail";
-import { createFakeMqttClient, MqttClientPort } from "@venn/mqtt";
-import { createFakeNotifier, NotifierPort } from "@venn/notify";
-import type { PortBinding } from "@venn/runtime";
-import { createFakeWsClient, WsClientPort } from "@venn/ws";
+} from "@venn-lang/browser";
+import { ConsolePort, createMemoryConsole } from "@venn-lang/contracts";
+import { CryptoEnginePort, createWebCryptoEngine } from "@venn-lang/crypto";
+import { createFakeDbClient, DbClientPort } from "@venn-lang/db";
+import { createFakeClient as createFakeGqlClient, GqlClientPort } from "@venn-lang/graphql";
+import { createFakeClient as createFakeGrpcClient, GrpcClientPort } from "@venn-lang/grpc";
+import { createMemoryServer, HttpServerPort } from "@venn-lang/http";
+import { createFakeLoadRunner, LoadRunnerPort } from "@venn-lang/load";
+import { createFakeMailClient, MailClientPort } from "@venn-lang/mail";
+import { createFakeMqttClient, MqttClientPort } from "@venn-lang/mqtt";
+import { createFakeNotifier, NotifierPort } from "@venn-lang/notify";
+import type { PortBinding } from "@venn-lang/runtime";
+import { createFakeWsClient, WsClientPort } from "@venn-lang/ws";
 
 /**
  * A fake implementation for every stdlib port.
  *
  * Real third-party integrations are out of scope for this repository, so these
- * stand in for them. Crypto is the exception noted below. `@venn/http`'s client
+ * stand in for them. Crypto is the exception noted below. `@venn-lang/http`'s client
  * is real too (fetch), but the CLI binds it separately so a test can put a fake
  * in its place.
  */

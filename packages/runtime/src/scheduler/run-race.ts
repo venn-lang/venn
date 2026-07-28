@@ -1,4 +1,4 @@
-import type { RaceStmt } from "@venn/core";
+import type { RaceStmt } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { branchEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";

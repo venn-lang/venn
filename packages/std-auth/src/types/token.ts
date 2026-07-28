@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 
 /** Runtime schema for the nominal `Token` type, the value `auth.oauth2` yields. */
 export const Token: ZodType = z.object({

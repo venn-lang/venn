@@ -10,7 +10,7 @@ import {
   type Member,
   parseExpression,
   scanInterpolations,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { AstUtils, type CstNode, GrammarUtils } from "langium";
 import type { SemanticTokenAcceptor } from "langium/lsp";
 import { type Range, SemanticTokenTypes } from "vscode-languageserver";

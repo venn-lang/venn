@@ -1,5 +1,5 @@
 /**
- * `@venn/mail`: the verbs that wait on and read an inbox, the `MailClient` port
+ * `@venn-lang/mail`: the verbs that wait on and read an inbox, the `MailClient` port
  * they go through, and the nominal `Email` and `Attachment` types.
  */
 

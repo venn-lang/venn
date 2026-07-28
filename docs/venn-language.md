@@ -40,7 +40,7 @@ Cada linha lista as duas implementações que existem desde o primeiro commit. S
 | Random | Aleatoriedade determinística | seeded · fixed |
 | SecretProvider | Resolver `secrets.*` com marca de redação | env · vault · memory |
 | SourceProvider | De onde vem o texto `.vn` | fs · memory (LSP) |
-| ModuleResolver | Resolver `@venn/*`, `./`, `#alias` | fs · registry · memory |
+| ModuleResolver | Resolver `@venn-lang/*`, `./`, `#alias` | fs · registry · memory |
 | ManifestProvider | Ler `venn.toml` | toml · memory |
 | CapabilityProvider | É o que um plugin assina | 16 pacotes stdlib |
 | Scheduler | Ordem e concorrência de execução | sequential · worker-pool |
@@ -433,7 +433,7 @@ capture token = sessao.token
 
 ## 07 · Asserções
 
-`expect` é kernel. Os **matchers** não são — vêm do registry, exatamente como as ações. Por isso `noViolations` e `matchesBaseline` só existem depois de `use "@venn/assert"`.
+`expect` é kernel. Os **matchers** não são — vêm do registry, exatamente como as ações. Por isso `noViolations` e `matchesBaseline` só existem depois de `use "venn/assert"`.
 
 ****formas de asserção****
 
@@ -491,7 +491,7 @@ Substituem os modificadores inline do protótipo (`retries=2 timeout=90s tags=[.
 | @lock("orders") | flow, step | Mutex nomeado entre workers |
 | @flaky(ratio: 0.05) | flow, step | Tolerância declarada; falha se ultrapassar |
 | @doc("...") | qualquer | Aparece no hover do editor e no tooltip do nó |
-| @load({...}) | flow | Do plugin `@venn/load` — roda o flow como teste de carga |
+| @load({...}) | flow | Do plugin `@venn-lang/load` — roda o flow como teste de carga |
 
 
 ---
@@ -540,9 +540,9 @@ Duas palavras, dois significados que nunca se confundem:
 module acme.checkout
 
 # capacidades — o que o arquivo pode fazer
-use "@venn/http"
-use "@venn/browser" as web
-use "@venn/mqtt"
+use "venn/http"
+use "venn/browser" as web
+use "venn/mqtt"
 use "@acme/stripe"
 
 # valores — o que o arquivo conhece
@@ -560,7 +560,7 @@ pub import { loginViaApi }
 
 | Especificador | Resolve para |
 | --- | --- |
-| "@venn/http" | Stdlib, embutida no runtime. Nunca vai à rede. |
+| "@venn-lang/http" | Stdlib, embutida no runtime. Nunca vai à rede. |
 | "@acme/stripe" | Registry → `~/.venn/pkgs/@acme/stripe@1.2.0/`, travado no `venn.lock` |
 | "./lib/auth.vn" | Relativo ao arquivo atual |
 | "#shared/auth.vn" | Alias de caminho definido no `venn.toml` |
@@ -573,8 +573,8 @@ pub import { loginViaApi }
 ```venn
 module acme.lib.auth
 
-use "@venn/http"
-use "@venn/auth"
+use "venn/http"
+use "venn/auth"
 
 type Sessao { token: string, refresh: string, expira: instant }
 
@@ -682,9 +682,9 @@ version = "1.4.0"
 flowlang = "^0.1"          # versão da linguagem — habilita migrações automáticas
 
 [dependencies]
-"@venn/http"    = "0.1"
-"@venn/browser" = "0.1"
-"@venn/mqtt"    = "0.1"
+"@venn-lang/http"    = "0.1"
+"@venn-lang/browser" = "0.1"
+"@venn-lang/mqtt"    = "0.1"
 "@acme/stripe"   = "1.2"
 
 [paths]
@@ -738,21 +738,21 @@ Cada pacote registra um namespace, matchers e tipos. Todos usam a mesma API púb
 
 | Pacote | Namespace | Ações principais | Registra também |
 | --- | --- | --- | --- |
-| @venn/http | http | get post put patch delete head request reset | tipo `Response`; matchers `status`, `header` |
-| @venn/browser | browser | launch visit click fill select hover press upload download screenshot waitFor waitForUrl evaluate frame newContext | recurso `Browser`, `Page`; matchers `visible`, `text` |
-| @venn/graphql | gql | query mutate subscribe | matcher `noGraphqlErrors` |
-| @venn/grpc | grpc | call stream reflect | carrega `.proto`, tipa a resposta |
-| @venn/ws | ws | connect send expect close | tipo `Message` |
-| @venn/mqtt | mqtt | connect publish subscribe expect | QoS, retain, last-will |
-| @venn/mail | mail | inbox waitFor read attachments clear | backends mailpit, mailhog, IMAP |
-| @venn/db | db | connect query exec seed snapshot restore | tipo `Row`; recurso transacional |
-| @venn/mock | mock | start stop intercept respond clock.freeze clock.advance flag reset | controle de tempo e feature flags |
-| @venn/auth | auth | oauth2 bearer basic apikey hmac totp jwt | refresh automático de token |
-| @venn/data | data | csv json faker.* oneOf range shuffle | seed determinístico por worker |
-| @venn/assert | — | (só matchers) | `schema`, `contract`, `closeTo`, `noViolations`, `matchesBaseline` |
-| @venn/load | load | ramp constant spike | anotação `@load`; métricas p50/p95/p99 |
-| @venn/artifacts | artifacts | save flush attach | trace, video, HAR, screenshot |
-| @venn/notify | notify | slack webhook email | reporter de saída |
+| @venn-lang/http | http | get post put patch delete head request reset | tipo `Response`; matchers `status`, `header` |
+| @venn-lang/browser | browser | launch visit click fill select hover press upload download screenshot waitFor waitForUrl evaluate frame newContext | recurso `Browser`, `Page`; matchers `visible`, `text` |
+| @venn-lang/graphql | gql | query mutate subscribe | matcher `noGraphqlErrors` |
+| @venn-lang/grpc | grpc | call stream reflect | carrega `.proto`, tipa a resposta |
+| @venn-lang/ws | ws | connect send expect close | tipo `Message` |
+| @venn-lang/mqtt | mqtt | connect publish subscribe expect | QoS, retain, last-will |
+| @venn-lang/mail | mail | inbox waitFor read attachments clear | backends mailpit, mailhog, IMAP |
+| @venn-lang/db | db | connect query exec seed snapshot restore | tipo `Row`; recurso transacional |
+| @venn-lang/mock | mock | start stop intercept respond clock.freeze clock.advance flag reset | controle de tempo e feature flags |
+| @venn-lang/auth | auth | oauth2 bearer basic apikey hmac totp jwt | refresh automático de token |
+| @venn-lang/data | data | csv json faker.* oneOf range shuffle | seed determinístico por worker |
+| @venn-lang/assert | — | (só matchers) | `schema`, `contract`, `closeTo`, `noViolations`, `matchesBaseline` |
+| @venn-lang/load | load | ramp constant spike | anotação `@load`; métricas p50/p95/p99 |
+| @venn-lang/artifacts | artifacts | save flush attach | trace, video, HAR, screenshot |
+| @venn-lang/notify | notify | slack webhook email | reporter de saída |
 
 
 ---
@@ -776,13 +776,13 @@ Um plugin é um módulo TypeScript que exporta uma definição. Ele pode contrib
 ****plugins/stripe/index.ts**TypeScript**
 
 ```ts
-import { definePlugin, defineAction, defineMatcher, defineResource, z, Duration } from "@venn/sdk";
+import { definePlugin, defineAction, defineMatcher, defineResource, z, Duration } from "@venn-lang/sdk";
 
 export default definePlugin({
   name: "@acme/stripe",
   version: "1.2.0",
   namespace: "stripe",
-  requires: ["@venn/http"],
+  requires: ["@venn-lang/http"],
 
   // 3 · recurso com ciclo de vida gerenciado pelo runner
   resources: [
@@ -1058,7 +1058,7 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
 `src/checkout.vn:142:5`
 
 ```
-    3 │ use "@venn/http"
+    3 │ use "venn/http"
       │ --- aqui você importou capacidades, mas não a de browser
     ⋮
   141 │   step "Adicionar ao carrinho" {
@@ -1067,10 +1067,10 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
   143 │   }
 ```
 
-- **ajuda** — O pacote `@venn/browser` registra o namespace `browser`. Você usou o apelido `web`, então importe com `as web`.
+- **ajuda** — O pacote `@venn-lang/browser` registra o namespace `browser`. Você usou o apelido `web`, então importe com `as web`.
 - **similar** — `http` · `ws` — disponíveis neste arquivo
 
-- ⌘. adicionar use "@venn/browser" as web
+- ⌘. adicionar use "venn/browser" as web
 - ⌘. trocar por http
 
 > Namespaces nunca são globais: o runner só sobe o Playwright se algum arquivo declarar que precisa dele.
@@ -1239,8 +1239,8 @@ A linguagem roda sozinha. Um software que queira embuti-la — o seu estúdio em
 | Nível | Superfície | Executa onde | Para quem |
 | --- | --- | --- | --- |
 | 1 · Processo | venn run --reporter ndjson | subprocesso | App desktop, CI, qualquer linguagem |
-| 2 · Biblioteca | createRunner() · @venn/runtime | dentro do Node do hospedeiro | Serviço Node que já é o dono do processo |
-| 3 · Compilador | parse · check · toGraph · @venn/core | Node **ou** Web Worker | Editor, LSP, canvas do grafo |
+| 2 · Biblioteca | createRunner() · @venn-lang/runtime | dentro do Node do hospedeiro | Serviço Node que já é o dono do processo |
+| 3 · Compilador | parse · check · toGraph · @venn-lang/core | Node **ou** Web Worker | Editor, LSP, canvas do grafo |
 
 > **Um app desktop usa o 1 e o 3, nunca o 2.** Nível 1 para executar, porque a fronteira de processo dá isolamento de crash, `kill` de verdade no botão Parar e teto de memória observável. Nível 3 para editar, porque roda no worker do webview sem tocar em `node:*`. Usar o nível 2 num app desktop significa que um plugin de terceiro mal comportado derruba a janela do usuário junto.
 
@@ -1304,7 +1304,7 @@ O nível 3 não passa por processo nenhum. O pacote `core` é importado direto p
 ****ui/lang.worker.ts****
 
 ```ts
-import { createHost, parse, check, toGraph, applyGraphEdit } from "@venn/core";
+import { createHost, parse, check, toGraph, applyGraphEdit } from "@venn-lang/core";
 
 const host = createHost.worker();      // fs em memória, sem process, sem node:*
 
@@ -1322,8 +1322,8 @@ Um plugin não tem instalador próprio: **é um pacote npm que implementa `Capab
 
 | Camada | Contém | Peso | Quando chega |
 | --- | --- | --- | --- |
-| @venn/cli | Compilador e runtime. Nenhum browser. | poucos MB | Sempre |
-| @venn/browser | `playwright-core`, sem binários | poucos MB | Se algum `.vn` declarar |
+| @venn-lang/cli | Compilador e runtime. Nenhum browser. | poucos MB | Sempre |
+| @venn-lang/browser | `playwright-core`, sem binários | poucos MB | Se algum `.vn` declarar |
 | Binários de motor | Chromium, Firefox, WebKit | centenas de MB | Sob demanda, com barra de progresso |
 
 > **Nem o CLI nem o app empacotam Chromium.** `venn run api-tests.vn` numa máquina sem browser algum roda e não baixa nada. O instalador do estúdio sai pequeno; na primeira execução de um flow com browser, aparece um download guiado. É a mesma coerência do `use` explícito na linguagem: o manifesto declara, o runner busca só o declarado, nada é baixado por especulação.
@@ -1503,21 +1503,21 @@ Um arquivo que exercita toda a linguagem: módulos, tipos, dados, recursos escop
 module acme.checkout
 
 # ---------- capacidades ----------
-use "@venn/http"
-use "@venn/browser" as web
-use "@venn/graphql" as gql
-use "@venn/grpc"
-use "@venn/ws"
-use "@venn/mqtt"
-use "@venn/mail"
-use "@venn/db"
-use "@venn/mock"
-use "@venn/auth"
-use "@venn/data"
-use "@venn/assert"
-use "@venn/load"
-use "@venn/artifacts"
-use "@venn/notify"
+use "venn/http"
+use "venn/browser" as web
+use "venn/graphql" as gql
+use "venn/grpc"
+use "venn/ws"
+use "venn/mqtt"
+use "venn/mail"
+use "venn/db"
+use "venn/mock"
+use "venn/auth"
+use "venn/data"
+use "venn/assert"
+use "venn/load"
+use "venn/artifacts"
+use "venn/notify"
 use "@acme/stripe"
 
 # ---------- valores ----------

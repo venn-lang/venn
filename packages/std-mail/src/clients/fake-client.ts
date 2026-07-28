@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import type { MailClient, MailQuery } from "../port/index.js";
 import type { Attachment, Email } from "../types/index.js";
 

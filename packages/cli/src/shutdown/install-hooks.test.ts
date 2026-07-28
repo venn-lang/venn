@@ -1,4 +1,4 @@
-import { createFakeSignals, VennError } from "@venn/contracts";
+import { createFakeSignals, VennError } from "@venn-lang/contracts";
 import { describe, expect, it, vi } from "vitest";
 import { createShutdown } from "./create-shutdown.js";
 import { installFaultHooks } from "./install-fault-hooks.js";

@@ -1,7 +1,7 @@
 module fixtures.shared.auth
 
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 ## Signs a user in through the API and asserts the session is live.
 ##

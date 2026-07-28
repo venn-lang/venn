@@ -1,4 +1,4 @@
-import { type AstNode, type Document, isUseDecl } from "@venn/core";
+import { type AstNode, type Document, isUseDecl } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments } from "langium";
 import type { CompletionProvider } from "langium/lsp";
 import type {
@@ -93,7 +93,7 @@ export class VennCompletionProvider implements CompletionProvider {
   /**
    * What follows a dot. A name the file bound wins over a plugin namespace, the
    * same rule the evaluator and the highlighter follow, so a variable named
-   * `auth` completes as its own value even when `@venn/auth` is loaded.
+   * `auth` completes as its own value even when `@venn-lang/auth` is loaded.
    */
   private afterDot(
     receiver: string,

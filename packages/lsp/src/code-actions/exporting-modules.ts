@@ -1,6 +1,6 @@
 import { type Dirent, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parse } from "@venn/core";
+import { parse } from "@venn-lang/core";
 import { type URI, UriUtils } from "langium";
 import { exportedNames } from "../document/index.js";
 import type { ImportResolver } from "../workspace/index.js";

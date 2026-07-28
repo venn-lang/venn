@@ -8,7 +8,7 @@ import {
   isNumberLit,
   isRef,
   isStringLit,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { SemanticTokenTypes } from "vscode-languageserver";
 import type { HighlightArgs } from "./highlight.types.js";
 import { highlightInterpolation } from "./highlight-interpolation.js";

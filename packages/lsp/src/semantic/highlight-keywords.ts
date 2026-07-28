@@ -30,7 +30,7 @@ import {
   isUseDecl,
   isValueImport,
   isWhileStmt,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { SemanticTokenAcceptor } from "langium/lsp";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
 

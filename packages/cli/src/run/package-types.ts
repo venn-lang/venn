@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { TypeSpec } from "@venn/types";
+import type { TypeSpec } from "@venn-lang/types";
 
 /** Where derived types are kept: derived, so under `target/` with the rest. */
 export function typesDir(root: string): string {
@@ -20,7 +20,7 @@ export async function deriveTypes(args: {
 }): Promise<{ name: string; total: number; typed: number }[]> {
   // Loaded when it is needed and not before: it pulls in the TypeScript
   // compiler, which is ten megabytes that `venn run` should never pay for.
-  const { readPackageTypes } = await import("@venn/dts");
+  const { readPackageTypes } = await import("@venn-lang/dts");
   const from = join(args.root, "target", "package.json");
   const dir = typesDir(args.root);
   await mkdir(dir, { recursive: true });

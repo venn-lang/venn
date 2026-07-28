@@ -1,4 +1,4 @@
-import { t } from "@venn/types";
+import { t } from "@venn-lang/types";
 import type { Rng } from "../rng/index.js";
 import { eanDigit } from "./check-digits.js";
 import { ADJECTIVES, CATEGORIES, COLORS, MATERIALS, PRODUCTS } from "./data/index.js";

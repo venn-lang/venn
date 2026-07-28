@@ -1,5 +1,5 @@
-import { buildProblem, CODES, type MapEntry, type MapLit, type Problem } from "@venn/core";
-import { type ParamSpec, paramSpecs } from "@venn/sdk";
+import { buildProblem, CODES, type MapEntry, type MapLit, type Problem } from "@venn-lang/core";
+import { type ParamSpec, paramSpecs } from "@venn-lang/sdk";
 import { nodeSpan } from "./node-span.js";
 
 /**

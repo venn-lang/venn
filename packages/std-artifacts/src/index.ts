@@ -1,5 +1,5 @@
 /**
- * `@venn/artifacts`: the verbs that record what a run left behind (traces,
+ * `@venn-lang/artifacts`: the verbs that record what a run left behind (traces,
  * videos, HARs, screenshots) and the `ArtifactStore` port that keeps them.
  */
 

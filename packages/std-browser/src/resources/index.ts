@@ -1,4 +1,4 @@
-import type { ResourceDefinition } from "@venn/sdk";
+import type { ResourceDefinition } from "@venn-lang/sdk";
 import { browserResource } from "./browser-resource.js";
 import { pageResource } from "./page-resource.js";
 

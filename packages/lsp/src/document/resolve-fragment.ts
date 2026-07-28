@@ -1,4 +1,4 @@
-import { type Document, type FragmentDecl, isValueImport } from "@venn/core";
+import { type Document, type FragmentDecl, isValueImport } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments, URI } from "langium";
 import type { ImportResolver } from "../workspace/index.js";
 import { findFragment } from "./find-binding.js";

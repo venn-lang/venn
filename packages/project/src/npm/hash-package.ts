@@ -1,4 +1,4 @@
-import type { FileSystem } from "@venn/contracts";
+import type { FileSystem } from "@venn-lang/contracts";
 import { join } from "../paths/index.js";
 
 /** Directories inside a package that are not part of it. */

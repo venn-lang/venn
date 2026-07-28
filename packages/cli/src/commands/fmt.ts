@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { relative } from "node:path";
-import { formatOptionsFrom, formatText } from "@venn/core";
+import { formatOptionsFrom, formatText } from "@venn-lang/core";
 import { loadManifest } from "../manifest/index.js";
 import { dim, green, yellow } from "../reporters/colors.js";
 import { everySourceUnder } from "../run/collect-files.js";

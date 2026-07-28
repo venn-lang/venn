@@ -7,7 +7,7 @@ import {
   isRef,
   type LetStmt,
   type MapLit,
-} from "@venn/core";
+} from "@venn-lang/core";
 
 /** What running an action needs, whichever syntax spelled it. */
 export interface Invocation {

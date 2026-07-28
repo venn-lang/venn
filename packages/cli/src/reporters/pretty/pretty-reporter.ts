@@ -1,4 +1,4 @@
-import type { Envelope, Problem } from "@venn/core";
+import type { Envelope, Problem } from "@venn-lang/core";
 import type { Reporter, RunTotals } from "../reporter.types.js";
 import type { Failure, PrettyState } from "./pretty.types.js";
 import {

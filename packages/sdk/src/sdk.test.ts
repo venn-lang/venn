@@ -14,7 +14,7 @@ describe("sdk builders", () => {
 
   it("definePlugin collects contributions under a namespace", () => {
     const plugin = definePlugin({
-      name: "@venn/http",
+      name: "venn/http",
       version: "0.0.0",
       namespace: "http",
       requires: ["net"],

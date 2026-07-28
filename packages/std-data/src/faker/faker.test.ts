@@ -1,4 +1,4 @@
-import type { ActionContext } from "@venn/sdk";
+import type { ActionContext } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { dataActions } from "../actions/index.js";
 import { resetRng } from "../rng/index.js";

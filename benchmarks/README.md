@@ -228,8 +228,8 @@ extension.
 ## Profiling
 
 ```bash
-pnpm --filter @venn/benchmarks run profile fib.vn
-pnpm --filter @venn/benchmarks run profile:top
+pnpm --filter @venn-lang/benchmarks run profile fib.vn
+pnpm --filter @venn-lang/benchmarks run profile:top
 ```
 
 Self-time per function, hottest first. `fib.vn` is the clearest signal — it

@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { DbClientPort } from "../port/index.js";
 import { RowSchema } from "../types/index.js";
 

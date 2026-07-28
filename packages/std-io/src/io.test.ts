@@ -1,5 +1,5 @@
-import { createMemoryConsole, type MemoryConsole } from "@venn/contracts";
-import type { ActionContext, ActionDefinition } from "@venn/sdk";
+import { createMemoryConsole, type MemoryConsole } from "@venn-lang/contracts";
+import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { consoleActions } from "./actions/console-actions.js";
 import { ConsolePort } from "./port/index.js";

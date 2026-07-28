@@ -1,4 +1,4 @@
-import { buildProblem, CODES, type ExpectStmt, evaluate, truthy } from "@venn/core";
+import { buildProblem, CODES, type ExpectStmt, evaluate, truthy } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSource, nodeSpan } from "./node-span.js";

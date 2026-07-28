@@ -1,4 +1,4 @@
-import type { MapLit, Problem } from "@venn/core";
+import type { MapLit, Problem } from "@venn-lang/core";
 import { unknownOptions } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 

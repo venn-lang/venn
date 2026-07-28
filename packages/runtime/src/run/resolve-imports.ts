@@ -8,7 +8,7 @@ import {
   isUseDecl,
   isValueImport,
   parse,
-} from "@venn/core";
+} from "@venn-lang/core";
 
 /** Read source by URI and resolve a specifier relative to a base URI. */
 export interface ModuleIo {

@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The types `@venn/notify` publishes to the checker, under the `notify`
+ * The types `@venn-lang/notify` publishes to the checker, under the `notify`
  * namespace. Kept as data, and mirroring `NotifyReceipt` in
  * `port/notifier.types.ts` by hand, so a generator reading the emitted `.d.ts`
  * can replace this file unnoticed. The name drops its prefix on the way in

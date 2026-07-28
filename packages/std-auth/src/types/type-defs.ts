@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The named types `@venn/auth` publishes to scripts, keyed by their bare name.
+ * The named types `@venn-lang/auth` publishes to scripts, keyed by their bare name.
  *
  * `Token` restates `OAuthToken` in `port/auth-client.types.ts` and, field for
  * field, the Zod `Token` next door. Each serves a different reader: Zod checks a

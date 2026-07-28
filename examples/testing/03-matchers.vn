@@ -1,9 +1,9 @@
-# The words `expect` gains from `@venn/assert`, and the two grouped forms.
+# The words `expect` gains from `@venn-lang/assert`, and the two grouped forms.
 # Run it with:  venn test examples/testing/03-matchers.vn
 
 # `expect` is kernel syntax; the words after the subject are not. They arrive
 # with a plugin, which is why this line is here.
-use "@venn/assert"
+use "venn/assert"
 
 flow "matchers read as sentences" {
   const receipt = {

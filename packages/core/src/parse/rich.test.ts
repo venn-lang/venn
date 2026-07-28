@@ -3,8 +3,8 @@ import { parse } from "./parse.js";
 
 const RICH = `module acme.checkout
 
-use "@venn/http"
-use "@venn/browser" as web
+use "venn/http"
+use "venn/browser" as web
 import { User } from "#shared/models.vn"
 
 config { baseUrl: env.BASE_URL, timeout: 60s }

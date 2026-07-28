@@ -1,8 +1,8 @@
-# @venn/runtime
+# @venn-lang/runtime
 
 > Executes a parsed Venn document: the scheduler, the plugin registry, the event stream.
 
-`@venn/core` turns source into an AST. This package walks it. It builds the registry of verbs the
+`@venn-lang/core` turns source into an AST. This package walks it. It builds the registry of verbs the
 loaded plugins contribute, expands decorators, opens the scopes, runs flows and steps in the order
 the language says, and emits one ordered stream of envelopes describing what happened.
 
@@ -13,10 +13,10 @@ are both built on it.
 ## Usage
 
 ```ts
-import { createTestHost } from "@venn/contracts";
-import { parse } from "@venn/core";
-import { defineAction, definePlugin } from "@venn/sdk";
-import { createMemorySink, createRunner } from "@venn/runtime";
+import { createTestHost } from "@venn-lang/contracts";
+import { parse } from "@venn-lang/core";
+import { defineAction, definePlugin } from "@venn-lang/sdk";
+import { createMemorySink, createRunner } from "@venn-lang/runtime";
 
 const echo = definePlugin({
   name: "@test/echo",
@@ -152,7 +152,7 @@ both run the same conformance suite, which pins that envelopes arrive in `seq` o
 
 ## See also
 
-- [`@venn/core`](../core) parses and checks; it produces the document this package runs.
-- [`@venn/sdk`](../sdk) defines the plugins, actions and matchers the registry ingests.
-- [`@venn/contracts`](../contracts) supplies the `Host`, the ports and the capability negotiation.
-- [`@venn/cli`](../cli) assembles a Node host and drives the runner.
+- [`@venn-lang/core`](../core) parses and checks; it produces the document this package runs.
+- [`@venn-lang/sdk`](../sdk) defines the plugins, actions and matchers the registry ingests.
+- [`@venn-lang/contracts`](../contracts) supplies the `Host`, the ports and the capability negotiation.
+- [`@venn-lang/cli`](../cli) assembles a Node host and drives the runner.

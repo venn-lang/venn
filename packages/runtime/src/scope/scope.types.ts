@@ -1,4 +1,4 @@
-import type { CellEnv } from "@venn/core";
+import type { CellEnv } from "@venn-lang/core";
 
 /**
  * A lexical scope: the evaluator's env plus mutation and nesting.

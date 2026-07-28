@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { grpcActions } from "./actions/index.js";
 import { grpcTypeDefs } from "./types.js";
 
@@ -11,7 +11,7 @@ import { grpcTypeDefs } from "./types.js";
  * write one against.
  */
 export const grpcPlugin: PluginDefinition = definePlugin({
-  name: "@venn/grpc",
+  name: "venn/grpc",
   version: "0.0.0",
   namespace: "grpc",
   requires: ["net"],

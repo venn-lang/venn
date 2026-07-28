@@ -14,7 +14,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
   },
   use: {
     summary: "Load a plugin package, making its namespace available as verbs.",
-    example: 'use "@venn/http"\nuse "@venn/browser" as b',
+    example: 'use "venn/http"\nuse "venn/browser" as b',
   },
   import: {
     summary: "Bring `pub` fragments and functions from another `.vn` file into this one.",
@@ -81,7 +81,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     summary:
       "Configuration for this run, read from the `[env.*]` tables of `venn.toml`. `--env <name>` picks which table; `env.name` is the one that was picked.",
     example:
-      'use "@venn/env"\n\nconst token = http.post "${env.BASE_URL}/token" {\n  body: { user: env.USERNAME, pass: env.PASSWORD },\n  encode: "form"\n}',
+      'use "venn/env"\n\nconst token = http.post "${env.BASE_URL}/token" {\n  body: { user: env.USERNAME, pass: env.PASSWORD },\n  encode: "form"\n}',
   },
   resource: {
     summary:
@@ -97,7 +97,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     example: 'matrix { browser: ["chromium", "webkit"] }',
   },
   dataset: { summary: "A named collection of test data." },
-  factory: { summary: "A named builder for objects, usually backed by `@venn/data`." },
+  factory: { summary: "A named builder for objects, usually backed by `@venn-lang/data`." },
   type: {
     summary: "A named shape, used to type parameters and datasets.",
     example: "type User { email: string }",

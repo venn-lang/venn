@@ -1,6 +1,6 @@
-import { type FnType, prune, specToType, type Type, type TypeCatalog } from "@venn/core";
-import type { PluginDefinition } from "@venn/sdk";
-import type { TypeSpec } from "@venn/types";
+import { type FnType, prune, specToType, type Type, type TypeCatalog } from "@venn-lang/core";
+import type { PluginDefinition } from "@venn-lang/sdk";
+import type { TypeSpec } from "@venn-lang/types";
 
 /** The published specs, indexed by the name a flow would write. */
 interface Published {
@@ -11,7 +11,7 @@ interface Published {
 /**
  * Turn what the loaded plugins publish into what the checker can ask.
  *
- * This is the seam the core deliberately does not cross: `@venn/core` knows
+ * This is the seam the core deliberately does not cross: `@venn-lang/core` knows
  * nothing about plugins and gets told. Names are qualified here, once: a plugin
  * says `Request` and a flow writes `http.Request`.
  *

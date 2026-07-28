@@ -1,4 +1,4 @@
-import { assertPortShape, VennError } from "@venn/contracts";
+import { assertPortShape, VennError } from "@venn-lang/contracts";
 import { expect, it } from "vitest";
 import { ArtifactStorePort } from "./artifact-store.port.js";
 import { artifactStoreConformance } from "./artifact-store.suite.js";

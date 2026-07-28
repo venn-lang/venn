@@ -1,5 +1,5 @@
 {
-  "name": "@venn/cli",
+  "name": "@venn-lang/cli",
   "version": "0.0.0",
   "type": "module",
   "bin": {
@@ -19,17 +19,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/assert": "workspace:*",
-    "@venn/contracts": "workspace:*",
-    "@venn/core": "workspace:*",
-    "@venn/dts": "workspace:*",
-    "@venn/http": "workspace:*",
-    "@venn/io": "workspace:*",
-    "@venn/project": "workspace:*",
-    "@venn/runtime": "workspace:*",
-    "@venn/sdk": "workspace:*",
-    "@venn/stdlib": "workspace:*",
-    "@venn/types": "workspace:*",
+    "@venn-lang/assert": "workspace:*",
+    "@venn-lang/contracts": "workspace:*",
+    "@venn-lang/core": "workspace:*",
+    "@venn-lang/dts": "workspace:*",
+    "@venn-lang/http": "workspace:*",
+    "@venn-lang/io": "workspace:*",
+    "@venn-lang/project": "workspace:*",
+    "@venn-lang/runtime": "workspace:*",
+    "@venn-lang/sdk": "workspace:*",
+    "@venn-lang/stdlib": "workspace:*",
+    "@venn-lang/types": "workspace:*",
     "citty": "catalog:"
   },
   "devDependencies": {

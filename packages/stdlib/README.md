@@ -1,4 +1,4 @@
-# @venn/stdlib
+# @venn-lang/stdlib
 
 > The one list of standard-library plugins, plus the fake port implementations the tooling runs them with.
 
@@ -10,10 +10,10 @@ this package and nothing else.
 ## Usage
 
 ```ts
-import { createNodeHost } from "@venn/contracts/node";
-import { parse } from "@venn/core";
-import { createMemorySink, createRunner } from "@venn/runtime";
-import { allPlugins, stdlibPortBindings } from "@venn/stdlib";
+import { createNodeHost } from "@venn-lang/contracts/node";
+import { parse } from "@venn-lang/core";
+import { createMemorySink, createRunner } from "@venn-lang/runtime";
+import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
 
 const { ast, problems } = parse(source, { uri: "flow.vn" });
 if (problems.length > 0) {
@@ -36,10 +36,10 @@ one of them resolves because the whole stdlib is loaded:
 ```ruby
 module demo.stdlib
 
-use "@venn/data"
-use "@venn/auth"
-use "@venn/db"
-use "@venn/assert"
+use "venn/data"
+use "venn/auth"
+use "venn/db"
+use "venn/assert"
 
 flow "Stdlib showcase" {
   step "auth builds a bearer header" {
@@ -74,28 +74,28 @@ plugin can shadow another.
 
 | Package | Namespace | Requires | What it contributes |
 | --- | --- | --- | --- |
-| [`@venn/http`](../std-http) | `http` | `net` | Request verbs, response matchers and a nominal `Response` type. |
-| [`@venn/assert`](../std-assert) | `assert` | | Matchers only. `expect` is kernel; the words after it come from here. |
-| [`@venn/data`](../std-data) | `data` | | Deterministic test-data generators. Pure, no port. |
-| [`@venn/crypto`](../std-crypto) | `crypto` | | Digests, encodings, password hashing and JSON Web Tokens. |
-| [`@venn/env`](../std-env) | `env` | | The name only. `env.NAME` is a read, filled from the `[env.*]` tables of `venn.toml`. |
-| [`@venn/fmt`](../std-fmt) | `fmt` | | Value to text: JSON, tables, YAML, CSV, XML. Pure. |
-| [`@venn/io`](../std-io) | `io` | `io` | A script's standard input, output and arguments. |
-| [`@venn/mock`](../std-mock) | `mock` | | In-process mocking, feature flags and a virtual clock. |
-| [`@venn/auth`](../std-auth) | `auth` | `net` | Token and header builders, plus an OAuth2 client port. |
-| [`@venn/notify`](../std-notify) | `notify` | `net` | Notification dispatch through the Notifier port. |
-| [`@venn/ws`](../std-ws) | `ws` | `net` | Connect, send, expect and close over a WebSocket. |
-| [`@venn/mqtt`](../std-mqtt) | `mqtt` | `net` | Connect, publish, subscribe and expect over MQTT. |
-| [`@venn/graphql`](../std-graphql) | `gql` | `net` | Query, mutate and subscribe, with matchers on the response. |
-| [`@venn/grpc`](../std-grpc) | `grpc` | `net` | Call, stream and reflect. |
-| [`@venn/mail`](../std-mail) | `mail` | `net` | Inbox verbs over the MailClient port. |
-| [`@venn/db`](../std-db) | `db` | `net` | Table verbs over the DbClient port. |
-| [`@venn/browser`](../std-browser) | `browser` | `net` | Actions, matchers and a browser resource. |
-| [`@venn/load`](../std-load) | `load` | `net` | Load-profile builders and a runner that yields metrics. |
-| [`@venn/artifacts`](../std-artifacts) | `artifacts` | `fs` | Store references to traces, videos, HARs and screenshots. |
+| [`@venn-lang/http`](../std-http) | `http` | `net` | Request verbs, response matchers and a nominal `Response` type. |
+| [`@venn-lang/assert`](../std-assert) | `assert` | | Matchers only. `expect` is kernel; the words after it come from here. |
+| [`@venn-lang/data`](../std-data) | `data` | | Deterministic test-data generators. Pure, no port. |
+| [`@venn-lang/crypto`](../std-crypto) | `crypto` | | Digests, encodings, password hashing and JSON Web Tokens. |
+| [`@venn-lang/env`](../std-env) | `env` | | The name only. `env.NAME` is a read, filled from the `[env.*]` tables of `venn.toml`. |
+| [`@venn-lang/fmt`](../std-fmt) | `fmt` | | Value to text: JSON, tables, YAML, CSV, XML. Pure. |
+| [`@venn-lang/io`](../std-io) | `io` | `io` | A script's standard input, output and arguments. |
+| [`@venn-lang/mock`](../std-mock) | `mock` | | In-process mocking, feature flags and a virtual clock. |
+| [`@venn-lang/auth`](../std-auth) | `auth` | `net` | Token and header builders, plus an OAuth2 client port. |
+| [`@venn-lang/notify`](../std-notify) | `notify` | `net` | Notification dispatch through the Notifier port. |
+| [`@venn-lang/ws`](../std-ws) | `ws` | `net` | Connect, send, expect and close over a WebSocket. |
+| [`@venn-lang/mqtt`](../std-mqtt) | `mqtt` | `net` | Connect, publish, subscribe and expect over MQTT. |
+| [`@venn-lang/graphql`](../std-graphql) | `gql` | `net` | Query, mutate and subscribe, with matchers on the response. |
+| [`@venn-lang/grpc`](../std-grpc) | `grpc` | `net` | Call, stream and reflect. |
+| [`@venn-lang/mail`](../std-mail) | `mail` | `net` | Inbox verbs over the MailClient port. |
+| [`@venn-lang/db`](../std-db) | `db` | `net` | Table verbs over the DbClient port. |
+| [`@venn-lang/browser`](../std-browser) | `browser` | `net` | Actions, matchers and a browser resource. |
+| [`@venn-lang/load`](../std-load) | `load` | `net` | Load-profile builders and a runner that yields metrics. |
+| [`@venn-lang/artifacts`](../std-artifacts) | `artifacts` | `fs` | Store references to traces, videos, HARs and screenshots. |
 
 `requires` is negotiated against the host's capabilities before anything runs. A host that does not
-offer `net` fails to load `@venn/http` with a readable diagnostic, not with a `TypeError` halfway
+offer `net` fails to load `@venn-lang/http` with a readable diagnostic, not with a `TypeError` halfway
 through a test.
 
 Two tests in this package hold the list to its word: every plugin has a name and a unique namespace,
@@ -110,21 +110,21 @@ repository, so most implementations are the test double that ships alongside the
 
 | Port | Implementation | From |
 | --- | --- | --- |
-| `AuthClientPort` | `createFakeAuthClient()` | [`@venn/auth`](../std-auth) |
-| `HttpServerPort` | `createMemoryServer()` | [`@venn/http`](../std-http) |
-| `CryptoEnginePort` | `createWebCryptoEngine()` | [`@venn/crypto`](../std-crypto) |
-| `NotifierPort` | `createFakeNotifier()` | [`@venn/notify`](../std-notify) |
-| `WsClientPort` | `createFakeWsClient({ incoming: [] })` | [`@venn/ws`](../std-ws) |
-| `MqttClientPort` | `createFakeMqttClient()` | [`@venn/mqtt`](../std-mqtt) |
-| `GqlClientPort` | `createFakeGqlClient()` | [`@venn/graphql`](../std-graphql) |
-| `GrpcClientPort` | `createFakeGrpcClient()` | [`@venn/grpc`](../std-grpc) |
-| `MailClientPort` | `createFakeMailClient()` | [`@venn/mail`](../std-mail) |
-| `DbClientPort` | `createFakeDbClient()` | [`@venn/db`](../std-db) |
-| `BrowserDriverPort` | `createFakeBrowserDriver()` | [`@venn/browser`](../std-browser) |
-| `PreviewProviderPort` | `createNonePreviewProvider()` | [`@venn/browser`](../std-browser) |
-| `LoadRunnerPort` | `createFakeLoadRunner()` | [`@venn/load`](../std-load) |
-| `ArtifactStorePort` | `createMemoryArtifactStore()` | [`@venn/artifacts`](../std-artifacts) |
-| `ConsolePort` | `createMemoryConsole()` | [`@venn/contracts`](../contracts) |
+| `AuthClientPort` | `createFakeAuthClient()` | [`@venn-lang/auth`](../std-auth) |
+| `HttpServerPort` | `createMemoryServer()` | [`@venn-lang/http`](../std-http) |
+| `CryptoEnginePort` | `createWebCryptoEngine()` | [`@venn-lang/crypto`](../std-crypto) |
+| `NotifierPort` | `createFakeNotifier()` | [`@venn-lang/notify`](../std-notify) |
+| `WsClientPort` | `createFakeWsClient({ incoming: [] })` | [`@venn-lang/ws`](../std-ws) |
+| `MqttClientPort` | `createFakeMqttClient()` | [`@venn-lang/mqtt`](../std-mqtt) |
+| `GqlClientPort` | `createFakeGqlClient()` | [`@venn-lang/graphql`](../std-graphql) |
+| `GrpcClientPort` | `createFakeGrpcClient()` | [`@venn-lang/grpc`](../std-grpc) |
+| `MailClientPort` | `createFakeMailClient()` | [`@venn-lang/mail`](../std-mail) |
+| `DbClientPort` | `createFakeDbClient()` | [`@venn-lang/db`](../std-db) |
+| `BrowserDriverPort` | `createFakeBrowserDriver()` | [`@venn-lang/browser`](../std-browser) |
+| `PreviewProviderPort` | `createNonePreviewProvider()` | [`@venn-lang/browser`](../std-browser) |
+| `LoadRunnerPort` | `createFakeLoadRunner()` | [`@venn-lang/load`](../std-load) |
+| `ArtifactStorePort` | `createMemoryArtifactStore()` | [`@venn-lang/artifacts`](../std-artifacts) |
+| `ConsolePort` | `createMemoryConsole()` | [`@venn-lang/contracts`](../contracts) |
 
 Crypto is the exception: it is pure computation rather than a side effect, so the real Web Crypto
 engine is bound and always was.
@@ -149,6 +149,6 @@ real console, and every other port on its fake, which is why the stdlib example 
 
 ## See also
 
-- [`@venn/runtime`](../runtime) executes a document against these plugins and ports.
-- [`@venn/sdk`](../sdk) is how each of these plugins is defined, and how a third-party one is.
-- [`@venn/cli`](../cli) assembles the Node host and picks the real implementations.
+- [`@venn-lang/runtime`](../runtime) executes a document against these plugins and ports.
+- [`@venn-lang/sdk`](../sdk) is how each of these plugins is defined, and how a third-party one is.
+- [`@venn-lang/cli`](../cli) assembles the Node host and picks the real implementations.

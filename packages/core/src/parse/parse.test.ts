@@ -3,8 +3,8 @@ import type { FlowDecl, StepDecl } from "../generated/ast.js";
 import { parse } from "./parse.js";
 
 const HELLO = `module demo.hello
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Hello" {
   step "Ping" {

@@ -16,7 +16,7 @@ import {
   isLetStmt,
   isRepeatStmt,
   type ParamList,
-} from "@venn/core";
+} from "@venn-lang/core";
 
 /** The node that binds `name`, searched from `from` outwards to the document. */
 export function findBinding(from: AstNode, name: string): AstNode | undefined {

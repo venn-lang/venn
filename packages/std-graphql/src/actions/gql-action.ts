@@ -1,5 +1,5 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { type GqlClient, GqlClientPort, type GqlRequest } from "../port/index.js";
 
 const paramsSchema = z.object({

@@ -1,6 +1,6 @@
-import type { Host } from "@venn/contracts";
-import type { Document, FragmentDecl, ImportedDeco, Problem, RunId } from "@venn/core";
-import type { PluginDefinition } from "@venn/sdk";
+import type { Host } from "@venn-lang/contracts";
+import type { Document, FragmentDecl, ImportedDeco, Problem, RunId } from "@venn-lang/core";
+import type { PluginDefinition } from "@venn-lang/sdk";
 import type { EventSink } from "../eventsink/index.js";
 import type { PortBinding, PortResolver } from "../ports/index.js";
 import type { Registry } from "../registry/index.js";

@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { wsClose } from "./close.js";
 import { wsConnect } from "./connect.js";
 import { wsExpect } from "./expect.js";

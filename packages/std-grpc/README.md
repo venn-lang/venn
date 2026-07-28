@@ -1,4 +1,4 @@
-# @venn/grpc
+# @venn-lang/grpc
 
 > The `grpc` namespace: unary calls, server streams and server reflection as Venn verbs.
 
@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-use "@venn/grpc"
+use "venn/grpc"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ use "@venn/grpc"
 ```ruby
 module demo.inventory
 
-use "@venn/grpc"
+use "venn/grpc"
 
 flow "Inventory" {
   step "check the stock" {
@@ -74,12 +74,12 @@ channels and real reflection are out of scope for this build. The conformance su
 `src/clients/grpc-client.suite.ts` and the fake runs it today; the real client joins it the day it
 answers instead of throwing.
 
-`@venn/stdlib` binds `createFakeClient()` with no configuration, so out of the box `call` answers
+`@venn-lang/stdlib` binds `createFakeClient()` with no configuration, so out of the box `call` answers
 `{}`, `stream` answers `[]` and `reflect` answers `[]`. To make the example above pass, bind a fake
 of your own:
 
 ```ts
-import { createFakeClient, GrpcClientPort } from "@venn/grpc";
+import { createFakeClient, GrpcClientPort } from "@venn-lang/grpc";
 
 const binding = {
   port: GrpcClientPort,
@@ -115,6 +115,6 @@ const binding = {
 
 ## See also
 
-- [`@venn/graphql`](../std-graphql), the same port pattern over GraphQL.
-- [`@venn/http`](../std-http), the HTTP verbs and the `Response` type.
-- [`@venn/sdk`](../sdk), `defineAction` / `definePlugin`.
+- [`@venn-lang/graphql`](../std-graphql), the same port pattern over GraphQL.
+- [`@venn-lang/http`](../std-http), the HTTP verbs and the `Response` type.
+- [`@venn-lang/sdk`](../sdk), `defineAction` / `definePlugin`.

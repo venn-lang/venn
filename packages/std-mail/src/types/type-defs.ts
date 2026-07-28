@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The types `@venn/mail` publishes to the checker, under the `mail` namespace.
+ * The types `@venn-lang/mail` publishes to the checker, under the `mail` namespace.
  * Kept as data, and mirroring `email.types.ts` by hand, so a generator reading
  * the emitted `.d.ts` can replace this file unnoticed.
  */

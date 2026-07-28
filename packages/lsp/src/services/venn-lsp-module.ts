@@ -1,5 +1,5 @@
-import { VennGeneratedModule, VennGeneratedSharedModule, VennLexer } from "@venn/core";
-import { allPlugins } from "@venn/stdlib";
+import { VennGeneratedModule, VennGeneratedSharedModule, VennLexer } from "@venn-lang/core";
+import { allPlugins } from "@venn-lang/stdlib";
 import { inject, type Module } from "langium";
 import {
   createDefaultModule,

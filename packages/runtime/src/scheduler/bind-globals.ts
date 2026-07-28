@@ -6,7 +6,7 @@ import {
   isFnDecl,
   isLetStmt,
   type LetStmt,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 
 /**

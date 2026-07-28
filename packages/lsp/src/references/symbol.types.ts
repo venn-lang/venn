@@ -1,4 +1,4 @@
-import type { AstNode } from "@venn/core";
+import type { AstNode } from "@venn-lang/core";
 
 /**
  * What a name under the cursor turns out to be.

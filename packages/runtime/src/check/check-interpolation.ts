@@ -8,7 +8,7 @@ import {
   parseExpression,
   type Span,
   scanInterpolations,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { CheckContext } from "./check.types.js";
 import { envProblemsIn } from "./check-env.js";
 

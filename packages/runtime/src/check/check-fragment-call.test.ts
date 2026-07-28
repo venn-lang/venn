@@ -1,5 +1,5 @@
-import { ALL_CAPABILITIES } from "@venn/contracts";
-import { parse } from "@venn/core";
+import { ALL_CAPABILITIES } from "@venn-lang/contracts";
+import { parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import { buildRegistry } from "../registry/index.js";
 import { collectFragments } from "../scheduler/index.js";

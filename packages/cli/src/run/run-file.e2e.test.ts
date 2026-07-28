@@ -1,12 +1,12 @@
-import { createTestHost } from "@venn/contracts";
-import { createFakeClient, okResponse } from "@venn/http";
-import { createMemorySink } from "@venn/runtime";
+import { createTestHost } from "@venn-lang/contracts";
+import { createFakeClient, okResponse } from "@venn-lang/http";
+import { createMemorySink } from "@venn-lang/runtime";
 import { describe, expect, it } from "vitest";
 import { runFile } from "./run-file.js";
 
 const HELLO = `module demo.hello
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -16,8 +16,8 @@ flow "Hello" {
 }`;
 
 const WITH_BASE = `module demo.base
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 config { baseUrl: "https://api.test" }
 

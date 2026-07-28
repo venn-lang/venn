@@ -1,8 +1,8 @@
 # Imports through a `#alias` path declared in [paths] of venn.toml.
 module fixtures.aliasimport
 
-use "@venn/assert"
-use "@venn/http"
+use "venn/assert"
+use "venn/http"
 
 import { authHeader, login } from "#shared/auth.vn"
 

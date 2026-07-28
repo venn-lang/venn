@@ -1,4 +1,4 @@
-import type { ActionContext, ActionInput } from "@venn/sdk";
+import type { ActionContext, ActionInput } from "@venn-lang/sdk";
 import { type BrowserDriver, BrowserDriverPort } from "../port/index.js";
 
 /** The browser driver bound to this run. */

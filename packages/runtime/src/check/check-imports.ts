@@ -8,7 +8,7 @@ import {
   isValueImport,
   type Problem,
   type ValueImport,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { ImportGraph } from "../scheduler/index.js";
 import { nodeSpan } from "../scheduler/index.js";
 

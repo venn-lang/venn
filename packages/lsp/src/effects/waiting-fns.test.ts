@@ -22,7 +22,7 @@ const lines = (...source: string[]): string => source.join("\n");
 describe("a function that waits", () => {
   it("says so, and marks the arrow", async () => {
     const text = await hoverAt(
-      lines('use "@venn/http"', "fn fetchIt(url) => http.get(url)", 'print fetchIt("u")'),
+      lines('use "venn/http"', "fn fetchIt(url) => http.get(url)", 'print fetchIt("u")'),
       "fetchIt(url)",
     );
 
@@ -41,7 +41,7 @@ describe("a function that waits", () => {
   // waiting travels outwards, and only the outermost call is what anyone writes.
   it("follows the wait out through the callers", async () => {
     const source = lines(
-      'use "@venn/http"',
+      'use "venn/http"',
       "fn inner(url) => http.get(url)",
       "fn middle(url) => inner(url)",
       "fn outer(url) => middle(url)",

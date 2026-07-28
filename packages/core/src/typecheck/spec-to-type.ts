@@ -1,4 +1,4 @@
-import type { FnSpec, RecordSpec, TypeSpec } from "@venn/types";
+import type { FnSpec, RecordSpec, TypeSpec } from "@venn-lang/types";
 import {
   DYNAMIC,
   fn,

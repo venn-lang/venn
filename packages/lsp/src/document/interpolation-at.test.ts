@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { fixture, positionOf } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "@venn/http"
+const SOURCE = `use "venn/http"
 
 flow "Checkout" {
   step "Ping" {
@@ -48,7 +48,7 @@ describe("inside an interpolated string", () => {
 
 const PLACEHOLDER = "${env.BASE_URL}";
 const ENV_SOURCE = [
-  'use "@venn/env"',
+  'use "venn/env"',
   "",
   'flow "Login" {',
   '  step "in" {',

@@ -4,8 +4,8 @@ import { fixture, positionOf } from "../testing/lsp-fixture.js";
 
 const SOURCE = `module demo.lsp
 
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 fragment login(user) {
   step "in" { expect true }
@@ -38,14 +38,14 @@ describe("hover", () => {
     const text = await hoverAt("http.get");
 
     expect(text).toContain("http.get");
-    expect(text).toContain("@venn/http");
+    expect(text).toContain("venn/http");
   });
 
   it("describes a matcher used after expect", async () => {
     const text = await hoverAt("oneOf");
 
     expect(text).toContain("oneOf");
-    expect(text).toContain("@venn/assert");
+    expect(text).toContain("venn/assert");
   });
 
   it("explains an annotation", async () => {
@@ -61,7 +61,7 @@ describe("hover", () => {
   });
 
   it("says what a used package contributes", async () => {
-    expect(await hoverAt('"@venn/http"')).toContain("action");
+    expect(await hoverAt('"venn/http"')).toContain("action");
   });
 
   // Which token the cursor is on decides the hover, not merely which node.
@@ -83,7 +83,7 @@ describe("hover", () => {
   });
 });
 
-const TYPED = `use "@venn/io"
+const TYPED = `use "venn/io"
 
 fn double(x) => x * 2
 

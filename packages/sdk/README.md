@@ -1,4 +1,4 @@
-# @venn/sdk
+# @venn-lang/sdk
 
 > The plugin authoring API: small typed builders that return plain definition objects.
 
@@ -7,7 +7,7 @@ The Venn kernel knows no protocols. Every verb a `.vn` file can call (`http.get`
 One definition feeds the runtime, the language server and the node graph at once, so a verb
 describes itself in exactly one place.
 
-The package depends on `@venn/contracts` (types only), `@venn/types` and `zod`. It never imports
+The package depends on `@venn-lang/contracts` (types only), `@venn-lang/types` and `zod`. It never imports
 `node:*`: a plugin has to load in a Web Worker like everything else, so its I/O goes through a port.
 
 ## Install
@@ -15,7 +15,7 @@ The package depends on `@venn/contracts` (types only), `@venn/types` and `zod`. 
 Nothing is published to npm yet. Inside this workspace:
 
 ```json
-{ "dependencies": { "@venn/sdk": "workspace:*", "@venn/types": "workspace:*" } }
+{ "dependencies": { "@venn-lang/sdk": "workspace:*", "@venn-lang/types": "workspace:*" } }
 ```
 
 ## Usage
@@ -24,9 +24,9 @@ A complete plugin: one namespace, one verb, one matcher.
 
 ```ts
 // src/plugin.ts
-import { HttpClientPort } from "@venn/http";
-import { arg, defineAction, defineMatcher, definePlugin, type PluginDefinition, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { HttpClientPort } from "@venn-lang/http";
+import { arg, defineAction, defineMatcher, definePlugin, type PluginDefinition, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 
 interface Probe {
   url: string;
@@ -102,7 +102,7 @@ looks like a plugin) and prints the namespace with the counts of actions, matche
 | `arg`, `optionalArg`, `restArg` | Build an `ArgSpec`, one named positional argument. |
 | `signatureOf(args, result)` | The `FnSpec` those arguments describe. `defineAction` calls it for you. |
 | `paramSpecs(schema)`, `paramNames(schema)` | Read a Zod options schema into `ParamSpec[]` (or just the key names). |
-| `z`, `ZodType` | Zod 4, re-exported so a plugin depends on `@venn/sdk` alone. |
+| `z`, `ZodType` | Zod 4, re-exported so a plugin depends on `@venn-lang/sdk` alone. |
 
 Types are exported alongside: `PluginDefinition`, `ActionDefinition`, `MatcherDefinition`,
 `MatcherDetail`, `ResourceDefinition`, `ResourceScope`, `DecoratorDefinition`, `DecoratedNode`,
@@ -124,8 +124,8 @@ Capabilities are negotiated when the registry is built, before a single line run
 requires `net` on a host that does not offer it fails with `VN2010` naming the plugin and the
 missing capability, never with a `TypeError` halfway through a test.
 
-A plugin with no verbs at all is legitimate. `@venn/env` contributes only its namespace, so that a
-file reading configuration still has to declare `use "@venn/env"`.
+A plugin with no verbs at all is legitimate. `@venn-lang/env` contributes only its namespace, so that a
+file reading configuration still has to declare `use "venn/env"`.
 
 ## Actions
 
@@ -223,7 +223,7 @@ export const browserResource: ResourceDefinition = defineResource({
 ```
 
 The grammar has no `resource` declaration yet, so nothing in a `.vn` file opens one today. The
-definition shape is settled and `@venn/browser` already declares against it.
+definition shape is settled and `@venn-lang/browser` already declares against it.
 
 ## Durations
 
@@ -249,20 +249,20 @@ the interface:
 run: (ctx, input) => ctx.port(HttpClientPort).request({ method: "GET", url: input.args[0] }),
 ```
 
-The port descriptor (`id`, `version`, `requires`, `methods`) lives in `@venn/contracts`, and the
+The port descriptor (`id`, `version`, `requires`, `methods`) lives in `@venn-lang/contracts`, and the
 implementation is bound at startup. That is what lets the same plugin run against a real client in
 production and a fake one in tests. Every port ships with both, plus a conformance suite they both
 pass.
 
 ## Running a plugin
 
-`@venn/runtime` takes the definitions and a host, and nothing else:
+`@venn-lang/runtime` takes the definitions and a host, and nothing else:
 
 ```ts
-import { createTestHost } from "@venn/contracts";
-import { parse } from "@venn/core";
-import { createFakeClient, HttpClientPort } from "@venn/http";
-import { createMemorySink, createRunner } from "@venn/runtime";
+import { createTestHost } from "@venn-lang/contracts";
+import { parse } from "@venn-lang/core";
+import { createFakeClient, HttpClientPort } from "@venn-lang/http";
+import { createMemorySink, createRunner } from "@venn-lang/runtime";
 import { uptimePlugin } from "./plugin.js";
 
 const runner = createRunner({
@@ -277,6 +277,6 @@ const result = await runner.run(parse(source).ast);
 
 ## See also
 
-- [`@venn/types`](../types) for `t`, the `TypeSpec` builder every `args` and `typeDefs` entry uses.
-- [`@venn/contracts`](../contracts) for `Host`, `Port`, capabilities and the test doubles.
-- [`@venn/http`](../std-http) for the reference plugin: actions, matchers, two ports, both fakes.
+- [`@venn-lang/types`](../types) for `t`, the `TypeSpec` builder every `args` and `typeDefs` entry uses.
+- [`@venn-lang/contracts`](../contracts) for `Host`, `Port`, capabilities and the test doubles.
+- [`@venn-lang/http`](../std-http) for the reference plugin: actions, matchers, two ports, both fakes.

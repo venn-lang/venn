@@ -1,4 +1,4 @@
-import type { Document } from "@venn/core";
+import type { Document } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments } from "langium";
 import type { Location, Range } from "vscode-languageserver";
 import { rangesOf } from "./occurrence-range.js";

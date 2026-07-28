@@ -4,7 +4,7 @@ import { fixture } from "../testing/lsp-fixture.js";
 
 // `·` is the space that has just been typed, written so an editor cannot trim
 // it away. The trailing space is the whole subject of these tests.
-const SOURCE = `use "@venn/http"
+const SOURCE = `use "venn/http"
 
 const api = http.serve { port: 8099 }
 http.on·

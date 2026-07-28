@@ -1,4 +1,4 @@
-import { buildProblem, type Call, CODES, isRef, type Problem } from "@venn/core";
+import { buildProblem, type Call, CODES, isRef, type Problem } from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 

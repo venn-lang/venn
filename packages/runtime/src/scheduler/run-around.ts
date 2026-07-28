@@ -1,4 +1,4 @@
-import { invoke, readDecorations } from "@venn/core";
+import { invoke, readDecorations } from "@venn-lang/core";
 
 /**
  * Run the `.before` and `.after` closures a `deco` left on a flow or a step.

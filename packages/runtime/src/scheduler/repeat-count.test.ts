@@ -1,5 +1,5 @@
-import { createTestHost } from "@venn/contracts";
-import { ProblemError, parse } from "@venn/core";
+import { createTestHost } from "@venn-lang/contracts";
+import { ProblemError, parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import { createMemorySink, type MemorySink } from "../eventsink/index.js";
 import { createRunner } from "../run/create-runner.js";

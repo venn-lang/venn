@@ -1,4 +1,4 @@
-import { createNodeFs } from "@venn/contracts/node";
+import { createNodeFs } from "@venn-lang/contracts/node";
 import {
   type BuiltTarget,
   join,
@@ -7,7 +7,7 @@ import {
   type Project,
   relativeTo,
   writeBuildRecord,
-} from "@venn/project";
+} from "@venn-lang/project";
 import { selectPackages, unknownPackage } from "../project/index.js";
 import { reportProblems } from "../reporters/index.js";
 import { checkProblems } from "./check.js";

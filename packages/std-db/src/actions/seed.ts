@@ -1,5 +1,5 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, type ActionInput, arg, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { DbClientPort, type SeedData } from "../port/index.js";
 
 /** `db.seed(data)`: load rows into the tables and answer with how many were loaded. */

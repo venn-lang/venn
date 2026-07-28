@@ -1,4 +1,4 @@
-import { isCall, isMember, isRef, MEMBER_DOCS } from "@venn/core";
+import { isCall, isMember, isRef, MEMBER_DOCS } from "@venn-lang/core";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { findBinding, pathOf } from "../document/index.js";

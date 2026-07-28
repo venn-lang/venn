@@ -1,4 +1,4 @@
-import type { GroupDecl } from "@venn/core";
+import type { GroupDecl } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";

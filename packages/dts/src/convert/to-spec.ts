@@ -1,4 +1,4 @@
-import type { TypeSpec } from "@venn/types";
+import type { TypeSpec } from "@venn-lang/types";
 import ts from "tsc-api";
 import { fnSpec, recordSpec } from "./shapes.js";
 

@@ -1,5 +1,5 @@
-import type { ActionDefinition, MatcherDefinition } from "@venn/sdk";
-import type { TypeSpec } from "@venn/types";
+import type { ActionDefinition, MatcherDefinition } from "@venn-lang/sdk";
+import type { TypeSpec } from "@venn-lang/types";
 
 /** One type a plugin publishes: `http.Request`, and the shape behind it. */
 export interface TypeEntry {

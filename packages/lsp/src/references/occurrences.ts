@@ -11,7 +11,7 @@ import {
   isTypeDecl,
   isValueImport,
   walkAst,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { findBinding } from "../document/index.js";
 import { nameProperty } from "./name-property.js";
 import type { FoundSymbol, Occurrence } from "./symbol.types.js";

@@ -1,4 +1,4 @@
-# @venn/notify
+# @venn-lang/notify
 
 > The `notify` namespace: send a Slack message, a webhook or an email from a flow.
 
@@ -9,12 +9,12 @@ machine.
 
 ## Install
 
-Nothing to install. `@venn/notify` is part of the standard library, and the CLI and the language
-server both load [`@venn/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
+Nothing to install. `@venn-lang/notify` is part of the standard library, and the CLI and the language
+server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plugin. A file reaches the
 namespace with one line.
 
 ```ruby
-use "@venn/notify"
+use "venn/notify"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "@venn/notify"
 ```ruby
 module demo.checkout
 
-use "@venn/notify"
-use "@venn/assert"
+use "venn/notify"
+use "venn/assert"
 
 flow "Checkout" {
   step "place the order" {
@@ -76,7 +76,7 @@ interface:
 
 - `createFakeNotifier()` records every notification in memory and returns
   `{ delivered: true, id: "fake-<n>" }`. It is a `FakeNotifier`, so the recorded messages are
-  readable through `sent`. This is the one [`@venn/stdlib`](../stdlib) binds.
+  readable through `sent`. This is the one [`@venn-lang/stdlib`](../stdlib) binds.
 - `createRealNotifier()` is a stub. Every call throws a `VennError` with code `VN8090`, because this
   repository is the language and ships no live Slack, webhook or SMTP wiring.
 
@@ -86,7 +86,7 @@ Both run the same conformance suite, `notifierConformance` in `src/clients/notif
 Asserting on what a flow sent, from TypeScript:
 
 ```ts
-import { createFakeNotifier } from "@venn/notify";
+import { createFakeNotifier } from "@venn-lang/notify";
 
 const notifier = createFakeNotifier();
 await notifier.send({ kind: "slack", channel: "#qa", mention: "@vini" });
@@ -112,8 +112,8 @@ expect(notifier.sent[0]).toMatchObject({ kind: "slack", channel: "#qa" });
 Binding a different notifier means one entry in the runner's port list:
 
 ```ts
-import { createRunner } from "@venn/runtime";
-import { createFakeNotifier, NotifierPort } from "@venn/notify";
+import { createRunner } from "@venn-lang/runtime";
+import { createFakeNotifier, NotifierPort } from "@venn-lang/notify";
 
 const runner = createRunner({
   host,
@@ -126,6 +126,6 @@ const runner = createRunner({
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `definePlugin` and `defineAction`.
-- [`@venn/contracts`](../contracts) for `Port`, `assertPortShape` and `VennError`.
-- [`@venn/artifacts`](../std-artifacts) for the traces and videos a failure leaves behind.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin` and `defineAction`.
+- [`@venn-lang/contracts`](../contracts) for `Port`, `assertPortShape` and `VennError`.
+- [`@venn-lang/artifacts`](../std-artifacts) for the traces and videos a failure leaves behind.

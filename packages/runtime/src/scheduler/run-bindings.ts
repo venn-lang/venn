@@ -4,7 +4,7 @@ import {
   isNamespaceValue,
   type LetStmt,
   type ReturnStmt,
-} from "@venn/core";
+} from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { actionCall, type Invocation, invocationOf } from "./invocation.js";

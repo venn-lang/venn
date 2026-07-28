@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { callAction, reflectAction, streamAction } from "./grpc-action.js";
 
 /** The grpc namespace's verbs. */

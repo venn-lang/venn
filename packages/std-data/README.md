@@ -1,4 +1,4 @@
-# @venn/data
+# @venn-lang/data
 
 > The `data` namespace: 96 deterministic faker verbs, plus picking, shuffling and parsing.
 
@@ -13,7 +13,7 @@ The package is part of the stdlib the `venn` CLI loads, so nothing to install. R
 flow with a `use` line:
 
 ```ruby
-use "@venn/data"
+use "venn/data"
 ```
 
 ## Usage
@@ -21,8 +21,8 @@ use "@venn/data"
 ```ruby
 module demo.signup
 
-use "@venn/assert"
-use "@venn/data"
+use "venn/assert"
+use "venn/data"
 
 flow "A generated Brazilian signup" {
   const name = data.faker.name
@@ -120,7 +120,7 @@ sequence of calls a flow makes is what determines the values, not the wall clock
 rewinds it, which is how the tests here assert that a whole catalogue replays identically:
 
 ```ts
-import { allFakerSpecs, resetRng, rng } from "@venn/data";
+import { allFakerSpecs, resetRng, rng } from "@venn-lang/data";
 
 resetRng();
 const first = allFakerSpecs.map((spec) => spec.make(rng, []));
@@ -138,6 +138,6 @@ commas and trims cells, and does not handle quoted commas.
 
 ## See also
 
-- [`@venn/crypto`](../std-crypto) for hashing and signing the values generated here.
-- [`@venn/mock`](../std-mock) for freezing the clock and flipping flags.
-- [`@venn/sdk`](../sdk) for `defineAction` and `definePlugin`.
+- [`@venn-lang/crypto`](../std-crypto) for hashing and signing the values generated here.
+- [`@venn-lang/mock`](../std-mock) for freezing the clock and flipping flags.
+- [`@venn-lang/sdk`](../sdk) for `defineAction` and `definePlugin`.

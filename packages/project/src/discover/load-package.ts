@@ -1,4 +1,4 @@
-import type { FileSystem, Manifest } from "@venn/contracts";
+import type { FileSystem, Manifest } from "@venn-lang/contracts";
 import type { Package } from "../model/project.types.js";
 import { reanchor } from "../paths/index.js";
 import { inherit } from "../workspace/index.js";

@@ -1,4 +1,4 @@
-import { t } from "@venn/types";
+import { t } from "@venn-lang/types";
 import type { Rng } from "../rng/index.js";
 import { cnpjDigits, cpfDigits } from "./brazil-documents.js";
 import { BR_CITIES, BR_STATES, BR_STREET_NAMES, BR_STREET_TYPES } from "./data/index.js";

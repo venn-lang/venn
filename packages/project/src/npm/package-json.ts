@@ -1,4 +1,4 @@
-import type { Dependency, Manifest } from "@venn/contracts";
+import type { Dependency, Manifest } from "@venn-lang/contracts";
 
 /**
  * The `package.json` a package manager is shown, generated from `venn.toml`.

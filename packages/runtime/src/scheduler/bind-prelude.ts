@@ -1,4 +1,4 @@
-import { PRELUDE_VALUES } from "@venn/core";
+import { PRELUDE_VALUES } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 
 /**

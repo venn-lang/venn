@@ -1,4 +1,4 @@
-# @venn/contracts
+# @venn-lang/contracts
 
 > The ports the Venn core runs on, their implementations, and the host that carries them.
 
@@ -13,7 +13,7 @@ entry point assembles a `Host` and passes it inward.
 The CLI assembles the Node host and hands it to the runtime:
 
 ```ts
-import { createNodeHost } from "@venn/contracts/node";
+import { createNodeHost } from "@venn-lang/contracts/node";
 
 const host = createNodeHost({ root: process.cwd() });
 await host.fs.write("out/report.json", new TextEncoder().encode("{}"));
@@ -22,7 +22,7 @@ await host.fs.write("out/report.json", new TextEncoder().encode("{}"));
 Tests take the all-doubles host, overriding only what the test cares about:
 
 ```ts
-import { createTestHost, createVirtualClock } from "@venn/contracts";
+import { createTestHost, createVirtualClock } from "@venn-lang/contracts";
 
 const host = createTestHost({ clock: createVirtualClock({ start: 1_700_000_000_000 }) });
 await host.clock.sleep(5_000); // resolves immediately; now() moved on by 5000 ms
@@ -32,7 +32,7 @@ Binding an implementation to a port goes through `bindPort`, which negotiates ca
 then checks the shape:
 
 ```ts
-import { bindPort, createMemoryFs, FileSystemPort } from "@venn/contracts";
+import { bindPort, createMemoryFs, FileSystemPort } from "@venn-lang/contracts";
 
 const fs = bindPort({ port: FileSystemPort, impl: createMemoryFs(), caps: ["fs"] });
 // caps: [] throws VN2010. An impl without `list` throws VN2011.
@@ -42,13 +42,13 @@ const fs = bindPort({ port: FileSystemPort, impl: createMemoryFs(), caps: ["fs"]
 
 | Specifier | Platform | Holds |
 | --- | --- | --- |
-| `@venn/contracts` | neutral (Node and Web Worker) | ports, doubles, hosts, errors, capability negotiation |
-| `@venn/contracts/node` | Node | the `node:*`-backed implementations and `createNodeHost` |
-| `@venn/contracts/testing` | test | the conformance suites; imports vitest and fast-check |
+| `@venn-lang/contracts` | neutral (Node and Web Worker) | ports, doubles, hosts, errors, capability negotiation |
+| `@venn-lang/contracts/node` | Node | the `node:*`-backed implementations and `createNodeHost` |
+| `@venn-lang/contracts/testing` | test | the conformance suites; imports vitest and fast-check |
 
 The split is enforced by the build, not by convention: `index` and `testing` are built with tsdown
 `platform: "neutral"`, so a stray `node:*` import fails the build. That is what lets
-[`@venn/core`](../core) run inside the editor's Web Worker.
+[`@venn-lang/core`](../core) run inside the editor's Web Worker.
 
 ## Two implementations or it is not a port
 
@@ -93,7 +93,7 @@ typed without variance friction.
 | `LockProvider` | `venn.port.lock` | none | `acquire` | `createInProcessLock` | `createFakeLock` |
 | `ManifestProvider` | `venn.port.manifest` | none | `load` | `createTomlManifest` | `createMemoryManifest` |
 
-Implementations marked `/node` are reachable only through `@venn/contracts/node`, and are
+Implementations marked `/node` are reachable only through `@venn-lang/contracts/node`, and are
 deliberately absent from the folder barrels so the main entry stays neutral. Each port also
 exports its descriptor: `FileSystemPort`, `ClockPort`, `RandomPort`, `SecretProviderPort`,
 `ProcessProviderPort`, `ConsolePort`, `SignalSourcePort`, `LockProviderPort`,
@@ -175,8 +175,8 @@ A worker has no `process`, so its `proc` field is built by `unavailable()`. Ever
 on it throws VN2012 with a readable message, rather than a `TypeError` halfway through a test.
 
 ```ts
-import { ProcessProviderPort, unavailable } from "@venn/contracts";
-import type { ProcessProvider } from "@venn/contracts";
+import { ProcessProviderPort, unavailable } from "@venn-lang/contracts";
+import type { ProcessProvider } from "@venn-lang/contracts";
 
 const proc = unavailable<ProcessProvider>({
   capability: "process",
@@ -191,7 +191,7 @@ implementation, synchronously or not. Running it is one call per implementation.
 
 ```ts
 // file-system.test.ts
-import { fileSystemConformance } from "@venn/contracts/testing";
+import { fileSystemConformance } from "@venn-lang/contracts/testing";
 
 fileSystemConformance({ name: "memory", factory: () => createMemoryFs() });
 fileSystemConformance({
@@ -205,7 +205,7 @@ Some suites ask for more than the spec: `secretProviderConformance` takes a `kno
 and `expected`, and `signalSourceConformance` takes a whole `SignalSpec` saying how a signal is
 delivered to that implementation.
 
-Exported from `@venn/contracts/testing`: `clockConformance`, `fileSystemConformance`,
+Exported from `@venn-lang/contracts/testing`: `clockConformance`, `fileSystemConformance`,
 `lockProviderConformance`, `manifestProviderConformance`, `processProviderConformance`,
 `randomConformance`, `secretProviderConformance`, `signalSourceConformance`, plus `expectVennError`
 and the types `ConformanceSpec`, `PortFactory` and `SignalSpec`.
@@ -249,6 +249,6 @@ assertions.
 
 ## See also
 
-- [`@venn/core`](../core) receives a `Host` and imports nothing else for I/O.
-- [`@venn/runtime`](../runtime) executes flows against that host.
-- [`@venn/cli`](../cli) assembles the Node host and is the only package free to use `node:*`.
+- [`@venn-lang/core`](../core) receives a `Host` and imports nothing else for I/O.
+- [`@venn-lang/runtime`](../runtime) executes flows against that host.
+- [`@venn-lang/cli`](../cli) assembles the Node host and is the only package free to use `node:*`.

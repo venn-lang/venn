@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 import type { Attachment, Email } from "./email.types.js";
 
 /** Runtime validator for the nominal `mail.Attachment` type. */

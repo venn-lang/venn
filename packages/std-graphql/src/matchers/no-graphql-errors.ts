@@ -1,4 +1,4 @@
-import { defineMatcher, type MatcherDefinition } from "@venn/sdk";
+import { defineMatcher, type MatcherDefinition } from "@venn-lang/sdk";
 
 /**
  * `expect res noGraphqlErrors`: passes when `errors` is absent or empty.

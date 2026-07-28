@@ -1,8 +1,8 @@
-# @venn/http
+# @venn-lang/http
 
 > The `http` namespace: seven request verbs, a server, and the two ports they ride.
 
-Venn's grammar knows no verbs. `@venn/http` registers the `http` namespace with the runtime, so
+Venn's grammar knows no verbs. `@venn-lang/http` registers the `http` namespace with the runtime, so
 `http.get` resolves to an action, `res` gets a known shape, and the editor can complete and document
 both. The plugin itself never touches the network: requests go through the `HttpClient` port and
 servers through the `HttpServer` port, so the CLI binds `fetch` and a real socket while a test binds
@@ -11,10 +11,10 @@ a fake and stays offline.
 ## Install
 
 Nothing to install yet. The package is unpublished (version `0.0.0`) and ships inside
-`@venn/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
+`@venn-lang/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
 
 ```ruby
-use "@venn/http"
+use "venn/http"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "@venn/http"
 ```ruby
 module demo.api
 
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 config { baseUrl: "https://api.test" }
 
@@ -58,10 +58,10 @@ Everything below is exported from the package barrel.
 Types: `HttpClient`, `HttpRequest`, `HttpResponse`, `HttpServer`, `RequestHandler`, `RunningServer`,
 `ServerRequest`, `ServerReply`, `ServeHandle`, `MemoryServer`, `MemoryHttpServer`.
 
-The subpath `@venn/http/node` carries the one file that imports `node:*`:
+The subpath `@venn-lang/http/node` carries the one file that imports `node:*`:
 
 ```ts
-import { createNodeServer, type NodeHttpServer } from "@venn/http/node";
+import { createNodeServer, type NodeHttpServer } from "@venn-lang/http/node";
 ```
 
 `createNodeServer()` binds a real socket and adds `closeAll()`, so whoever owns the process can give
@@ -95,7 +95,7 @@ A server is not a request-response verb: it stays, and the requests arrive after
 hands back a handle, and `http.on` says what to answer with.
 
 ```ruby
-use "@venn/http"
+use "venn/http"
 
 const api = http.serve { port: 0 }
 defer { api.close() }
@@ -140,7 +140,7 @@ Two ports, each with two implementations and a suite both must pass:
 Binding one implementation looks like this:
 
 ```ts
-import { createFakeClient, HttpClientPort, okResponse } from "@venn/http";
+import { createFakeClient, HttpClientPort, okResponse } from "@venn-lang/http";
 
 const ports = [
   {
@@ -157,6 +157,6 @@ else `VN7021`. No caller ever reads a `node:net` errno.
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `definePlugin`, `defineAction` and `defineMatcher`.
-- [`@venn/stdlib`](../stdlib) for the plugin list and the default port bindings.
-- [`@venn/ws`](../std-ws) and [`@venn/mqtt`](../std-mqtt), the other two network plugins.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin`, `defineAction` and `defineMatcher`.
+- [`@venn-lang/stdlib`](../stdlib) for the plugin list and the default port bindings.
+- [`@venn-lang/ws`](../std-ws) and [`@venn-lang/mqtt`](../std-mqtt), the other two network plugins.

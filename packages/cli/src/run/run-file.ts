@@ -1,7 +1,7 @@
-import { type Console, ConsolePort, type Host } from "@venn/contracts";
-import { type Problem, parse } from "@venn/core";
-import { type HttpClient, HttpClientPort, type HttpServer, HttpServerPort } from "@venn/http";
-import { createNodeServer } from "@venn/http/node";
+import { type Console, ConsolePort, type Host } from "@venn-lang/contracts";
+import { type Problem, parse } from "@venn-lang/core";
+import { type HttpClient, HttpClientPort, type HttpServer, HttpServerPort } from "@venn-lang/http";
+import { createNodeServer } from "@venn-lang/http/node";
 import {
   type CleanupSink,
   checkImports,
@@ -12,8 +12,8 @@ import {
   type RunFilter,
   type RunResult,
   resolveImports,
-} from "@venn/runtime";
-import { allPlugins, stdlibPortBindings } from "@venn/stdlib";
+} from "@venn-lang/runtime";
+import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
 
 /** What one `.vn` file amounted to. */
 export interface RunFileOutcome {
@@ -50,7 +50,7 @@ export interface RunFileArgs {
  *
  * The HttpClient, HttpServer and Console ports take injected implementations
  * (real in the CLI, fakes in tests); every other port takes the binding
- * `@venn/stdlib` supplies.
+ * `@venn-lang/stdlib` supplies.
  *
  * @param args - The source and its uri, the host and the ports, and how to run
  * it: the filter, the mode, the environment, the module and package loaders.

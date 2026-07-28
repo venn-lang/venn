@@ -1,4 +1,4 @@
-import { type FlowDecl, isLifecycleDecl, type LifecycleDecl, ProblemError } from "@venn/core";
+import { type FlowDecl, isLifecycleDecl, type LifecycleDecl, ProblemError } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { hasAnnotation, readLock } from "./annotations.js";
 import type { Engine } from "./engine.types.js";

@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import type { ArtifactStore } from "./artifact-store.types.js";
 
 /**

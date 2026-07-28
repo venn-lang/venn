@@ -1,5 +1,5 @@
 {
-  "name": "@venn/artifacts",
+  "name": "@venn-lang/artifacts",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -17,9 +17,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/contracts": "workspace:*",
-    "@venn/sdk": "workspace:*",
-    "@venn/types": "workspace:*"
+    "@venn-lang/contracts": "workspace:*",
+    "@venn-lang/sdk": "workspace:*",
+    "@venn-lang/types": "workspace:*"
   },
   "devDependencies": {
     "tsdown": "catalog:",

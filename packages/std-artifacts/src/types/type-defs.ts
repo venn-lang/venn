@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The types `@venn/artifacts` publishes to the checker, under the `artifacts`
+ * The types `@venn-lang/artifacts` publishes to the checker, under the `artifacts`
  * namespace. Kept as data, and mirroring `artifact-ref.types.ts` by hand, so a
  * generator reading the emitted `.d.ts` can replace this file unnoticed.
  */

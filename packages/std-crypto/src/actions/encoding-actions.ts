@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import {
   fromBase64,
   fromBase64Url,

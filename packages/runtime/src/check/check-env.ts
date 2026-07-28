@@ -1,4 +1,11 @@
-import { type AstNode, buildProblem, CODES, isMember, type Problem, type Span } from "@venn/core";
+import {
+  type AstNode,
+  buildProblem,
+  CODES,
+  isMember,
+  type Problem,
+  type Span,
+} from "@venn-lang/core";
 import { actionTarget, nodeSpan } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 
@@ -35,7 +42,7 @@ function notImported(span: Span): Problem {
   return buildProblem({
     spec: CODES.VN2007_NAMESPACE_NOT_IMPORTED,
     span,
-    title: '"env" is not imported in this file — add `use "@venn/env"`.',
+    title: '"env" is not imported in this file — add `use "venn/env"`.',
   });
 }
 

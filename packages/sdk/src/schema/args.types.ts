@@ -1,4 +1,4 @@
-import type { TypeSpec } from "@venn/types";
+import type { TypeSpec } from "@venn-lang/types";
 
 /**
  * One positional argument of an action, as the editor needs to present it.

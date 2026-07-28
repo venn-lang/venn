@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { assertMatchers } from "./matchers/index.js";
 
 /**
@@ -9,7 +9,7 @@ import { assertMatchers } from "./matchers/index.js";
  * resources, no types and no host capabilities.
  */
 export const assertPlugin: PluginDefinition = definePlugin({
-  name: "@venn/assert",
+  name: "venn/assert",
   version: "0.0.0",
   namespace: "assert",
   matchers: assertMatchers,

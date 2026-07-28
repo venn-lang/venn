@@ -1,4 +1,4 @@
-import { createNdjsonSink, type EventSink } from "@venn/runtime";
+import { createNdjsonSink, type EventSink } from "@venn-lang/runtime";
 
 /**
  * An event sink that writes each envelope to stdout as one line of NDJSON: the

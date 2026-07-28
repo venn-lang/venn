@@ -1,7 +1,7 @@
 # Answering differently per method and per path, from one handler function.
 # Run: venn run examples/servers/02-routing.vn
 
-use "@venn/http"
+use "venn/http"
 
 const api = http.serve { port: 0 }
 const base = "http://127.0.0.1:${api.port}"

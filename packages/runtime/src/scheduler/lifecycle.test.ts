@@ -1,7 +1,7 @@
 // biome-ignore-all lint/suspicious/noTemplateCurlyInString: Venn source under test, where ${…} is the language's own interpolation.
-import { createTestHost } from "@venn/contracts";
-import { type Problem, parse } from "@venn/core";
-import { defineAction, definePlugin } from "@venn/sdk";
+import { createTestHost } from "@venn-lang/contracts";
+import { type Problem, parse } from "@venn-lang/core";
+import { defineAction, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
 import { createRunner } from "../run/create-runner.js";

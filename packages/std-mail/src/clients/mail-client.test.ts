@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { createFakeMailClient } from "./fake-client.js";
 import { mailClientConformance } from "./mail-client.suite.js";

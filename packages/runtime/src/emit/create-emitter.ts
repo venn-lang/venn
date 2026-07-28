@@ -1,5 +1,5 @@
-import type { Clock } from "@venn/contracts";
-import type { Envelope, RunId } from "@venn/core";
+import type { Clock } from "@venn-lang/contracts";
+import type { Envelope, RunId } from "@venn-lang/core";
 import type { EventSink } from "../eventsink/index.js";
 import type { Emitter } from "./emitter.types.js";
 

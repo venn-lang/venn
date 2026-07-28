@@ -1,4 +1,4 @@
-import type { PluginDefinition } from "@venn/sdk";
+import type { PluginDefinition } from "@venn-lang/sdk";
 import type { ActionEntry, MatcherEntry, SymbolCatalog, TypeEntry } from "./catalog.types.js";
 
 interface Index {

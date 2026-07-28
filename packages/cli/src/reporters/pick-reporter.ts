@@ -1,4 +1,4 @@
-import type { EventSink } from "@venn/runtime";
+import type { EventSink } from "@venn-lang/runtime";
 import { createDotSink } from "./dot-sink.js";
 import { createJunitSink } from "./junit-sink.js";
 import { createStdoutSink } from "./ndjson-stdout.js";

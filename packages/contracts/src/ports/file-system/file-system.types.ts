@@ -1,7 +1,7 @@
 /**
  * Read and write bytes.
  *
- * This is the port that lets `@venn/core` run both in Node (the CLI) and in a
+ * This is the port that lets `@venn-lang/core` run both in Node (the CLI) and in a
  * Web Worker (the LSP). A leaked `import fs from "node:fs"` in core would break
  * the editor, so all byte I/O goes through here.
  */

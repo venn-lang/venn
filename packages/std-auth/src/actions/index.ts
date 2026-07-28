@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { apikey } from "./apikey.js";
 import { basic } from "./basic.js";
 import { bearer } from "./bearer.js";

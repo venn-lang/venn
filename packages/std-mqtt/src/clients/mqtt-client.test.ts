@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { expect, it } from "vitest";
 import { createFakeMqttClient } from "./fake-client.js";
 import { mqttClientConformance } from "./mqtt-client.suite.js";

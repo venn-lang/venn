@@ -90,7 +90,7 @@ describe("what a command with no path acts on", () => {
   });
 
   // "no project anywhere above" is checked against a memory file system in
-  // @venn/project, where the walk has a top. Asked of a real disk it is a
+  // @venn-lang/project, where the walk has a top. Asked of a real disk it is a
   // claim about the machine: a stray `venn.toml` in a temp directory two
   // levels up makes it fail, which is the discovery working, not breaking.
 

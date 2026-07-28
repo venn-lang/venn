@@ -1,4 +1,4 @@
-# @venn/env
+# @venn-lang/env
 
 > The `env` namespace: the variables `venn.toml` declares, read as `env.NAME`.
 
@@ -8,11 +8,11 @@ request or an assertion. The reader should never have to know which names are ma
 
 ## Install
 
-`@venn/env` is part of the stdlib the `venn` CLI and the language server load, so there is nothing
+`@venn-lang/env` is part of the stdlib the `venn` CLI and the language server load, so there is nothing
 to install. A file that reads configuration says so:
 
 ```ruby
-use "@venn/env"
+use "venn/env"
 ```
 
 ## Usage
@@ -30,8 +30,8 @@ BASE = "https://staging.example.com"
 # config.vn
 module demo.config
 
-use "@venn/assert"
-use "@venn/env"
+use "venn/assert"
+use "venn/env"
 
 flow "Config" {
   step "reads the selected environment" {
@@ -76,7 +76,7 @@ including reads written inside a `"${…}"` placeholder.
 
 | Code | When |
 | --- | --- |
-| `VN2007` | `env.*` is read in a file that never wrote `use "@venn/env"`. |
+| `VN2007` | `env.*` is read in a file that never wrote `use "venn/env"`. |
 | `VN2006` | The name is not declared in `venn.toml`. The nearest declared name is offered: `"env.BAES" is not declared in venn.toml, did you mean "env.BASE"?` |
 
 Nothing is reported when the manifest could not be read at all: a wrong error about a variable that
@@ -93,6 +93,6 @@ above, not a type, is what catches `env.TPYO`.
 
 ## See also
 
-- [`@venn/cli`](../cli) for `--env`, the manifest and the dotenv files it reads.
-- [`@venn/runtime`](../runtime) for the check that produces `VN2006` and `VN2007`.
-- [`@venn/assert`](../std-assert) for the matchers used beside a configuration read.
+- [`@venn-lang/cli`](../cli) for `--env`, the manifest and the dotenv files it reads.
+- [`@venn-lang/runtime`](../runtime) for the check that produces `VN2006` and `VN2007`.
+- [`@venn-lang/assert`](../std-assert) for the matchers used beside a configuration read.

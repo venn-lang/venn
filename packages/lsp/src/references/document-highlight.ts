@@ -1,4 +1,4 @@
-import type { Document } from "@venn/core";
+import type { Document } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { DocumentHighlightProvider } from "langium/lsp";
 import {

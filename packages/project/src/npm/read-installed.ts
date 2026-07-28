@@ -1,4 +1,4 @@
-import type { FileSystem } from "@venn/contracts";
+import type { FileSystem } from "@venn-lang/contracts";
 import { join } from "../paths/index.js";
 import { modulesDir } from "../target/index.js";
 import { hashPackage } from "./hash-package.js";

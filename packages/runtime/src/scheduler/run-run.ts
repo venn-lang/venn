@@ -1,5 +1,5 @@
-import { VennError } from "@venn/contracts";
-import { evaluate, type FragmentDecl, type ParamList, type RunStmt } from "@venn/core";
+import { VennError } from "@venn-lang/contracts";
+import { evaluate, type FragmentDecl, type ParamList, type RunStmt } from "@venn-lang/core";
 import { createScope, type Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";

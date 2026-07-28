@@ -1,4 +1,4 @@
-// @venn/crypto: hashes, HMACs, base64, PBKDF2 password hashing and JSON Web
+// @venn-lang/crypto: hashes, HMACs, base64, PBKDF2 password hashing and JSON Web
 // Tokens, all reached through the CryptoEngine port.
 
 export {

@@ -1,4 +1,4 @@
-import { type ZodType, z } from "@venn/sdk";
+import { type ZodType, z } from "@venn-lang/sdk";
 
 /**
  * Runtime validation for `gql.GraphqlResponse`, registered on the plugin.

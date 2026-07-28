@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const HEAD = `use "@venn/assert"
-use "@venn/fmt"
+const HEAD = `use "venn/assert"
+use "venn/fmt"
 
 fn saudacao(nome, idade) => nome
 const quem = "ada"

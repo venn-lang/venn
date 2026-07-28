@@ -1,4 +1,4 @@
-import { type AstNode, showType, type Type } from "@venn/core";
+import { type AstNode, showType, type Type } from "@venn-lang/core";
 import type { CompletionItem, Range } from "vscode-languageserver";
 import type { SymbolCatalog } from "../catalog/index.js";
 import type { ScopedName } from "../document/index.js";

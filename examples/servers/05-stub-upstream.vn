@@ -1,8 +1,8 @@
 # Standing a fake third party up on localhost, so its failure paths are testable.
 # Run: venn test examples/servers/05-stub-upstream.vn
 
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 # One server for the whole file: both flows talk to it, and it goes away once.
 const gateway = http.serve { port: 0 }

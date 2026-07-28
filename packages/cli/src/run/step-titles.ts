@@ -9,7 +9,7 @@ import {
   isRunStmt,
   isStepDecl,
   type Statement,
-} from "@venn/core";
+} from "@venn-lang/core";
 
 interface Walk {
   document: Document;

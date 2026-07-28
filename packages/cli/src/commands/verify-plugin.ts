@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { PluginDefinition } from "@venn/sdk";
+import type { PluginDefinition } from "@venn-lang/sdk";
 
 /**
  * `venn verify-plugin <path>`: import a plugin module, print what it declares,

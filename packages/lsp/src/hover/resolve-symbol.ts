@@ -1,4 +1,4 @@
-import { type AstNode, createContext, isPrelude, resolveMember, type Type } from "@venn/core";
+import { type AstNode, createContext, isPrelude, resolveMember, type Type } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { findBinding } from "../document/index.js";

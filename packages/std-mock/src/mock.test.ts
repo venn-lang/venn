@@ -1,4 +1,4 @@
-import type { ActionContext, ActionDefinition } from "@venn/sdk";
+import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
 import { beforeEach, describe, expect, it } from "vitest";
 import { mockActions } from "./actions/index.js";
 import { mockPlugin } from "./plugin.js";

@@ -1,4 +1,4 @@
-import { type Annotation, readMeta } from "@venn/core";
+import { type Annotation, readMeta } from "@venn-lang/core";
 
 /** Any AST node that carries decorators (`@tags`, `@timeout`, `@retry`…). */
 export interface Annotated {

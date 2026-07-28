@@ -1,10 +1,10 @@
-# @venn/cli
+# @venn-lang/cli
 
 > The `venn` binary: one command for starting, checking, running and testing a Venn project.
 
 This is the only package that touches `node:*`. It builds the `Host`, binds the real
 implementations behind every port (filesystem, HTTP client, HTTP server, console, spawn) and hands
-them to the runtime. Everything below it (`@venn/core`, `@venn/runtime`, `@venn/sdk`) stays
+them to the runtime. Everything below it (`@venn-lang/core`, `@venn-lang/runtime`, `@venn-lang/sdk`) stays
 platform-neutral, which is why the same compiler runs in a Web Worker for the editor.
 
 ## Usage
@@ -13,8 +13,8 @@ platform-neutral, which is why the same compiler runs in a Web Worker for the ed
 # tests/hello.vn
 module demo.hello
 
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -31,7 +31,7 @@ venn test tests/hello.vn
 The repository is not published, so from a source checkout the binary is:
 
 ```bash
-pnpm --filter @venn/cli build
+pnpm --filter @venn-lang/cli build
 node packages/cli/dist/bin/venn.mjs test examples/
 ```
 
@@ -219,14 +219,14 @@ The package also exports the seam the commands are built on, for embedding a run
 `runFile` takes the ports it should use, so a test can drive it entirely offline:
 
 ```ts
-import { createTestHost } from "@venn/contracts";
-import { createFakeClient, okResponse } from "@venn/http";
-import { createMemorySink } from "@venn/runtime";
-import { runFile } from "@venn/cli";
+import { createTestHost } from "@venn-lang/contracts";
+import { createFakeClient, okResponse } from "@venn-lang/http";
+import { createMemorySink } from "@venn-lang/runtime";
+import { runFile } from "@venn-lang/cli";
 
 const source = `module demo.hello
-use "@venn/http"
-use "@venn/assert"
+use "venn/http"
+use "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -254,7 +254,7 @@ outcome.result?.passed; // 1
 
 ## See also
 
-- [`@venn/runtime`](../runtime) for the scheduler, the plugin registry and the event stream.
-- [`@venn/project`](../project) for manifests, workspaces, lockfiles and build profiles.
-- [`@venn/contracts`](../contracts) for the ports and the Node implementations bound here.
-- [`@venn/lsp`](../lsp) for the same compiler behind an editor.
+- [`@venn-lang/runtime`](../runtime) for the scheduler, the plugin registry and the event stream.
+- [`@venn-lang/project`](../project) for manifests, workspaces, lockfiles and build profiles.
+- [`@venn-lang/contracts`](../contracts) for the ports and the Node implementations bound here.
+- [`@venn-lang/lsp`](../lsp) for the same compiler behind an editor.

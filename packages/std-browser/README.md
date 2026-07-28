@@ -1,4 +1,4 @@
-# @venn/browser
+# @venn-lang/browser
 
 > The `browser` namespace: sixteen verbs that drive a page, plus two element matchers and the ports the driving actually goes through.
 
@@ -9,8 +9,8 @@ Venn's grammar knows nothing about browsers. This package adds the vocabulary: `
 Nothing to install: the plugin ships inside the CLI's stdlib. Declare it in the file that needs it, and the runner loads it.
 
 ```ruby
-use "@venn/browser"
-use "@venn/browser" as web   # or under an alias
+use "venn/browser"
+use "venn/browser" as web   # or under an alias
 ```
 
 ## Usage
@@ -18,8 +18,8 @@ use "@venn/browser" as web   # or under an alias
 ```ruby
 module demo.signin
 
-use "@venn/browser"
-use "@venn/assert"
+use "venn/browser"
+use "venn/assert"
 
 flow "Sign in" {
   step "open the app" {
@@ -99,7 +99,7 @@ Two ports, both with a real implementation and a double, which is the condition 
 | `createRealBrowserDriver()` | The real-engine stub. Every method throws `VN8090`, because engine automation is out of scope for the language repository. |
 
 ```ts
-import { createFakeBrowserDriver } from "@venn/browser";
+import { createFakeBrowserDriver } from "@venn-lang/browser";
 
 const driver = createFakeBrowserDriver({ elements: { "#email": { visible: true } } });
 await driver.visit({ url: "/dashboard" });
@@ -137,11 +137,11 @@ The fake records `url`, `history`, `clicks`, `fills`, `frame` and `cookiesCleare
 
 ## Binding a driver
 
-A host chooses the implementation once, at startup. `@venn/stdlib` binds the fake for both ports; pass your own binding to override it.
+A host chooses the implementation once, at startup. `@venn-lang/stdlib` binds the fake for both ports; pass your own binding to override it.
 
 ```ts
-import { BrowserDriverPort, createRealBrowserDriver } from "@venn/browser";
-import { createRunner } from "@venn/runtime";
+import { BrowserDriverPort, createRealBrowserDriver } from "@venn-lang/browser";
+import { createRunner } from "@venn-lang/runtime";
 
 const runner = createRunner({
   host,
@@ -155,7 +155,7 @@ const runner = createRunner({
 
 ## See also
 
-- [`@venn/sdk`](../sdk) for `definePlugin`, `defineAction` and `defineMatcher`, the API this package is built on.
-- [`@venn/contracts`](../contracts) for `Port`, `Host` and capability negotiation.
-- [`@venn/stdlib`](../stdlib) for the plugin list and the default port bindings the CLI runs with.
-- [`@venn/mail`](../std-mail) for the sibling plugin that checks the email a browser flow triggered.
+- [`@venn-lang/sdk`](../sdk) for `definePlugin`, `defineAction` and `defineMatcher`, the API this package is built on.
+- [`@venn-lang/contracts`](../contracts) for `Port`, `Host` and capability negotiation.
+- [`@venn-lang/stdlib`](../stdlib) for the plugin list and the default port bindings the CLI runs with.
+- [`@venn-lang/mail`](../std-mail) for the sibling plugin that checks the email a browser flow triggered.

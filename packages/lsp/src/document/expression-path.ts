@@ -1,4 +1,4 @@
-import { type AstNode, type Expr, isMember, isRef } from "@venn/core";
+import { type AstNode, type Expr, isMember, isRef } from "@venn-lang/core";
 import type { SymbolCatalog } from "../catalog/index.js";
 import { findBinding } from "./find-binding.js";
 

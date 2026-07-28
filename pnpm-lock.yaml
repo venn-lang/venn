@@ -86,16 +86,16 @@ importers:
 
   benchmarks:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../packages/contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../packages/core
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../packages/runtime
-      '@venn/stdlib':
+      '@venn-lang/stdlib':
         specifier: workspace:*
         version: link:../packages/stdlib
     devDependencies:
@@ -108,37 +108,37 @@ importers:
 
   packages/cli:
     dependencies:
-      '@venn/assert':
+      '@venn-lang/assert':
         specifier: workspace:*
         version: link:../std-assert
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
-      '@venn/dts':
+      '@venn-lang/dts':
         specifier: workspace:*
         version: link:../dts
-      '@venn/http':
+      '@venn-lang/http':
         specifier: workspace:*
         version: link:../std-http
-      '@venn/io':
+      '@venn-lang/io':
         specifier: workspace:*
         version: link:../std-io
-      '@venn/project':
+      '@venn-lang/project':
         specifier: workspace:*
         version: link:../project
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/stdlib':
+      '@venn-lang/stdlib':
         specifier: workspace:*
         version: link:../stdlib
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       citty:
@@ -178,10 +178,10 @@ importers:
 
   packages/core:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       langium:
@@ -206,7 +206,7 @@ importers:
 
   packages/dts:
     dependencies:
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       tsc-api:
@@ -225,22 +225,22 @@ importers:
 
   packages/lsp:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/stdlib':
+      '@venn-lang/stdlib':
         specifier: workspace:*
         version: link:../stdlib
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       langium:
@@ -268,7 +268,7 @@ importers:
 
   packages/project:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
     devDependencies:
@@ -284,16 +284,16 @@ importers:
 
   packages/runtime:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/core':
+      '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -309,10 +309,10 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
       zod:
@@ -331,13 +331,13 @@ importers:
 
   packages/std-artifacts:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -353,10 +353,10 @@ importers:
 
   packages/std-assert:
     dependencies:
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -372,13 +372,13 @@ importers:
 
   packages/std-auth:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -394,13 +394,13 @@ importers:
 
   packages/std-browser:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -416,13 +416,13 @@ importers:
 
   packages/std-crypto:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -438,13 +438,13 @@ importers:
 
   packages/std-data:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -460,13 +460,13 @@ importers:
 
   packages/std-db:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -482,7 +482,7 @@ importers:
 
   packages/std-env:
     dependencies:
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
@@ -498,10 +498,10 @@ importers:
 
   packages/std-fmt:
     dependencies:
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -517,13 +517,13 @@ importers:
 
   packages/std-graphql:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -539,13 +539,13 @@ importers:
 
   packages/std-grpc:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -561,13 +561,13 @@ importers:
 
   packages/std-http:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -586,13 +586,13 @@ importers:
 
   packages/std-io:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -611,13 +611,13 @@ importers:
 
   packages/std-load:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -633,13 +633,13 @@ importers:
 
   packages/std-mail:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -655,13 +655,13 @@ importers:
 
   packages/std-mock:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -677,13 +677,13 @@ importers:
 
   packages/std-mqtt:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -699,13 +699,13 @@ importers:
 
   packages/std-notify:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -721,13 +721,13 @@ importers:
 
   packages/std-ws:
     dependencies:
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -743,73 +743,73 @@ importers:
 
   packages/stdlib:
     dependencies:
-      '@venn/artifacts':
+      '@venn-lang/artifacts':
         specifier: workspace:*
         version: link:../std-artifacts
-      '@venn/assert':
+      '@venn-lang/assert':
         specifier: workspace:*
         version: link:../std-assert
-      '@venn/auth':
+      '@venn-lang/auth':
         specifier: workspace:*
         version: link:../std-auth
-      '@venn/browser':
+      '@venn-lang/browser':
         specifier: workspace:*
         version: link:../std-browser
-      '@venn/contracts':
+      '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@venn/crypto':
+      '@venn-lang/crypto':
         specifier: workspace:*
         version: link:../std-crypto
-      '@venn/data':
+      '@venn-lang/data':
         specifier: workspace:*
         version: link:../std-data
-      '@venn/db':
+      '@venn-lang/db':
         specifier: workspace:*
         version: link:../std-db
-      '@venn/env':
+      '@venn-lang/env':
         specifier: workspace:*
         version: link:../std-env
-      '@venn/fmt':
+      '@venn-lang/fmt':
         specifier: workspace:*
         version: link:../std-fmt
-      '@venn/graphql':
+      '@venn-lang/graphql':
         specifier: workspace:*
         version: link:../std-graphql
-      '@venn/grpc':
+      '@venn-lang/grpc':
         specifier: workspace:*
         version: link:../std-grpc
-      '@venn/http':
+      '@venn-lang/http':
         specifier: workspace:*
         version: link:../std-http
-      '@venn/io':
+      '@venn-lang/io':
         specifier: workspace:*
         version: link:../std-io
-      '@venn/load':
+      '@venn-lang/load':
         specifier: workspace:*
         version: link:../std-load
-      '@venn/mail':
+      '@venn-lang/mail':
         specifier: workspace:*
         version: link:../std-mail
-      '@venn/mock':
+      '@venn-lang/mock':
         specifier: workspace:*
         version: link:../std-mock
-      '@venn/mqtt':
+      '@venn-lang/mqtt':
         specifier: workspace:*
         version: link:../std-mqtt
-      '@venn/notify':
+      '@venn-lang/notify':
         specifier: workspace:*
         version: link:../std-notify
-      '@venn/runtime':
+      '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@venn/sdk':
+      '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn/types':
+      '@venn-lang/types':
         specifier: workspace:*
         version: link:../types
-      '@venn/ws':
+      '@venn-lang/ws':
         specifier: workspace:*
         version: link:../std-ws
     devDependencies:
@@ -837,7 +837,7 @@ importers:
 
   packages/vscode:
     dependencies:
-      '@venn/lsp':
+      '@venn-lang/lsp':
         specifier: workspace:*
         version: link:../lsp
       vscode-languageclient:

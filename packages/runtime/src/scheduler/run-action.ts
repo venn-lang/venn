@@ -1,4 +1,4 @@
-import { ConsolePort, VennError } from "@venn/contracts";
+import { ConsolePort, VennError } from "@venn-lang/contracts";
 import {
   type ActionCall,
   type AstNode,
@@ -7,8 +7,8 @@ import {
   evaluate,
   invoke,
   splitCall,
-} from "@venn/core";
-import type { ActionDefinition, ActionInput } from "@venn/sdk";
+} from "@venn-lang/core";
+import type { ActionDefinition, ActionInput } from "@venn-lang/sdk";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";
 import { takes } from "./declared-arity.js";

@@ -1,7 +1,7 @@
-import { createTestHost } from "@venn/contracts";
-import { parse } from "@venn/core";
-import { arg, defineAction, definePlugin, restArg, z } from "@venn/sdk";
-import { t } from "@venn/types";
+import { createTestHost } from "@venn-lang/contracts";
+import { parse } from "@venn-lang/core";
+import { arg, defineAction, definePlugin, restArg, z } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
 import { createCleanupList } from "../scheduler/index.js";

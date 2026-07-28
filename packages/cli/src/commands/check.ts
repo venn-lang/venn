@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
-import { createNodeHost } from "@venn/contracts/node";
+import { createNodeHost } from "@venn-lang/contracts/node";
 import {
   checkTypes,
   type Document,
@@ -10,7 +10,7 @@ import {
   isValueImport,
   type Problem,
   parse,
-} from "@venn/core";
+} from "@venn-lang/core";
 import {
   buildRegistry,
   checkDocument,
@@ -18,9 +18,9 @@ import {
   collectFragments,
   createTypeCatalog,
   resolveImports,
-} from "@venn/runtime";
-import { allPlugins } from "@venn/stdlib";
-import type { TypeSpec } from "@venn/types";
+} from "@venn-lang/runtime";
+import { allPlugins } from "@venn-lang/stdlib";
+import type { TypeSpec } from "@venn-lang/types";
 import { loadManifest } from "../manifest/index.js";
 import { reportProblems } from "../reporters/index.js";
 import { everySourceUnder } from "../run/collect-files.js";

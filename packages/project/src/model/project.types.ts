@@ -1,4 +1,4 @@
-import type { BuildTarget, Manifest } from "@venn/contracts";
+import type { BuildTarget, Manifest } from "@venn-lang/contracts";
 
 /**
  * A package on disk: one `venn.toml`, and what it turned out to describe.

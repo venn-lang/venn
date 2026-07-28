@@ -1,4 +1,4 @@
-import { type Document, parse } from "@venn/core";
+import { type Document, parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import { checkImports } from "./check-imports.js";
 

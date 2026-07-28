@@ -1,4 +1,4 @@
-import type { Envelope } from "@venn/core";
+import type { Envelope } from "@venn-lang/core";
 
 /** The destination of the event stream. Everything the UI shows derives from it. */
 export interface EventSink {

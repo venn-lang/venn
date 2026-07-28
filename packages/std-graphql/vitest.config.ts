@@ -4,6 +4,6 @@ export default defineConfig({
   resolve: { conditions: ["development"] },
   test: {
     include: ["src/**/*.test.ts"],
-    server: { deps: { inline: [/^@venn\//] } },
+    server: { deps: { inline: [/^@venn-lang\//] } },
   },
 });

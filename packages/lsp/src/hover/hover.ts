@@ -14,7 +14,7 @@ import {
   isUseDecl,
   isValueImport,
   type ValueImport,
-} from "@venn/core";
+} from "@venn-lang/core";
 import {
   type CstNode,
   CstUtils,

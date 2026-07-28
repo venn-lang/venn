@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { type CompletionItem, CompletionItemKind } from "vscode-languageserver";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "@venn/http"
+const SOURCE = `use "venn/http"
 
 type Preco { id: number, price: number }
 type Corpo { status: string, data: list<Preco> }

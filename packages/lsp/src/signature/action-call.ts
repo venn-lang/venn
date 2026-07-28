@@ -4,7 +4,7 @@ import {
   isActionCall,
   isMatcherClause,
   type MatcherClause,
-} from "@venn/core";
+} from "@venn-lang/core";
 import { AstUtils, type LangiumDocument } from "langium";
 
 /** Anything written as a bare word followed by bare arguments. */

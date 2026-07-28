@@ -1,4 +1,4 @@
-import { isDocument, isUseDecl, isValueImport, type ValueImport } from "@venn/core";
+import { isDocument, isUseDecl, isValueImport, type ValueImport } from "@venn-lang/core";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
 import type { HighlightArgs } from "./highlight.types.js";
 

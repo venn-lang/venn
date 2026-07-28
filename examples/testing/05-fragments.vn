@@ -2,7 +2,7 @@
 # it handed back.
 # Run it with:  venn test examples/testing/05-fragments.vn
 
-use "@venn/assert"
+use "venn/assert"
 
 const PLANS = ["free", "pro"]
 

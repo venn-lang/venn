@@ -1,5 +1,5 @@
-import { type ActionDefinition, arg, defineAction, restArg } from "@venn/sdk";
-import { t } from "@venn/types";
+import { type ActionDefinition, arg, defineAction, restArg } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 import { ConsolePort } from "../port/index.js";
 
 /** How a printed value becomes text: strings as-is, everything else as JSON. */

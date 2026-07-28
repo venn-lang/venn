@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { download, evaluate, screenshot } from "./capture.js";
 import { frame } from "./frame.js";
 import { click, fill, hover, press, select, upload } from "./input.js";

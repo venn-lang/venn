@@ -1,5 +1,5 @@
-import { namespaceValue, nativeFn } from "@venn/core";
-import type { ActionContext, ActionDefinition } from "@venn/sdk";
+import { namespaceValue, nativeFn } from "@venn-lang/core";
+import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
 import type { Registry } from "../registry/index.js";
 import type { Scope } from "../scope/index.js";
 

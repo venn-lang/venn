@@ -1,5 +1,5 @@
-import { createNodeFs } from "@venn/contracts/node";
-import { ancestors, matchesMember, readManifest, relativeTo } from "@venn/project";
+import { createNodeFs } from "@venn-lang/contracts/node";
+import { ancestors, matchesMember, readManifest, relativeTo } from "@venn-lang/project";
 
 /**
  * Whether a workspace above this path will claim it as a member.

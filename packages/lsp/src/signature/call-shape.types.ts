@@ -1,4 +1,4 @@
-import type { ParamSpec } from "@venn/sdk";
+import type { ParamSpec } from "@venn-lang/sdk";
 
 /**
  * A call as the editor describes it back to whoever is typing it.

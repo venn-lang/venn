@@ -1,4 +1,4 @@
-import { type AstNode, EXPRESSION_OFFSET } from "@venn/core";
+import { type AstNode, EXPRESSION_OFFSET } from "@venn-lang/core";
 import { type CstNode, CstUtils, type LangiumDocument, type LeafCstNode } from "langium";
 import { slotAt } from "./interpolation-at.js";
 

@@ -1,4 +1,4 @@
-import { type AstNode, type Document, isDecoDecl, isFnDecl, isFragmentDecl } from "@venn/core";
+import { type AstNode, type Document, isDecoDecl, isFnDecl, isFragmentDecl } from "@venn-lang/core";
 
 /** A name a module publishes, and which kind of thing it is. */
 export interface ExportedName {

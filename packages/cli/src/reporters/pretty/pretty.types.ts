@@ -1,4 +1,4 @@
-import type { Diff } from "@venn/core";
+import type { Diff } from "@venn-lang/core";
 
 /** One thing that went wrong, kept for the summary printed after the tree. */
 export interface Failure {

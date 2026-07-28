@@ -1,12 +1,12 @@
-import { createTestHost } from "@venn/contracts";
-import { createFakeClient } from "@venn/http";
+import { createTestHost } from "@venn-lang/contracts";
+import { createFakeClient } from "@venn-lang/http";
 import { describe, expect, it, vi } from "vitest";
 import { runFile } from "../../run/run-file.js";
 import type { Reporter } from "../reporter.types.js";
 import { createPrettyReporter } from "./pretty-reporter.js";
 
 const RECONCILE = `module demo.diff
-use "@venn/assert"
+use "venn/assert"
 
 flow "Reconcile" {
   step "Check the row" {
@@ -17,7 +17,7 @@ flow "Reconcile" {
 }`;
 
 const MEMBERSHIP = `module demo.diff
-use "@venn/assert"
+use "venn/assert"
 
 flow "Membership" {
   step "Look for the pair" {

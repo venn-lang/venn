@@ -1,4 +1,4 @@
-import { VennError } from "@venn/contracts";
+import { VennError } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { dbClientConformance } from "./db-client.suite.js";
 import { createFakeDbClient } from "./fake-client.js";

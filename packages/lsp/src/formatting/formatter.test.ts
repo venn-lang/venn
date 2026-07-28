@@ -1,4 +1,4 @@
-import { parse } from "@venn/core";
+import { parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import { applyEdits, fixture } from "../testing/lsp-fixture.js";
 

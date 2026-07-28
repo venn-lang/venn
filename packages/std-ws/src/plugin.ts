@@ -1,4 +1,4 @@
-import { definePlugin, type PluginDefinition } from "@venn/sdk";
+import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { wsActions } from "./actions/index.js";
 import { wsMatchers } from "./matchers/index.js";
 import { messageSchema, wsTypeDefs } from "./types/index.js";
@@ -11,7 +11,7 @@ import { messageSchema, wsTypeDefs } from "./types/index.js";
  * time rather than failing mid-flow.
  */
 export const wsPlugin: PluginDefinition = definePlugin({
-  name: "@venn/ws",
+  name: "venn/ws",
   version: "0.0.0",
   namespace: "ws",
   requires: ["net"],

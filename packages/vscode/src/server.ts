@@ -1,4 +1,4 @@
-import { startVennServer } from "@venn/lsp";
+import { startVennServer } from "@venn-lang/lsp";
 import { createConnection, ProposedFeatures } from "vscode-languageserver/node";
 
 // VS Code spawns this with `--node-ipc`, so the transport comes from the flags.

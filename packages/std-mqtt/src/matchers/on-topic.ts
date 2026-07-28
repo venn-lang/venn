@@ -1,5 +1,5 @@
-import { arg, defineMatcher, type MatcherDefinition } from "@venn/sdk";
-import { t } from "@venn/types";
+import { arg, defineMatcher, type MatcherDefinition } from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 
 /**
  * `expect res topic "inventory/ack"`: passes if the message arrived on exactly

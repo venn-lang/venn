@@ -1,5 +1,5 @@
 {
-  "name": "@venn/env",
+  "name": "@venn-lang/env",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn/sdk": "workspace:*"
+    "@venn-lang/sdk": "workspace:*"
   },
   "devDependencies": {
     "tsdown": "catalog:",

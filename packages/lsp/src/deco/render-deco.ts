@@ -14,7 +14,7 @@ export function decoHover(info: DecoInfo): string {
 
 /**
  * A decorator the language documents but no source declares, such as `@load`
- * until `@venn/load` contributes it. Explaining it beats saying nothing.
+ * until `@venn-lang/load` contributes it. Explaining it beats saying nothing.
  */
 export function documentedHover(name: string): string | undefined {
   const doc = decoratorDoc(name);

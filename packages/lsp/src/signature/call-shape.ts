@@ -1,6 +1,6 @@
-import { PRELUDE_SPECS } from "@venn/core";
-import { type ActionDefinition, type ArgSpec, paramSpecs } from "@venn/sdk";
-import { type FnSpec, showSpec } from "@venn/types";
+import { PRELUDE_SPECS } from "@venn-lang/core";
+import { type ActionDefinition, type ArgSpec, paramSpecs } from "@venn-lang/sdk";
+import { type FnSpec, showSpec } from "@venn-lang/types";
 import type { SymbolCatalog } from "../catalog/index.js";
 import type { CallShape, ShownArg } from "./call-shape.types.js";
 

@@ -1,4 +1,4 @@
-import { type Annotation, type AstNode, isStringLit } from "@venn/core";
+import { type Annotation, type AstNode, isStringLit } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { DocBlock } from "./doc.types.js";
 import { parseDoc } from "./parse-doc.js";

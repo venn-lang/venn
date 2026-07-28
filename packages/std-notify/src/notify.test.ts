@@ -1,4 +1,4 @@
-import type { ActionContext, ActionDefinition } from "@venn/sdk";
+import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { notifyActions } from "./actions/index.js";
 import { createFakeNotifier } from "./clients/index.js";

@@ -1,7 +1,7 @@
-import { type TypeSpec, t } from "@venn/types";
+import { type TypeSpec, t } from "@venn-lang/types";
 
 /**
- * The named types `@venn/db` publishes to scripts, keyed by their bare name.
+ * The named types `@venn-lang/db` publishes to scripts, keyed by their bare name.
  *
  * Hand-mirrored from `port/db-client.types.ts` (`Row` and `TableMap`, which
  * `SeedData` and `DbSnapshot` both alias): the two must agree, so change them together.

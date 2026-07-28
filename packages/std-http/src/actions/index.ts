@@ -1,4 +1,4 @@
-import type { ActionDefinition } from "@venn/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { onAction } from "../server/on-action.js";
 import { serveAction } from "../server/serve-action.js";
 import { httpAction } from "./http-action.js";

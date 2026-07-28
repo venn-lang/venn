@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/contracts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The ports the Venn core runs on, their implementations, and the host that carries them.",
   "keywords": [
     "venn",

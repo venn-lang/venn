@@ -1,0 +1,37 @@
+packages:
+  - "packages/*"
+  - "benchmarks"
+
+onlyBuiltDependencies:
+  - esbuild
+
+# Single source of truth for dependency versions across every package (pnpm catalog).
+catalog:
+  typescript: ^7.0.2
+  "@types/node": ^24
+  langium: ^4.3.1
+  langium-cli: ^4.3.0
+  zod: ^4.4.3
+  vitest: ^4.1.10
+  "@vitest/coverage-v8": ^4.1.10
+  "@fast-check/vitest": ^0.4.1
+  "@biomejs/biome": ^2.5.5
+  tsdown: ^0.22.14
+  "@changesets/cli": ^2.31.1
+  citty: ^0.2.2
+  vscode-languageserver: ^10.0.1
+  vscode-languageserver-textdocument: ^1.0.13
+  vscode-languageclient: ^9.0.1
+  # `@types/vscode` is pinned literally in packages/vscode: `vsce` parses that
+  # field as semver to check it against `engines.vscode`, and rejects `catalog:`.
+  "@vscode/vsce": ^3.2.2
+
+minimumReleaseAgeExclude:
+  - tsdown@0.22.14
+  - verkit@0.3.0
+
+# Both are only needed to *publish* to the marketplace (signing, credential
+# storage). We only ever run `vsce package`, so their native builds stay off.
+allowBuilds:
+  '@vscode/vsce-sign': false
+  keytar: false

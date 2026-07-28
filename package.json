@@ -1,0 +1,32 @@
+{
+  "name": "venn-language",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "pnpm -r --sort run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "pnpm --filter @venn/benchmarks run bench",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "changeset": "changeset",
+    "venn": "node packages/cli/dist/bin/venn.mjs",
+    "venn:build": "pnpm -r --sort --filter \"@venn/cli...\" run build",
+    "vscode:build": "pnpm -r --sort --filter \"venn...\" run build",
+    "vscode:install": "pnpm run vscode:build && node scripts/install-vscode-extension.mjs",
+    "vscode:uninstall": "node scripts/install-vscode-extension.mjs --remove"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@changesets/cli": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

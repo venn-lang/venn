@@ -5,9 +5,12 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
-    # One pull request per ecosystem beats twenty per week. Security updates
-    # stay separate so they are never queued behind a routine bump.
+    open-pull-requests-limit: 3
+    # One pull request per ecosystem beats twenty per week. Majors are left out
+    # of the groups on purpose: any of them can break the build, and grouping
+    # one would hold every harmless bump behind it until it is sorted out.
+    # Security updates stay separate so they are never queued behind a routine
+    # bump.
     groups:
       dev-dependencies:
         dependency-type: development
@@ -15,6 +18,12 @@ updates:
       production:
         dependency-type: production
         update-types: [minor, patch]
+    ignore:
+      # The types have to describe the runtime the project targets, which is
+      # Node 24 LTS in .nvmrc, in engines and in the CI matrix. A newer major
+      # would type against APIs that are not there to call.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
@@ -23,5 +32,12 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 3
+    # Every action in one pull request, majors included. A pinned action moves
+    # by whole majors as its routine release, and there is nothing to review
+    # separately in five of them.
+    groups:
+      actions:
+        patterns: ["*"]
     commit-message:
       prefix: "chore(ci)"

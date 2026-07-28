@@ -77,7 +77,33 @@ function render(args) {
     return `${nothing}\n\n${footer({ version, total })}`;
   }
   const sections = entries.map((entry) => collapsed(entry)).join("\n");
-  return `${summaryLine(entries)}\n\n${sections}\n${footer({ version, total })}`;
+  const parts = [summaryLine(entries), "", sections, thanks(entries), footer({ version, total })];
+  return parts.filter((part) => part !== "").join("\n");
+}
+
+/**
+ * Who this release came from, named once at the end.
+ *
+ * The changelog already credits each entry inline, which is where a reader
+ * looks to see who did a particular thing. This is the other question: who
+ * worked on the release at all. Nobody reconstructs that from twenty scattered
+ * mentions, and someone who contributed for the first time should not have to.
+ */
+function thanks(entries) {
+  const handles = contributors(entries);
+  if (handles.length === 0) return "";
+  const credited = handles.map((handle) => `@${handle}`).join(", ");
+  const who = handles.length === 1 ? "Thanks to" : "Thanks to everyone who contributed:";
+  return `**${who} ${credited}.**\n`;
+}
+
+/** Every GitHub handle the changelog thanks, in the order they first appear. */
+function contributors(entries) {
+  const seen = new Set();
+  for (const entry of entries) {
+    for (const [, handle] of entry.body.matchAll(/Thanks \[@([^\]]+)\]/g)) seen.add(handle);
+  }
+  return [...seen];
 }
 
 function summaryLine(entries) {

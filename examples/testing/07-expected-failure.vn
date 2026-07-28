@@ -1,0 +1,50 @@
+# When the failure is the thing under test: `try`, `catch`, `finally`, and what
+# an error looks like once it is a value.
+# Run it with:  venn test examples/testing/07-expected-failure.vn
+
+use "@venn/assert"
+
+## Pure, so it belongs to `fn` rather than `fragment`: no steps, no I/O.
+fn withdraw(balance, amount) => amount > balance ? "insufficient" : "ok"
+
+flow "a refusal is a result, not an accident" {
+
+  step "fail raises an error the test catches" {
+    try {
+      fail "card declined"
+    } catch problem {
+      # The caught value carries the message and the stable code.
+      expect problem.message equals "card declined"
+      expect problem.code equals "VN6002"
+    }
+  }
+
+  step "finally runs on the happy path too" {
+    try {
+      expect withdraw(100, 250) equals "insufficient"
+    } catch problem {
+      fail "nothing in the body throws, so this is unreachable"
+    } finally {
+      log "finally: runs either way"
+    }
+  }
+
+  step "defer still runs when the block blows up" {
+    try {
+      defer { log "defer: the connection went back to the pool" }
+      fail "the query timed out"
+    } catch problem {
+      expect problem.message contains "timed out"
+    }
+  }
+
+  step "a caught failure does not count against the run" {
+    # This step reports as passed: the failure was expected and handled. Only an
+    # expectation that fails, or an error nothing caught, marks the flow red.
+    try {
+      fail "expected"
+    } catch ignored {
+      expect true
+    }
+  }
+}

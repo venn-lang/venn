@@ -1,0 +1,34 @@
+# What a step buys you: a name in the report, its own status and its own timing.
+# Run it with:  venn test examples/testing/02-steps.vn
+# See the shape of the run without running it:  venn list examples/testing/02-steps.vn
+
+flow "an order goes through" {
+  # A binding written at flow level is in scope in every step below it.
+  const order = { id: "o-1042", lines: [1250, 400, 349], status: "pending" }
+
+  step "the order has three lines" {
+    expect order.lines.len == 3
+  }
+
+  step "the total is charged in cents" {
+    # A binding written inside a step belongs to that step alone.
+    const total = order.lines.sum
+    expect total == 1999
+    expect total > order.lines.max
+  }
+
+  step "the next step starts clean" {
+    # `total` above never leaves the step that bound it, so here it is nothing.
+    expect typeOf(total) == "null"
+    expect order.status == "pending"
+  }
+}
+
+# Flows are independent. Nothing the one above bound is visible here.
+flow "an empty order is still an order" {
+  step "it has no lines and no total" {
+    const empty = { id: "o-1043", lines: [] }
+    expect empty.lines.len == 0
+    expect empty.lines.sum == 0
+  }
+}

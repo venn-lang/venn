@@ -1,0 +1,49 @@
+# `matrix` runs every flow in the file once per combination of its dimensions.
+# Two plans and two currencies is four passes, and the variant arrives as
+# `matrix`, a plain map you read like any other.
+# Run it with:  venn test examples/testing/10-matrix.vn
+
+use "@venn/assert"
+
+matrix {
+  plan: ["free", "pro"]
+  currency: ["EUR", "USD"]
+}
+
+const QUOTA = { free: 100, pro: 10000 }
+const SYMBOL = { EUR: "E", USD: "$" }
+
+# Each variant is a full pass with a root scope of its own, so nothing one pass
+# binds is visible to the next. Hooks stay outside that: setup and teardown run
+# once for the whole file, not once per variant.
+setup { log "one setup for all four passes" }
+
+flow "the quota is shown in the right currency" {
+  const quota = QUOTA[matrix.plan]
+
+  step "the variant is in scope everywhere" {
+    log "plan=${matrix.plan} currency=${matrix.currency}"
+    expect matrix.plan oneOf ["free", "pro"]
+    expect matrix.currency oneOf ["EUR", "USD"]
+  }
+
+  step "every plan has a quota" {
+    expect quota > 0
+  }
+
+  step "the pro plan is worth paying for" {
+    # A dimension can steer the assertion, not just decorate the log line.
+    if matrix.plan == "pro" {
+      expect quota >= 10000
+    } else {
+      expect quota < 1000
+    }
+  }
+
+  step "the label reads correctly in either currency" {
+    const label = "${SYMBOL[matrix.currency]}${quota}"
+    expect label.len >= 4
+    expect label contains SYMBOL[matrix.currency]
+    expect label.endsWith("${quota}")
+  }
+}

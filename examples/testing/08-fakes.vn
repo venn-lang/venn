@@ -1,0 +1,49 @@
+# Standing in for the world with `@venn/mock`: canned replies, feature flags and
+# a clock you control. Everything here is in memory, so nothing opens a socket.
+# Run it with:  venn test examples/testing/08-fakes.vn
+
+use "@venn/assert"
+use "@venn/mock"
+
+# A fake is state, and state between tests is how a suite starts lying. Clear it
+# on both sides of the run.
+setup    { mock.reset; mock.start "payments" }
+teardown { mock.stop; mock.reset }
+
+const PRICES = { "pen-01": 250, "ink-02": 900 }
+
+flow "a checkout runs against fakes" {
+
+  step "an interceptor is a value, so it can be inspected" {
+    let charge = mock.intercept "POST" "/charge" {
+      respond: { status: 201, body: { id: "ch_1", captured: true } },
+    }
+    expect charge.method equals "POST"
+    expect charge.path equals "/charge"
+    expect charge.respond.status == 201
+    expect charge.respond.body.id equals "ch_1"
+  }
+
+  step "a flag hands back the value it was set to" {
+    let variant = mock.flag "new-checkout" { value: "b" }
+    expect variant equals "b"
+
+    # No value means on.
+    let enabled = mock.flag "instant-refunds"
+    expect enabled == true
+  }
+
+  step "time moves when you say so" {
+    let openedAt = mock.clock.freeze "2026-01-01T00:00:00Z"
+    let expiresAt = mock.clock.advance "1h"
+    expect expiresAt - openedAt == 3600000
+  }
+
+  step "the fake is only worth as much as the assertion on it" {
+    # A canned reply proves nothing on its own. What is worth checking is what
+    # the code under test does with it: here, the total the prices add up to.
+    let basket = ["pen-01", "ink-02", "pen-01"]
+    let total = basket.map(sku => PRICES[sku]).sum
+    expect total == 1400
+  }
+}

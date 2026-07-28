@@ -1,0 +1,46 @@
+# What runs around a flow rather than in it: the four suite hooks, `defer` for
+# local cleanup, and `on` for reacting to how a flow ended.
+# Run it with:  venn test examples/testing/06-lifecycle.vn
+# To see the whole order, hooks included:
+#   venn test examples/testing/06-lifecycle.vn --reporter=ndjson
+
+# Once for the file, on either side of everything.
+setup    { log "1 setup" }
+teardown { log "8 teardown" }
+
+# Once per flow.
+beforeEach { log "2 beforeEach" }
+afterEach  { log "7 afterEach" }
+
+# A hook runs in a scope of its own, so this binding never reaches a flow.
+# Hand state over through a file level `const`, a fragment parameter or a fake,
+# never through a hook.
+setup { const hookLocal = "invisible from anywhere else" }
+
+flow "cleanup happens whatever the outcome" {
+  # `defer` belongs to the block it is written in and runs on the way out of it,
+  # in reverse order, even when that way out is a failure.
+  defer { log "6 defer, at the end of the flow" }
+
+  step "a step gives back what it took" {
+    defer { log "5 defer, opened first so closed last" }
+    defer { log "4 defer, opened last so closed first" }
+    log "3 the body of the step"
+    expect 1 + 1 == 2
+  }
+
+  step "what setup bound stayed in setup" {
+    expect typeOf(hookLocal) == "null"
+  }
+
+  # `on` reacts to how the run went, not to how the process ended.
+  on success { log "on success: this flow ended green" }
+  on failure { log "on failure: not reached here" }
+}
+
+# The numbers run in that order, top to bottom: setup, beforeEach, the body of
+# the step, the step's defers reversed, the flow's defer, the `on` handler,
+# afterEach, teardown. Add a second flow and 2 through 7 happen again for it.
+#
+# The pretty reporter shows only the logs that belong to a step, since that is
+# where they are useful. `--reporter=ndjson` shows every one, in order.

@@ -1,0 +1,59 @@
+# `group` organises steps under a heading; annotations steer how they run.
+# Run it with:  venn test examples/testing/04-groups.vn
+# Only the smoke ones:  venn test examples/testing/04-groups.vn --tags=smoke
+
+use "@venn/assert"
+
+const catalogue = [
+  { sku: "pen-01", price: 250, stock: 12 },
+  { sku: "ink-02", price: 900, stock: 0 },
+  { sku: "pad-03", price: 400, stock: 7 },
+]
+
+@tags(smoke, catalogue)
+@timeout(5s)
+flow "the catalogue is well formed" {
+
+  # A group is a heading, not a scope: `catalogue` above is still in reach, and
+  # `skus` below outlives the group that binds it.
+  group "shape" {
+    const skus = catalogue.map(row => row.sku)
+
+    step "every row has a sku" {
+      expect catalogue.every(row => row.sku.len > 0)
+    }
+
+    step "prices are whole cents" {
+      expect catalogue.every(row => row.price % 1 == 0)
+    }
+  }
+
+  group "stock" {
+    # @retry runs the step again when it fails, waiting between attempts.
+    @retry(2, { backoff: 10ms })
+    step "something is in stock" {
+      expect catalogue.some(row => row.stock > 0)
+    }
+
+    step "the out of stock rows are named" {
+      const missing = catalogue.filter(row => row.stock == 0).map(row => row.sku)
+      expect missing equals ["ink-02"]
+      # Bound one group up, and still here.
+      expect skus contains "ink-02"
+    }
+  }
+
+  # @skip keeps a step in the file and out of the run.
+  @skip
+  step "pricing rules, once they exist" {
+    fail "not written yet"
+  }
+}
+
+# A whole flow parks the same way. Swap @skip for @only while you work on one,
+# and every other flow in the file stands down.
+@skip
+@tags(nightly)
+flow "the nightly reconciliation" {
+  step "reconcile" { fail "not written yet" }
+}

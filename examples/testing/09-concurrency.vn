@@ -1,0 +1,66 @@
+# Doing several things at once: `parallel`, `race`, and the `concurrency` option
+# on `forEach`. Three words, three different meanings, on purpose.
+# Run it with:  venn test examples/testing/09-concurrency.vn
+
+use "@venn/assert"
+
+const REGIONS = ["eu-west", "us-east", "ap-south", "sa-east"]
+
+flow "independent checks run side by side" {
+  # Every branch starts at once, and the block does not end until all of them
+  # have finished or been cancelled. It costs about as much as its slowest
+  # branch rather than the sum of the three.
+  parallel {
+    step "billing answers" { wait 30ms; expect 1 == 1 }
+    step "search answers"  { wait 30ms; expect 2 == 2 }
+    step "mailer answers"  { wait 30ms; expect 3 == 3 }
+  }
+}
+
+flow "a limit on how many run at once" {
+  # `concurrency` caps the branches in flight. The default is all of them.
+  # `onError: "collect"` lets the siblings finish and reports every failure;
+  # the default, "cancel", stops them at their next statement boundary.
+  parallel { concurrency: 2, onError: "collect" } {
+    step "shard a" { wait 20ms; expect REGIONS.len == 4 }
+    step "shard b" { wait 20ms; expect REGIONS.contains("eu-west") }
+    step "shard c" { wait 20ms; expect REGIONS.contains("us-east") }
+    step "shard d" { wait 20ms; expect REGIONS.distinct.len == 4 }
+  }
+}
+
+flow "the first answer wins and the rest are dropped" {
+  # `race` keeps the branch that settles first and cancels the others. The loser
+  # stops at its next statement boundary, so the `fail` below is never reached
+  # and this flow still reports green.
+  race {
+    step "served from the cache" {
+      wait 5ms
+      expect true
+    }
+    step "served from the origin" {
+      wait 400ms
+      fail "the slow branch should have been cancelled"
+    }
+  }
+}
+
+flow "one item at a time, then four at a time" {
+  # Sequential is the default, and it is what you want when the iterations share
+  # anything at all.
+  forEach region in REGIONS {
+    step "the region name is well formed" {
+      log "checking ${region}"
+      expect region contains "-"
+    }
+  }
+
+  # The options map sits between the header and the body. Up to four iterations
+  # are in flight, so the whole loop costs about as much as one of them.
+  forEach region in REGIONS { concurrency: 4 } {
+    step "the region answers" {
+      wait 30ms
+      expect region.len >= 6
+    }
+  }
+}

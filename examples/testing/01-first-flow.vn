@@ -1,0 +1,11 @@
+# The smallest test there is: one flow, one step, one expectation.
+# Run it with:  venn test examples/testing/01-first-flow.vn
+
+# `flow` is the only executable unit. `step` names a piece of work inside it.
+# `expect` is part of the kernel, so a boolean expression needs no import.
+flow "a basket adds up" {
+  step "the total is the sum of the lines" {
+    const lines = [1250, 400, 349]
+    expect lines.sum == 1999
+  }
+}

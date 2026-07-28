@@ -1,0 +1,52 @@
+# A `fragment` is a reusable piece of a test. `run` invokes it, `as` names what
+# it handed back.
+# Run it with:  venn test examples/testing/05-fragments.vn
+
+use "@venn/assert"
+
+const PLANS = ["free", "pro"]
+
+## Signs a user in and hands back the session.
+##
+## A fragment sees its parameters and nothing else, not even the file's own
+## constants, so everything it needs is passed in. That is the point: the same
+## fragment reads the same way from every flow that calls it.
+fragment signIn(user, plans) {
+  step "sign in" {
+    expect user.email contains "@"
+    expect user.plan oneOf plans
+  }
+  return { token: "tok-${user.id}", plan: user.plan }
+}
+
+## Checks a basket against the quota the session's plan allows.
+fragment withinQuota(session, basket, quota) {
+  step "the basket fits the plan" {
+    expect basket.len <= quota[session.plan]
+  }
+}
+
+const QUOTA = { free: 3, pro: 500 }
+
+flow "a pro user signs in and shops" {
+  # The binding lands in the flow, so every step after it can read the session.
+  run signIn({ id: 7, email: "ada@example.com", plan: "pro" }, PLANS) as session
+
+  step "the session carries the plan" {
+    expect session.token equals "tok-7"
+    expect session.plan equals "pro"
+  }
+
+  run withinQuota(session, ["pen", "ink"], QUOTA)
+}
+
+flow "a free user signs in the same way" {
+  run signIn({ id: 9, email: "linus@example.com", plan: "free" }, PLANS) as session
+
+  step "same fragment, different data" {
+    expect session.token equals "tok-9"
+    expect session.plan equals "free"
+  }
+
+  run withinQuota(session, ["pen", "ink"], QUOTA)
+}

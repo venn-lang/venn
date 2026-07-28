@@ -1,0 +1,21 @@
+# Text helpers the other files in this section import.
+# Nothing here runs on its own: it is a library, so `venn check` is all it needs.
+module examples.language.shared.text
+
+# Private to this file. Nothing outside can name either of these, because
+# neither is marked `pub`.
+const JOINER = "-"
+
+fn firstLetter(word: string) -> string => word.slice(0, 1).upper
+
+## Turns a title into a URL-safe slug.
+##
+## @param title  The human-readable title.
+## @returns The same words, lowercase, joined by hyphens.
+pub fn slug(title: string) -> string => title.trim.lower.words.join(JOINER)
+
+## The initials of a full name, uppercase.
+pub fn initials(name: string) -> string => name.words.map(firstLetter).join("")
+
+## A label padded with dots so a column of them lines up.
+pub fn dotted(label: string, width: number) -> string => label.padEnd(width, ".")

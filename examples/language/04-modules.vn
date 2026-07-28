@@ -1,0 +1,34 @@
+# One file, one module: what it can do, what it knows, and what it lets out.
+# Run: venn run examples/language/04-modules.vn
+
+## A file may name itself once. The name is how the module reads in a trace and
+## in the editor's outline; nothing resolves through it.
+module examples.language.modules
+
+# Two words, and they never overlap.
+#
+#   use     brings capabilities: verbs, matchers, resources. Packages only.
+#   import  brings values: fn, fragment, deco, and whole namespaces.
+use "@venn/fmt"
+
+import { slug, initials } from "./shared/text.vn"
+import * as text from "./shared/text.vn"
+
+# Nothing leaves a file unless it says so. `shared/text.vn` marks three helpers
+# `pub` and keeps `JOINER` and `firstLetter` to itself. Ask for one of those and
+# the compiler answers before anything runs:
+#   VN2009 · "./shared/text.vn" does not publish firstLetter.
+# with a note saying which of the two mistakes it was: declared but not `pub`,
+# or not declared at all.
+
+const people = ["Ada Lovelace", "Grace Hopper", "Alan Turing"]
+
+## Named imports and a namespace import are the same file, named two ways.
+## Use whichever reads better where it is written.
+fn card(name: string) -> map => {
+  who: initials(name),
+  link: "/people/${slug(name)}",
+  label: text.dotted(name, 16)
+}
+
+print fmt.table(people.map(one => card(one)))

@@ -1,0 +1,33 @@
+# An import through a path alias, and a decorator that crossed a file to get here.
+# Run: venn run examples/language/05-shared-alias.vn
+
+module examples.language.aliasimport
+
+# `examples/venn.toml` declares the alias once, for the whole workspace:
+#
+#   [paths]
+#   "#shared" = "./language/shared"
+#
+# so `#shared/text.vn` names examples/language/shared/text.vn from any file in
+# it. Move this file a folder deeper and the line below does not change, which
+# is the point: `../../shared/text.vn` would have to.
+import { dotted } from "#shared/text.vn"
+import { rounded, within } from "#shared/decorators.vn"
+
+## A `pub deco` travels the way a `pub fn` does, and is expanded here, against
+## this file's own declaration. What crossed the file boundary is the rewriting
+## itself, not a value it produced.
+@rounded(2)
+fn mean(xs) => xs.sum / xs.len
+
+## Two decorators from the same import, stacked. `within` is written first, so
+## it is outermost, and it clamps what `rounded` handed up.
+@within(0, 100)
+@rounded(1)
+fn score(hits, total) => hits / total * 1000
+
+const samples = [3, 4, 4, 5, 9]
+
+print "${dotted('mean', 14)} ${mean(samples)}"
+print "${dotted('score', 14)} ${score(9, 10)}"
+print "${dotted('raw score', 14)} ${9 / 10 * 1000}"

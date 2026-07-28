@@ -1,0 +1,43 @@
+# What a decorator may be attached to, and what it gets to hold when it is.
+# Run: venn run examples/language/03-decorator-targets.vn
+
+# The type on the first parameter IS the target. There is no separate list of
+# what a decorator applies to, and no node name out of the compiler's own tree.
+# The kinds are: Fn, Flow, Step, Binding, Type, Node.
+#
+# Move `@inject("who")` below onto a flow and the compiler says so before
+# anything runs: VN2014 · @inject decorates a function, and this is a flow.
+
+## `target: Fn`, so this decorates functions and only functions.
+##
+## The handle is the real declaration, not a copy: a parameter added here is in
+## scope for a body that was written without it.
+deco inject(target: Fn, name: string) {
+  target.addParam(name)
+}
+
+@inject("who")
+fn greet() => "hello ${who}"
+
+## A handle also answers questions. `name` and `params` read the declaration
+## itself, so they see whatever the other decorators on it did too.
+deco labelled(target: Fn) {
+  target.wrap(fn (call, args) => "${target.name}/${target.params.len} = ${call(args)}")
+}
+
+@labelled
+fn area(w, h) => w * h
+
+## `target: Binding` decorates a `let` or a `const`. A Binding has `value` and
+## `setValue`; it has no `wrap`, because there is no call to intercept, and
+## asking for one is refused by name rather than read as nothing.
+deco trimmed(target: Binding) {
+  target.setValue(target.value.trim.lower)
+}
+
+@trimmed
+const region = "   EU-West   "
+
+print greet("world")
+print area(3, 4)
+print "[${region}]"

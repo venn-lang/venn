@@ -1,0 +1,15 @@
+# Decorators written in Venn, published for other files to apply.
+# A `pub deco` crosses a file the same way a `pub fn` does.
+module examples.language.shared.decorators
+
+## Rounds whatever the decorated function answers with.
+##
+## @param places  How many decimals to keep.
+pub deco rounded(target: Fn, places: number) {
+  target.wrap(fn (call, args) => call(args).round(places))
+}
+
+## Keeps the answer inside a range, however the body was written.
+pub deco within(target: Fn, low: number, high: number) {
+  target.wrap(fn (call, args) => call(args).clamp(low, high))
+}

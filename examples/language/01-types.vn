@@ -1,0 +1,49 @@
+# Naming a shape, so the checker and the editor both know what a value is.
+# Run: venn run examples/language/01-types.vn
+
+## A closed set of values. Nothing outside these three is a Plan.
+type Plan = "free" | "pro" | "team"
+
+## A record. `?` marks a field that may be absent.
+type Seat {
+  email: string
+  plan: Plan
+  nickname?: string
+}
+
+## `list<T>` and `map<V>` are the only two generics the kernel has.
+type Team {
+  name: string
+  seats: list<Seat>
+  limits: map<number>
+}
+
+## What one seat costs per month, in whole euros.
+fn priceOf(plan: Plan) -> number => plan == "team" ? 25 : (plan == "pro" ? 12 : 0)
+
+## What the whole team costs. The annotation on `team` is what makes
+## `team.seatz` a compile error instead of a surprise at three in the morning.
+fn billFor(team: Team) -> number => team.seats.sumBy(s => priceOf(s.plan))
+
+# An annotated binding is checked against the shape, field by field.
+const acme: Team = {
+  name: "Acme",
+  seats: [
+    { email: "ada@acme.io", plan: "team" },
+    { email: "lin@acme.io", plan: "pro" },
+    { email: "sam@acme.io", plan: "free" }
+  ],
+  limits: { seats: 10, projects: 3 }
+}
+
+const spare: Seat = { email: "kim@acme.io", plan: "free" }
+
+print "bill: ${billFor(acme)} EUR"
+print "seats allowed: ${acme.limits.seats}"
+print acme.seats.map(s => s.email).join(", ")
+
+# An absent optional field reads as null, so give it somewhere to land.
+print(spare.nickname ?? "no nickname")
+
+# None of this is compulsory. Drop every annotation and the program still runs;
+# what you lose is the checker's opinion, and the editor's.

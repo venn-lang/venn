@@ -1,0 +1,47 @@
+# Decorators written in Venn: a declaration that rewrites another declaration.
+# Run: venn run examples/language/02-decorators.vn
+
+## Doubles whatever the decorated function answers with.
+##
+## The body runs at expansion time, before the program exists, so it can rewrite
+## and nothing else. Calling `http.get` in here is refused, and rightly: there is
+## no run yet for it to belong to.
+deco doubled(target: Fn) {
+  target.wrap(fn (call, args) => call(args) * 2)
+}
+
+@doubled
+fn five() => 5
+
+## The parameters after the target are the decorator's own arguments.
+## `@times(3)` binds `factor`.
+deco times(target: Fn, factor: number) {
+  target.wrap(fn (call, args) => call(args) * factor)
+}
+
+deco plusOne(target: Fn) {
+  target.wrap(fn (call, args) => call(args) + 1)
+}
+
+# Stacking. The one written first ends up outermost, so `plusOne` wraps the body
+# and `times(3)` wraps that: (5 + 1) * 3.
+@times(3)
+@plusOne
+fn eighteen() => 5
+
+## A wrap holds the call rather than the result, so it may decide not to call
+## through at all. `call` is the body; `args` is what the caller passed.
+deco stubbed(target: Fn, answer) {
+  target.wrap(fn (call, args) => answer)
+}
+
+@stubbed("a stub")
+fn expensive() => "the slow real answer"
+
+print five()
+print eighteen()
+print expensive()
+
+# Undecorated, for comparison: the same body, none of the rewriting.
+fn plainFive() => 5
+print plainFive()

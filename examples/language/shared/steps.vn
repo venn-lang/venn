@@ -1,0 +1,25 @@
+# Fragments published for other files to `run`.
+# A fragment sees its parameters and nothing else, so everything it needs is
+# passed in, and everything it worked out is returned.
+module examples.language.shared.steps
+
+## Settles a cart and answers with the receipt.
+##
+## @param cart   The cart to settle, `{ items, total }`.
+## @param payer  Who is paying.
+## @returns A receipt, `{ payer, paid, lines }`.
+pub fragment checkout(cart, payer) {
+  step "settle the cart" {
+    expect cart.total > 0
+    expect cart.items.len > 0
+  }
+  return { payer: payer, paid: cart.total, lines: cart.items.len }
+}
+
+## Asserts a receipt is the one that cart deserved.
+pub fragment receiptMatches(receipt, cart) {
+  step "the receipt matches the cart" {
+    expect receipt.paid == cart.total
+    expect receipt.lines == cart.items.len
+  }
+}

@@ -1,0 +1,67 @@
+# `fragment`: steps written once and reused, in this file and across files.
+# Run: venn test examples/language/06-fragments.vn
+
+module examples.language.fragments
+
+# `use` for the `contains` matcher, `import` for the fragments. Capabilities and
+# values arrive by different words and never get confused for one another.
+use "@venn/assert"
+
+import { checkout, receiptMatches } from "#shared/steps.vn"
+
+# fn and fragment divide the work cleanly:
+#
+#   fn        holds expressions, is pure, is called inside an expression
+#   fragment  holds steps, does things, is called only by `run`
+#
+# A fragment's steps land in the report where it was run, one by one, as if they
+# had been written there. Run this file and you will see "the price is sane"
+# twice, once per call.
+
+## Adds one line to a cart and answers with the new cart.
+##
+## `return` sits at fragment level rather than inside the step: a binding made
+## inside a step is local to that step.
+fragment addItem(cart, name, price) {
+  step "the price is sane" {
+    expect price > 0
+  }
+  return { items: cart.items.push(name), total: cart.total + price }
+}
+
+flow "A cart is settled" {
+  # A binding at flow level is in scope for every step below it.
+  let empty = { items: [], total: 0 }
+
+  run addItem(empty, "socks", 9) as one
+  run addItem(one, "hat", 21) as cart
+
+  step "two lines, thirty euros" {
+    expect cart.items.len == 2
+    expect cart.total == 30
+    expect cart.items contains "hat"
+  }
+
+  # The same word for a fragment written in another file. `run` does not care
+  # which, and `as` binds whatever came back either way.
+  run checkout(cart, "ada") as receipt
+  run receiptMatches(receipt, cart)
+
+  step "the receipt names the payer" {
+    expect receipt.payer == "ada"
+  }
+}
+
+flow "A fragment sees only what it was handed" {
+  # `elsewhere` is in scope for the steps of this flow, and not inside
+  # `addItem`: a fragment's scope is its parameters. Write it into the call or
+  # the fragment will not find it.
+  let elsewhere = "a flow-level binding"
+
+  run addItem({ items: [], total: 0 }, "mug", 7) as cart
+
+  step "the cart came back through `as`" {
+    expect cart.total == 7
+    expect elsewhere contains "flow-level"
+  }
+}

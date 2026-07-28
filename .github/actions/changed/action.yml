@@ -1,0 +1,59 @@
+name: Changed
+description: Whether anything worth building and testing changed.
+
+outputs:
+  code:
+    description: '"true" when something other than prose changed.'
+    value: ${{ steps.decide.outputs.code }}
+
+runs:
+  using: composite
+  steps:
+    # By exclusion: a path counts as code unless it is named here, so anything
+    # new is built and tested until someone decides otherwise. The other way
+    # round, a path nobody thought of would go out untested.
+    - id: decide
+      shell: bash
+      run: |
+        case "$GITHUB_EVENT_NAME" in
+          pull_request)
+            files=$(gh pr view "$NUMBER" --repo "$REPO" --json files --jq '.files[].path')
+            ;;
+          push)
+            # A new branch, or a force push, reports a parent of all zeroes and
+            # nothing to compare against. Build it.
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              echo "No previous commit to compare against, so run everything."
+              echo "code=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            files=$(gh api "repos/$REPO/compare/$BEFORE...$AFTER" --jq '.files[].filename')
+            ;;
+          *)
+            echo "Event $GITHUB_EVENT_NAME does not describe a change, so run everything."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+            ;;
+        esac
+
+        # An empty list means the comparison told us nothing, not that nothing
+        # changed. Build it rather than trust a silence.
+        if [ -z "$files" ]; then
+          echo "Nothing came back, so run everything."
+          echo "code=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "$files"
+        if echo "$files" | grep -qvE '^(docs/|\.github/ISSUE_TEMPLATE/|LICENSE$|.*\.md$)'; then
+          echo "code=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "Only prose changed."
+          echo "code=false" >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        NUMBER: ${{ github.event.pull_request.number }}
+        BEFORE: ${{ github.event.before }}
+        AFTER: ${{ github.event.after }}

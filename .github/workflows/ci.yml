@@ -15,9 +15,7 @@ permissions:
 
 jobs:
   # Building and testing twice over to check a typo in a README costs five
-  # minutes of runner and proves nothing. This decides in about ten seconds,
-  # and it decides by exclusion: a path is skippable only if it is named here,
-  # so anything new is treated as code until someone says otherwise.
+  # minutes of runner and proves nothing. This decides in about ten seconds.
   #
   # Deciding here rather than with `paths-ignore` is the point. A workflow that
   # does not run reports no check at all, and a required check that never
@@ -32,26 +30,11 @@ jobs:
     outputs:
       code: ${{ steps.decide.outputs.code }}
     steps:
-      - name: Decide
-        id: decide
-        run: |
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "Not a pull request, so run everything."
-            echo "code=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          files=$(gh pr view "$NUMBER" --repo "$REPO" --json files --jq '.files[].path')
-          echo "$files"
-          if echo "$files" | grep -qvE '^(docs/|\.github/ISSUE_TEMPLATE/|LICENSE$|.*\.md$)'; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Only prose changed."
-            echo "code=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUMBER: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/actions/changed
+      - id: decide
+        uses: ./.github/actions/changed
 
   verify:
     name: verify (${{ matrix.os }})
@@ -141,7 +124,12 @@ jobs:
     steps:
       - name: Answer for the jobs above
         run: |
+          echo "changes: ${{ needs.changes.result }}"
           echo "verify: ${{ needs.verify.result }}"
+          # A failure deciding is not a pass. Without this, an API error would
+          # skip the tests and report success for having skipped them.
+          test "${{ needs.changes.result }}" = "success" || {
+            echo "::error::could not decide what to run."; exit 1; }
           case "${{ needs.verify.result }}" in
             success|skipped) echo "Nothing failed." ;;
             *) echo "::error::verify did not pass."; exit 1 ;;

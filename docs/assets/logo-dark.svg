@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 200" width="330" height="200" role="img" aria-label="Venn — two circles whose centres lie one radius apart, with their intersection filled">
+  <title>Venn</title>
+
+  <!-- construction axes -->
+  <line x1="18" y1="96" x2="312" y2="96" stroke="#2b3a45" stroke-width="1" stroke-dasharray="3 5"/>
+  <line x1="134" y1="18" x2="134" y2="174" stroke="#2b3a45" stroke-width="1" stroke-dasharray="3 5"/>
+  <line x1="196" y1="18" x2="196" y2="174" stroke="#2b3a45" stroke-width="1" stroke-dasharray="3 5"/>
+
+  <!-- the two sets -->
+  <circle cx="134" cy="96" r="62" fill="none" stroke="#4aa6dd" stroke-width="3"/>
+  <circle cx="196" cy="96" r="62" fill="none" stroke="#4aa6dd" stroke-width="3"/>
+
+  <!-- what they share -->
+  <path d="M 165 42.31 A 62 62 0 0 1 165 149.69 A 62 62 0 0 1 165 42.31" fill="#8fcdf0" fill-opacity="0.9"/>
+
+  <!-- the two centres -->
+  <circle cx="134" cy="96" r="2.5" fill="#7e939f"/>
+  <circle cx="196" cy="96" r="2.5" fill="#7e939f"/>
+
+  <!-- the radius, measured out to the left where nothing else is happening -->
+  <line x1="72" y1="96" x2="134" y2="96" stroke="#7e939f" stroke-width="1"/>
+  <line x1="72" y1="92" x2="72" y2="100" stroke="#7e939f" stroke-width="1"/>
+  <text x="103" y="88" text-anchor="middle" fill="#7e939f" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11">r</text>
+
+  <!-- the same measure again, between the centres: that is the whole rule -->
+  <line x1="134" y1="181" x2="196" y2="181" stroke="#7e939f" stroke-width="1"/>
+  <line x1="134" y1="177" x2="134" y2="185" stroke="#7e939f" stroke-width="1"/>
+  <line x1="196" y1="177" x2="196" y2="185" stroke="#7e939f" stroke-width="1"/>
+  <text x="165" y="196" text-anchor="middle" fill="#7e939f" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11">d = r</text>
+
+  <!-- the label the whole language is about -->
+  <text x="256" y="44" fill="#4aa6dd" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11">A &#8745; B</text>
+  <line x1="253" y1="48" x2="173" y2="80" stroke="#4aa6dd" stroke-width="1" stroke-opacity="0.55"/>
+</svg>

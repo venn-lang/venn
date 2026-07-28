@@ -20,7 +20,7 @@ Small enough to read in an afternoon.
 
 <sub>
 
-[Why Venn](#why-venn-exists) · [Performance](#performance) · [The language](#the-language) · [Testing](#testing) · [Examples](examples) · [Roadmap](ROADMAP.md) · [Getting started](#getting-started)
+[Install](#install) · [Why Venn](#why-venn-exists) · [Performance](#performance) · [The language](#the-language) · [Testing](#testing) · [Examples](examples) · [Roadmap](ROADMAP.md) · [Contributing](#building-from-source)
 
 </sub>
 
@@ -45,12 +45,58 @@ no mocking framework to learn. The language already knows what a test is.
 
 ---
 
+## Install
+
+```bash
+npm install -g @venn-lang/cli
+```
+
+Needs Node 24. Then:
+
+```bash
+venn new my-suite && cd my-suite
+```
+
+That writes `venn.toml`, `src/main.vn` and a `.gitignore`. Put a flow in
+`tests/first.vn`:
+
+```ruby
+flow "arithmetic still works" {
+  step "two and two" {
+    expect 2 + 2 == 4
+  }
+}
+```
+
+And run it:
+
+```bash
+venn test
+```
+
+```
+ RUN  tests/first.vn
+
+ ❯ arithmetic still works
+   ✓ two and two 0ms
+
+ Tests  1 passed (1)
+  Time  56ms
+```
+
+`venn run src/main.vn` runs a file as a program, `venn check .` checks without
+running, and `venn upgrade` moves you to the next release. Full command list
+under [Tooling](#tooling).
+
+---
+
 ## Contents
 
 **Getting oriented**
+[Install](#install) ·
 [Why Venn exists](#why-venn-exists) ·
 [Performance](#performance) ·
-[Getting started](#getting-started)
+[Building from source](#building-from-source)
 
 **The language**
 [Values and functions](#values-and-functions) ·
@@ -351,9 +397,10 @@ arrives as an injected port, negotiated against the host's capabilities before
 anything runs, so a missing capability is a readable diagnostic rather than a
 `TypeError` in the middle of a test.
 
-## Getting started
+## Building from source
 
-Requires Node 24 and pnpm 11.
+Installing it is one line and lives [up there](#install). This is for working on
+the language itself. Needs Node 24 and pnpm 11.
 
 ```bash
 pnpm install

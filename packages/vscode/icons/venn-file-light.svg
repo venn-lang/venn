@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The light-theme twin of venn-file-dark.svg: identical geometry, with the
+       mark in the dark accent so it reads against a pale file tree. -->
+  <title>Venn source file</title>
+  <circle cx="5.57" cy="8" r="4.6" fill="#14618f" fill-opacity="0.55"/>
+  <circle cx="10.43" cy="8" r="4.6" fill="#14618f" fill-opacity="0.55"/>
+</svg>

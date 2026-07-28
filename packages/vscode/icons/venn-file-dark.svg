@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The mark at file-tree size: same construction as the identity, centres
+       1.0588 radii apart, drawn at partial opacity so the lens is what the
+       overlap produces rather than a shape of its own. Shown on dark themes,
+       so the mark is the light accent. -->
+  <title>Venn source file</title>
+  <circle cx="5.57" cy="8" r="4.6" fill="#4aa6dd" fill-opacity="0.6"/>
+  <circle cx="10.43" cy="8" r="4.6" fill="#4aa6dd" fill-opacity="0.6"/>
+</svg>

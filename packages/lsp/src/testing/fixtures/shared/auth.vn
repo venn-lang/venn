@@ -1,0 +1,33 @@
+module fixtures.shared.auth
+
+use "@venn/http"
+use "@venn/assert"
+
+## Signs a user in through the API and asserts the session is live.
+##
+## Put it at the top of any flow that needs an authenticated account. The
+## response stays available to the caller as `res`.
+##
+## @param user  The account name to sign in as.
+## @returns The HTTP response of the sign-in call.
+## @example
+## run login("alice")
+## expect res.status == 200
+pub fragment login(user) {
+  step "login" {
+    let res = http.get "https://example.com"
+    expect res.status == 200
+  }
+}
+
+## Builds the Authorization header a signed-in request carries.
+##
+## A `pub fn` crosses files the same way a fragment does: it is a value, so it
+## can be called, passed and held, and it runs inside *this* file, where
+## `SCHEME` below is private and never leaves.
+##
+## @param token  The session token to send.
+## @returns The header value, scheme included.
+pub fn authHeader(token: string) -> string => "${SCHEME} ${token}"
+
+const SCHEME = "Bearer"

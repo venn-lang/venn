@@ -1,0 +1,8 @@
+# The manifest these fixtures resolve against. `#shared` is what the alias
+# tests follow, so it has to be declared here rather than inherited.
+[package]
+name = "lsp-fixtures"
+version = "0.0.0"
+
+[paths]
+"#shared" = "./shared"

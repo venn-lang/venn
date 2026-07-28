@@ -1,6 +1,23 @@
 {
   "name": "@venn-lang/dts",
   "version": "0.1.0",
+  "description": "Reads the types an installed npm package publishes and returns them as Venn TypeSpecs.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "typescript",
+    "declarations"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/dts#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/dts"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +27,15 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

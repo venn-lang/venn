@@ -1,6 +1,22 @@
 {
   "name": "@venn-lang/fmt",
   "version": "0.1.0",
+  "description": "The fmt namespace: a value in, formatted text out. JSON, tables, YAML, CSV and XML.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "fmt"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/std-fmt#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/std-fmt"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +26,15 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

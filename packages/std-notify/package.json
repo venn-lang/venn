@@ -1,6 +1,22 @@
 {
   "name": "@venn-lang/notify",
   "version": "0.1.0",
+  "description": "The notify namespace: send a Slack message, a webhook or an email from a flow.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "notify"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/std-notify#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/std-notify"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +26,15 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

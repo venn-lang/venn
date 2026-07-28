@@ -1,6 +1,24 @@
 {
   "name": "@venn-lang/lsp",
   "version": "0.1.0",
+  "description": "The Venn language server: diagnostics, hover, completion, definition, references, rename, signature help, semantic tokens, formatting, document highlight and quick fixes for .vn files.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "lsp",
+    "language-server",
+    "editor"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/lsp#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/lsp"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "bin": {
     "venn-lsp": "./dist/bin/venn-lsp.mjs"
@@ -12,6 +30,15 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

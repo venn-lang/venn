@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to the same branch makes the previous run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Most of this was written on Windows and path handling differs there,
+        # so it is not enough to be green on Linux alone.
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Third-party install scripts run arbitrary code. Nothing here needs them.
+      - name: Install
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # Build first: typecheck resolves @venn/* through the emitted declarations
+      # in dist, so it has nothing to read until the packages are built.
+      - name: Build
+        run: pnpm -r --sort run build
+
+      - name: Typecheck
+        run: pnpm -r run typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      # The examples are documentation, and documentation that stopped working
+      # is a defect. This is the check that catches it.
+      - name: Check the examples
+        run: node packages/cli/dist/bin/venn.mjs check examples/

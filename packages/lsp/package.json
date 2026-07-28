@@ -1,0 +1,38 @@
+{
+  "name": "@venn/lsp",
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "venn-lsp": "./dist/bin/venn-lsp.mjs"
+  },
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@venn/contracts": "workspace:*",
+    "@venn/core": "workspace:*",
+    "@venn/runtime": "workspace:*",
+    "@venn/sdk": "workspace:*",
+    "@venn/stdlib": "workspace:*",
+    "@venn/types": "workspace:*",
+    "langium": "catalog:",
+    "vscode-languageserver": "catalog:",
+    "vscode-languageserver-textdocument": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

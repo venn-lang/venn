@@ -1,0 +1,41 @@
+# Sorting: quicksort written out by hand, then the same job handed to the
+# built-ins. Run: venn run examples/algorithms/02-sorting.vn
+
+const numbers = [37, 5, 91, 5, 62, 18, 74, 2, 50]
+
+## Quicksort. The first item is the pivot and the rest is split around it.
+##
+## `filter` never mutates, so the two halves are new lists and there is nothing
+## to swap in place: the recursion is the whole algorithm.
+fn quicksort(xs: list<number>) -> list<number> {
+  let pivot = xs.first
+  let rest = xs.drop(1)
+  return (xs.len < 2
+    ? xs
+    : quicksort(rest.filter(y => y < pivot))
+        .concat([pivot])
+        .concat(quicksort(rest.filter(y => y >= pivot))))
+}
+
+print "by hand:  " quicksort(numbers)
+
+# `sort` takes a comparator: negative when the first argument comes first.
+print "sort:     " numbers.sort(fn (a, b) => a - b)
+print "reversed: " numbers.sort(fn (a, b) => b - a)
+
+# `sortBy` takes a key instead of a comparator, which is what you want nine
+# times out of ten. Numbers compare as numbers, everything else as text.
+print "sortBy:   " numbers.sortBy(n => n)
+print "descending" numbers.sortBy(n => -n)
+
+const words = ["pear", "fig", "apple", "kiwi", "plum"]
+print "alphabetical:" words.sortBy(w => w)
+print "by length:   " words.sortBy(w => w.len)
+
+# `sortBy` is stable, so items whose keys tie keep the order they arrived in:
+# "pear", "kiwi" and "plum" are all four letters and none of them jumped.
+print "ties held:   " words.sortBy(w => w.len).filter(w => w.len == 4)
+
+# A second key is a second `sortBy` over the result of the first, applied in
+# reverse order of importance: length wins, and ties fall back to the alphabet.
+print "length then a-z:" words.sortBy(w => w).sortBy(w => w.len)

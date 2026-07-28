@@ -1,0 +1,83 @@
+# A table of records, grouped and summarised: the shape most real data arrives in.
+# Run: venn run examples/algorithms/06-records.vn
+
+## One row of the sales ledger.
+type Sale {
+  seller: string
+  region: string
+  product: string
+  amount: number
+}
+
+## What one seller adds up to, once the ledger has been collapsed.
+type Summary {
+  name: string
+  rows: list<Sale>
+  total: number
+  best: string
+}
+
+const sales: list<Sale> = [
+  { seller: "ana", region: "north", product: "desk", amount: 1200 },
+  { seller: "ben", region: "south", product: "chair", amount: 1250 },
+  { seller: "ana", region: "north", product: "lamp", amount: 90 },
+  { seller: "cleo", region: "east", product: "sofa", amount: 1450 },
+  { seller: "ben", region: "south", product: "desk", amount: 1150 },
+  { seller: "ana", region: "east", product: "chair", amount: 380 },
+  { seller: "dan", region: "north", product: "lamp", amount: 75 },
+  { seller: "cleo", region: "east", product: "chair", amount: 360 },
+  { seller: "ben", region: "south", product: "lamp", amount: 110 },
+  { seller: "dan", region: "north", product: "sofa", amount: 1300 }
+]
+
+const total = sales.sumBy(s => s.amount)
+
+print "rows:   " sales.len
+print "total:  " total
+print "average:" sales.map(s => s.amount).average.round(2)
+print "biggest:" sales.maxBy(s => s.amount)
+print "cheapest product:" sales.minBy(s => s.amount).product
+
+## One line of the report: a name, how many rows, what they came to, its share.
+fn line(name: string, rows: list<Sale>, whole: number) -> string {
+  let sum = rows.sumBy(s => s.amount)
+  let share = ((sum / whole) * 100).round(1)
+  return "  ${name.padEnd(6, ' ')} ${str(rows.len).padStart(2, ' ')} sales  ${str(sum).padStart(5, ' ')}  ${share}%"
+}
+
+## Collapse the ledger into one row per seller.
+fn perSeller(rows: list<Sale>) -> list<Summary> {
+  return rows.groupBy(s => s.seller).entries.map(e => {
+    name: e[0],
+    rows: e[1],
+    total: e[1].sumBy(s => s.amount),
+    best: e[1].maxBy(s => s.amount).product
+  })
+}
+
+# `groupBy` gives a map from key to the rows carrying it. Keys come back as text,
+# so they sort as text and index the map straight after.
+const byRegion = sales.groupBy(s => s.region)
+print "by region"
+forEach region in byRegion.keys.sortBy(r => r) {
+  print line(region, byRegion[region], total)
+}
+
+# Rank the sellers: summarise first, then order the summaries. Ordering the sales
+# themselves would answer a different question.
+print "by seller"
+forEach row in perSeller(sales).sortBy(s => -s.total) {
+  print "${line(row.name, row.rows, total)}  best: ${row.best}"
+}
+
+# `partition` splits in one pass and hands back both halves, so nothing is
+# filtered twice and nothing is dropped on the floor.
+const split = sales.partition(s => s.amount >= 1000)
+print "big tickets:" split[0].len "worth" split[0].sumBy(s => s.amount)
+print "everything else:" split[1].len "worth" split[1].sumBy(s => s.amount)
+
+# Two levels of grouping: the rows of a region, counted by what sold there.
+print "product mix"
+forEach region in byRegion.keys.sortBy(r => r) {
+  print "  ${region.padEnd(6, ' ')} ${str(byRegion[region].countBy(s => s.product))}"
+}

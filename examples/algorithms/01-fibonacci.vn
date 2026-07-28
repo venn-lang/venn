@@ -1,0 +1,27 @@
+# Fibonacci twice: the definition read straight off the page, then one pass that
+# remembers. Run: venn run examples/algorithms/01-fibonacci.vn
+
+## The nth Fibonacci number, written the way the definition reads.
+fn fib(n: number) -> number => n < 2 ? n : fib(n - 1) + fib(n - 2)
+
+## The first `n` Fibonacci numbers, in a single pass.
+##
+## Venn has no assignment, so a running total cannot be a variable that changes.
+## It is the accumulator of a `reduce`: the table carries itself forward and each
+## step appends the sum of its own last two entries.
+fn fibTable(n: number) -> list<number> {
+  let seed = [0, 1]
+  return range(2, n).reduce(fn (table, _i) => table.push(table[table.len - 2] + table[table.len - 1]), seed)
+}
+
+print "definition:" range(10).map(i => fib(i))
+print "one pass:  " fibTable(10)
+
+# The recursive one re-derives every branch it has already computed, so it is
+# exponential. The table is `n` steps and stays cheap far past where `fib` gives up.
+print "fib(24):   " fib(24)
+print "table(50): " fibTable(50).last
+
+# Both agree everywhere they overlap.
+const table = fibTable(20)
+print "agree:     " range(20).every(fn (_x, i) => fib(i) == table[i])

@@ -1,0 +1,34 @@
+# Binary search: halve the range until it closes. Shows why recursion is the
+# natural shape here. Run: venn run examples/algorithms/03-binary-search.vn
+
+const multiples = range(0, 100, 3)
+
+## Where `target` sits in a sorted list, or -1 when it is not there.
+##
+## `lo` and `hi` are parameters rather than variables because a binding never
+## changes: every halving is a fresh call carrying a fresh pair of bounds.
+fn search(xs: list<number>, target: number, lo: number, hi: number) -> number {
+  let mid = ((lo + hi) / 2).floor
+  return (lo > hi ? -1
+    : xs[mid] == target ? mid
+    : xs[mid] < target ? search(xs, target, mid + 1, hi)
+    : search(xs, target, lo, mid - 1))
+}
+
+## The call worth writing down. Nobody outside should have to know about bounds.
+fn indexOf(xs: list<number>, target: number) -> number => search(xs, target, 0, xs.len - 1)
+
+print "list:        " multiples
+print "index of 42: " indexOf(multiples, 42)
+print "index of 43: " indexOf(multiples, 43)
+
+# Every member is found at its own index, and nothing else is found at all.
+print "all found:   " multiples.every(fn (n, i) => indexOf(multiples, n) == i)
+print "rest missing:" range(0, 100).filter(n => !(n in multiples)).every(n => indexOf(multiples, n) == -1)
+
+# Halving is the point: a list of a million is still about twenty probes, so
+# this answers as fast as the little one above.
+const million = range(0, 2_000_000, 2)
+print "items:       " million.len
+print "index of 1999998:" indexOf(million, 1_999_998)
+print "index of 999999: " indexOf(million, 999_999)

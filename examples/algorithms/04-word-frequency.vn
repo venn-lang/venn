@@ -1,0 +1,39 @@
+# Word frequencies from a paragraph, with countBy and groupBy.
+# Run: venn run examples/algorithms/04-word-frequency.vn
+
+const text = "The test that never runs is the test that never fails. A suite you do not trust is worse than no suite, because it costs time and buys nothing. Trust is built slowly: a test that is fast, a test that is honest, a test that fails for one reason and says which."
+
+## Split a piece of prose into words.
+##
+## Anything that is not a letter becomes a space, so punctuation cannot glue
+## itself onto the word beside it. `~=` matches a regular expression, and here
+## it is asked about one character at a time.
+fn wordsOf(source: string) -> list<string> {
+  let letters = source.lower.split("").map(c => c ~= "[a-z']" ? c : " ").join("")
+  return letters.split(" ").filter(w => w != "")
+}
+
+const words = wordsOf(text)
+print "words:   " words.len
+print "distinct:" words.distinct.len
+
+# `countBy` files each item under a key and counts what lands there. The result
+# is a map, and `entries` turns it back into pairs that can be ordered.
+const counts = words.countBy(w => w)
+
+print "the five commonest"
+forEach entry in counts.entries.sortBy(e => -e[1]).take(5) {
+  print "  ${entry[0].padEnd(8)} ${entry[1]}"
+}
+
+const once = counts.entries.filter(e => e[1] == 1)
+print "said once:" once.len "of" counts.len
+
+# `groupBy` keeps the items instead of counting them, which is what you want
+# when the key is not the item: here, every distinct word under its own length.
+const byLength = words.distinct.groupBy(w => w.len)
+forEach size in byLength.keys.sortBy(k => k.toNumber) {
+  print "${size.padStart(2)} letters: ${byLength[size].len}"
+}
+
+print "longest: " words.distinct.sortBy(w => -w.len).take(3)

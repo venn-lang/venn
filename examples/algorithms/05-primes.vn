@@ -1,0 +1,39 @@
+# The sieve of Eratosthenes, and what the primes are good for once you have them.
+# Run: venn run examples/algorithms/05-primes.vn
+
+## Every prime below `limit`.
+##
+## Cross off the multiples of each candidate up to the square root, starting at
+## the square (anything smaller was crossed off by a smaller factor already),
+## then keep whatever survived. `keyBy` turns the crossed-off list into a map so
+## the test below is a lookup rather than a scan.
+fn primesBelow(limit: number) -> list<number> {
+  let root = limit.sqrt.floor
+  let crossed = range(2, root + 1).flatMap(p => range(p * p, limit, p)).keyBy(n => n)
+  return range(2, limit).filter(n => !crossed.has(n))
+}
+
+const primes = primesBelow(1000)
+print "below 1000: " primes.len
+print "first twelve:" primes.take(12)
+print "last three:  " primes.takeLast(3)
+
+# `pairwise` hands over every neighbouring pair, so the gap between one prime
+# and the next is a subtraction rather than an index dance.
+const gaps = primes.pairwise.map(pair => pair[1] - pair[0])
+
+const twins = primes.pairwise.filter(pair => pair[1] - pair[0] == 2)
+print "twin pairs:  " twins.len
+print "first five:  " twins.take(5)
+
+print "gap counts:  " gaps.countBy(g => g)
+print "widest gap:  " gaps.max "after" primes[gaps.indexOf(gaps.max)]
+
+# Goldbach, checked rather than proved: every even number here is the sum of two
+# primes. `some` stops at the first pair that works.
+const lookup = primes.keyBy(p => p)
+fn isSum(n: number) -> bool => primes.takeWhile(p => p <= n / 2).some(p => lookup.has(n - p))
+print "Goldbach to 1000:" range(4, 1000, 2).every(n => isSum(n))
+
+# The sieve scales the way it should: ten times the range, about ten times the work.
+print "below 100000:" primesBelow(100_000).len

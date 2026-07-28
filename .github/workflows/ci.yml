@@ -86,12 +86,16 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: pnpm test:coverage
 
+      # The slug is spelled out rather than inferred. Codecov asks for it, and
+      # the uploads that were refused with "Repository not found" were the ones
+      # that left it to be worked out.
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v7
         with:
           files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
+          slug: venn-lang/venn
           fail_ci_if_error: false
 
       # The examples are documentation, and documentation that stopped working

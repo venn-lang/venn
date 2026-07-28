@@ -1,0 +1,11 @@
+# One workspace for every example, so `venn check examples/` covers them all in
+# a single pass and a section can import from another.
+[package]
+name = "venn-examples"
+version = "1.0.0"
+
+[paths]
+"#shared" = "./language/shared"
+
+[env.local]
+BASE = "http://localhost:3000"

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node", "vscode"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    // Sources are ESM and always bundled; the package itself stays CommonJS so
+    // VS Code's extension host loads `dist/extension.cjs` the way it expects.
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,6 @@
+# Only the bundle and the manifest ship — sources are already bundled into dist/.
+src/**
+scripts/**
+tsconfig.json
+tsdown.config.ts
+*.vsix

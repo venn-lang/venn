@@ -1,0 +1,86 @@
+{
+  "name": "venn",
+  "displayName": "Venn",
+  "description": "Language support for Venn (.vn): diagnostics, semantic highlighting, hover, go to definition, completion, rename, signature help and formatting.",
+  "version": "0.0.1",
+  "publisher": "venn",
+  "private": true,
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:venn"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "venn",
+        "aliases": [
+          "Venn",
+          "venn"
+        ],
+        "extensions": [
+          ".vn"
+        ],
+        "icon": {
+          "light": "./icons/venn-file-light.svg",
+          "dark": "./icons/venn-file-dark.svg"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "venn",
+        "scopeName": "source.venn",
+        "path": "./syntaxes/venn.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[venn]": {
+        "editor.defaultFormatter": "venn.venn",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+      }
+    },
+    "configuration": {
+      "title": "Venn",
+      "properties": {
+        "venn.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Trace the traffic between VS Code and the Venn language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@venn/lsp": "workspace:*",
+    "vscode-languageclient": "catalog:",
+    "vscode-languageserver": "catalog:"
+  },
+  "devDependencies": {
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

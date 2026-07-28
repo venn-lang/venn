@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/project",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "What a Venn project *is*: its manifest, its workspace members, what it builds, and where the build goes.",
   "keywords": [
     "venn",

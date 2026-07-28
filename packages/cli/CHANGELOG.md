@@ -1,5 +1,22 @@
 # @venn-lang/cli
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`906eb82`](https://github.com/venn-lang/venn/commit/906eb826eb0130f198d52ffa03903be54eacfd89)]:
+  - @venn-lang/contracts@0.1.2
+  - @venn-lang/core@0.1.2
+  - @venn-lang/project@0.1.2
+  - @venn-lang/runtime@0.1.2
+  - @venn-lang/sdk@0.1.2
+  - @venn-lang/http@0.1.2
+  - @venn-lang/io@0.1.2
+  - @venn-lang/stdlib@0.1.2
+  - @venn-lang/assert@0.1.2
+  - @venn-lang/dts@0.1.2
+  - @venn-lang/types@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes

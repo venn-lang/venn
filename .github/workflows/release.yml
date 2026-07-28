@@ -76,13 +76,17 @@ jobs:
       # twenty-nine of them saying the same thing, most reading only "Updated
       # dependencies". The step below makes the one release this actually is.
       #
-      # `push-git-tags: false` stops the per-package tags reaching the remote,
-      # and that is the only way to stop them. `changeset publish --no-git-tag`
-      # looks like it would do the same and quietly breaks the run: the action
-      # decides whether anything shipped by reading the `git-tag` events the
-      # publish emits, so suppressing them reports that nothing was published
-      # even as twenty-nine packages go to npm. 0.1.1 shipped that way, with no
-      # tag and no release behind it.
+      # `createGithubReleases`, spelled the way v1 spells it. The hyphenated
+      # name belongs to v2, which is still a prerelease, and an input this
+      # action does not know is a warning in the log rather than an error: it
+      # was ignored, and twenty-nine releases came back.
+      #
+      # The per-package tags cannot be turned off in v1, and suppressing them
+      # with `changeset publish --no-git-tag` is worse than having them: the
+      # action decides whether anything shipped by reading the `git-tag` events
+      # the publish emits, so with the flag it published twenty-nine packages
+      # and reported that it had not. 0.1.1 shipped that way, with no tag and no
+      # release behind it. They are removed after the release instead.
       - name: Version or publish
         id: changesets
         uses: changesets/action@v1
@@ -91,8 +95,7 @@ jobs:
           publish: pnpm release
           commit: "chore(release): version packages"
           title: "chore(release): version packages"
-          create-github-releases: false
-          push-git-tags: false
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
@@ -120,6 +123,17 @@ jobs:
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The publish tags every package, and v1 pushes them with no way to ask it
+      # not to. Twenty-nine per release is a tag list nobody can read a year
+      # from now, and `v<version>` above already says what shipped.
+      - name: Remove the per-package tags
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          tags=$(git tag -l '@venn-lang/*')
+          [ -z "$tags" ] && exit 0
+          echo "$tags" | xargs -r git push origin --delete
+          echo "$tags" | xargs -r git tag -d
 
   sbom:
     name: SBOM

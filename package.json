@@ -21,10 +21,12 @@
     "vscode:build": "pnpm -r --sort --filter \"venn...\" run build",
     "vscode:install": "pnpm run vscode:build && node scripts/install-vscode-extension.mjs",
     "vscode:uninstall": "node scripts/install-vscode-extension.mjs --remove",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "release": "pnpm -r --sort run build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",

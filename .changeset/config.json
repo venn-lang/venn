@@ -1,11 +1,22 @@
 {
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "venn-lang/venn"
+    }
+  ],
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@venn/*"
+    ]
+  ],
   "linked": [],
-  "access": "restricted",
+  "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [
+    "venn"
+  ]
 }

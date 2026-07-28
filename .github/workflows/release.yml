@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      # Required for npm provenance: the registry verifies the build came from
+      # this workflow, in this repository, at this commit.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm -r --sort run build
+
+      # Keeps a "Version Packages" pull request up to date while changesets
+      # accumulate. Merging it is what publishes.
+      - name: Version or publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          publish: pnpm release
+          commit: "chore(release): version packages"
+          title: "chore(release): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  sbom:
+    name: SBOM
+    needs: release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # GitHub already derives an SPDX document from the dependency graph. This
+      # one is generated from the tree that was actually installed, so it
+      # describes the artefact rather than the manifest.
+      - name: Generate CycloneDX SBOM
+        run: pnpm dlx @cyclonedx/cyclonedx-npm --output-format json --output-file sbom.json --omit dev
+
+      - name: Attach to the latest release
+        run: |
+          tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -n "$tag" ]; then gh release upload "$tag" sbom.json --clobber; fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,62 @@
+name: Changeset
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: changeset-${{ github.head_ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  write:
+    name: Write the changeset
+    # The version pull request carries the consumed changesets, not new ones,
+    # and a fork cannot be pushed to from here.
+    if: >
+      github.head_ref != 'changeset-release/main' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: List what the pull request changed
+        id: files
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" > changed.txt
+          echo "count=$(wc -l < changed.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Write it
+        run: |
+          mapfile -t files < changed.txt
+          node scripts/changeset-from-pr.mjs "$TITLE" "${files[@]}"
+          rm changed.txt
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BRANCH: ${{ github.head_ref }}
+
+      # Pushing with the provided token deliberately starts no further runs, so
+      # this cannot loop: the commit lands and the pull request stops changing.
+      - name: Commit it
+        run: |
+          if [ -z "$(git status --porcelain .changeset)" ]; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .changeset
+          git commit -m "chore(release): describe this change for the changelog"
+          git push origin "HEAD:${{ github.head_ref }}"

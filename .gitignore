@@ -26,3 +26,4 @@ benchmarks/tmp-*/
 # Python bytecode from the benchmark twins.
 __pycache__/
 *.pyc
+coverage/

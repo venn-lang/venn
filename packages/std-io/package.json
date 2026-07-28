@@ -1,6 +1,22 @@
 {
   "name": "@venn-lang/io",
   "version": "0.1.0",
+  "description": "The io namespace: standard output, standard error, standard input and the process arguments.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "io"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/std-io#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/std-io"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +26,15 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

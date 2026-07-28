@@ -1,6 +1,22 @@
 {
   "name": "@venn-lang/db",
   "version": "0.1.0",
+  "description": "The db namespace: seed tables, run statements and snapshot state, all through the DbClient port.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "db"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/std-db#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/std-db"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +26,15 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

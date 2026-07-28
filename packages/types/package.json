@@ -1,6 +1,23 @@
 {
   "name": "@venn-lang/types",
   "version": "0.1.0",
+  "description": "The language's type vocabulary as plain data: ten shapes, no dependencies, no compiler.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "types",
+    "type-system"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/types#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/types"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +27,15 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

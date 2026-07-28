@@ -1,6 +1,24 @@
 {
   "name": "@venn-lang/contracts",
   "version": "0.1.0",
+  "description": "The ports the Venn core runs on, their implementations, and the host that carries them.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "ports",
+    "adapters",
+    "conformance"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/contracts#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/contracts"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -23,6 +41,15 @@
       "default": "./dist/testing.js"
     }
   },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",
@@ -32,6 +59,13 @@
     "@fast-check/vitest": ">=0.4.0",
     "vitest": ">=4.0.0"
   },
+  "devDependencies": {
+    "@fast-check/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
   "peerDependenciesMeta": {
     "@fast-check/vitest": {
       "optional": true
@@ -39,12 +73,5 @@
     "vitest": {
       "optional": true
     }
-  },
-  "devDependencies": {
-    "@fast-check/vitest": "catalog:",
-    "@types/node": "catalog:",
-    "tsdown": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
   }
 }

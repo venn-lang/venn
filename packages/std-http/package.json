@@ -1,6 +1,22 @@
 {
   "name": "@venn-lang/http",
   "version": "0.1.0",
+  "description": "The http namespace: seven request verbs, a server, and the two ports they ride.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "http"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/std-http#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/std-http"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -16,6 +32,15 @@
       "import": "./dist/node.mjs",
       "default": "./dist/node.mjs"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

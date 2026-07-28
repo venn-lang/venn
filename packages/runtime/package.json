@@ -1,6 +1,23 @@
 {
   "name": "@venn-lang/runtime",
   "version": "0.1.0",
+  "description": "Executes a parsed Venn document: the scheduler, the plugin registry, the event stream.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "runtime",
+    "interpreter"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/runtime#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/runtime"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -10,6 +27,15 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

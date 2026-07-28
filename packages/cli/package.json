@@ -1,6 +1,23 @@
 {
   "name": "@venn-lang/cli",
   "version": "0.1.0",
+  "description": "The venn binary: one command for starting, checking, running and testing a Venn project.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "cli",
+    "test-runner"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/cli#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/cli"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
   "type": "module",
   "bin": {
     "venn": "./dist/bin/venn.mjs"
@@ -12,6 +29,15 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

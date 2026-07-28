@@ -16,6 +16,11 @@ permissions:
 jobs:
   verify:
     name: verify (${{ matrix.os }})
+    # The release pull request carries no code, only version numbers and
+    # changelogs, and it is opened by a bot, so its run would sit waiting for a
+    # human to approve it every single release. What it does change is verified
+    # by the release workflow itself, on main, right before publishing.
+    if: github.head_ref != 'changeset-release/main'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

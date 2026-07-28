@@ -1,0 +1,60 @@
+import { createTestHost } from "@venn/contracts";
+import { parse } from "@venn/core";
+import { defineAction, definePlugin } from "@venn/sdk";
+import { describe, expect, it } from "vitest";
+import { createMemorySink } from "../eventsink/index.js";
+import { createRunner } from "../run/create-runner.js";
+
+const plugin = definePlugin({
+  name: "@test/t",
+  version: "0",
+  namespace: "t",
+  actions: [
+    defineAction({ name: "echo", run: (_ctx, input) => input.args[0] }),
+    defineAction({
+      name: "boom",
+      run: () => {
+        throw new Error("boom");
+      },
+    }),
+  ],
+});
+
+const SOURCE = `fragment double(x) -> int {
+  step "d" { expect x == 5 }
+}
+
+flow "F" {
+  let n = 5
+  if n == 5 { step "a" { expect n == 5 } } else { step "b" { expect false } }
+  forEach x in [1, 2, 3] { step "e" { expect x > 0 } }
+  repeat 3 as i { expect i <= 3 }
+  run double(5)
+  try {
+    step "r" { t.boom }
+  } catch err {
+    expect err.message == "boom"
+  } finally {
+    expect true
+  }
+  parallel {
+    step "p1" { expect true }
+    step "p2" { expect true }
+  }
+  defer { expect true }
+}`;
+
+describe("control flow", () => {
+  it("runs if/forEach/repeat/fragment/try/parallel/defer to completion", async () => {
+    const { ast, problems } = parse(SOURCE);
+    expect(problems).toEqual([]);
+    const sink = createMemorySink();
+    const runner = createRunner({ host: createTestHost(), plugins: [plugin], sink });
+
+    const result = await runner.run(ast);
+
+    // 1(if) + 3(forEach) + 3(repeat) + 1(fragment) + 1(catch) + 1(finally) + 2(parallel) + 1(defer)
+    expect(result.failed).toBe(0);
+    expect(result.passed).toBe(13);
+  });
+});

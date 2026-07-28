@@ -1,0 +1,49 @@
+{
+  "name": "@venn/stdlib",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@venn/artifacts": "workspace:*",
+    "@venn/assert": "workspace:*",
+    "@venn/auth": "workspace:*",
+    "@venn/browser": "workspace:*",
+    "@venn/contracts": "workspace:*",
+    "@venn/crypto": "workspace:*",
+    "@venn/data": "workspace:*",
+    "@venn/db": "workspace:*",
+    "@venn/env": "workspace:*",
+    "@venn/fmt": "workspace:*",
+    "@venn/graphql": "workspace:*",
+    "@venn/grpc": "workspace:*",
+    "@venn/http": "workspace:*",
+    "@venn/io": "workspace:*",
+    "@venn/load": "workspace:*",
+    "@venn/mail": "workspace:*",
+    "@venn/mock": "workspace:*",
+    "@venn/mqtt": "workspace:*",
+    "@venn/notify": "workspace:*",
+    "@venn/runtime": "workspace:*",
+    "@venn/sdk": "workspace:*",
+    "@venn/types": "workspace:*",
+    "@venn/ws": "workspace:*"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

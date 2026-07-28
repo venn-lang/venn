@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,12 +32,15 @@ jobs:
         with:
           node-version: 24
 
+      # Asked of the API rather than worked out with `git diff`. Both this
+      # checkout and a fetch of the base are shallow, so the two histories share
+      # no ancestor and a three-dot diff cannot find a merge base. GitHub
+      # already knows the answer.
       - name: List what the pull request changed
-        id: files
-        run: |
-          git fetch --depth=1 origin "${{ github.base_ref }}"
-          git diff --name-only "origin/${{ github.base_ref }}...HEAD" > changed.txt
-          echo "count=$(wc -l < changed.txt)" >> "$GITHUB_OUTPUT"
+        run: gh pr view "$NUMBER" --json files --jq '.files[].path' > changed.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Write it
         run: |

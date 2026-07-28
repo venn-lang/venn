@@ -16,8 +16,8 @@ catalogs:
       specifier: ^0.4.1
       version: 0.4.1
     '@types/node':
-      specifier: ^24
-      version: 24.13.3
+      specifier: ^26
+      version: 26.1.1
     '@vitest/coverage-v8':
       specifier: ^4.1.10
       version: 4.1.10
@@ -70,10 +70,10 @@ importers:
         version: 0.7.0
       '@changesets/cli':
         specifier: 'catalog:'
-        version: 2.31.1(@types/node@24.13.3)
+        version: 2.31.1(@types/node@26.1.1)
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.10(vitest@4.1.10)
@@ -82,7 +82,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   benchmarks:
     dependencies:
@@ -101,7 +101,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -147,7 +147,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)
@@ -156,7 +156,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/contracts:
     devDependencies:
@@ -165,7 +165,7 @@ importers:
         version: 0.4.1(vitest@4.1.10)
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)
@@ -174,7 +174,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/core:
     dependencies:
@@ -202,7 +202,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/dts:
     dependencies:
@@ -215,13 +215,13 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/lsp:
     dependencies:
@@ -255,7 +255,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)
@@ -264,7 +264,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/project:
     dependencies:
@@ -280,7 +280,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/runtime:
     dependencies:
@@ -305,7 +305,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/sdk:
     dependencies:
@@ -327,7 +327,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-artifacts:
     dependencies:
@@ -349,7 +349,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-assert:
     dependencies:
@@ -368,7 +368,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-auth:
     dependencies:
@@ -390,7 +390,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-browser:
     dependencies:
@@ -412,7 +412,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-crypto:
     dependencies:
@@ -434,7 +434,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-data:
     dependencies:
@@ -456,7 +456,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-db:
     dependencies:
@@ -478,7 +478,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-env:
     dependencies:
@@ -494,7 +494,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-fmt:
     dependencies:
@@ -513,7 +513,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-graphql:
     dependencies:
@@ -535,7 +535,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-grpc:
     dependencies:
@@ -557,7 +557,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-http:
     dependencies:
@@ -573,7 +573,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
-        version: 24.13.3
+        version: 26.1.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)
@@ -582,7 +582,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-io:
     dependencies:
@@ -607,7 +607,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-load:
     dependencies:
@@ -629,7 +629,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-mail:
     dependencies:
@@ -651,7 +651,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-mock:
     dependencies:
@@ -673,7 +673,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-mqtt:
     dependencies:
@@ -695,7 +695,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-notify:
     dependencies:
@@ -717,7 +717,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/std-ws:
     dependencies:
@@ -739,7 +739,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/stdlib:
     dependencies:
@@ -821,7 +821,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/types:
     devDependencies:
@@ -833,7 +833,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   packages/vscode:
     dependencies:
@@ -861,7 +861,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
 packages:
 
@@ -1424,8 +1424,8 @@ packages:
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  '@types/node@24.13.3':
-    resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
+  '@types/node@26.1.1':
+    resolution: {integrity: sha512-nxAkRSVkN1Y0JC1W8ky/fTfkGsMmcrRsbx+3XoZE+rMOX71kLYTV7fLXpqud1GpbpP5TuffXFqfX7fH2GgZREw==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -3140,8 +3140,8 @@ packages:
   underscore@1.13.8:
     resolution: {integrity: sha512-DXtD3ZtEQzc7M8m4cXotyHR+FAS18C64asBYY5vqZexfYryNNnDc02W4hKg3rdQuqOYas1jkseX0+nZXjTXnvQ==}
 
-  undici-types@7.18.2:
-    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
+  undici-types@8.3.0:
+    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   undici@7.28.0:
     resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
@@ -3552,7 +3552,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@changesets/cli@2.31.1(@types/node@24.13.3)':
+  '@changesets/cli@2.31.1(@types/node@26.1.1)':
     dependencies:
       '@changesets/apply-release-plan': 7.1.1
       '@changesets/assemble-release-plan': 6.0.10
@@ -3568,7 +3568,7 @@ snapshots:
       '@changesets/should-skip-package': 0.1.2
       '@changesets/types': 6.1.0
       '@changesets/write': 0.4.0
-      '@inquirer/external-editor': 1.0.3(@types/node@24.13.3)
+      '@inquirer/external-editor': 1.0.3(@types/node@26.1.1)
       '@manypkg/get-packages': 1.1.3
       ansi-colors: 4.1.3
       enquirer: 2.4.1
@@ -3718,14 +3718,14 @@ snapshots:
   '@fast-check/vitest@0.4.1(vitest@4.1.10)':
     dependencies:
       fast-check: 4.9.0
-      vitest: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+      vitest: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
-  '@inquirer/external-editor@1.0.3(@types/node@24.13.3)':
+  '@inquirer/external-editor@1.0.3(@types/node@26.1.1)':
     dependencies:
       chardet: 2.2.0
       iconv-lite: 0.7.3
     optionalDependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.1.1
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
@@ -4009,9 +4009,9 @@ snapshots:
 
   '@types/node@12.20.55': {}
 
-  '@types/node@24.13.3':
+  '@types/node@26.1.1':
     dependencies:
-      undici-types: 7.18.2
+      undici-types: 8.3.0
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -4099,7 +4099,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3))
+      vitest: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1))
 
   '@vitest/expect@4.1.10':
     dependencies:
@@ -4110,13 +4110,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.10(vite@8.1.5(@types/node@24.13.3))':
+  '@vitest/mocker@4.1.10(vite@8.1.5(@types/node@26.1.1))':
     dependencies:
       '@vitest/spy': 4.1.10
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.1.5(@types/node@24.13.3)
+      vite: 8.1.5(@types/node@26.1.1)
 
   '@vitest/pretty-format@4.1.10':
     dependencies:
@@ -5656,7 +5656,7 @@ snapshots:
 
   underscore@1.13.8: {}
 
-  undici-types@7.18.2: {}
+  undici-types@8.3.0: {}
 
   undici@7.28.0: {}
 
@@ -5682,7 +5682,7 @@ snapshots:
 
   version-range@4.15.0: {}
 
-  vite@8.1.5(@types/node@24.13.3):
+  vite@8.1.5(@types/node@26.1.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
@@ -5690,13 +5690,13 @@ snapshots:
       rolldown: 1.1.5
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.1.1
       fsevents: 2.3.3
 
-  vitest@4.1.10(@types/node@24.13.3)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@24.13.3)):
+  vitest@4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1)):
     dependencies:
       '@vitest/expect': 4.1.10
-      '@vitest/mocker': 4.1.10(vite@8.1.5(@types/node@24.13.3))
+      '@vitest/mocker': 4.1.10(vite@8.1.5(@types/node@26.1.1))
       '@vitest/pretty-format': 4.1.10
       '@vitest/runner': 4.1.10
       '@vitest/snapshot': 4.1.10
@@ -5713,10 +5713,10 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.1.5(@types/node@24.13.3)
+      vite: 8.1.5(@types/node@26.1.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.1.1
       '@vitest/coverage-v8': 4.1.10(vitest@4.1.10)
     transitivePeerDependencies:
       - msw

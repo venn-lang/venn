@@ -8,7 +8,7 @@ onlyBuiltDependencies:
 # Single source of truth for dependency versions across every package (pnpm catalog).
 catalog:
   typescript: ^7.0.2
-  "@types/node": ^24
+  "@types/node": ^26
   langium: ^4.3.1
   langium-cli: ^4.3.0
   zod: ^4.4.3

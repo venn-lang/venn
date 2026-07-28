@@ -1,0 +1,28 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# NOTE: packages/core/src/generated/ is intentionally committed (Langium codegen output).
+
+# Packaged VS Code extension
+*.vsix
+
+# Scratch space for live experiments against real services. Not documentation,
+# and it holds real credentials, so none of it is committed.
+sandbox/
+
+# Profiler output.
+prof-out/
+benchmarks/tmp-*/
+*.cpuprofile
+
+# Python bytecode from the benchmark twins.
+__pycache__/
+*.pyc

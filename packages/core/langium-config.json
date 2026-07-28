@@ -1,0 +1,11 @@
+{
+  "projectName": "Venn",
+  "languages": [
+    {
+      "id": "venn",
+      "grammar": "src/grammar/venn.langium",
+      "fileExtensions": [".vn"]
+    }
+  ],
+  "out": "src/generated"
+}

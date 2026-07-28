@@ -12,9 +12,15 @@
 Faster than CPython. Beats hand-written TypeScript on three of seven benchmarks.<br>
 Small enough to read in an afternoon.
 
+[![CI](https://github.com/venn-lang/venn/actions/workflows/ci.yml/badge.svg)](https://github.com/venn-lang/venn/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/venn-lang/venn/branch/main/graph/badge.svg)](https://codecov.io/gh/venn-lang/venn)
+[![Security](https://github.com/venn-lang/venn/actions/workflows/security.yml/badge.svg)](https://github.com/venn-lang/venn/actions/workflows/security.yml)
+[![License](https://img.shields.io/github/license/venn-lang/venn)](LICENSE)
+[![Node](https://img.shields.io/badge/node-24-informational)](package.json)
+
 <sub>
 
-[Why Venn](#why-venn-exists) · [Performance](#performance) · [The language](#the-language) · [Testing](#testing) · [Examples](examples) · [Getting started](#getting-started)
+[Why Venn](#why-venn-exists) · [Performance](#performance) · [The language](#the-language) · [Testing](#testing) · [Examples](examples) · [Roadmap](ROADMAP.md) · [Getting started](#getting-started)
 
 </sub>
 

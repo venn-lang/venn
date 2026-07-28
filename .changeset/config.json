@@ -7,16 +7,10 @@
     }
   ],
   "commit": false,
-  "fixed": [
-    [
-      "@venn/*"
-    ]
-  ],
+  "fixed": [["@venn/*"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "venn"
-  ]
+  "ignore": ["venn"]
 }

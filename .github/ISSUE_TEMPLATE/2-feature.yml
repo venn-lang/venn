@@ -1,0 +1,67 @@
+name: Feature request
+description: Ask for something Venn cannot do yet. Libraries, tooling, editor support.
+title: "[feature] "
+type: Feature
+labels: ["needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is for capabilities: a verb the standard library is missing, a flag
+        the CLI should take, something the editor should do.
+
+        **Changing the language itself** (syntax, semantics, the type system)
+        goes through [Language proposal](?template=3-language-proposal.yml)
+        instead, because those decisions are harder to undo.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and where does Venn get in the way? Describe the situation rather than the solution you have in mind.
+      placeholder: |
+        I need to assert that a response arrived within a budget, but I have to
+        compute the difference by hand every time.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: If you have a shape in mind, write it as Venn code. Rough is fine.
+      render: ruby
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today
+      description: How do you work around it now? If the workaround is fine, say so, it helps us judge the priority.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Standard library
+        - CLI
+        - Editor and language server
+        - Project and packaging
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you open this
+      options:
+        - label: I searched the existing issues and this is not already requested.
+          required: true
+        - label: This does not change the syntax or semantics of the language itself.
+          required: true

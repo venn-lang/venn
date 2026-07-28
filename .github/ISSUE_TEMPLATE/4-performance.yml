@@ -1,0 +1,61 @@
+name: Performance
+description: Something is slower than it should be, or a benchmark regressed.
+title: "[perf] "
+type: Bug
+labels: ["needs triage", "performance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Performance claims need numbers. Please measure before and after, on the
+        same machine, with nothing else running: the difference between runs on
+        a busy machine is larger than most regressions.
+
+        `pnpm run bench` gives comparable figures against TypeScript and CPython.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What is slow
+      description: Which operation, and how did you notice?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: The program you measured
+      render: ruby
+    validations:
+      required: true
+
+  - type: textarea
+    id: numbers
+    attributes:
+      label: The numbers
+      description: What you measured, how many times, and how. If this is a regression, give both versions.
+      render: shell
+      placeholder: |
+        venn 0.1.0: 4.9 ms (median of 15)
+        venn 0.2.0: 8.7 ms (median of 15)
+        same machine, nothing else running
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Machine
+      placeholder: M2 Pro, 16 GB, macOS 15
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you open this
+      options:
+        - label: I measured more than once and took the median or the minimum.
+          required: true
+        - label: Nothing else heavy was running while I measured.
+          required: true

@@ -1,0 +1,50 @@
+name: Documentation
+description: Something is wrong, missing or confusing in the docs, the README or an example.
+title: "[docs] "
+type: Task
+labels: ["needs triage", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Documentation that contradicts the implementation is a bug, and one that
+        wastes more of a reader's time than most defects. Thank you for pointing
+        it out.
+
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: A link, or a path and a heading.
+      placeholder: docs/venn-language.md, section 04
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem
+      options:
+        - It says something that is not true
+        - It is missing something
+        - It is confusing or ambiguous
+        - An example does not run
+        - A link is broken
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: What is wrong
+      description: Quote the passage if you can, and say what you expected it to say.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you open this
+      options:
+        - label: I checked this is not already listed in [docs/known-gaps.md](https://github.com/venn-lang/venn/blob/main/docs/known-gaps.md).
+          required: true

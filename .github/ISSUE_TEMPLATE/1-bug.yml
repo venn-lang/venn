@@ -1,0 +1,82 @@
+name: Bug report
+description: Something in Venn behaves differently from what it says it does.
+title: "[bug] "
+type: Bug
+labels: ["needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. The single most useful thing you can give
+        us is a `.vn` file we can run, because a bug we can reproduce is usually
+        a bug we can fix the same day.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect instead?
+      placeholder: |
+        `xs.takeLast(0)` returned the whole list. I expected an empty one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: The smallest program that shows it
+      description: A complete `.vn` file, cut down as far as it still misbehaves.
+      render: ruby
+      placeholder: |
+        const xs = [1, 2, 3]
+        print xs.takeLast(0)
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: How you ran it
+      placeholder: venn run bug.vn
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: What it printed
+      description: The full output, including any `VNxxxx` code.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Venn version
+      description: The output of `venn --version`.
+      placeholder: 0.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you open this
+      options:
+        - label: I searched the existing issues and this is not already reported.
+          required: true
+        - label: I checked [docs/known-gaps.md](https://github.com/venn-lang/venn/blob/main/docs/known-gaps.md) and this is not a documented gap.
+          required: true

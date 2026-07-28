@@ -1,0 +1,11 @@
+# Nothing may be opened outside a template. An issue with no shape is an issue
+# nobody can act on, and it costs the reporter a round trip to find that out.
+blank_issues_enabled: false
+
+contact_links:
+  - name: Question or idea
+    url: https://github.com/venn-lang/venn/discussions
+    about: Ask anything, or float an idea before it becomes a proposal. Discussions are the right room for a conversation.
+  - name: Security vulnerability
+    url: https://github.com/venn-lang/venn/security/advisories/new
+    about: Report privately. Please do not open a public issue for anything exploitable.

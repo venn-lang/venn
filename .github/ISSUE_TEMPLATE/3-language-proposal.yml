@@ -1,0 +1,71 @@
+name: Language proposal
+description: Change the language itself. Syntax, semantics, the type system.
+title: "[proposal] "
+type: Feature
+labels: ["needs triage", "language design"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Venn's kernel is deliberately small, and every addition is permanent in
+        a way a library is not. Proposals are welcome, and they are held to a
+        higher bar: the burden is on the proposal to show the language is better
+        **with** it than without.
+
+        Read [docs/venn-language.md](https://github.com/venn-lang/venn/blob/main/docs/venn-language.md)
+        first, and consider opening a [Discussion](https://github.com/venn-lang/venn/discussions)
+        to shape the idea before writing it up.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What cannot be expressed today, or is expressed badly? Show real code that is worse than it should be.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: What you want to add or change, precisely enough to implement.
+      render: ruby
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including doing nothing, and including solving it in a library instead of in the language. Say why each is worse.
+    validations:
+      required: true
+
+  - type: textarea
+    id: cost
+    attributes:
+      label: What it costs
+      description: What breaks, what has to be learned, what the checker or the runtime must now do. A proposal that claims no cost has not been thought through.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Does existing code stop working?
+      options:
+        - "No, it is additive"
+        - "Yes, and I explain the migration above"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you open this
+      options:
+        - label: I read the language specification.
+          required: true
+        - label: This cannot reasonably be a library instead.
+          required: true

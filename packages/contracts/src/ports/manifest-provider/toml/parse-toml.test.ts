@@ -49,3 +49,28 @@ describe("what a venn.toml can say", () => {
     expect(data.b).toEqual({});
   });
 });
+
+describe("a manifest that tries to reach the prototype", () => {
+  /**
+   * A manifest arrives with somebody else's project, so assigning `__proto__`
+   * from one changed how every object in the process behaved: a dependency
+   * could put a property on `Object.prototype` by being installed.
+   */
+  it("does not let a section name touch Object.prototype", () => {
+    parseToml(`[package]\nname = "x"\n\n[package.__proto__]\nowned = "yes"`);
+
+    expect(({} as Record<string, unknown>).owned).toBeUndefined();
+  });
+
+  it("does not let a key touch Object.prototype", () => {
+    parseToml(`[package]\n__proto__ = "owned"`);
+
+    expect(Object.prototype).not.toHaveProperty("owned");
+  });
+
+  it("still reads the rest of a manifest that tried", () => {
+    const data = parseToml(`[package]\nname = "still here"\n__proto__ = "ignored"`);
+
+    expect((data.package as Record<string, unknown>).name).toBe("still here");
+  });
+});

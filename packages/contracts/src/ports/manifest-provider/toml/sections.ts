@@ -1,5 +1,7 @@
 // Opening `[a.b]` or `[[a.b]]`: working out where the keys that follow go.
 
+import { isSafeKey } from "./safe-key.js";
+
 /** The table `[path]` names, created along the way if it is not there yet. */
 export function enterSection(root: Record<string, unknown>, path: string): Record<string, unknown> {
   let node = root;
@@ -35,5 +37,5 @@ function keysOf(path: string): string[] {
   return path
     .split(".")
     .map((part) => part.trim().replace(/^["']|["']$/g, ""))
-    .filter((part) => part !== "");
+    .filter((part) => part !== "" && isSafeKey(part));
 }

@@ -1,0 +1,58 @@
+# Units: a number carries its unit, and the unit survives the arithmetic.
+# Run it with: venn run examples/basics/08-units.vn
+
+# Three families, written as a suffix on the number itself.
+const budget = 300ms          # ms, s, m, h    -> duration
+const patience = 1.5s
+const shift = 8h
+const payload = 2mb           # b, kb, mb, gb  -> size
+const uptime = 99.9%          # %              -> percent
+
+# In text a unit renders in its base: milliseconds, bytes, per cent.
+print "${budget} ${patience} ${shift}"
+print "${payload} ${uptime}"
+
+# Ask for whichever reading you actually wanted.
+print "${budget.ms}ms of budget, ${patience.seconds}s of patience"
+print "${shift.hours}h is ${shift.minutes} minutes"
+print "${payload.kb}kb is ${payload.mb}mb"
+print "${uptime.percent}% is ${uptime.ratio.round(4)} as a ratio"
+
+# Adding two of a kind keeps the kind.
+const total = budget + patience
+print "${total.seconds}s budgeted in all"
+
+# Scaling by a plain number keeps the unit as well.
+print "${(budget * 4).ms}ms across four calls"
+print "${(shift / 4).hours}h per quarter shift"
+print "${(payload + 512kb).mb}mb once the header is counted"
+
+# Dividing two of a kind cancels the unit and leaves a plain number: the
+# question "how many of these fit in that" has no unit in its answer.
+print "${patience / budget} budgets fit inside the patience"
+
+# Comparison works inside a kind, and reads as the sentence it is.
+print "over budget: ${patience > budget}"
+print "too big to ship: ${payload > 1mb}"
+
+# `.of` applies a percent to a number.
+print "${uptime.of(43200).round(0)} minutes up in a 30 day month"
+print "${(100% - uptime).of(43200).round(1)} minutes down"
+
+# A plain number becomes a unit with `toX`, the mirror of reading one back.
+# This is the seam where measurements from the outside world come in.
+const measured = 850
+print "${measured.toMs.seconds}s measured"
+print "${1_500.toMb.gb.round(2)}gb of logs"
+print "${0.995.toRatio.percent}% availability"
+
+# And the point of the whole thing: mixing kinds is a mistake the compiler
+# catches before the program runs. Put the line below back in and
+# `venn check examples/basics/` reports VN3012, "Cannot combine duration with
+# size using +", pointing straight at the `+`.
+#
+#   const nonsense = budget + payload
+#
+# Units are not decoration on the number. They are part of its type, which is
+# how `expect res.time < 2mb` gets caught while you are typing it rather than
+# at three in the morning in a red pipeline.

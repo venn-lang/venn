@@ -1,0 +1,58 @@
+# Maps: the literal, the two ways to read a key, and the members that reshape
+# one without touching the original.
+# Run it with: venn run examples/basics/07-maps.vn
+
+const user = {
+  name: "Ada",
+  plan: "pro",
+  credits: 12,
+  address: { city: "London", country: "UK" },
+}
+
+# A key you know reads with a dot. A key you compute reads with brackets, or
+# with `get` when it may not be there at all.
+print "${user.name} on ${user.plan}"
+print "${user.address.city}, ${user.address.country}"
+
+const field = "credits"
+print "${user[field]} credits, again ${user.get('credits')}"
+print "${user.get('phone') ?? 'no phone on file'}"
+
+print "${user.keys}"
+print pretty(user.values)
+print "${user.len} keys, empty: ${user.isEmpty}"
+print "${user.has('plan')} ${user.has('phone')}"
+
+# A path reads through the nesting in one go.
+print "${user.getPath('address.city')}"
+print "${user.hasPath('address.postcode')}"
+
+# Nothing is edited in place. Each of these hands back a new map.
+print pretty(user.merge({ plan: "team", phone: "0207" }))
+print pretty(user.pick("name"))
+print pretty(user.omit("address"))
+
+const scores = { ada: 9, alan: 8, grace: 10 }
+
+print pretty(scores.mapValues(v => v * 10))
+print pretty(scores.filterValues(v => v >= 9))
+print pretty(scores.mapKeys(k => k.capitalize))
+print pretty(scores.invert)
+
+# `entries` gives one [key, value] pair per key, which is how a map is walked.
+forEach entry in scores.entries {
+  print "${entry[0]} scored ${entry[1]}"
+}
+
+# Sorting a map means sorting its keys by what they point at.
+print "${scores.keys.sortBy(k => -scores.get(k))}"
+
+# The two shapes convert freely. `keyBy` turns a list of maps into a map, and
+# `entries` turns any map back into a list, so every list member is in reach.
+const rows = [
+  { sku: "a-1", qty: 2 },
+  { sku: "b-7", qty: 5 },
+]
+print pretty(rows.keyBy(r => r.sku))
+print "${scores.entries.sortBy(e => e[1]).map(e => e[0])}"
+print "${scores.entries.sumBy(e => e[1])} points in total"

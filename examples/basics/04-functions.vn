@@ -1,0 +1,57 @@
+# Functions: the two spellings, passing one around, and recursion.
+# Run it with: venn run examples/basics/04-functions.vn
+
+## Declared with `fn`. The body after `=>` is one expression, and that
+## expression is what the call gives back.
+fn double(x) => x * 2
+
+## Types are optional, and go where you would expect them.
+fn area(width: number, height: number) -> number => width * height
+
+## A body in braces may bind local names first. The last expression is the
+## result, and `return` in front of it says the same thing out loud.
+fn stats(numbers) {
+  let total = numbers.sum
+  let count = numbers.len
+  return { total: total, count: count, mean: total / count }
+}
+
+print "${double(21)}"
+print "${area(3, 4)}"
+print pretty(stats([2, 4, 6, 8]))
+
+# The same function without a name, for passing around. One parameter needs no
+# brackets, more than one does, and `fn (x) => ...` is the long form of the
+# very same thing.
+const triple = x => x * 3
+const add = (a, b) => a + b
+const negate = fn (x) => -x
+
+print "${triple(5)} ${add(2, 3)} ${negate(9)}"
+
+# A function is a value like any other: hand it to `map`, keep it in a map,
+# take it as an argument.
+print "${[1, 2, 3].map(double)}"
+
+fn applyTwice(f, x) => f(f(x))
+print "${applyTwice(double, 5)}"
+
+const ops = { double: double, triple: triple }
+print "${ops.triple(7)}"
+
+## A function may call itself. There is no extra word for it.
+fn factorial(n) => n <= 1 ? 1 : n * factorial(n - 1)
+
+## Every list callback is handed the index alongside the item, and is free to
+## ignore it: `fib` below takes one parameter and `map` still accepts it.
+fn fib(n) => n < 2 ? n : fib(n - 1) + fib(n - 2)
+
+print "${factorial(6)}"
+print "${range(10).map(fib)}"
+print "${range(4).map((n, i) => '${i} -> ${double(n)}')}"
+
+# `fn` is pure by design: it takes values and returns a value, and it does no
+# I/O. When a step has to talk to the outside world, that is a plugin verb,
+# which is what the other example folders are about.
+fn slugPart(word) => word.trim.lower.replace(' ', '-')
+print "${['Ada Lovelace', ' Grace Hopper '].map(slugPart).join('/')}"

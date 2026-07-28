@@ -1,0 +1,69 @@
+# Lists, and the members that do the actual work.
+# Run it with: venn run examples/basics/06-lists.vn
+
+const numbers = [5, 3, 8, 1, 9, 2]
+
+print "${numbers.len} items, first ${numbers.first}, last ${numbers.last}"
+print "sum ${numbers.sum}, min ${numbers.min}, max ${numbers.max}, mean ${numbers.average.round(2)}"
+
+# `map` builds a new list, one result per item. Every list callback is handed
+# the index alongside the item and may ignore it.
+print "${numbers.map(n => n * 10)}"
+print "${numbers.map((n, i) => '${i}:${n}')}"
+
+# `filter` keeps what the test says yes to; `find` returns the first match.
+print "${numbers.filter(n => n > 4)}"
+print "${numbers.find(n => n > 4)}"
+print "${numbers.some(n => n > 8)} ${numbers.every(n => n > 0)}"
+
+# `find` gives null when nothing matches, so `??` finishes the sentence.
+const missing = numbers.find(n => n > 100)
+print "${missing ?? 'nothing that big'}"
+
+# `reduce` folds a list into one value: the running total first, then the
+# item, and the starting value as the second argument.
+print "${numbers.reduce((total, n) => total + n, 0)}"
+print "${numbers.reduce((best, n) => n > best ? n : best, 0)}"
+
+# `sort` takes a comparison, `sortBy` takes the key to sort on. Neither one
+# touches the original list.
+print "${numbers.sort((a, b) => a - b)}"
+print "${numbers.sortBy(n => -n)}"
+print "${numbers} is still as it was"
+
+const words = ["fig", "apple", "pear", "kiwi"]
+print "${words.sortBy(w => w.len)}"
+print "${words.sortBy(w => w)}"
+
+# Taking slices and changing shape.
+print "${words.take(2)} then ${words.drop(2)} then ${words.reverse}"
+print "${numbers.slice(1, 4)}"
+print "${[3, 1, 3, 1].distinct}"
+print "${words.join(', ')}"
+print "${words.contains('fig')} at index ${words.indexOf('pear')}"
+print pretty(numbers.chunk(2))
+
+# A list of maps is the everyday shape, and the `By` members are for it.
+const people = [
+  { name: "Ada", age: 36 },
+  { name: "Alan", age: 41 },
+  { name: "Grace", age: 45 },
+]
+
+print "${people.map(p => p.name).join(' and ')}"
+print "${people.sumBy(p => p.age)} years between them"
+print "${people.maxBy(p => p.age).name} is the eldest"
+print "${people.filter(p => p.age > 40).len} are over 40"
+
+# `?.` reads a member only when there is something to read it from, which is
+# what makes a search that found nothing safe to keep going with.
+const kay = people.find(p => p.name == 'Kay')
+print "${kay?.name ?? 'no Kay on the list'}"
+
+# Grouping turns a list into a map, keyed by whatever the callback returns.
+print pretty(people.groupBy(p => p.age > 40 ? 'senior' : 'junior'))
+
+# Nested lists interpolate flat, which hides the nesting. `pretty` does not.
+print "${[[1, 2], [3, 4]]}"
+print pretty([[1, 2], [3, 4]])
+print "${[[1, 2], [3, 4]].flatten}"

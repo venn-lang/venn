@@ -1,0 +1,44 @@
+# Text: `${}` interpolation, and the members every string carries.
+# Run it with: venn run examples/basics/03-strings.vn
+
+const user = { name: "Ada", plan: "pro" }
+const credits = 12
+
+# `${}` evaluates what is inside it and drops the result into the text. Any
+# expression fits there, not only a name.
+print "Hello, ${user.name}."
+print "${user.name} is on ${user.plan} and has ${credits} credits."
+print "Next month: ${credits * 2}."
+print "Health: ${credits > 10 ? 'good' : 'low'}."
+
+# Use single quotes for a string inside a `${}`. A double quote there would
+# close the string it is sitting in.
+print "Paying customer: ${user.plan in ['pro', 'team']}"
+
+# Strings answer to members, so there is no library to import for any of this.
+const messy = "   Ada Lovelace   "
+print "[${messy.trim}]"
+print "${messy.trim.upper} / ${messy.trim.lower}"
+print "${messy.len} characters, ${messy.trim.len} once trimmed"
+
+const csv = "pear,apple,fig"
+print "${csv.split(',').len} parts, last one ${csv.split(',').last}"
+print "${csv.split(',').join(' and ')}"
+print "${csv.replace(',', ' | ')}"                 # every occurrence, not just the first
+print "${csv.contains('fig')} ${csv.startsWith('pear')} ${csv.endsWith('fig')}"
+print "${csv.slice(0, 4)} at ${csv.indexOf('apple')}"
+
+const heading = "the venn language"
+print heading.title
+print heading.capitalize
+print heading.slugify
+print "${heading.words.len} words: ${heading.words}"
+
+print "${'-'.repeat(24)}"
+print "${'7'.padStart(3, '0')} and ${'7'.padEnd(3, '.')}"
+print "${'42'.toNumber + 8}"
+
+# A list interpolates as its items joined by commas, which is fine for a flat
+# list and misleading for anything nested. `pretty` is the honest way to look.
+print "${[1, 2, 3]}"
+print pretty({ name: "Ada", tags: ["founder", "pro"] })

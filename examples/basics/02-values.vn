@@ -1,0 +1,53 @@
+# Every kind of value Venn has, and how a name comes to hold one.
+# Run it with: venn run examples/basics/02-values.vn
+
+const answer = 42
+const ratio = 2.5
+const big = 1_000_000          # `_` groups digits, it is not part of the number
+const name = "Ada Lovelace"
+const quoted = 'single quotes work too'
+const ready = true
+const missing = null
+
+print "${answer} ${ratio} ${big}"
+print name quoted
+print "${ready}"
+
+# `null` renders as nothing at all inside text, so `str` is how you see it.
+print "missing is [${missing}], which is ${str(missing)}"
+
+# `typeOf` names the type of anything.
+print typeOf(answer) typeOf(name) typeOf(ready) typeOf(missing)
+print typeOf([1, 2]) typeOf({ a: 1 })
+
+# `const` and `let` both bind a name to a value, and Venn has no assignment: a
+# name holds that one value for as long as it is in scope. Write `const` for
+# something settled and `let` for something a loop rebinds on each pass.
+let attempt = 1
+
+# A name bound inside a block belongs to that block. The line below does not
+# touch the `attempt` above; it is a second name spelled the same way.
+if ready {
+  let attempt = 2
+  print "inside:  ${attempt}"
+}
+print "outside: ${attempt}"
+
+# `??` supplies a stand-in when the left side is null.
+const nickname = null
+print "nickname: ${nickname ?? 'none given'}"
+
+# Comparison, then the boolean operators, then the ternary.
+print "${answer > 40} ${answer == 42} ${name != 'Grace'}"
+print "${ready && answer > 40} ${!ready || answer == 42}"
+print "${answer.isEven ? 'even' : 'odd'}"
+
+# `in` asks about membership, in a list or in a string.
+print "${answer in [1, 42, 99]} ${'Ada' in name}"
+
+# Arithmetic, with the precedence you already expect.
+print "${1 + 2 * 3} ${(1 + 2) * 3} ${7 / 2} ${7 % 2}"
+
+# Numbers carry their own members, so there is nothing to import.
+print "${(-9).abs} ${2.5.floor} ${2.5.ceil} ${16.sqrt} ${3.pow(4)}"
+print "${(10 / 3).round(2)} ${(10 / 3).toFixed(4)} ${99.clamp(1, 50)}"

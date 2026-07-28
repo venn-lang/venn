@@ -1,0 +1,21 @@
+# The smallest Venn program there is: text on the screen.
+# Run it with: venn run examples/basics/01-hello.vn
+
+print "Hello, Venn."
+
+# `print` takes as many values as you like and spaces them on one line.
+print "the answer is" 42 true
+
+# Everything after a `#` is a comment, to the end of the line.
+print "this line runs"   # this half of it does not
+
+## Two hashes make a doc comment. It belongs to the declaration written under
+## it, and the editor shows it when you hover the name.
+fn shout(word) => "${word.upper}!"
+
+print shout("venn")
+
+# A file with no `flow` in it is a program: the statements run top to bottom in
+# the order written, and `venn run` is what runs it. A file that contains a
+# `flow` is a test, and that is what `venn test` is for. Everything in this
+# folder is a program.

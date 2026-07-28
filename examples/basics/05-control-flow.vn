@@ -1,0 +1,65 @@
+# Choosing and repeating: if, the ternary, forEach, repeat, while, break and
+# continue.
+# Run it with: venn run examples/basics/05-control-flow.vn
+
+const score = 72
+
+if score >= 90 {
+  print "excellent"
+} else if score >= 60 {
+  print "pass"
+} else {
+  print "fail"
+}
+
+# The same choice as an expression, for when each branch is only a value.
+print "grade: ${score >= 60 ? 'pass' : 'fail'}"
+
+# `forEach` walks a list, rebinding the item name on each pass.
+forEach fruit in ["pear", "apple", "fig"] {
+  print "fruit: ${fruit}"
+}
+
+# `range(n)` counts 0 up to n-1. `range(from, to)` stops before `to`, and a
+# third argument sets the stride.
+forEach n in range(3) { print "n = ${n}" }
+forEach n in range(10, 13) { print "n = ${n}" }
+forEach n in range(0, 10, 4) { print "n = ${n}" }
+
+# `repeat` runs a block a fixed number of times. `as` names the pass, counting
+# from 1.
+repeat 3 as attempt {
+  print "attempt ${attempt} of 3"
+}
+
+# `break` leaves the loop, `continue` skips to the next pass.
+forEach n in range(10) {
+  if n > 5 { break }
+  if n.isOdd { continue }
+  print "small and even: ${n}"
+}
+
+# `while` repeats for as long as its condition holds. Venn has no assignment,
+# so nothing inside the body can move a counter the condition reads: a `while`
+# is for waiting on something outside itself, such as a server that keeps
+# answering "pending". In a program that talks to nothing, `break` is the exit,
+# and a loop with no exit at all is reported as an error rather than hanging.
+let queue = ["job-1", "job-2"]
+while queue.len > 0 {
+  print "${queue.len} still queued"
+  break
+}
+
+# Loops nest, and `break` and `continue` belong to the nearest one.
+forEach row in range(3) {
+  forEach col in range(3) {
+    if col > row { continue }
+    print "cell ${row},${col}"
+  }
+}
+
+# The item name is fresh on every pass, so a value read out of one iteration
+# has to be collected rather than assigned. `map` and `filter` are usually the
+# shorter way to say what a loop was reaching for.
+const passing = [51, 72, 34, 90].filter(n => n >= 60)
+print "passing: ${passing}, best ${passing.max}"

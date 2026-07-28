@@ -48,6 +48,22 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # When npm rejects the credentials, changesets reports a bare TypeError
+      # from deep inside its own error handling, which says nothing about what
+      # went wrong. Asking the registry first turns that into a sentence. It
+      # only warns: a run that just opens the version pull request needs no
+      # credentials at all, and should not fail for the want of them.
+      - name: Check the npm credentials
+        continue-on-error: true
+        run: |
+          if who=$(npm whoami 2>&1); then
+            echo "npm accepted the token, authenticated as $who"
+          else
+            echo "::warning::npm rejected the token: $who. Publishing will fail until the NPM_TOKEN secret is replaced."
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       # Keeps a "Version Packages" pull request up to date while changesets
       # accumulate. Merging it is what publishes.
       - name: Version or publish
@@ -60,7 +76,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
+          # Both names, for two readers of the same secret. `setup-node` writes
+          # an .npmrc that reads NODE_AUTH_TOKEN, while the action itself looks
+          # for NPM_TOKEN to decide whether it has credentials at all. With only
+          # the first, it reported none and fell back to trusted publishing,
+          # which nothing here is set up for, and the publish failed.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   sbom:
     name: SBOM

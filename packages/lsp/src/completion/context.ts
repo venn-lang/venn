@@ -14,7 +14,6 @@ const ACTION = /(?<![\w.])([A-Za-z_]\w*(?:\.\w+)*)\.(\w*)$/;
 const ANNOTATION = /@(\w*)$/;
 const FRAGMENT = /\brun\s+(\w*)$/;
 const MATCHER = /\bexpect\b\s+\S+\s+(\w*)$/;
-const WORD = /(\w*)$/;
 /**
  * Where a type goes: after the `:` of a field, a parameter or a binding, after
  * the `->` of a declared return, or after the `|` of a union.
@@ -30,7 +29,7 @@ const TYPE_POSITION = /(?:^|[^:])(?::|->|\|)\s*([A-Za-z_][\w.]*)?$/;
  * `http.on api ▮`, `print ▮`. The leading anchor keeps this to the head of a
  * statement, so `1 + ▮` and the tail of an expression are not swept in.
  */
-const ARGUMENT = /^\s*([A-Za-z_]\w*(?:\.\w+)*)\s+[^{}]*?(\w*)$/;
+const ARGUMENT = /^\s*([A-Za-z_]\w*(?:\.\w+)*)\s+[^{}]*$/;
 const FROM_PATH = /\bfrom\s+"([^"]+)"/;
 /**
  * A dot whose receiver no path can name: `1234.567.round`, `f(x).len`,
@@ -68,7 +67,7 @@ export function contextAt(text: CursorText): CompletionContext {
   return (
     optionContext(text) ??
     typeContext(text) ??
-    argumentContext(prefix) ?? { kind: "statement", from: back(prefix, WORD.exec(prefix)?.[1]) }
+    argumentContext(prefix) ?? { kind: "statement", from: back(prefix, trailingWord(prefix)) }
   );
 }
 
@@ -88,7 +87,7 @@ function typeContext(text: CursorText): CompletionContext | undefined {
 function argumentContext(prefix: string): CompletionContext | undefined {
   const found = ARGUMENT.exec(prefix);
   if (!found?.[1]) return undefined;
-  return { kind: "argument", target: found[1], from: back(prefix, found[2]) };
+  return { kind: "argument", target: found[1], from: back(prefix, trailingWord(prefix)) };
 }
 
 /**
@@ -102,7 +101,7 @@ function optionContext(text: CursorText): CompletionContext | undefined {
   if (open < 0) return undefined;
   const target = OPTION_OWNER.exec(text.before.slice(0, open))?.[1];
   if (!target) return undefined;
-  return { kind: "optionKey", target, from: back(text.prefix, WORD.exec(text.prefix)?.[1]) };
+  return { kind: "optionKey", target, from: back(text.prefix, trailingWord(text.prefix)) };
 }
 
 /** The `{` still open at the cursor, scanning backwards. */
@@ -141,4 +140,28 @@ function pathOf(line: string): string | undefined {
 
 function back(prefix: string, partial: string | undefined): number {
   return prefix.length - (partial?.length ?? 0);
+}
+
+/**
+ * The word being typed at the end of `text`, empty when the last character is
+ * not part of one.
+ *
+ * Scanned backwards rather than matched with `/(\w*)$/`. That pattern has
+ * nothing to anchor to, so the engine tries it at every position, which is
+ * quadratic in the length of the line: 27ms at ten thousand characters and
+ * 454ms at forty thousand, while a completion is meant to be instant. A line is
+ * as long as whoever wrote the file made it.
+ */
+function trailingWord(text: string): string {
+  let at = text.length;
+  while (at > 0 && isWordCharacter(text.charCodeAt(at - 1))) at -= 1;
+  return text.slice(at);
+}
+
+/** `\w`: a digit, a letter or an underscore. */
+function isWordCharacter(code: number): boolean {
+  if (code >= 48 && code <= 57) return true;
+  if (code >= 65 && code <= 90) return true;
+  if (code >= 97 && code <= 122) return true;
+  return code === 95;
 }

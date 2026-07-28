@@ -1,4 +1,5 @@
 import { cursor, readValue } from "./read-value.js";
+import { isSafeKey } from "./safe-key.js";
 import { enterSection, enterTableArray } from "./sections.js";
 
 /**
@@ -48,5 +49,6 @@ function assign(section: Record<string, unknown>, line: string): void {
     .slice(0, eq)
     .trim()
     .replace(/^["']|["']$/g, "");
+  if (!isSafeKey(key)) return;
   section[key] = readValue(cursor(line.slice(eq + 1)));
 }

@@ -56,13 +56,33 @@ jobs:
       - name: Check the npm credentials
         continue-on-error: true
         run: |
-          if who=$(npm whoami 2>&1); then
-            echo "npm accepted the token, authenticated as $who"
-          else
-            echo "::warning::npm rejected the token: $who. Publishing will fail until the NPM_TOKEN secret is replaced."
-          fi
+          echo "authenticated as: $(npm whoami 2>&1 | tail -1)"
+          echo "--- scopes this token may write to ---"
+          npm access list packages 2>&1 | tail -12 || true
+          echo "--- membership of venn-lang ---"
+          npm org ls venn-lang 2>&1 | tail -8 || true
+          echo "--- two factor ---"
+          npm profile get 2>&1 | grep -i "two.factor" || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # changesets swallows what npm said: on a non-zero exit it looks for a
+      # `summary` on the error and calls `.includes` on it, so an E403 without
+      # one throws `Cannot read properties of undefined` and the actual reason
+      # never reaches the log. Publishing one package here, with the output
+      # printed whole, is the only way to read it. A dry run would not do: it
+      # never contacts the registry, so it cannot reproduce a rejection.
+      #
+      # `types` is the one to try: nothing in the workspace has to be published
+      # before it. If it succeeds the release step finds it already published
+      # and moves on, so this costs nothing once it works.
+      - name: Publish one package to see what npm says
+        continue-on-error: true
+        working-directory: packages/types
+        run: npm publish --access public 2>&1 | tail -40
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
 
       # Keeps a "Version Packages" pull request up to date while changesets
       # accumulate. Merging it is what publishes.

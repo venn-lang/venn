@@ -1,0 +1,291 @@
+grammar Venn
+
+// Statements and declarations are separated by `NL` (a newline or `;`).
+// `NL` is suppressed inside `( )` and `[ ]` by the lexer, so calls, arg lists
+// and list literals may still span multiple physical lines.
+// Newlines follow each item rather than preceding it, so there is a single
+// leading `NL*` and no two unbounded newline consumers meet at a decision
+// point, which Chevrotain reports as ambiguous.
+entry Document:
+    NL*
+    ('module' name=QualifiedName NL*)?
+    (imports+=ImportDecl NL*)*
+    (decls+=Declaration NL*)*;
+
+ImportDecl: UseDecl | ValueImport;
+
+UseDecl: 'use' pkg=STRING ('as' alias=ID)?;
+
+ValueImport:
+    (export?='pub')? 'import'
+    ( '{' names+=ID (',' names+=ID)* '}'
+    | '*' 'as' wildcard=ID
+    | default=ID )
+    'from' path=STRING;
+
+// The top level of a file. In test mode the runner picks out the `flow`s; in
+// script mode it executes the statements top to bottom, the file itself being
+// the program. Declarations (flow/fn/type/…) only run when called.
+Declaration:
+    (annotations+=Annotation NL*)*
+    ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl | FactoryDecl | DatasetDecl
+    | ConfigDecl | MatrixDecl | ReportDecl | LifecycleDecl
+    | IfStmt | ForEachStmt | RepeatStmt | WhileStmt | ParallelStmt | RaceStmt
+    | TryStmt | RunStmt | LetStmt | ExpectStmt | ActionCall );
+
+Annotation: '@' name=ID ('(' (args=ArgList)? ')')?;
+
+FlowDecl: 'flow' title=STRING body=Block;
+
+FragmentDecl:
+    (export?='pub')? 'fragment' name=ID '(' (params=ParamList)? ')'
+    ('->' returns=TypeRef)? body=Block;
+
+// A pure function (§08: no steps, no I/O). Its body is one expression after
+// `=>`, or a block of local bindings ending in the expression it returns.
+// The last expression is the return value; `return` is optional and explicit.
+FnDecl:
+    (export?='pub')? 'fn' name=ID '(' (params=ParamList)? ')'
+    ('->' returns=TypeRef)? body=FnBody;
+
+FnBody:
+    '=>' result=Expr
+  | '{' NL* (locals+=LetStmt NL+)* 'return'? result=Expr NL* '}';
+
+// A decorator written in the language itself. The first parameter *is* the
+// target, and the type on it (`Fn`, `Flow`, `Step`, `Binding`, `Type`,
+// `Resource`, `Node`) is what this decorates, so nothing written here names a
+// node of the compiler's own tree. The parameters after it are the decorator's
+// own arguments: `@retry(3)` binds the second one. The body runs at expansion
+// time, before the program exists, so it is pure the way `fn` is. The checker
+// enforces that, not the grammar.
+DecoDecl:
+    (export?='pub')? 'deco' name=ID '(' (params=ParamList)? ')' body=Block;
+
+ConfigDecl: 'config' body=MapLit;
+MatrixDecl: 'matrix' body=MapLit;
+ReportDecl: 'report' reporters+=Expr (',' reporters+=Expr)*;
+
+TypeDecl: 'type' name=ID ('=' alias=TypeRef | body=TypeBody);
+TypeBody: '{' (',' | NL)* fields+=FieldDecl ((',' | NL)+ fields+=FieldDecl)* (',' | NL)* '}';
+// A field carries decorators like anything else. The `NL*` is what lets the
+// annotation sit on its own line, which is where everyone writes it, and it
+// cannot be mistaken for the separator between fields: a field starts with `@`
+// or a name, never with a newline.
+FieldDecl: (annotations+=Annotation NL*)* name=ID (optional?='?')? ':' fieldType=TypeRef;
+
+FactoryDecl: 'factory' name=ID body=MapLit;
+DatasetDecl: 'dataset' name=ID (':' declaredType=TypeRef)? '=' value=Expr;
+
+ParamList: params+=Param (',' params+=Param)*;
+// A parameter carries decorators too. No `NL*` here: a parameter list lives
+// inside `( )`, where the lexer already dropped the newlines.
+Param: (annotations+=Annotation)* name=ID (':' paramType=TypeRef)?;
+
+TypeRef: members+=SingleType ('|' members+=SingleType)*;
+SingleType:
+    {infer NamedType} name=QualifiedName ('<' args+=TypeRef (',' args+=TypeRef)* '>')?
+  | {infer LiteralType} value=STRING;
+
+Block: '{' NL* (stmts+=Statement (NL+ stmts+=Statement)* NL*)? '}';
+
+Statement:
+    (annotations+=Annotation NL*)*
+    ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt | WhileStmt
+    | ParallelStmt | RaceStmt | TryStmt | LifecycleDecl | LetStmt | CaptureStmt
+    | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | ActionCall );
+
+StepDecl: 'step' title=STRING body=Block;
+GroupDecl: 'group' title=STRING body=Block;
+
+IfStmt: 'if' cond=Expr then=Block ('else' otherwise=ElseBranch)?;
+ElseBranch: IfStmt | Block;
+
+ForEachStmt: 'forEach' item=ID 'in' source=Expr (opts=MapLit)? body=Block;
+RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=Block;
+WhileStmt: 'while' cond=Expr body=Block;
+
+ParallelStmt: 'parallel' (opts=MapLit)? body=Block;
+RaceStmt: 'race' (opts=MapLit)? body=Block;
+TryStmt:
+    'try' body=Block
+    ('catch' (error=ID)? handler=Block)?
+    ('finally' finalizer=Block)?;
+
+// What runs around the body rather than in it. `defer` is the lexical one: it
+// belongs to the block it is written in; the named hooks belong to the run.
+//
+// `on` reacts to an event of the *run*: `on failure`, `on success`. Not to one
+// of the machine, because a program being stopped is what `teardown` already
+// means, and a second spelling for it would make one word mean two things.
+LifecycleDecl:
+    hook=('setup' | 'teardown' | 'beforeEach' | 'afterEach' | 'defer') body=Block
+  | 'on' event=ID ('(' arg=Expr ')')? body=Block;
+
+// `let plan = "pro"` binds a value; `let auth = http.post url { … }` binds what
+// an action returned. Both are one rule: `Expr` stops before a bare argument
+// (same shape as `expect subject matcher`), so trailing args and opts, and only
+// those, mark this as a call.
+LetStmt:
+    kind=('let' | 'const') name=ID (':' declaredType=TypeRef)? '='
+    value=Expr (args+=ActionArg)* (opts=MapLit)?;
+
+// Removed from the language: `capture` and `let` mean the same thing. Still
+// parsed so the editor can say so and offer the one-word fix, instead of
+// failing with a syntax error that explains nothing.
+CaptureStmt: 'capture' name=ID '=' value=Expr (opts=MapLit)?;
+RunStmt: 'run' target=QualifiedName '(' (args=ArgList)? ')' ('as' bind=ID)?;
+ReturnStmt: {infer ReturnStmt} 'return' (value=Expr)?;
+BreakStmt: {infer BreakStmt} 'break';
+ContinueStmt: {infer ContinueStmt} 'continue';
+
+// `expect` is boolean-expression based, or a bareword matcher clause. A newline
+// (or `;`) after the subject terminates the statement, so a trailing matcher
+// word is unambiguous with the next statement's leading identifier. `.all { … }`
+// groups checks (one per line); `.soft` records without aborting.
+ExpectStmt:
+    'expect' ('.' modifier=('soft' | 'all'))?
+    ( '{' NL* (checks+=Expr (NL+ checks+=Expr)* NL*)? '}'
+    | (negate?='not')? subject=Expr (matcher=MatcherClause)? );
+
+// A registry matcher applied to the subject: `contains "x"`, `oneOf [a, b]`,
+// `closeTo 99.00 { within: 0.01 }`, `empty`. Args reuse ActionArg, never a bare
+// map: the trailing `{ … }` is always `opts`.
+MatcherClause: name=ID (args+=ActionArg)* (opts=MapLit)?;
+
+// The rule that absorbs every protocol, present and future.
+//
+// The brackets are what make a method callable for its effect alone:
+// `conn.close()` is a statement, not a value nobody reads. Which of the two a
+// dotted target means, a plugin's verb or a method on something in scope, is
+// decided by what the name resolves to, not by how the call is written.
+ActionCall:
+    target=QualifiedName (called?='(' (call=ArgList)? ')')?
+    (args+=ActionArg)* (opts=MapLit)?;
+
+// A positional argument: postfix over an Atom (member/index/call), but NEVER a
+// bare map literal, since that trailing `{ … }` is always `opts`.
+ActionArg infers Expr:
+    Atom (
+        {infer Member.receiver=current} (optional?='?.' | '.') member=ID
+      | {infer Index.receiver=current} '[' index=Expr ']'
+      | {infer Call.callee=current} '(' (args=ArgList)? ')'
+    )*;
+
+Expr: Ternary;
+
+Ternary infers Expr:
+    Coalesce ({infer Ternary.condition=current} '?' then=Expr ':' otherwise=Expr)?;
+
+Coalesce infers Expr:
+    LogicalOr ({infer Binary.left=current} operator='??' right=LogicalOr)*;
+
+LogicalOr infers Expr:
+    LogicalAnd ({infer Binary.left=current} operator='||' right=LogicalAnd)*;
+
+LogicalAnd infers Expr:
+    Equality ({infer Binary.left=current} operator='&&' right=Equality)*;
+
+Equality infers Expr:
+    Relational ({infer Binary.left=current} operator=('==' | '!=' | '~=') right=Relational)*;
+
+Relational infers Expr:
+    Additive ({infer Binary.left=current} operator=('<=' | '>=' | '<' | '>' | 'in') right=Additive)*;
+
+Additive infers Expr:
+    Multiplicative ({infer Binary.left=current} operator=('+' | '-') right=Multiplicative)*;
+
+Multiplicative infers Expr:
+    Unary ({infer Binary.left=current} operator=('*' | '/' | '%') right=Unary)*;
+
+Unary infers Expr:
+    {infer Unary} operator=('!' | '-') operand=Unary
+  | Postfix;
+
+Postfix infers Expr:
+    Primary (
+        {infer Member.receiver=current} (optional?='?.' | '.') member=Word
+      | {infer Index.receiver=current} '[' index=Expr ']'
+      | {infer Call.callee=current} '(' (args=ArgList)? ')'
+    )*;
+
+Primary infers Expr:
+    Atom | MapLit;
+
+Atom infers Expr:
+    {infer NumberLit} raw=NUMBER
+  | {infer InstantLit} value=INSTANT
+  | {infer StringLit} value=STRING
+  | {infer BoolLit} value=('true' | 'false')
+  | {infer NullLit} 'null'
+  | {infer FnExpr} 'fn' '(' (params=ParamList)? ')' ('->' returns=TypeRef)? body=FnBody
+  // The same function, written the way most people's fingers already type it:
+  // one parameter needs no brackets, more than one does. `(a) => b` and `(a)`
+  // differ only at their fourth token, which is why the parser looks that far.
+  | {infer FnExpr} params=BareParam '=>' body=ArrowBody
+  | {infer FnExpr} '(' (params=ParamList)? ')' ('->' returns=TypeRef)? '=>' body=ArrowBody
+  | {infer Ref} name=RefName
+  | ListLit
+  | '(' Expr ')';
+
+// The unbracketed parameter carries no type: `f(x: number => …)` already means
+// a named argument called `x`, and named arguments win. Annotate it and you get
+// the brackets back, which is the rule TypeScript settled on.
+BareParam infers ParamList: params+=BareParamName;
+BareParamName infers Param: name=ID;
+
+// An arrow's body is one expression. A block would read as a map literal, so
+// `{ … }` bodies keep the `fn` spelling, where the braces can't be mistaken.
+ArrowBody infers FnBody:
+    result=Expr;
+
+ListLit infers ListLit:
+    '[' (items+=Expr (',' items+=Expr)* ','?)? ']';
+
+MapLit infers MapLit:
+    '{' (',' | NL)*
+    (entries+=MapEntry ((',' | NL)+ entries+=MapEntry)* (',' | NL)*)?
+    '}';
+
+MapEntry: key=MapKey ':' value=Expr;
+MapKey returns string: Word | STRING;
+
+ArgList: args+=Arg (',' args+=Arg)*;
+Arg: (name=ID ':')? value=Expr;
+
+// A qualified name: first segment is a bare ID (never a keyword, so it can't
+// clash with a statement keyword), later segments may be keywords (ws.expect).
+QualifiedName returns string: ID ('.' Word)*;
+
+// A variable reference: a bare ID, or a keyword that is also used as a value in
+// expression position: `matrix.browser`, and the `@scope(flow|step)` lifetimes.
+// Safe: no statement starts with a bare expression, so these can't shadow a decl.
+RefName returns string: ID | 'matrix' | 'flow' | 'step';
+
+// A name in member / map-key / qualified-tail position: ID or ANY keyword.
+// Safe because none of these positions can start a statement.
+Word returns string:
+    ID | 'module' | 'use' | 'as' | 'pub' | 'import' | 'from' | 'flow'
+  | 'fragment' | 'fn' | 'deco' | 'return' | 'const' | 'let' | 'config'
+  | 'matrix' | 'report' | 'type' | 'factory' | 'dataset' | 'setup' | 'teardown'
+  | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'
+  | 'else' | 'forEach' | 'in' | 'repeat' | 'while' | 'parallel' | 'race' | 'try'
+  | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
+  | 'all' | 'soft' | 'not';
+
+// A statement terminator: one or more newlines or `;`, plus adjacent blanks.
+// Not hidden, because the parser consumes it. The lexer drops it inside ( ) and [ ].
+terminal NL: /([ \t]*(\r?\n|;)[ \t]*)+/;
+hidden terminal WS: /[ \t]+/;
+hidden terminal COMMENT: /#[^\n\r]*/;
+
+// ISO-8601 instant is a first-class literal (matched before NUMBER by maximal munch).
+terminal INSTANT: /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
+// Double- or single-quoted. Single quotes let a string appear inside a `${…}`
+// that is itself inside a double-quoted string, without escaping.
+terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+// A number with an optional unit suffix, parsed in TS (units/): "200","300ms","2mb","0.1%".
+// `_` may group digits (`1_000_000`, `9_999.999_9`) but only between them, so
+// `_1`, `1_` and `1__0` are not numbers.
+terminal NUMBER: /[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(ms|kb|mb|gb|b|s|m|h|%)?/;
+terminal ID: /[_a-zA-Z]\w*/;

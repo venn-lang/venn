@@ -77,7 +77,7 @@
     "vscode-languageserver": "catalog:"
   },
   "devDependencies": {
-    "@types/vscode": "1.90.0",
+    "@types/vscode": "1.125.0",
     "@vscode/vsce": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

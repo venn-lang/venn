@@ -136,8 +136,21 @@ jobs:
       # GitHub already derives an SPDX document from the dependency graph. This
       # one is generated from the tree that was actually installed, so it
       # describes the artefact rather than the manifest.
+      #
+      # cdxgen rather than cyclonedx-npm: the latter reads a package-lock.json,
+      # which a pnpm workspace does not have, and produced a valid document with
+      # nothing in it. `--required-only` keeps what the published packages
+      # actually carry at runtime instead of the whole build toolchain.
       - name: Generate CycloneDX SBOM
-        run: pnpm dlx @cyclonedx/cyclonedx-npm --output-format json --output-file sbom.json --omit dev
+        run: pnpm dlx @cyclonedx/cdxgen@11 -t pnpm -o sbom.json --no-recurse --required-only
+
+      # A document with no components is worse than none: it looks like an
+      # answer. This is how the empty one went unnoticed in the first place.
+      - name: Check the SBOM is not empty
+        run: |
+          count=$(node -p "require('./sbom.json').components?.length ?? 0")
+          echo "components: $count"
+          test "$count" -gt 0
 
       - name: Attach to the release
         run: gh release upload "${{ needs.release.outputs.tag }}" sbom.json --clobber

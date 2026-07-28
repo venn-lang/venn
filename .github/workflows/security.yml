@@ -13,12 +13,30 @@ permissions:
   contents: read
 
 jobs:
+  # The same decision CI makes, for the same reason: scanning a README for
+  # vulnerabilities finds none, twice a week, forever.
+  changes:
+    name: Decide what to run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.decide.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/actions/changed
+      - id: decide
+        uses: ./.github/actions/changed
+
   audit:
+    needs: changes
     name: Dependency audit
     # The release pull request only moves version numbers and changelogs, and
     # is opened by a bot, so its run would wait on a human every release. The
     # dependency tree it audits is the one main was already audited with.
-    if: github.head_ref != 'changeset-release/main'
+    if: github.head_ref != 'changeset-release/main' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -32,11 +50,12 @@ jobs:
         run: pnpm audit --audit-level=high
 
   codeql:
+    needs: changes
     name: CodeQL
     # The release pull request only moves version numbers and changelogs, and
     # is opened by a bot, so its run would wait on a human every release. The
     # dependency tree it audits is the one main was already audited with.
-    if: github.head_ref != 'changeset-release/main'
+    if: github.head_ref != 'changeset-release/main' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,8 +71,9 @@ jobs:
       - uses: github/codeql-action/analyze@v4
 
   osv:
+    needs: changes
     name: OSV scanner
-    if: github.head_ref != 'changeset-release/main'
+    if: github.head_ref != 'changeset-release/main' && needs.changes.outputs.code == 'true'
     # Called as a reusable workflow, not as a step: the repository's action.yml
     # carries only metadata and has no `runs:` section, so it cannot be a step.
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
@@ -71,12 +91,14 @@ jobs:
   # had, and a required check that never reports blocks the pull request.
   gate:
     name: Security
-    needs: [audit, codeql, osv]
+    needs: [changes, audit, codeql, osv]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Answer for the jobs above
         run: |
+          test "${{ needs.changes.result }}" = "success" || {
+            echo "::error::could not decide what to run."; exit 1; }
           for result in "${{ needs.audit.result }}" "${{ needs.codeql.result }}" "${{ needs.osv.result }}"; do
             case "$result" in
               success|skipped) ;;

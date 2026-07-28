@@ -1,8 +1,12 @@
+import { readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { installSiteOf } from "./install-site.js";
 import { isNewer } from "./latest-version.js";
 import { runUpgrade } from "./upgrade-command.js";
 import { PACKAGE_NAME, refusalFor, upgradeCommandFor } from "./upgrade-plan.js";
+import { VERSION } from "./version.js";
 
 const HOME = "/home/v";
 
@@ -173,5 +177,21 @@ describe("a dry run", () => {
     });
 
     expect(code).toBe(1);
+  });
+});
+
+describe("the version it reports", () => {
+  /**
+   * It is read by walking up from the running file, and the bundle sits at a
+   * different depth than this source, so this only proves the search finds the
+   * right manifest. That the shipped binary agrees is checked in CI, against
+   * the build, which is the only place the other depth exists.
+   */
+  it("is the one its manifest declares", async () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const manifest = JSON.parse(await readFile(join(here, "../../package.json"), "utf8"));
+
+    expect(VERSION).toBe(manifest.version);
+    expect(VERSION).not.toBe("0.0.0");
   });
 });

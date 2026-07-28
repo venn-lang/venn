@@ -75,3 +75,16 @@ jobs:
       # is a defect. This is the check that catches it.
       - name: Check the examples
         run: node packages/cli/dist/bin/venn.mjs check examples/
+
+      # Only the built binary can answer this. The version is read from the
+      # manifest by walking up from the running file, and the bundle sits at a
+      # different depth than the source it was built from, so a test running
+      # from `src` sees a path that works and says nothing about the one that
+      # ships. 0.1.0 went out reporting 0.0.0.
+      - name: Check the binary reports its own version
+        shell: bash
+        run: |
+          built=$(node packages/cli/dist/bin/venn.mjs --version)
+          declared=$(node -p "require('./packages/cli/package.json').version")
+          echo "binary says $built, manifest says $declared"
+          test "$built" = "$declared"

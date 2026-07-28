@@ -1,0 +1,36 @@
+{
+  "name": "@venn/http",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "development": "./src/node.ts",
+      "types": "./dist/node.d.mts",
+      "import": "./dist/node.mjs",
+      "default": "./dist/node.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@venn/contracts": "workspace:*",
+    "@venn/sdk": "workspace:*",
+    "@venn/types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@types/node": "catalog:"
+  }
+}

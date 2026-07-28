@@ -1,0 +1,55 @@
+# Standing a fake third party up on localhost, so its failure paths are testable.
+# Run: venn test examples/servers/05-stub-upstream.vn
+
+use "@venn/http"
+use "@venn/assert"
+
+# One server for the whole file: both flows talk to it, and it goes away once.
+const gateway = http.serve { port: 0 }
+defer { gateway.close() }
+
+http.on gateway req => charge(req.url.after("/charge/"))
+
+const base = "http://127.0.0.1:${gateway.port}"
+
+# The card number decides the answer, which is how real gateways behave and how
+# a test reaches the paths a live sandbox will not produce on demand.
+fn charge(card) => (
+  card == "4000" ? { status: 402, body: { code: "card_declined" } }
+  : card == "4001" ? { status: 500, body: { code: "gateway_error" } }
+  : { status: 201, body: { code: "approved", card: card } }
+)
+
+const cases = [
+  { card: "4242", status: 201, code: "approved" },
+  { card: "4000", status: 402, code: "card_declined" },
+  { card: "4001", status: 500, code: "gateway_error" }
+]
+
+flow "Every answer the gateway can give" {
+  step "each card gets the answer its number asks for" {
+    forEach row in cases {
+      const res = http.post "${base}/charge/${row.card}"
+
+      expect res.status == row.status
+      expect res.json.code == row.code
+    }
+  }
+}
+
+flow "The approved answer in full" {
+  step "comes back as JSON, with the card echoed" {
+    const res = http.post "${base}/charge/4242"
+
+    # `.all` runs every line and reports each one, rather than stopping at the
+    # first that fails.
+    expect.all {
+      res.status == 201
+      res.ok
+      res.json.code == "approved"
+      res.json.card == "4242"
+    }
+
+    expect res header "content-type"
+  }
+}

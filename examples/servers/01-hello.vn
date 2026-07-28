@@ -1,0 +1,19 @@
+# The smallest server that answers, and a request to it, in the same file.
+# Run: venn run examples/servers/01-hello.vn
+
+use "@venn/http"
+
+# Port 0 asks the operating system for a free port, so two runs never clash.
+const api = http.serve { port: 0 }
+
+# Whatever the handler returns is the reply. A plain string is the body.
+http.on api req => "hello from ${req.url}"
+
+const res = http.get "http://127.0.0.1:${api.port}/greet"
+
+print "bound to port ${api.port}"
+print "${res.status} ${res.body}"
+
+# A program that serves has not finished just because its last line has, so the
+# socket goes back explicitly. Without this the process would sit there serving.
+api.close()

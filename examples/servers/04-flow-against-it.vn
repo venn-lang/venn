@@ -1,0 +1,38 @@
+# A test that starts a server, calls it, asserts the answer and gives the socket
+# back with `defer`.
+# Run: venn test examples/servers/04-flow-against-it.vn
+
+use "@venn/http"
+use "@venn/assert"
+
+# Top-level statements run once, before the flows, so the server is up by the
+# time the first step asks it anything. `defer` at this level runs on the way
+# out, after the last flow, whether the run passed or failed.
+const api = http.serve { port: 0 }
+defer { api.close() }
+
+http.on api route
+
+const base = "http://127.0.0.1:${api.port}"
+
+fn route(req) => (
+  req.url == "/health" ? { ok: true, version: "1.4.0" } : { status: 404 }
+)
+
+flow "The health endpoint" {
+  step "answers 200 with a JSON body" {
+    const res = http.get "${base}/health"
+
+    expect res.status == 200
+    expect res.ok
+    expect res header "content-type"
+    expect res.json.version == "1.4.0"
+  }
+
+  step "and 404 for a path it does not know" {
+    const missing = http.get "${base}/does-not-exist"
+
+    expect missing.status == 404
+    expect not missing.ok
+  }
+}

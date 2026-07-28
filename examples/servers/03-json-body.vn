@@ -1,0 +1,30 @@
+# A JSON body in both directions: what the request sent, what the reply answered.
+# Run: venn run examples/servers/03-json-body.vn
+
+use "@venn/http"
+use "@venn/data"
+
+const api = http.serve { port: 0 }
+const base = "http://127.0.0.1:${api.port}"
+
+# `req.body` is the raw text that arrived, whatever it was, so parse it here.
+http.on api req => receipt(data.json(req.body))
+
+fn receipt(order) => {
+  status: 201,
+  headers: { location: "/orders/${order.sku}" },
+  body: { sku: order.sku, qty: order.qty, total: order.qty * order.price }
+}
+
+# A map given as `body` is sent as JSON, with the content type set for you.
+const res = http.post "${base}/orders" { body: { sku: "kb-01", qty: 3, price: 45 } }
+
+print "${res.status} created at ${res.headers.location}"
+# Single quotes inside a `${…}` so the outer double-quoted string stays whole.
+print "content type: ${res.headers['content-type']}"
+
+# `res.body` is the raw text; `res.json` is that text parsed.
+print "raw:    ${res.body}"
+print "parsed: total ${res.json.total} for ${res.json.qty} of ${res.json.sku}"
+
+api.close()

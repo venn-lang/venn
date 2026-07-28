@@ -1,0 +1,35 @@
+# Answering differently per method and per path, from one handler function.
+# Run: venn run examples/servers/02-routing.vn
+
+use "@venn/http"
+
+const api = http.serve { port: 0 }
+const base = "http://127.0.0.1:${api.port}"
+
+# The handler is an ordinary `fn`, so routing is just an expression.
+http.on api route
+
+# A map carrying `status`, `headers` or `body` is taken as a reply; anything
+# else becomes the body of a 200. `req.url` keeps the query string, so cut it
+# off before comparing paths.
+fn route(req) {
+  const path = req.url.before("?")
+  return (
+    path == "/health" ? { ok: true }
+    : path == "/orders" && req.method == "POST" ? { status: 201, body: { id: 7 } }
+    : path == "/orders" ? { status: 405, headers: { allow: "POST" } }
+    : { status: 404, body: { error: "no route for ${req.method} ${path}" } }
+  )
+}
+
+const health = http.get "${base}/health?verbose=1"
+const made = http.post "${base}/orders" { body: { sku: "abc" } }
+const wrong = http.get "${base}/orders"
+const gone = http.delete "${base}/nowhere"
+
+print "GET  /health -> ${health.status} ${health.body}"
+print "POST /orders -> ${made.status} ${made.body}"
+print "GET  /orders -> ${wrong.status}, allow: ${wrong.headers.allow}"
+print "DEL  /nowhere -> ${gone.status} ${gone.body}"
+
+api.close()

@@ -1,0 +1,107 @@
+import { type Invoke, type Method, nativeFn } from "../native.types.js";
+
+type Dict = Record<string, unknown>;
+
+/**
+ * A grouping key: what `groupBy`, `countBy` and `keyBy` file an item under.
+ *
+ * A number or a boolean converts directly; only a shape is serialised. Passing
+ * scalars through `JSON.stringify` would be both slower and wrong, since it
+ * renders `Infinity` and `NaN` as `null` and would file them alongside items
+ * whose key genuinely is null.
+ */
+function key(value: unknown): string {
+  const kind = typeof value;
+  if (kind === "string") return value as string;
+  if (kind === "number" || kind === "boolean") return String(value);
+  // `JSON.stringify` answers `undefined` (not a string) for undefined and for a
+  // function, so anything it cannot render is named rather than cast.
+  return JSON.stringify(value) ?? String(value);
+}
+
+/**
+ * The operations that are a chore to hand-roll everywhere else: grouping,
+ * partitioning, keying, counting. Each returns a new value and never mutates.
+ */
+export const LIST_GROUPING: Record<string, Method> = {
+  groupBy: (list: readonly unknown[], invoke: Invoke) =>
+    nativeFn((args) => group(list, (item, i) => key(invoke.two(args[0], item, i)))),
+  countBy: (list: readonly unknown[], invoke: Invoke) =>
+    nativeFn((args) => counts(list, (item, i) => key(invoke.two(args[0], item, i)))),
+  keyBy: (list: readonly unknown[], invoke: Invoke) =>
+    nativeFn((args) => keyed(list, (item, i) => key(invoke.two(args[0], item, i)))),
+  partition: (list: readonly unknown[], invoke: Invoke) =>
+    nativeFn((args) => split(list, (item, i) => Boolean(invoke.two(args[0], item, i)))),
+  chunk: (list: readonly unknown[]) => nativeFn((args) => chunk(list, Number(args[0] ?? 1))),
+  windows: (list: readonly unknown[]) => nativeFn((args) => windows(list, Number(args[0] ?? 2))),
+  pairwise: (list: readonly unknown[]) => windows(list, 2),
+  zip: (list: readonly unknown[]) => nativeFn((args) => zip(list, asList(args[0]))),
+  unzip: (list: readonly unknown[]) => unzip(list),
+};
+
+function group(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
+  const out: Dict = {};
+  list.forEach((item, index) => {
+    const name = keyOf(item, index);
+    out[name] = [...((out[name] as unknown[]) ?? []), item];
+  });
+  return out;
+}
+
+function counts(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
+  const out: Dict = {};
+  list.forEach((item, index) => {
+    const name = keyOf(item, index);
+    out[name] = Number(out[name] ?? 0) + 1;
+  });
+  return out;
+}
+
+/** Like `groupBy`, but the last item under a key wins: an index, not buckets. */
+function keyed(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
+  const out: Dict = {};
+  list.forEach((item, index) => {
+    out[keyOf(item, index)] = item;
+  });
+  return out;
+}
+
+function split(list: readonly unknown[], keep: (item: unknown, i: number) => boolean): unknown[][] {
+  const yes: unknown[] = [];
+  const no: unknown[] = [];
+  list.forEach((item, index) => {
+    (keep(item, index) ? yes : no).push(item);
+  });
+  return [yes, no];
+}
+
+function chunk(list: readonly unknown[], size: number): unknown[][] {
+  const step = Math.max(1, Math.trunc(size));
+  const out: unknown[][] = [];
+  for (let index = 0; index < list.length; index += step) out.push(list.slice(index, index + step));
+  return out;
+}
+
+/** Every consecutive run of `size` items: `[1,2,3].windows(2)` gives `[[1,2],[2,3]]`. */
+function windows(list: readonly unknown[], size: number): unknown[][] {
+  const width = Math.max(1, Math.trunc(size));
+  const out: unknown[][] = [];
+  for (let index = 0; index + width <= list.length; index += 1) {
+    out.push(list.slice(index, index + width));
+  }
+  return out;
+}
+
+function zip(list: readonly unknown[], other: readonly unknown[]): unknown[][] {
+  return list.slice(0, Math.min(list.length, other.length)).map((item, i) => [item, other[i]]);
+}
+
+function unzip(list: readonly unknown[]): unknown[][] {
+  const pairs = list.map((item) => (Array.isArray(item) ? item : [item]));
+  const width = pairs.reduce((most, pair) => Math.max(most, pair.length), 0);
+  return Array.from({ length: width }, (_column, index) => pairs.map((pair) => pair[index]));
+}
+
+function asList(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}

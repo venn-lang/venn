@@ -35,6 +35,19 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm -r --sort run build
 
+      # The release pull request skips CI, since it carries no code and its run
+      # would wait on a human every time. This is where that verification
+      # happens instead: on main, against exactly what is about to be published,
+      # which is a better place to check than the pull request that proposed it.
+      - name: Typecheck
+        run: pnpm -r run typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
       # Keeps a "Version Packages" pull request up to date while changesets
       # accumulate. Merging it is what publishes.
       - name: Version or publish

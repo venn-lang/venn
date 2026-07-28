@@ -15,6 +15,10 @@ permissions:
 jobs:
   audit:
     name: Dependency audit
+    # The release pull request only moves version numbers and changelogs, and
+    # is opened by a bot, so its run would wait on a human every release. The
+    # dependency tree it audits is the one main was already audited with.
+    if: github.head_ref != 'changeset-release/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -29,6 +33,10 @@ jobs:
 
   codeql:
     name: CodeQL
+    # The release pull request only moves version numbers and changelogs, and
+    # is opened by a bot, so its run would wait on a human every release. The
+    # dependency tree it audits is the one main was already audited with.
+    if: github.head_ref != 'changeset-release/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,6 +53,7 @@ jobs:
 
   osv:
     name: OSV scanner
+    if: github.head_ref != 'changeset-release/main'
     # Called as a reusable workflow, not as a step: the repository's action.yml
     # carries only metadata and has no `runs:` section, so it cannot be a step.
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8

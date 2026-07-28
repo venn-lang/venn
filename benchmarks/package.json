@@ -1,0 +1,22 @@
+{
+  "name": "@venn/benchmarks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "node src/main.ts",
+    "profile": "node --cpu-prof --cpu-prof-dir=prof-out src/profile/run-case.ts",
+    "profile:top": "node src/profile/top.mjs prof-out",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@venn/contracts": "workspace:*",
+    "@venn/core": "workspace:*",
+    "@venn/runtime": "workspace:*",
+    "@venn/stdlib": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,4 @@
+# Building maps and reading their fields, 20k times.
+const rows = range(20000).map(fn (i) => { id: i, score: i % 13 })
+
+print rows.filter(fn (r) => r.score > 6).len

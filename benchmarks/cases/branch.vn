@@ -1,0 +1,2 @@
+# A conditional and two arithmetic ops per element.
+print range(50000).reduce(fn (a, x) => x % 2 == 0 ? a + 1 : a, 0)

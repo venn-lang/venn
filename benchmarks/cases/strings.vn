@@ -1,0 +1,4 @@
+# String interpolation: 20k placeholders.
+const items = range(10000).map(fn (i) => "item-${i}-${i % 7}")
+
+print items.len

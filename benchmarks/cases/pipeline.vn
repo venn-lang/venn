@@ -1,0 +1,7 @@
+# Where Flow delegates most of the work to native methods: build records,
+# then filter, sort and group them.
+const people = range(5000).map(fn (i) => { id: i, team: i % 7, age: 20 + i % 50 })
+const seniors = people.filter(fn (p) => p.age > 40).sortBy(fn (p) => p.age)
+const total = seniors.len + people.countBy(fn (p) => p.team).len
+
+print total

@@ -1,0 +1,4 @@
+# Recursion and arithmetic: ~150k calls, nothing else.
+fn fib(n) => n < 2 ? n : fib(n - 1) + fib(n - 2)
+
+print fib(25)

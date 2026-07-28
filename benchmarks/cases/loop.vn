@@ -1,0 +1,8 @@
+# A statement loop: 50k iterations, each binding one local.
+const xs = range(50000)
+
+forEach x in xs {
+  const y = x * 2
+}
+
+print xs.len

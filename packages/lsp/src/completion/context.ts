@@ -29,7 +29,7 @@ const TYPE_POSITION = /(?:^|[^:])(?::|->|\|)\s*([A-Za-z_][\w.]*)?$/;
  * `http.on api ▮`, `print ▮`. The leading anchor keeps this to the head of a
  * statement, so `1 + ▮` and the tail of an expression are not swept in.
  */
-const ARGUMENT = /^\s*([A-Za-z_]\w*(?:\.\w+)*)\s+[^{}]*$/;
+const ARGUMENT = /^\s*([A-Za-z_]\w*(?:\.\w+)*)\s/;
 const FROM_PATH = /\bfrom\s+"([^"]+)"/;
 /**
  * A dot whose receiver no path can name: `1234.567.round`, `f(x).len`,
@@ -85,6 +85,10 @@ function typeContext(text: CursorText): CompletionContext | undefined {
 
 /** `http.on ▮`: the head of the line is a verb, and an argument is due. */
 function argumentContext(prefix: string): CompletionContext | undefined {
+  // A brace anywhere means this is a map being written, not an argument. Asked
+  // outright rather than folded into the pattern as a trailing `[^{}]*$`: that
+  // made the pattern describe the whole line to say something about its head.
+  if (prefix.includes("{") || prefix.includes("}")) return undefined;
   const found = ARGUMENT.exec(prefix);
   if (!found?.[1]) return undefined;
   return { kind: "argument", target: found[1], from: back(prefix, trailingWord(prefix)) };

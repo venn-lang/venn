@@ -65,3 +65,22 @@ jobs:
       # Covers advisories the npm registry's own database does not carry.
       scan-args: |-
         --lockfile=./pnpm-lock.yaml
+
+  # Named for the branch rule to require, for the same reason as in CI: a job
+  # skipped by a condition does not always report under the name it would have
+  # had, and a required check that never reports blocks the pull request.
+  gate:
+    name: Security
+    needs: [audit, codeql, osv]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Answer for the jobs above
+        run: |
+          for result in "${{ needs.audit.result }}" "${{ needs.codeql.result }}" "${{ needs.osv.result }}"; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "::error::a security job did not pass: $result"; exit 1 ;;
+            esac
+          done
+          echo "Nothing failed."

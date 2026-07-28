@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Covers advisories that the npm registry's own database does not.
-      - uses: google/osv-scanner-action/osv-scanner-action@v2
+      - uses: google/osv-scanner-action@v2.3.8
         with:
           scan-args: |-
             --lockfile=./pnpm-lock.yaml

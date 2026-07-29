@@ -9,6 +9,8 @@ import { PACKAGE_NAME, refusalFor, upgradeCommandFor } from "./upgrade-plan.js";
 import { VERSION } from "./version.js";
 
 const HOME = "/home/v";
+/** Somewhere unrelated, so a test says nothing about node unless it means to. */
+const NODE = "/opt/node/bin/node";
 
 /**
  * Which manager installed a copy, read from where the copy is.
@@ -38,7 +40,7 @@ describe("recognising an install", () => {
 
   for (const [name, path, manager] of cases) {
     it(`knows ${name}`, () => {
-      const site = installSiteOf({ path, cwd: "/work/suite" });
+      const site = installSiteOf({ path, cwd: "/work/suite", nodePath: NODE });
 
       expect(site.manager).toBe(manager);
       expect(site.global).toBe(true);
@@ -46,7 +48,7 @@ describe("recognising an install", () => {
   }
 
   it("says so rather than guessing when the path means nothing", () => {
-    const site = installSiteOf({ path: "/opt/somewhere/venn.mjs", cwd: "/work" });
+    const site = installSiteOf({ path: "/opt/somewhere/venn.mjs", cwd: "/work", nodePath: NODE });
 
     expect(site.manager).toBe("unknown");
   });
@@ -56,6 +58,7 @@ describe("recognising an install", () => {
     const site = installSiteOf({
       path: "/work/suite/node_modules/@venn-lang/cli/dist/bin/venn.mjs",
       cwd: "/work/suite",
+      nodePath: NODE,
     });
 
     expect(site.manager).toBe("npm");
@@ -70,10 +73,12 @@ describe("recognising an install", () => {
     const asUrl = installSiteOf({
       path: "file:///work/suite/node_modules/@venn-lang/cli/dist/bin/venn.mjs",
       cwd: "/work/suite",
+      nodePath: NODE,
     });
     const asPath = installSiteOf({
       path: "/work/suite/node_modules/@venn-lang/cli/dist/bin/venn.mjs",
       cwd: "/work/suite",
+      nodePath: NODE,
     });
 
     expect(asPath.global).toBe(false);
@@ -93,14 +98,43 @@ describe("recognising an install", () => {
     ];
 
     for (const path of roots) {
-      expect(installSiteOf({ path, cwd: "c:/users/v" }).global).toBe(true);
+      expect(installSiteOf({ path, cwd: "c:/users/v", nodePath: NODE }).global).toBe(true);
     }
+  });
+
+  /**
+   * The install that broke it. `C:\nvm4w\nodejs` is a link to the version
+   * directory, node resolves it before any of this sees it, and no list of
+   * directory names would have had `v24.17.0` in it. Every global install under
+   * a version manager was read as a project's and left alone.
+   */
+  it("knows an install beside node is global, wherever a version manager put node", () => {
+    const site = installSiteOf({
+      path: "C:/Users/v/AppData/Local/nvm/v24.17.0/node_modules/@venn-lang/cli/dist/cli.mjs",
+      cwd: "C:/Users/v/AppData/Local/nvm/v24.17.0",
+      nodePath: "C:/Users/v/AppData/Local/nvm/v24.17.0/node.exe",
+    });
+
+    expect(site.manager).toBe("npm");
+    expect(site.global).toBe(true);
+  });
+
+  /** The same on unix, where npm puts them under a `lib` beside the binary. */
+  it("knows an install under node's lib is global", () => {
+    const site = installSiteOf({
+      path: "/home/v/.nvm/versions/node/v24.17.0/lib/node_modules/@venn-lang/cli/x.mjs",
+      cwd: "/home/v/.nvm/versions/node/v24.17.0",
+      nodePath: "/home/v/.nvm/versions/node/v24.17.0/bin/node",
+    });
+
+    expect(site.global).toBe(true);
   });
 
   it("reads a windows path the same as any other", () => {
     const site = installSiteOf({
       path: "C:\\Users\\V\\AppData\\Local\\pnpm\\global\\5\\node_modules\\@venn-lang\\cli\\x.mjs",
       cwd: "C:\\work",
+      nodePath: NODE,
     });
 
     expect(site.manager).toBe("pnpm");

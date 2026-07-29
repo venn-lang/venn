@@ -2,9 +2,12 @@ import type { InstallSite, PackageManager } from "./upgrade.types.js";
 
 /**
  * Where each manager keeps what it installed for the user rather than for a
- * project. A copy sitting under one of these is global wherever it was invoked
- * from, which matters because several of them live under the home directory:
- * running from `~` would otherwise make a global install look like a local one.
+ * project. A copy under one of these is global wherever it was invoked from,
+ * which matters because several live under the home directory: running from `~`
+ * would otherwise make a global install look like a project's.
+ *
+ * The list cannot be complete on its own, since npm follows wherever a version
+ * manager puts node. {@link isBesideNode} covers what it cannot name.
  */
 const GLOBAL_ROOTS: readonly string[] = [
   "/pnpm/global/",
@@ -23,21 +26,21 @@ const GLOBAL_ROOTS: readonly string[] = [
  * running, and is empty when the binary is invoked directly, which is every
  * time anyone actually uses it.
  *
- * Each manager keeps its global root somewhere unmistakable, so the path is
- * enough to tell them apart on all three operating systems.
- *
  * @param path Where the running CLI lives. Must be a plain path: pass
  * `fileURLToPath(import.meta.url)`, since a `file:///` URL would be read as
  * living outside every project.
  * @param cwd The directory the user invoked it from.
+ * @param nodePath The node binary running this, from `process.execPath`.
  * @returns The manager and whether the install is global, or `unknown` when the
  * path matches nothing recognisable.
  */
-export function installSiteOf(args: { path: string; cwd: string }): InstallSite {
+export function installSiteOf(args: { path: string; cwd: string; nodePath: string }): InstallSite {
   const path = normalise(args.path);
   const manager = managerOf(path);
   if (!manager) return { manager: "unknown", global: false };
-  return { manager, global: isGlobal(path, normalise(args.cwd)) };
+  const cwd = normalise(args.cwd);
+  const node = normalise(args.nodePath);
+  return { manager, global: isGlobal({ path, cwd, node }) };
 }
 
 function normalise(path: string): string {
@@ -53,18 +56,38 @@ function managerOf(path: string): PackageManager | undefined {
 
 /**
  * A copy under the working directory belongs to that project, not to the user,
- * unless it sits in a global root that happens to be an ancestor of it.
+ * unless it sits somewhere only a global install can be.
  *
  * Upgrading a copy the project owns would move a version its manifest still
  * pins, so the next install would put the old one back and the user would be
  * left wondering which of the two is running.
  */
-function isGlobal(path: string, cwd: string): boolean {
-  if (isGlobalRoot(path)) return true;
-  return !path.startsWith(`${cwd}/`);
+function isGlobal(args: { path: string; cwd: string; node: string }): boolean {
+  if (GLOBAL_ROOTS.some((root) => args.path.includes(root))) return true;
+  if (args.path.includes("/yarn/") && args.path.includes("/global/")) return true;
+  if (isBesideNode(args.path, args.node)) return true;
+  return !args.path.startsWith(`${args.cwd}/`);
 }
 
-function isGlobalRoot(path: string): boolean {
-  if (GLOBAL_ROOTS.some((root) => path.includes(root))) return true;
-  return path.includes("/yarn/") && path.includes("/global/");
+/**
+ * npm keeps its global packages beside the node binary: alongside it on
+ * Windows, under a sibling `lib` elsewhere.
+ *
+ * Asked of node rather than matched against a list of directory names, because
+ * a version manager puts node wherever it likes and the global root follows it
+ * there. `C:\nvm4w\nodejs` is a link to `AppData\Local\nvm\v24.17.0`, which
+ * node resolves before anything here sees it, and no list would have had that
+ * name in it. The upgrade then read every global install as a project's and
+ * refused to touch it.
+ */
+function isBesideNode(path: string, node: string): boolean {
+  const directory = parentOf(node);
+  if (directory === "") return false;
+  if (path.startsWith(`${directory}/node_modules/`)) return true;
+  return path.startsWith(`${parentOf(directory)}/lib/node_modules/`);
+}
+
+function parentOf(path: string): string {
+  const at = path.lastIndexOf("/");
+  return at === -1 ? "" : path.slice(0, at);
 }

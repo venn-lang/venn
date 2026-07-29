@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/db",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "The db namespace: seed tables, run statements and snapshot state, all through the DbClient port.",
   "keywords": [
     "venn",

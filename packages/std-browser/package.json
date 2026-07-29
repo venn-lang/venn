@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/browser",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "The browser namespace: sixteen verbs that drive a page, plus two element matchers and the ports the driving actually goes through.",
   "keywords": [
     "venn",

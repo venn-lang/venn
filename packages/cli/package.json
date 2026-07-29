@@ -21,7 +21,8 @@
   "type": "module",
   "bin": {
     "venn-run": "./dist/bin/venn-run.mjs",
-    "venn-lsp": "./dist/bin/venn-lsp.mjs"
+    "venn-lsp": "./dist/bin/venn-lsp.mjs",
+    "venn": "./dist/bin/venn.mjs"
   },
   "exports": {
     ".": {

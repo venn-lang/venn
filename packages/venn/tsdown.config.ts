@@ -4,7 +4,7 @@ import { defineConfig } from "tsdown";
 // dependency tree. The orchestrator runs before every command, so what it
 // costs is paid every time.
 export default defineConfig({
-  entry: { "bin/venn": "src/bin/venn.ts" },
+  entry: { "bin/venn": "src/bin/venn.ts", "bin/prepare": "src/bin/prepare.ts" },
   format: ["esm"],
   platform: "node",
   deps: { alwaysBundle: [/.*/] },

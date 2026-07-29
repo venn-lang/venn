@@ -6,9 +6,17 @@
 npm install -g @venn-lang/venn
 ```
 
-That installs about 90 KB and no compiler. The language is a thing this fetches
+That installs about 100 KB and no compiler. The language is a thing this fetches
 and keeps, one directory per version, so two projects on the same machine can be
 on two versions and neither has to know.
+
+A `postinstall` fetches the newest version so the first command does not wait.
+It is only an optimisation: `--ignore-scripts` is ordinary practice, and this
+repository uses it in five places of its own CI, so nothing depends on it having
+run. With scripts ignored the first command fetches the language and says so,
+and the second one starts immediately. Either way `npm i -g` leaves a working
+`venn`, and a registry that could not be reached during install is not a reason
+for the install to fail.
 
 ```bash
 cd my-suite

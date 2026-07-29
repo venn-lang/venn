@@ -10,7 +10,7 @@
  * Usage: node scripts/changeset-from-pr.mjs "<pr title>" <changed file>...
  */
 
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const PACKAGES = "packages";
@@ -54,10 +54,24 @@ async function publishedNames(dirs) {
   return (await Promise.all(read)).filter(Boolean).sort();
 }
 
-/** A changeset already written by hand, which this must not overwrite. */
-async function alreadyWritten() {
-  const entries = await readdir(CHANGESETS).catch(() => []);
-  return entries.some((entry) => entry.endsWith(".md") && entry !== "README.md");
+/**
+ * A changeset this branch brought by hand, which must not be overwritten.
+ *
+ * Asked of the files the pull request changed, not of the directory. A
+ * changeset waiting there for a release that has not gone out yet belongs to
+ * another branch, and reading it as this one's leaves every pull request
+ * opened in the meantime out of the changelog.
+ *
+ * The generated file is excluded, so editing the title still rewrites it.
+ */
+function writtenByHand(args) {
+  const mine = fileName(args.slug).replaceAll("\\", "/");
+  const isOne = (file) =>
+    file.startsWith(`${CHANGESETS}/`) &&
+    file.endsWith(".md") &&
+    file !== `${CHANGESETS}/README.md` &&
+    file !== mine;
+  return args.files.map((file) => file.replaceAll("\\", "/")).some(isOne);
 }
 
 function body(args) {
@@ -79,7 +93,8 @@ async function main() {
   const [title, ...files] = process.argv.slice(2);
   if (!title) throw new Error('usage: node scripts/changeset-from-pr.mjs "<title>" <files...>');
 
-  if (await alreadyWritten()) return skip("A changeset is already here, leaving it alone.");
+  const slug = process.env.BRANCH || "auto";
+  if (writtenByHand({ files, slug })) return skip("This branch wrote its own, leaving it alone.");
   if (!touchesSource(files)) return skip("No published source changed, nothing to release.");
 
   const parsed = parse(title);
@@ -89,7 +104,7 @@ async function main() {
   const names = await publishedNames(dirsTouched(files));
   if (names.length === 0) return skip("Only private packages changed.");
 
-  const path = fileName(process.env.BRANCH || "auto");
+  const path = fileName(slug);
   await writeFile(path, body({ names, bump: parsed.bump, subject: parsed.subject }), "utf8");
   process.stdout.write(`Wrote ${path}: ${parsed.bump} for ${names.join(", ")}\n`);
 }

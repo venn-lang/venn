@@ -6,7 +6,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: { conditions: ["development"] },
   test: {
-    projects: ["packages/*"],
+    projects: ["packages/*", "scripts"],
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "lcov", "json-summary"],

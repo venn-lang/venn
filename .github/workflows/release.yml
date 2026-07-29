@@ -12,7 +12,32 @@ permissions:
   contents: read
 
 jobs:
+  # Publishing prose releases nothing, and this job builds, typechecks, lints
+  # and tests the whole workspace before it finds that out. A README merged to
+  # main was costing seven minutes to decide there was nothing to do.
+  #
+  # A changeset counts as code here even though it is Markdown: a merge that
+  # brings one has a version pull request to refresh, and skipping that would
+  # lose the changelog entry the same way #100 did.
+  changes:
+    name: Decide whether there is a release to prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.decide.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/actions/changed
+      - id: decide
+        uses: ./.github/actions/changed
+        with:
+          also: '^\.changeset/'
+
   release:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     outputs:
       # Empty on a run that only refreshed the version pull request, which is

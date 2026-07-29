@@ -1,12 +1,12 @@
 // Opening `[a.b]` or `[[a.b]]`: working out where the keys that follow go.
 
-import { isSafeKey } from "./safe-key.js";
+import { emptyTable } from "./table.js";
 
 /** The table `[path]` names, created along the way if it is not there yet. */
 export function enterSection(root: Record<string, unknown>, path: string): Record<string, unknown> {
   let node = root;
   for (const key of keysOf(path)) {
-    node[key] ??= {};
+    node[key] ??= emptyTable();
     node = node[key] as Record<string, unknown>;
   }
   return node;
@@ -28,7 +28,7 @@ export function enterTableArray(
   const parent = enterSection(root, keys.join("."));
   const found = Array.isArray(parent[last]) ? (parent[last] as unknown[]) : [];
   parent[last] = found;
-  const table: Record<string, unknown> = {};
+  const table = emptyTable();
   found.push(table);
   return table;
 }
@@ -37,5 +37,5 @@ function keysOf(path: string): string[] {
   return path
     .split(".")
     .map((part) => part.trim().replace(/^["']|["']$/g, ""))
-    .filter((part) => part !== "" && isSafeKey(part));
+    .filter((part) => part !== "");
 }

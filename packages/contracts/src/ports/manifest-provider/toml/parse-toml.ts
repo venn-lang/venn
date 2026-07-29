@@ -1,6 +1,6 @@
 import { cursor, readValue } from "./read-value.js";
-import { isSafeKey } from "./safe-key.js";
 import { enterSection, enterTableArray } from "./sections.js";
+import { emptyTable } from "./table.js";
 
 /**
  * A TOML reader for `venn.toml`: sections, nested `[a.b]`, arrays of tables
@@ -13,7 +13,7 @@ import { enterSection, enterTableArray } from "./sections.js";
  * @returns the root table. Malformed lines are skipped, never thrown on.
  */
 export function parseToml(content: string): Record<string, unknown> {
-  const root: Record<string, unknown> = {};
+  const root = emptyTable();
   let section = root;
   for (const raw of content.split(/\r?\n/)) {
     const line = stripComment(raw).trim();
@@ -49,6 +49,5 @@ function assign(section: Record<string, unknown>, line: string): void {
     .slice(0, eq)
     .trim()
     .replace(/^["']|["']$/g, "");
-  if (!isSafeKey(key)) return;
   section[key] = readValue(cursor(line.slice(eq + 1)));
 }

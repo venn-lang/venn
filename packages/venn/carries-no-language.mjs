@@ -14,6 +14,7 @@
 
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 /** What the orchestrator may depend on. Everything else is the language. */
 const ALLOWED = new Set(["@venn-lang/contracts", "@venn-lang/toolchain"]);
@@ -30,7 +31,10 @@ for (const name of Object.keys(manifest.dependencies ?? {})) {
   }
 }
 
-for (const file of await sourceFiles(new URL("./src", import.meta.url).pathname.slice(1))) {
+// `fileURLToPath`, not `pathname`: on Windows the path arrives as `/E:/…` and
+// needs its leading slash removed, on Linux `/home/…` needs it kept. Slicing
+// it off passed on one and looked for `home/runner/…` on the other.
+for (const file of await sourceFiles(fileURLToPath(new URL("./src", import.meta.url)))) {
   const source = await readFile(file, "utf8");
   for (const [, imported] of source.matchAll(/from\s+"(@venn-lang\/[^"]+)"/g)) {
     const [scope, name] = imported.split("/");

@@ -17,6 +17,11 @@ export interface TypeMismatch {
   expected: Type;
   actual: Type;
   note?: string;
+  /**
+   * The whole title, for a clash the checker can describe better than the two
+   * types can. Used where naming the types explains nothing about the mistake.
+   */
+  sentence?: string;
   /** A unit clash rather than a plain type clash: VN3012 instead of VN3010. */
   unit?: boolean;
 }

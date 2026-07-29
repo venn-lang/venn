@@ -1,17 +1,18 @@
 /**
  * The one syntax error worth explaining rather than reporting.
  *
- * An argument written without brackets is a value and its postfixes, never an
- * operation: `print 300ms + 1s` stops at the `+`. The grammar is deliberate,
- * since `a - b` after a call that takes several arguments could as easily be two
- * of them, but the parser's own words ("Expecting token of type EOF but found
- * `+`") explain none of that and everybody hits it.
+ * An argument is one value and its accesses: `x`, `x.y`, `x[0]`, `f(1)`. An
+ * operator is not part of it, so `print 300ms + 1s` stops at the `+`.
+ *
+ * That is the same rule Haskell, Elm, OCaml and F# use, and for the same reason:
+ * arguments are separated by spaces, so `print a b` is two of them, and a
+ * grammar cannot also read `print a - b` as one. What those languages get right
+ * is the message, which is what this is.
  */
 
-/** Every operator that only ever joins two values, and `-`, which also negates. */
-const BINARY = new Set([
+/** Operators that cannot begin a value, so the reading is never in doubt. */
+const JOINING = new Set([
   "+",
-  "-",
   "*",
   "/",
   "%",
@@ -28,11 +29,22 @@ const BINARY = new Set([
   "in",
 ]);
 
+/**
+ * `-` also negates, so `print a - b` could in principle be two arguments, the
+ * second negative. It cannot: `print a (-1)` reads as calling `a`, because
+ * brackets after a value are always a call, so there is no way to write that and
+ * nothing to be ambiguous with. It is read as the subtraction, which is what
+ * Haskell, Elm and OCaml read it as too.
+ */
+const NEGATES = "-";
+
 /** Long enough to be unreadable as a suggestion, and probably not one line. */
 const TOO_LONG = 60;
 
 /** What can be called: a name, or a dotted one such as `http.get`. */
 const CALLED = /^[A-Za-z_][\w.]*$/;
+
+const RULE = "An argument is one value, so";
 
 /**
  * A title in the language's own words, when this is that error.
@@ -46,33 +58,55 @@ export function bracketTheArgument(args: {
   text: string;
   offset: number;
 }): string | undefined {
-  if (!BINARY.has(args.operator)) return undefined;
-  const fix = suggestion({ text: args.text, offset: args.offset });
-  const lead = `An argument cannot hold \`${args.operator}\` unless it is bracketed.`;
-  return fix ? `${lead} Write \`${fix}\`.` : `${lead} Put brackets around the whole argument.`;
+  const { operator } = args;
+  if (operator !== NEGATES && !JOINING.has(operator)) return undefined;
+  const lead = `${RULE} \`${operator}\` has to be bracketed.`;
+  const parts = readLine(args);
+  if (!parts) return `${lead} Put brackets around the whole argument.`;
+  return `${lead} ${advice({ parts, operator })}`;
+}
+
+/** What the line is made of, or nothing when no suggestion can be trusted. */
+interface Parts {
+  /** What is being called: the first word on the line. */
+  called: string;
+  /** Everything between it and the operator, which may be empty. */
+  before: string;
+  /** What comes after the operator. */
+  operand: string;
 }
 
 /**
- * The line rewritten with the argument bracketed.
+ * What to write instead.
  *
- * The first word is what is being called, and everything after it is the
- * argument, which holds for the shape people actually write. Left out entirely
- * when the line is long or carries a block, since a suggestion that does not
- * quite work is worse than none.
+ * With nothing before the operator it is negating, and there is one reading. A
+ * `-` with something before it is either a subtraction or a negative argument,
+ * and guessing would silently pick one, so both are offered.
  */
-function suggestion(args: { text: string; offset: number }): string | undefined {
-  const line = lineAt(args);
-  if (line.length > TOO_LONG || /[{}#]/.test(line)) return undefined;
-  const at = line.indexOf(" ");
-  if (at <= 0) return undefined;
-  const called = line.slice(0, at);
-  const argument = line.slice(at + 1).trim();
-  if (!CALLED.test(called) || argument.length === 0) return undefined;
-  return `${called} (${argument})`;
+function advice(args: { parts: Parts; operator: string }): string {
+  const { called, before, operand } = args.parts;
+  const inside =
+    before === "" ? `${args.operator}${operand}` : `${before} ${args.operator} ${operand}`;
+  return `Write \`${called} (${inside})\`.`;
 }
 
-function lineAt(args: { text: string; offset: number }): string {
-  const before = args.text.lastIndexOf("\n", args.offset) + 1;
-  const after = args.text.indexOf("\n", args.offset);
-  return args.text.slice(before, after === -1 ? undefined : after).trim();
+/**
+ * The line split at the operator.
+ *
+ * Left out entirely when the line is long, carries a block, or has nothing
+ * callable at the front, since a suggestion that does not quite work is worse
+ * than none.
+ */
+function readLine(args: { text: string; offset: number; operator: string }): Parts | undefined {
+  const start = args.text.lastIndexOf("\n", args.offset) + 1;
+  const end = args.text.indexOf("\n", args.offset);
+  const line = args.text.slice(start, end === -1 ? undefined : end);
+  if (line.trim().length > TOO_LONG || /[{}#]/.test(line)) return undefined;
+  const at = line.indexOf(" ");
+  const called = at > 0 ? line.slice(0, at) : "";
+  if (!CALLED.test(called)) return undefined;
+  const operator = args.offset - start;
+  const before = line.slice(at, operator).trim();
+  const operand = line.slice(operator + args.operator.length).trim();
+  return operand === "" ? undefined : { called, before, operand };
 }

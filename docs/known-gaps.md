@@ -70,25 +70,23 @@ This is the gap most likely to hurt a real project.
 
 ## 5. A bare argument cannot hold a binary operator
 
-**Half closed.** It still surprises everyone, but it no longer leaves them guessing.
+**Closed as intended, with a message that says so.**
 
 ```ruby
-print 300ms + 1s      # syntax error
-print (300ms + 1s)    # fine
-print a ?? b          # syntax error
+print 300ms + 1s
+# An argument is one value, so `+` has to be bracketed. Write `print (300ms + 1s)`.
 ```
 
-An unparenthesised argument to an action call parses as an `ActionArg`, which
-does not admit binary operators. **The message now explains it**, and writes out
-the line to use:
+An argument is one value and its accesses: `x`, `x.y`, `x[0]`, `f(1)`. This is
+the rule Haskell, Elm, OCaml and F# use, and for the same reason: arguments are
+separated by spaces, so `print a b` is two of them, and no grammar can also read
+`print a - b` as one.
 
-```
-An argument cannot hold `+` unless it is bracketed. Write `print (300ms + 1s)`.
-```
-
-The grammar still refuses. Accepting `print a - b` means deciding whether that
-is one argument or two, since `-` also negates, and that is a change to the
-language rather than a fix to a message.
+The `-` looks like it should be ambiguous, since it negates as well as
+subtracts, so `print a -1` could be two arguments with a negative second one.
+It cannot be written: brackets after a value are a call, so `print a (-1)` calls
+`a`. Passing a negative value as a second argument has no spelling at all, which
+is [#116](https://github.com/venn-lang/venn/issues/116) rather than this.
 
 ## 6. A `Type` decorator runs but cannot type-check
 

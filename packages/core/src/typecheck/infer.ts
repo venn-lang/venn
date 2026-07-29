@@ -21,6 +21,7 @@ import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { callType } from "./action-signature.js";
 import { memberType } from "./builtins.js";
+import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
@@ -258,6 +259,11 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
   const args = (expr.args?.args ?? []).map((arg) => inferExpr(arg.value, env, infer));
   if (callee.kind === "dynamic") return DYNAMIC;
   const result = infer.ctx.fresh();
+  const sentence = callingAValue({ expr, callee });
+  if (sentence) {
+    infer.ctx.mismatches.push({ node: expr, expected: callee, actual: DYNAMIC, sentence });
+    return DYNAMIC;
+  }
   expect(infer, expr, callee, fn(args, result));
   return result;
 }

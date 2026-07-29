@@ -126,6 +126,11 @@ function thanks(entries) {
   return `**${lead} ${credited}.**\n`;
 }
 
+/**
+ * `@venn-lang/venn` is the one to name. It is the command, and it fetches a
+ * version of the language for itself. `@venn-lang/cli` is one of those
+ * versions, and since 0.2.0 installing it leaves you with no `venn` at all.
+ */
 function footer(args) {
   return [
     "---",
@@ -133,7 +138,7 @@ function footer(args) {
     `All ${args.total} packages are published at \`${args.version}\`.`,
     "",
     "```bash",
-    "npm install -g @venn-lang/cli",
+    "npm install -g @venn-lang/venn",
     "venn --version",
     "```",
   ].join("\n");

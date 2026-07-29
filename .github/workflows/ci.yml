@@ -101,7 +101,7 @@ jobs:
       # The examples are documentation, and documentation that stopped working
       # is a defect. This is the check that catches it.
       - name: Check the examples
-        run: node packages/cli/dist/bin/venn.mjs check examples/
+        run: node packages/cli/dist/bin/venn-run.mjs check examples/
 
       # Only the built binary can answer this. The version is read from the
       # manifest by walking up from the running file, and the bundle sits at a
@@ -111,7 +111,7 @@ jobs:
       - name: Check the binary reports its own version
         shell: bash
         run: |
-          built=$(node packages/cli/dist/bin/venn.mjs --version)
+          built=$(node packages/cli/dist/bin/venn-run.mjs --version)
           declared=$(node -p "require('./packages/cli/package.json').version")
           echo "binary says $built, manifest says $declared"
           test "$built" = "$declared"

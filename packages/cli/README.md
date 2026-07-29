@@ -1,6 +1,20 @@
 # @venn-lang/cli
 
-> The `venn` binary: one command for starting, checking, running and testing a Venn project.
+> A version of the language: the commands, the compiler, the runtime, the standard library, and the server that speaks for them.
+
+This is not what you install. [`@venn-lang/venn`](../venn) is, and it fetches
+one of these per version into `~/.venn/versions/`, so two projects on one
+machine can be on two versions.
+
+It offers two entry points, which is what the orchestrator looks for:
+
+| | |
+| --- | --- |
+| `venn-run` | the commands, which `venn` hands over to |
+| `venn-lsp` | the language server, which an editor starts |
+
+Both are bundled whole. The tarball is unpacked on its own, with no install step
+to fetch anything else it might have depended on.
 
 This is the only package that touches `node:*`. It builds the `Host`, binds the real
 implementations behind every port (filesystem, HTTP client, HTTP server, console, spawn) and hands
@@ -32,7 +46,7 @@ The repository is not published, so from a source checkout the binary is:
 
 ```bash
 pnpm --filter @venn-lang/cli build
-node packages/cli/dist/bin/venn.mjs test examples/
+node packages/cli/dist/bin/venn-run.mjs test examples/
 ```
 
 ## Commands

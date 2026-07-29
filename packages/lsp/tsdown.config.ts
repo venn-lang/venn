@@ -1,9 +1,11 @@
 import { defineConfig } from "tsdown";
 
-// The language server targets Node (stdio transport + NodeFileSystem), so it
-// builds like the CLI: `.mjs`, with `bin/venn-lsp.ts` as the executable.
+// A library, not a binary. The executable lives in the language package, which
+// is what a version of Venn installs: the orchestrator unpacks one thing per
+// version, and an editor asking for the server has to find it beside the
+// commands rather than in a second package that was never fetched.
 export default defineConfig({
-  entry: ["src/index.ts", "src/bin/venn-lsp.ts"],
+  entry: ["src/index.ts"],
   format: ["esm"],
   platform: "node",
   dts: true,

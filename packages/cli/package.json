@@ -20,7 +20,8 @@
   "author": "Vinicius Borges",
   "type": "module",
   "bin": {
-    "venn": "./dist/bin/venn.mjs"
+    "venn-run": "./dist/bin/venn-run.mjs",
+    "venn-lsp": "./dist/bin/venn-lsp.mjs"
   },
   "exports": {
     ".": {
@@ -51,12 +52,14 @@
     "@venn-lang/dts": "workspace:*",
     "@venn-lang/http": "workspace:*",
     "@venn-lang/io": "workspace:*",
+    "@venn-lang/lsp": "workspace:*",
     "@venn-lang/project": "workspace:*",
     "@venn-lang/runtime": "workspace:*",
     "@venn-lang/sdk": "workspace:*",
     "@venn-lang/stdlib": "workspace:*",
     "@venn-lang/types": "workspace:*",
-    "citty": "catalog:"
+    "citty": "catalog:",
+    "vscode-languageserver": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

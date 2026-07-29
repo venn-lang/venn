@@ -20,9 +20,6 @@
   "license": "MIT",
   "author": "Vinicius Borges",
   "type": "module",
-  "bin": {
-    "venn-lsp": "./dist/bin/venn-lsp.mjs"
-  },
   "exports": {
     ".": {
       "development": "./src/index.ts",

@@ -16,7 +16,7 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "changeset": "changeset",
-    "venn": "node packages/cli/dist/bin/venn.mjs",
+    "venn": "node packages/cli/dist/bin/venn-run.mjs",
     "venn:build": "pnpm -r --sort --filter \"@venn-lang/cli...\" run build",
     "vscode:build": "pnpm -r --sort --filter \"venn...\" run build",
     "vscode:install": "pnpm run vscode:build && node scripts/install-vscode-extension.mjs",

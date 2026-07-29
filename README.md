@@ -48,10 +48,12 @@ no mocking framework to learn. The language already knows what a test is.
 ## Install
 
 ```bash
-npm install -g @venn-lang/cli
+npm install -g @venn-lang/venn
 ```
 
-Needs Node 24. Then:
+Needs Node 24. That installs the `venn` command, which is small and carries no
+language of its own: it fetches the newest one in the background, and hands
+each project to the version that project asked for. Then:
 
 ```bash
 venn new my-suite && cd my-suite
@@ -85,8 +87,8 @@ venn test
 ```
 
 `venn run src/main.vn` runs a file as a program, `venn check .` checks without
-running, and `venn upgrade` moves you to the next release. Full command list
-under [Tooling](#tooling).
+running, and `venn version` is how a machine holds more than one version of the
+language at a time. Full command list under [Tooling](#tooling).
 
 ---
 
@@ -374,6 +376,24 @@ venn fmt .             # format in place
 venn build             # check every target and record the build
 venn add zod           # add an npm dependency
 ```
+
+And one more, for the versions of the language themselves:
+
+```bash
+venn version list          # what is installed, and which one this directory uses
+venn version install 0.2   # fetch one, or the newest a range allows
+venn version use 0.2       # pin this directory to it, in venn.toml
+venn version remove 0.1.3  # take one off the machine
+```
+
+`list` marks the one in use and says where that came from, because someone
+asking has usually just been surprised by the answer, and seeing that a
+`venn.toml` two directories up asked for `0.2.x` ends the question.
+
+A project pins its version in `venn.toml`, so everyone working on it runs the
+same compiler, and moving to a new one is a change to a file that is reviewed
+like any other. The editor reads the same pin, so what it underlines is what
+`venn check` prints.
 
 The language server is complete: hover, completion, go to definition, find all
 references, rename, signature help, document highlight, semantic highlighting and

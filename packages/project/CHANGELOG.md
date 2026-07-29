@@ -1,5 +1,12 @@
 # @venn-lang/project
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.2.0
+
 ## 0.1.3
 
 ### Patch Changes

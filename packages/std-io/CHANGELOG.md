@@ -1,5 +1,14 @@
 # @venn-lang/io
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.2.0
+  - @venn-lang/sdk@0.2.0
+  - @venn-lang/types@0.2.0
+
 ## 0.1.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/env",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "The env namespace: the variables venn.toml declares, read as env.NAME.",
   "keywords": [
     "venn",

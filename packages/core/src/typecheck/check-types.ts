@@ -217,6 +217,7 @@ function problem(mismatch: TypeMismatch, uri: string): Problem {
 
 /** A unit clash already reads as a sentence; anything else is a type mismatch. */
 function titleOf(mismatch: TypeMismatch): string {
+  if (mismatch.sentence) return mismatch.sentence;
   if (mismatch.unit) return mismatch.note ?? "These values cannot be combined.";
   if (mismatch.note) return `Type ${showType(mismatch.expected)} ${mismatch.note}.`;
   return `Type mismatch: expected ${showType(mismatch.expected)}, found ${showType(mismatch.actual)}.`;

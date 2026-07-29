@@ -46,8 +46,6 @@ following the spec today writes code that does not compile.
 
 ## 3. Optional chaining fails the checker on a known shape
 
-**Severity: medium.**
-
 ```ruby
 type User { name: string, address: { city: string } }
 const user: User = { name: "a", address: { city: "b" } }
@@ -55,10 +53,9 @@ const user: User = { name: "a", address: { city: "b" } }
 print user.address?.postcode    # runs fine, prints nothing
 ```
 
-`venn check` rejects it with VN3010 ("Type `{ city: string }` has no field
-`postcode`"). The point of `?.` is to ask about a field that may be missing, so
-the checker refusing the question makes the operator useless exactly where the
-type is known. It only checks clean when the receiver's type is open.
+**Closed.** `?.` asks whether something is there, so "no" is an answer rather
+than an error. A plain `.` still says the member is there, and is still wrong
+when it is not, and a field that does exist keeps its type either way.
 
 ## 4. `pub` covers only three declarations
 

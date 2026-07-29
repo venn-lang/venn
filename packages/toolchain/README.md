@@ -100,6 +100,45 @@ A version published without a tarball or without an integrity hash is left out.
 It could not be installed and could not be checked, so offering it would only
 fail later and further away.
 
+## Installing one
+
+```ts
+const release = releaseFor({ catalogue, request: "latest" });
+
+await installVersion({
+  fs: createNodeFs(),
+  release,
+  into: `${homedir()}/.venn/versions`,
+  fetchBytes: createFetchBytes(),
+});
+// ~/.venn/versions/0.1.3
+```
+
+The download is checked against the hash the registry published before anything
+is unpacked. A mirror, a proxy or anything else in between can hand over
+different bytes, and only the hash says so.
+
+Files are unpacked beside the destination and moved in at the end, so an
+interrupted install leaves nothing that looks finished. A half-written version
+directory is worse than none: the next command finds it, believes it, and fails
+somewhere further away.
+
+### What an archive is not allowed to do
+
+A name inside a tarball is a claim about where its content should end up, made
+by whoever built it. `../../.ssh/authorized_keys` is a perfectly valid tar
+entry, and a reader that joins names onto a path without asking will write it
+exactly where it says.
+
+So an entry is only written when its name stays inside: no segment that climbs,
+nothing anchored to a root or a drive, no backslash used to smuggle one past,
+and nothing outside the `package/` prefix. Anything else is skipped and the rest
+of the archive still installs.
+
+Only regular files are taken. Directories arrive implicitly with the files in
+them, and a symlink, a hard link or a device node has no business coming out of
+a package tarball.
+
 ## The reason travels with the answer
 
 `describe` exists because someone asking which version they are on has usually

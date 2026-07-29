@@ -19,6 +19,11 @@ export function createMemoryFs(): FileSystem {
     async remove(path) {
       if (!files.delete(path)) throw fsNotFound({ path });
     },
+    async removeAll(path) {
+      const under = `${withoutTrailingSlashes(path)}/`;
+      files.delete(path);
+      for (const held of [...files.keys()]) if (held.startsWith(under)) files.delete(held);
+    },
     async list(path) {
       return listUnder([...files.keys()], path);
     },

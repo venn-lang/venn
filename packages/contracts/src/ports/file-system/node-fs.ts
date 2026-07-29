@@ -22,6 +22,7 @@ export function createNodeFs(args: { root?: string } = {}): FileSystem {
     write: (path, bytes) => writeBytes(at(path), bytes),
     exists: (path) => pathExists(at(path)),
     remove: (path) => removePath(at(path)),
+    removeAll: (path) => rm(at(path), { recursive: true, force: true }),
     list: (path) => listPath(at(path)),
   };
 }

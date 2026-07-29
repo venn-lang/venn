@@ -8,5 +8,5 @@ export const FileSystemPort: Port<FileSystem> = {
   id: "venn.port.filesystem",
   version: 1,
   requires: ["fs"],
-  methods: ["read", "write", "exists", "remove", "list"],
+  methods: ["read", "write", "exists", "remove", "removeAll", "list"],
 };

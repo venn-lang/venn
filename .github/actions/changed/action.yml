@@ -1,6 +1,16 @@
 name: Changed
 description: Whether anything worth building and testing changed.
 
+inputs:
+  also:
+    description: >
+      A regex of paths that count as code for this caller even though the list
+      below reads them as prose. The release needs it: a changeset is a Markdown
+      file, and a merge that brings one has a release pull request to refresh.
+    required: false
+    # Matches nothing, so a caller that passes nothing gets the plain answer.
+    default: '$^'
+
 outputs:
   code:
     description: '"true" when something other than prose changed.'
@@ -9,9 +19,9 @@ outputs:
 runs:
   using: composite
   steps:
-    # By exclusion: a path counts as code unless it is named here, so anything
-    # new is built and tested until someone decides otherwise. The other way
-    # round, a path nobody thought of would go out untested.
+    # Two halves on purpose: asking GitHub what changed, which needs GitHub, and
+    # deciding what that means, which does not and so has tests of its own in
+    # `decide.sh`.
     - id: decide
       shell: bash
       run: |
@@ -36,24 +46,11 @@ runs:
             ;;
         esac
 
-        # An empty list means the comparison told us nothing, not that nothing
-        # changed. Build it rather than trust a silence.
-        if [ -z "$files" ]; then
-          echo "Nothing came back, so run everything."
-          echo "code=true" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        echo "$files"
-        if echo "$files" | grep -qvE '^(docs/|\.github/ISSUE_TEMPLATE/|LICENSE$|.*\.md$)'; then
-          echo "code=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "Only prose changed."
-          echo "code=false" >> "$GITHUB_OUTPUT"
-        fi
+        printf '%s' "$files" | bash "$GITHUB_ACTION_PATH/decide.sh"
       env:
         GITHUB_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
         NUMBER: ${{ github.event.pull_request.number }}
         BEFORE: ${{ github.event.before }}
         AFTER: ${{ github.event.after }}
+        ALSO: ${{ inputs.also }}

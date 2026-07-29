@@ -1,7 +1,12 @@
 import { defineConfig } from "tsdown";
 
-// The only package that targets Node directly: it builds the node Host and reads
-// files. `bin/venn.ts` becomes the `venn` executable.
+// What a version of the language is: the commands, and the server that speaks
+// for them. Both are built here because the orchestrator installs one thing per
+// version, and an editor asking for the server has to find it beside the
+// commands.
+//
+// The only package that targets Node directly: it builds the node Host and
+// reads files.
 export default defineConfig([
   // The library entry stays external, so anything embedding the CLI shares one
   // copy of the language with whatever else it loads.
@@ -31,10 +36,23 @@ export default defineConfig([
     dts: false,
   },
   // The launcher that turns on V8's compile cache before loading the engine.
+  //
+  // `venn-run` rather than `venn`: the name `venn` belongs to the orchestrator,
+  // which is what a person installs and types. This is what it hands over to.
   {
-    entry: { "bin/venn": "src/bin/venn.ts" },
+    entry: { "bin/venn-run": "src/bin/venn.ts" },
     format: ["esm"],
     platform: "node",
+    dts: false,
+  },
+  // The language server, bundled whole. The tarball is unpacked on its own,
+  // with no install step to fetch anything it might otherwise depend on.
+  {
+    entry: { "bin/venn-lsp": "src/bin/venn-lsp.ts" },
+    format: ["esm"],
+    platform: "node",
+    deps: { alwaysBundle: [/.*/] },
+    external: ["tsc-api", "@venn-lang/dts"],
     dts: false,
   },
 ]);

@@ -68,6 +68,19 @@ describe("a manifest that tries to reach the prototype", () => {
     expect(Object.prototype).not.toHaveProperty("owned");
   });
 
+  /**
+   * The table has no prototype, so the name reaches nothing and is kept as
+   * what it is: a key. Nothing has to be thrown away to stay safe.
+   */
+  it("keeps the name as an ordinary key", () => {
+    const data = parseToml(`[package]\n__proto__ = "just data"`);
+
+    const table = data.package as object;
+
+    expect(Object.keys(table)).toContain("__proto__");
+    expect(Object.getOwnPropertyDescriptor(table, "__proto__")?.value).toBe("just data");
+  });
+
   it("still reads the rest of a manifest that tried", () => {
     const data = parseToml(`[package]\nname = "still here"\n__proto__ = "ignored"`);
 

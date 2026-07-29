@@ -13,6 +13,14 @@ export interface FileSystem {
   /** @throws VennError VN8010 when the path does not exist. */
   remove(path: string): Promise<void>;
   /**
+   * A path and everything under it, gone. A path that was not there is not an
+   * error: the caller wanted it absent, and it is.
+   *
+   * `remove` takes a file it expects to be there. This takes a tree it wants
+   * gone, which is what tidying up after an interrupted write needs.
+   */
+  removeAll(path: string): Promise<void>;
+  /**
    * What a directory holds, one level deep, in no promised order. A path that
    * is not a directory reads as empty rather than raising: asking what is
    * inside something that holds nothing has an answer.

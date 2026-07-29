@@ -26,6 +26,37 @@ export function fileSystemConformance(spec: ConformanceSpec<FileSystem>): void {
       expect(await fs.exists("k.bin")).toBe(false);
     });
 
+    it("removeAll takes a tree, and the files under it", async () => {
+      const fs = await spec.factory();
+      await fs.write("tree/a.bin", new Uint8Array([1]));
+      await fs.write("tree/nested/b.bin", new Uint8Array([2]));
+      await fs.write("kept.bin", new Uint8Array([3]));
+
+      await fs.removeAll("tree");
+
+      expect(await fs.exists("tree/a.bin")).toBe(false);
+      expect(await fs.exists("tree/nested/b.bin")).toBe(false);
+      expect(await fs.exists("kept.bin")).toBe(true);
+    });
+
+    /** The caller wanted it gone, and it is. */
+    it("removeAll on a path that was never there is not an error", async () => {
+      const fs = await spec.factory();
+      await fs.removeAll("never-existed");
+    });
+
+    /** A name that merely starts the same is a different name. */
+    it("removeAll does not take a sibling with a longer name", async () => {
+      const fs = await spec.factory();
+      await fs.write("build/a.bin", new Uint8Array([1]));
+      await fs.write("build-cache/b.bin", new Uint8Array([2]));
+
+      await fs.removeAll("build");
+
+      expect(await fs.exists("build/a.bin")).toBe(false);
+      expect(await fs.exists("build-cache/b.bin")).toBe(true);
+    });
+
     /**
      * Bounded in both draws and payload, because `node-fs` runs this against a
      * real disk. Twenty-five draws demonstrate last-write-wins as well as

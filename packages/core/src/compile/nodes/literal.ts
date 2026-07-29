@@ -1,9 +1,9 @@
 import { buildProblem, CODES } from "../../codes/index.js";
 import { isWaiting } from "../../expr/pending.js";
 import type { NumberLit, StringLit } from "../../generated/ast.js";
-import { compileTemplate, type TemplateHole } from "../../interpolation/index.js";
+import { compileTemplate, joinTemplate, type TemplateHole } from "../../interpolation/index.js";
 import { ProblemError } from "../../problem/index.js";
-import { isUnitValue, parseInstant, parseNumber, type UnitValue } from "../../units/index.js";
+import { parseInstant, parseNumber } from "../../units/index.js";
 import type { Compile, Thunk } from "../compile.types.js";
 
 const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
@@ -42,21 +42,13 @@ export function compileString(expr: StringLit, compile: Compile): Thunk {
       waiting = waiting || isWaiting(value);
       values[at] = value;
     }
-    return waiting ? settleJoin(chunks, values) : join(chunks, values);
+    return waiting ? settleJoin(chunks, values) : joinTemplate(chunks, values);
   };
 }
 
 /** The waiting path: every hole settled, then the same join. */
 async function settleJoin(chunks: readonly string[], values: unknown[]): Promise<string> {
-  return join(chunks, await Promise.all(values));
-}
-
-function join(chunks: readonly string[], values: readonly unknown[]): string {
-  let out = chunks[0] ?? "";
-  for (let at = 0; at < values.length; at += 1) {
-    out += stringify(values[at]) + (chunks[at + 1] ?? "");
-  }
-  return out;
+  return joinTemplate(chunks, await Promise.all(values));
 }
 
 /** A placeholder that does not parse is a mistake worth reporting, not an empty string. */
@@ -71,16 +63,4 @@ function compileHole(hole: TemplateHole, compile: Compile): Thunk {
       }),
     );
   };
-}
-
-function stringify(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (isUnitValue(value)) return stringifyUnit(value);
-  return String(value);
-}
-
-function stringifyUnit(value: UnitValue): string {
-  if (value.kind === "duration") return `${value.ms}ms`;
-  if (value.kind === "size") return `${value.bytes}b`;
-  return `${value.ratio * 100}%`;
 }

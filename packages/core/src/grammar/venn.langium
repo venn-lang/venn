@@ -216,6 +216,8 @@ Atom infers Expr:
     {infer NumberLit} raw=NUMBER
   | {infer InstantLit} value=INSTANT
   | {infer StringLit} value=STRING
+  | {infer StringLit} value=BLOCK_STRING
+  | {infer StringLit} value=RAW_STRING
   | {infer BoolLit} value=('true' | 'false')
   | {infer NullLit} 'null'
   | {infer FnExpr} 'fn' '(' (params=ParamList)? ')' ('->' returns=TypeRef)? body=FnBody
@@ -281,6 +283,16 @@ hidden terminal COMMENT: /#[^\n\r]*/;
 
 // ISO-8601 instant is a first-class literal (matched before NUMBER by maximal munch).
 terminal INSTANT: /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
+// Double- or single-quoted. Single quotes let a string appear inside a `${…}`
+// that is itself inside a double-quoted string, without escaping.
+// Three quotes, and the order matters: a `"""` would otherwise lex as two
+// empty strings. A block keeps the newlines inside it, so a long body reads as
+// itself rather than as one line with escapes in it.
+terminal BLOCK_STRING: /"""[\s\S]*?"""/;
+// `r"C:\path"`: a backslash is a backslash. For Windows paths and for
+// patterns, which are the two places where escaping every one of them is the
+// whole cost. Interpolation still works in all three forms.
+terminal RAW_STRING: /r"[^"]*"/;
 // Double- or single-quoted. Single quotes let a string appear inside a `${…}`
 // that is itself inside a double-quoted string, without escaping.
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;

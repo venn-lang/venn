@@ -72,12 +72,39 @@ function isIn(left: unknown, right: unknown): boolean {
   return false;
 }
 
+/**
+ * `subject ~= pattern`, where the pattern is text.
+ *
+ * A pattern that does not compile used to answer `false`, which reads as "it did
+ * not match" and sends whoever wrote it looking at the subject. It is the
+ * pattern that is wrong, and there is no answer to give.
+ *
+ * `r"…"` is the form to write one in, since a raw string keeps every backslash.
+ * Flags go inside it: `r"(?i:order #\d+)"`.
+ */
 function regexMatch(subject: unknown, pattern: unknown): boolean {
+  const source = String(pattern);
+  return compile(source).test(String(subject));
+}
+
+function compile(source: string): RegExp {
   try {
-    return new RegExp(String(pattern)).test(String(subject));
-  } catch {
-    return false;
+    return new RegExp(source);
+  } catch (error) {
+    throw badPattern(source, error);
   }
+}
+
+function badPattern(source: string, error: unknown): ProblemError {
+  const why =
+    error instanceof Error ? error.message.replace(/^Invalid regular expression: /, "") : "";
+  return new ProblemError(
+    buildProblem({
+      spec: CODES.VN3018_BAD_PATTERN,
+      span: NO_SPAN,
+      title: `This is not a pattern \`~=\` can use: ${source}. ${why}`.trim(),
+    }),
+  );
 }
 
 function operatorError(op: string): ProblemError {

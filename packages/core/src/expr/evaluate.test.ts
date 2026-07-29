@@ -55,6 +55,23 @@ describe("evaluate", () => {
     expect(evaluate(subjectExpr('res.body ~= "^Refund"'), env)).toBe(false);
   });
 
+  /** A raw string is the form to write a pattern in: every backslash survives. */
+  it("matches a pattern written as a raw string", () => {
+    const env = withRes({ body: "Order #42 confirmed" });
+    expect(evaluate(subjectExpr('res.body ~= r"Order #(\\d+)"'), env)).toBe(true);
+    expect(evaluate(subjectExpr('res.body ~= r"(?i:ORDER)"'), env)).toBe(true);
+  });
+
+  /**
+   * A pattern that does not compile used to answer `false`, which reads as "it
+   * did not match" and sends whoever wrote it looking at the subject.
+   */
+  it("refuses a pattern that does not compile, rather than saying no match", () => {
+    const env = withRes({ body: "anything" });
+
+    expect(() => evaluate(subjectExpr('res.body ~= "[unclosed"'), env)).toThrow(/not a pattern/);
+  });
+
   it("parses an instant literal into an Instant value", () => {
     const result = evaluate(subjectExpr("2026-07-23T12:00:00Z"), withRes(undefined));
     expect(result).toMatchObject({ kind: "instant", iso: "2026-07-23T12:00:00Z" });

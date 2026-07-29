@@ -27,6 +27,7 @@ export const CODES = {
   VN3015_NOT_A_LIST: { code: "VN3015", severity: "error" },
   VN3016_NOT_A_NUMBER: { code: "VN3016", severity: "error" },
   VN3017_DECO_ARGUMENTS: { code: "VN3017", severity: "error" },
+  VN3018_BAD_PATTERN: { code: "VN3018", severity: "error" },
   VN5001_REMOVED_KEYWORD: { code: "VN5001", severity: "error" },
   VN6001_ASSERTION_FAILED: { code: "VN6001", severity: "error" },
   VN7001_ACTION_FAILED: { code: "VN7001", severity: "error" },

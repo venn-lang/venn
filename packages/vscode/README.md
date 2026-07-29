@@ -1,6 +1,7 @@
 # Venn for VS Code
 
-Language support for `.vn` files, backed by the Venn language server.
+Language support for `.vn` files, backed by the Venn language server that your
+project already runs on. See [Which version answers](#which-version-answers).
 
 - **Diagnostics**: syntax errors (`VN1xxx`) and name resolution: unknown action
   `VN2003`, unknown matcher `VN2004`, unknown fragment `VN2005`.
@@ -16,6 +17,29 @@ Language support for `.vn` files, backed by the Venn language server.
 - **Completion**: actions after `namespace.`, matchers after an `expect`
   subject, fragments after `run`, annotations after `@`, packages inside `use`.
 - **Rename (F2)**, **signature help**, **formatting**, and the **outline**.
+
+## Which version answers
+
+The extension carries no compiler. It asks the toolchain for the server the
+same way `venn` asks for the compiler, so a folder pinned to `0.2.0` is
+underlined by `0.2.0` and the editor agrees with what `venn check` prints. An
+editor that disagrees with the command line is worse than one that says
+nothing, because there is no way to tell which of the two is right.
+
+Which version that is comes from the folder: `venn.toml`, or `.venn-version`,
+or the newest installed if neither asks for one. Change the pin and the server
+restarts on the version you moved to, without reloading the window. Each
+folder in a multi-root workspace gets its own.
+
+If the pinned version is not installed, the *Venn* output channel says which
+command installs it. Nothing is downloaded on your behalf: fetching a compiler
+is not a decision an editor should take while you are typing.
+
+So this needs `venn` on your machine:
+
+```bash
+npm install -g @venn-lang/venn
+```
 
 ## Install from this repository
 

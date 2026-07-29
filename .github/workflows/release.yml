@@ -124,16 +124,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # The publish tags every package, and v1 pushes them with no way to ask it
-      # not to. Twenty-nine per release is a tag list nobody can read a year
-      # from now, and `v<version>` above already says what shipped.
-      - name: Remove the per-package tags
+      # The publish tags every package locally, and `v<version>` above already
+      # says what shipped, so twenty-nine more would be a tag list nobody can
+      # read a year from now.
+      #
+      # Only what is actually on the remote is deleted. With
+      # `createGithubReleases: false` the action never pushes them, so there is
+      # usually nothing here at all: deleting blind failed the whole release
+      # over tags that were never there, after everything had already published.
+      - name: Remove any per-package tags
         if: steps.changesets.outputs.published == 'true'
         run: |
-          tags=$(git tag -l '@venn-lang/*')
-          [ -z "$tags" ] && exit 0
-          echo "$tags" | xargs -r git push origin --delete
-          echo "$tags" | xargs -r git tag -d
+          pushed=$(git ls-remote --tags origin '@venn-lang/*' | sed 's|.*refs/tags/||' | grep -v '\^{}$' || true)
+          if [ -z "$pushed" ]; then
+            echo "None reached the remote, which is where they were not wanted."
+            exit 0
+          fi
+          echo "$pushed" | xargs -r git push origin --delete
 
   sbom:
     name: SBOM

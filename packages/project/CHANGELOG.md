@@ -1,5 +1,12 @@
 # @venn-lang/project
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`cd42016`](https://github.com/venn-lang/venn/commit/cd420167006ad0ac34dc57dd7a6676516e1ca97d)]:
+  - @venn-lang/contracts@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes

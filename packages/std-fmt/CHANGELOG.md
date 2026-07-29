@@ -1,5 +1,13 @@
 # @venn-lang/fmt
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/sdk@0.1.3
+  - @venn-lang/types@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes

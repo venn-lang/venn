@@ -1,5 +1,24 @@
 # @venn-lang/cli
 
+## 0.1.3
+
+### Patch Changes
+
+- [#76](https://github.com/venn-lang/venn/pull/76) [`3e93ea7`](https://github.com/venn-lang/venn/commit/3e93ea70f219eae1d856ed876cd9d0178636ebc1) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Ask node where it is, instead of naming directories.
+
+- Updated dependencies [[`cd42016`](https://github.com/venn-lang/venn/commit/cd420167006ad0ac34dc57dd7a6676516e1ca97d)]:
+  - @venn-lang/contracts@0.1.3
+  - @venn-lang/core@0.1.3
+  - @venn-lang/project@0.1.3
+  - @venn-lang/runtime@0.1.3
+  - @venn-lang/sdk@0.1.3
+  - @venn-lang/http@0.1.3
+  - @venn-lang/io@0.1.3
+  - @venn-lang/stdlib@0.1.3
+  - @venn-lang/assert@0.1.3
+  - @venn-lang/dts@0.1.3
+  - @venn-lang/types@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes

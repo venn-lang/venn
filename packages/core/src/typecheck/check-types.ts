@@ -15,6 +15,7 @@ import { reshapedFns } from "./reshaped-fns.js";
 import { generalize, mono } from "./scheme.js";
 import { seedParams } from "./seed-params.js";
 import { seedValues } from "./seed-values.js";
+import { applyShapeDecorators } from "./shape-decorators.js";
 import { showType } from "./show.js";
 import { DYNAMIC, type Type } from "./type.types.js";
 import { emptyEnv, type TypeEnv } from "./type-env.js";
@@ -58,6 +59,10 @@ export function checkTypes(document: Document, options: CheckTypesOptions = {}):
   // a second walk that would actually cost something.
   const parsed = new Map<AstNode, Slot[]>();
   const decos = decosInReach({ document, imported: options.decos });
+  // Before anything reads a shape: a `deco` that adds a field rewrites the type
+  // it sits on, and until it has run the checker is looking at a shape the
+  // program never has.
+  applyShapeDecorators({ document, decos, uri });
   const shared = { document, catalog: options.catalog, decos, parsed, run: pass };
   const values = seedValues(shared);
   const seeds = seedParams(shared);

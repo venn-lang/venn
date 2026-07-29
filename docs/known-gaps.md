@@ -34,15 +34,31 @@ state across iterations.
 
 ## 2. The specification promises syntax the grammar does not have
 
-**Severity: medium.** Three forms are documented in §03 and simply do not parse:
+**Closed.** Two of the three forms are in the grammar:
 
-- raw strings, `r"C:\path"`
-- triple-quoted blocks, `"""…"""`
-- regular expression literals, `/pattern/i`
+```venn
+r"C:aw
+o\escape"      # every backslash survives
+"""
+  a block
+  keeps its lines
+"""
+```
 
-The `STRING` terminal in `packages/core/src/grammar/venn.langium` has none of
-them. Either implement them or cut them from the specification, because a reader
-following the spec today writes code that does not compile.
+Both interpolate, since `${…}` is scanned out of the value either form leaves.
+
+The regular expression literal was cut from the specification instead of built.
+`/` is division, so telling a delimiter from an operator needs a lexer with
+semantic lookahead, which is the same reason §02 already gives for paths no
+longer being bare tokens. A pattern is a raw string, and the flags go inside it:
+
+```venn
+expect (order ~= r"Order #(\d+)")
+expect (name ~= r"(?i:ana)")
+```
+
+What remains is the `regex` **type**, which §03 lists among the kernel's and
+which does not exist: [#118](https://github.com/venn-lang/venn/issues/118).
 
 ## 3. Optional chaining fails the checker on a known shape
 

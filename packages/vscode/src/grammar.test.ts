@@ -33,7 +33,7 @@ function expressions(rules: Record<string, Rule>, prefix = ""): [string, string]
 
 /**
  * TextMate loads a grammar all-or-nothing: one bad pattern and VS Code drops
- * the whole thing, so every `.vn` — and every code fence in a hover — turns
+ * the whole thing, so every `.vn`, and every code fence in a hover, turns
  * grey. Nothing in the editor says why, which is exactly why this is a test.
  */
 describe("the TextMate grammar", () => {
@@ -66,7 +66,7 @@ describe("the TextMate grammar", () => {
     expect(method.test("xs.len")).toBe(false);
   });
 
-  // `deco` introduces a name, so it belongs with `fn` and `fragment` — and the
+  // `deco` introduces a name, so it belongs with `fn` and `fragment`, and the
   // word boundary keeps `decorate` an ordinary identifier.
   it("colours `deco` as a declaration keyword", () => {
     const declaration = new RegExp(grammar.repository.declaration?.match ?? "");

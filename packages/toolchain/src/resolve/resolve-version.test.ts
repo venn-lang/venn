@@ -2,6 +2,7 @@ import { createMemoryFs, type FileSystem } from "@venn-lang/contracts";
 import { describe, expect, it } from "vitest";
 import { ancestors } from "./ancestors.js";
 import { resolveVersion, describe as summarise } from "./resolve-version.js";
+import { selectVersion } from "./select-version.js";
 
 async function fsWith(files: Record<string, string>): Promise<FileSystem> {
   const fs = createMemoryFs();
@@ -35,7 +36,7 @@ describe("which version a directory is asking for", () => {
     const resolved = await resolveVersion({ fs, directory: "/work/api" });
 
     expect(resolved).toEqual({
-      version: "0.2.0",
+      range: "0.2.0",
       source: "manifest",
       from: "/work/api/venn.toml",
     });
@@ -47,7 +48,7 @@ describe("which version a directory is asking for", () => {
 
     const resolved = await resolveVersion({ fs, directory: "/work/api/tests/http" });
 
-    expect(resolved.version).toBe("0.2.0");
+    expect(resolved.range).toBe("0.2.0");
     expect(resolved.from).toBe("/work/api/venn.toml");
   });
 
@@ -57,7 +58,7 @@ describe("which version a directory is asking for", () => {
     const resolved = await resolveVersion({ fs, directory: "/scratch" });
 
     expect(resolved).toEqual({
-      version: "0.3.1",
+      range: "0.3.1",
       source: "file",
       from: "/scratch/.venn-version",
     });
@@ -69,7 +70,7 @@ describe("which version a directory is asking for", () => {
       "/scratch/.venn-version": "0.3.1\n\nheld back: the parser changed\n",
     });
 
-    expect((await resolveVersion({ fs, directory: "/scratch" })).version).toBe("0.3.1");
+    expect((await resolveVersion({ fs, directory: "/scratch" })).range).toBe("0.3.1");
   });
 
   /**
@@ -92,7 +93,7 @@ describe("which version a directory is asking for", () => {
       "/work/api/venn.toml": MANIFEST,
     });
 
-    expect((await resolveVersion({ fs, directory: "/work/api" })).version).toBe("0.2.0");
+    expect((await resolveVersion({ fs, directory: "/work/api" })).range).toBe("0.2.0");
   });
 
   it("falls back to the default when nothing asks", async () => {
@@ -100,15 +101,16 @@ describe("which version a directory is asking for", () => {
 
     const resolved = await resolveVersion({ fs, directory: "/work", defaultVersion: "0.1.3" });
 
-    expect(resolved).toEqual({ version: "0.1.3", source: "default", from: undefined });
+    expect(resolved).toEqual({ range: "0.1.3", source: "default", from: undefined });
   });
 
-  it("says there is no answer rather than inventing one", async () => {
+  /** Nothing asked, so anything installed answers and the newest one wins. */
+  it("asks for anything when nothing pins and nothing is chosen", async () => {
     const fs = await fsWith({ "/work/readme.md": "nothing" });
 
     const resolved = await resolveVersion({ fs, directory: "/work" });
 
-    expect(resolved).toEqual({ version: undefined, source: "none", from: undefined });
+    expect(resolved).toEqual({ range: "*", source: "none", from: undefined });
   });
 });
 
@@ -140,27 +142,52 @@ describe("a manifest that pins nothing", () => {
 });
 
 describe("explaining the answer", () => {
+  const installed = ["0.1.3", "0.2.0", "0.2.4"];
+
+  async function explain(files: Record<string, string>, defaultVersion?: string): Promise<string> {
+    const fs = await fsWith(files);
+    const request = await resolveVersion({ fs, directory: "/work/api", defaultVersion });
+    return summarise(selectVersion({ request, installed }));
+  }
+
   it("names the file that decided", async () => {
-    const fs = await fsWith({ "/work/api/venn.toml": MANIFEST });
+    const line = await explain({ "/work/api/venn.toml": MANIFEST });
 
-    const line = summarise(await resolveVersion({ fs, directory: "/work/api" }));
+    expect(line).toBe("0.2.0, as asked, pinned by /work/api/venn.toml");
+  });
 
-    expect(line).toBe("0.2.0, pinned by /work/api/venn.toml");
+  /** A range asked for more than one version, so which one it got matters. */
+  it("says which version a range turned out to mean", async () => {
+    const line = await explain({ "/work/api/venn.toml": `[package]\nvenn = "0.2.x"\n` });
+
+    expect(line).toBe("0.2.4, the newest matching 0.2.x, pinned by /work/api/venn.toml");
   });
 
   it("says the default was used and why", async () => {
-    const fs = await fsWith({ "/work/x": "" });
-
-    const line = summarise(
-      await resolveVersion({ fs, directory: "/work", defaultVersion: "0.1.3" }),
-    );
+    const line = await explain({ "/work/api/readme.md": "x" }, "0.1.3");
 
     expect(line).toContain("the default");
   });
 
-  it("says plainly when there is nothing to run", async () => {
-    const fs = await fsWith({ "/work/x": "" });
+  it("says it took the newest when nothing asked", async () => {
+    expect(await explain({ "/work/api/readme.md": "x" })).toBe("0.2.4, the newest installed");
+  });
 
-    expect(summarise(await resolveVersion({ fs, directory: "/work" }))).toContain("no version");
+  it("says what was asked for when nothing installed matches", async () => {
+    const fs = await fsWith({ "/work/api/venn.toml": `[package]\nvenn = "9.x"\n` });
+    const request = await resolveVersion({ fs, directory: "/work/api" });
+
+    const line = summarise(selectVersion({ request, installed }));
+
+    expect(line).toBe("no installed version matches 9.x, asked for by /work/api/venn.toml");
+  });
+
+  it("says plainly when there is nothing installed at all", async () => {
+    const fs = await fsWith({ "/work/api/readme.md": "x" });
+    const request = await resolveVersion({ fs, directory: "/work/api" });
+
+    const line = summarise(selectVersion({ request, installed: [] }));
+
+    expect(line).toBe("no version of the language is installed");
   });
 });

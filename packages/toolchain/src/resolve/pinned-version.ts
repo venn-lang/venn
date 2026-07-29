@@ -1,6 +1,6 @@
 import type { FileSystem } from "@venn-lang/contracts";
 import { parseToml } from "@venn-lang/contracts";
-import type { ResolvedVersion } from "./resolve.types.js";
+import type { VersionRequest } from "./resolve.types.js";
 
 /** A project pins its language beside the rest of what it declares. */
 const MANIFEST = "venn.toml";
@@ -22,19 +22,19 @@ const VERSION_FILE = ".venn-version";
 export async function pinnedIn(args: {
   fs: FileSystem;
   directory: string;
-}): Promise<ResolvedVersion | undefined> {
+}): Promise<VersionRequest | undefined> {
   return (await fromManifest(args)) ?? (await fromFile(args));
 }
 
 async function fromManifest(args: {
   fs: FileSystem;
   directory: string;
-}): Promise<ResolvedVersion | undefined> {
+}): Promise<VersionRequest | undefined> {
   const path = `${args.directory}/${MANIFEST}`;
   const content = await readText(args.fs, path);
   if (content === undefined) return undefined;
   const version = declaredIn(content);
-  return version === undefined ? undefined : { version, source: "manifest", from: path };
+  return version === undefined ? undefined : { range: version, source: "manifest", from: path };
 }
 
 /** `[package] venn = "0.2.0"`, beside the name and the version of the project. */
@@ -48,12 +48,12 @@ function declaredIn(content: string): string | undefined {
 async function fromFile(args: {
   fs: FileSystem;
   directory: string;
-}): Promise<ResolvedVersion | undefined> {
+}): Promise<VersionRequest | undefined> {
   const path = `${args.directory}/${VERSION_FILE}`;
   const content = await readText(args.fs, path);
   if (content === undefined) return undefined;
   const version = firstLine(content);
-  return version === "" ? undefined : { version, source: "file", from: path };
+  return version === "" ? undefined : { range: version, source: "file", from: path };
 }
 
 /** The rest of the file is room for a comment about why the version is pinned. */

@@ -42,12 +42,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn-lang/contracts": "workspace:*"
+    "@venn-lang/contracts": "workspace:*",
+    "semver": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@types/semver": "catalog:"
   }
 }

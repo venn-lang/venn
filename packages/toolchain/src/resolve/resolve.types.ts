@@ -6,20 +6,33 @@ export type VersionSource =
   | "file"
   /** The version chosen for everything that does not ask. */
   | "default"
-  /** Nothing asked and nothing was chosen, so there is no answer to give. */
+  /** Nothing asked and nothing was chosen, so the newest installed will do. */
   | "none";
 
 /**
- * The version a directory is asking for, and why.
+ * What a directory asked for, and why.
  *
- * The reason travels with the answer because someone asking is usually
- * surprised by it, and "0.2.0, because of the venn.toml two directories up"
- * ends the conversation that "0.2.0" starts.
+ * The range is what was written, not what it resolves to. `0.2` and `>=1 <1.5`
+ * are answers to "which version does this want", and which installed version
+ * that turns out to be is {@link VersionChoice}.
+ *
+ * The reason travels with it because someone asking is usually surprised by the
+ * answer, and "0.2.0, because of the venn.toml two directories up" ends the
+ * conversation that "0.2.0" starts.
  */
-export interface ResolvedVersion {
-  /** Undefined only when `source` is `none`. */
-  readonly version: string | undefined;
+export interface VersionRequest {
+  /** A version or a range. `*` when nothing asked, which any version answers. */
+  readonly range: string;
   readonly source: VersionSource;
   /** The file that decided, absent for `default` and `none`. */
   readonly from: string | undefined;
+}
+
+/** Which installed version answers a request, and what else could have. */
+export interface VersionChoice {
+  /** The newest installed version satisfying the range, absent when none does. */
+  readonly version: string | undefined;
+  readonly request: VersionRequest;
+  /** Everything installed that satisfies, newest first. */
+  readonly candidates: readonly string[];
 }

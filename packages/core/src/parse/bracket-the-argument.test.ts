@@ -13,32 +13,61 @@ describe("an argument holding an operator", () => {
    */
   it("says brackets are what it needs, and writes the line out", () => {
     expect(titles("print 300ms + 1s")).toEqual([
-      "An argument cannot hold `+` unless it is bracketed. Write `print (300ms + 1s)`.",
+      "An argument is one value, so `+` has to be bracketed. Write `print (300ms + 1s)`.",
     ]);
   });
 
   it("says the same for an operator that is a word", () => {
     const said = titles("const xs = [1]\nprint 1 in xs");
 
-    expect(said[0]).toContain("cannot hold `in`");
+    expect(said[0]).toContain("so `in` has to be bracketed");
     expect(said[0]).toContain("Write `print (1 in xs)`");
   });
 
+  const OPERATORS = ["+", "-", "*", "/", "%", "==", "!=", "<", ">", "&&", "||", "??"];
+
   it("covers the operators people reach for", () => {
-    for (const operator of ["+", "-", "*", "/", "%", "==", "!=", "<", ">", "&&", "||", "??"]) {
+    for (const operator of OPERATORS) {
       const said = titles(`print a ${operator} b`);
 
-      expect(said[0], operator).toContain(`cannot hold \`${operator}\``);
+      expect(said[0], operator).toContain(`so \`${operator}\` has to be bracketed`);
     }
   });
 
-  /** The suggestion has to be something that actually parses. */
-  it("suggests a line that parses", () => {
-    const said = titles("print 300ms + 1s");
-    const suggested = /Write `(.+)`\./.exec(said[0] ?? "")?.[1];
+  /** What the suggestion says to write has to be something that parses. */
+  function suggested(source: string): string | undefined {
+    return /Write `(.+)`\./.exec(titles(source)[0] ?? "")?.[1];
+  }
 
-    expect(suggested).toBe("print (300ms + 1s)");
-    expect(parse(suggested ?? "").problems).toEqual([]);
+  it("suggests a line that parses", () => {
+    expect(suggested("print 300ms + 1s")).toBe("print (300ms + 1s)");
+    expect(parse("print (300ms + 1s)").problems).toEqual([]);
+  });
+
+  /**
+   * Every one of them, because a suggestion is code somebody is about to paste.
+   * An earlier version offered `print a (-1)` for two arguments, which parses
+   * but calls `a`, so parsing alone is not the whole test: the bracketed form
+   * has to mean the operation.
+   */
+  it("suggests something that parses for every operator", () => {
+    for (const operator of OPERATORS) {
+      const fix = suggested(`print a ${operator} b`);
+
+      expect(fix, operator).toBe(`print (a ${operator} b)`);
+      expect(parse(fix ?? "").problems, operator).toEqual([]);
+    }
+  });
+
+  /**
+   * `-` also negates, so this line could in principle be two arguments with a
+   * negative second one. It cannot be written: brackets after a value are a
+   * call, so `print a (-1)` calls `a`. The subtraction is the only reading there
+   * is, and it is the one Haskell, Elm and OCaml give it as well.
+   */
+  it("reads a minus as the subtraction, the only thing it can be", () => {
+    expect(suggested("print a -1")).toBe("print (a - 1)");
+    expect(suggested("print -1")).toBe("print (-1)");
   });
 
   /** The line, not the rest of the file, when the mistake is not on the last one. */
@@ -60,7 +89,7 @@ describe("an argument holding an operator", () => {
   it("explains without a suggestion when the line holds a block", () => {
     const said = titles('flow "f" { print a + b }');
 
-    expect(said[0]).toContain("cannot hold `+`");
+    expect(said[0]).toContain("so `+` has to be bracketed");
     expect(said[0]).toContain("Put brackets around the whole argument.");
     expect(said[0]).not.toContain("Write");
   });
@@ -71,10 +100,18 @@ describe("an argument holding an operator", () => {
     expect(said.join("\n")).not.toContain("Write `");
   });
 
+  /** Half-written, which is what the editor sees on most keystrokes. */
+  it("explains without a suggestion when the operator has nothing after it", () => {
+    const said = titles("const a = 1\nprint a +");
+
+    expect(said[0]).toContain("so `+` has to be bracketed");
+    expect(said[0]).not.toContain("Write `");
+  });
+
   it("explains without a suggestion when nothing on the line is spaced apart", () => {
     const said = titles("a+b");
 
-    expect(said[0]).toContain("cannot hold `+`");
+    expect(said[0]).toContain("so `+` has to be bracketed");
     expect(said[0]).not.toContain("Write `");
   });
 

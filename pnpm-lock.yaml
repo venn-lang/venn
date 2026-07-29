@@ -896,15 +896,15 @@ importers:
 
   packages/vscode:
     dependencies:
-      '@venn-lang/lsp':
+      '@venn-lang/contracts':
         specifier: workspace:*
-        version: link:../lsp
+        version: link:../contracts
+      '@venn-lang/toolchain':
+        specifier: workspace:*
+        version: link:../toolchain
       vscode-languageclient:
         specifier: 'catalog:'
         version: 9.0.1
-      vscode-languageserver:
-        specifier: 'catalog:'
-        version: 10.0.1
     devDependencies:
       '@types/vscode':
         specifier: 1.125.0

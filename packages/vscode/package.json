@@ -72,9 +72,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@venn-lang/lsp": "workspace:*",
-    "vscode-languageclient": "catalog:",
-    "vscode-languageserver": "catalog:"
+    "@venn-lang/contracts": "workspace:*",
+    "@venn-lang/toolchain": "workspace:*",
+    "vscode-languageclient": "catalog:"
   },
   "devDependencies": {
     "@types/vscode": "1.125.0",

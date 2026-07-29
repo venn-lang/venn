@@ -1,13 +1,56 @@
 import { createMemoryFs, type FileSystem } from "@venn-lang/contracts";
+import { installedVersions } from "@venn-lang/toolchain";
 import { describe, expect, it } from "vitest";
-import { type Preparation, prepare } from "./prepare.js";
+import { type Preparation, prepare, realPreparation } from "./prepare.js";
 
 const HOME = "/home/v/.venn";
 
-const CATALOGUE = {
-  "dist-tags": { latest: "0.2.0" },
-  versions: { "0.2.0": { dist: { tarball: "https://r/a.tgz", integrity: "sha512-a" } } },
-};
+/** A tarball holding a manifest and the entry point it declares. */
+async function tarball(): Promise<{ bytes: Uint8Array; integrity: string }> {
+  const manifest = JSON.stringify({ bin: { "venn-run": "./dist/bin/venn-run.mjs" } });
+  const bytes = await gzip(
+    concat([
+      entry("package/package.json", manifest),
+      entry("package/dist/bin/venn-run.mjs", "#!/usr/bin/env node"),
+      new Uint8Array(1024),
+    ]),
+  );
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-512", bytes as BufferSource));
+  return { bytes, integrity: `sha512-${btoa(String.fromCharCode(...digest))}` };
+}
+
+function entry(name: string, content: string): Uint8Array {
+  const bytes = new TextEncoder().encode(content);
+  const header = new Uint8Array(512);
+  header.set(new TextEncoder().encode(name), 0);
+  header.set(new TextEncoder().encode(bytes.length.toString(8).padStart(11, "0")), 124);
+  header[156] = "0".charCodeAt(0);
+  const padded = new Uint8Array(Math.ceil(bytes.length / 512) * 512);
+  padded.set(bytes);
+  return concat([header, padded]);
+}
+
+function concat(parts: readonly Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
+  let at = 0;
+  for (const part of parts) {
+    out.set(part, at);
+    at += part.length;
+  }
+  return out;
+}
+
+async function gzip(bytes: Uint8Array): Promise<Uint8Array> {
+  const stream = new Blob([bytes as BlobPart]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+function catalogueFor(integrity: string): unknown {
+  return {
+    "dist-tags": { latest: "0.2.0" },
+    versions: { "0.2.0": { dist: { tarball: "https://r/a.tgz", integrity } } },
+  };
+}
 
 interface Watched {
   where: Preparation;
@@ -21,7 +64,7 @@ function preparation(overrides: Partial<Preparation> = {}): Watched {
   const where: Preparation = {
     fs: createMemoryFs(),
     home: HOME,
-    fetchJson: async () => CATALOGUE,
+    fetchJson: async () => catalogueFor("sha512-a"),
     fetchBytes: async (url) => record(fetched, url),
     say: (line) => said.push(line),
     ...overrides,
@@ -43,6 +86,20 @@ async function alreadyInstalled(fs: FileSystem): Promise<void> {
 }
 
 describe("preparing on install", () => {
+  /** The whole point: the first command should not have to wait. */
+  it("installs the newest version and says it is ready", async () => {
+    const served = await tarball();
+    const watched = preparation({
+      fetchJson: async () => catalogueFor(served.integrity),
+      fetchBytes: async () => served.bytes,
+    });
+
+    await prepare(watched.where);
+
+    expect(watched.said).toEqual(["venn: 0.2.0 ready"]);
+    expect(await installedVersions(watched.where)).toEqual(["0.2.0"]);
+  });
+
   /**
    * The install must not fail over this. It is an optimisation: the language
    * arrives on first use instead, a few seconds later, once.
@@ -78,5 +135,33 @@ describe("preparing on install", () => {
 
     expect(watched.fetched).toEqual([]);
     expect(watched.said).toEqual([]);
+  });
+});
+
+describe("the real surroundings", () => {
+  /**
+   * Weak on logic and worth having: it is the wiring that turns names into a
+   * working thing, and a rename that breaks it fails here rather than during
+   * somebody's install.
+   */
+  it("are built from what the machine offers", () => {
+    const where = realPreparation();
+
+    expect(where.home).toMatch(/\.venn$|venn$/);
+    expect(typeof where.fetchJson).toBe("function");
+    expect(typeof where.fetchBytes).toBe("function");
+    expect(typeof where.fs.read).toBe("function");
+    expect(typeof where.say).toBe("function");
+  });
+
+  it("keep VENN_HOME when it is set", () => {
+    const before = process.env.VENN_HOME;
+    process.env.VENN_HOME = "/opt/venn-test";
+    try {
+      expect(realPreparation().home).toBe("/opt/venn-test");
+    } finally {
+      if (before === undefined) delete process.env.VENN_HOME;
+      else process.env.VENN_HOME = before;
+    }
   });
 });

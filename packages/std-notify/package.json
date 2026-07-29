@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/notify",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "The notify namespace: send a Slack message, a webhook or an email from a flow.",
   "keywords": [
     "venn",

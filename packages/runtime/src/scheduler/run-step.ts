@@ -1,4 +1,4 @@
-import { type Block, isBlock, isStepDecl, type StepDecl } from "@venn-lang/core";
+import { type Block, interpolateText, isBlock, isStepDecl, type StepDecl } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { hasAnnotation, readLock } from "./annotations.js";
 import type { Engine } from "./engine.types.js";
@@ -11,18 +11,19 @@ import { isControlSignal } from "./signals.js";
 
 /** Run a step honouring @skip/@only, @lock, @timeout and @retry; its bindings are step-local. */
 export async function runStep(engine: Engine, step: StepDecl, parent: Scope): Promise<void> {
-  if (!included(engine, step)) return;
-  engine.emitter.emit({ kind: "step.started", data: { title: step.title } });
+  const title = await interpolateText({ text: step.title, env: parent });
+  if (!included(engine, step, title)) return;
+  engine.emitter.emit({ kind: "step.started", data: { title } });
   const before = engine.result.failed;
   const scope = parent.child();
   try {
-    await execute(engine, step, { parent, scope });
+    await execute(engine, step, { parent, scope, title });
   } catch (error) {
-    if (!isControlSignal(error)) finished(engine, step.title, "failed");
+    if (!isControlSignal(error)) finished(engine, title, "failed");
     throw error;
   }
   recordFlaky(engine, step, before);
-  finished(engine, step.title, engine.result.failed > before ? "failed" : "passed");
+  finished(engine, title, engine.result.failed > before ? "failed" : "passed");
 }
 
 /**
@@ -32,10 +33,10 @@ export async function runStep(engine: Engine, step: StepDecl, parent: Scope): Pr
  * A step is focused among the steps it stands with, meaning the block it was
  * written in, the way a flow is focused among the flows of its document.
  */
-function included(engine: Engine, step: StepDecl): boolean {
+function included(engine: Engine, step: StepDecl, title: string): boolean {
   if (hasAnnotation(step, "skip")) return false;
   if (focusing(step.$container) && !hasAnnotation(step, "only")) return false;
-  return matchesTitle(step.title, engine.filter.step);
+  return matchesTitle(title, engine.filter.step);
 }
 
 /** Whether any step in this block asked to be the only one that runs. */
@@ -57,14 +58,14 @@ function focusing(container: unknown): boolean {
 function execute(
   engine: Engine,
   step: StepDecl,
-  scopes: { parent: Scope; scope: Scope },
+  scopes: { parent: Scope; scope: Scope; title: string },
 ): Promise<void> {
   return withLock(engine, readLock(step), () =>
     runWithAnnotations({
       engine,
       node: step,
       scope: scopes.parent,
-      title: step.title,
+      title: scopes.title,
       // The caller wants a promise; a block that never suspended returns none.
       run: () => runAround(step, () => runBlock(engine, step.body, scopes.scope)),
     }),

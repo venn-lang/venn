@@ -94,6 +94,7 @@ that also type-checks.
 
 ## 7. Step titles do not interpolate
 
-**Severity: low.** `step "add ${name}"` is emitted literally by
-`packages/runtime/src/scheduler/run-step.ts`. In a `matrix` or a `forEach`, every
-iteration reports under the same title.
+**Closed.** A title is filled against the scope it belongs to, so each pass of a
+`forEach` reports under its own, and `--step` matches what the reporter printed.
+A placeholder naming something absent fills as empty rather than failing a step
+over its own title.

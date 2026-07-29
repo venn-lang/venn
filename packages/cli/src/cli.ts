@@ -9,10 +9,9 @@ import { listCommand } from "./commands/list.js";
 import { newCommand } from "./commands/new.js";
 import { runCommand } from "./commands/run.js";
 import { scriptCommand } from "./commands/script.js";
-import { upgradeCommand } from "./commands/upgrade.js";
 import { verifyPluginCommand } from "./commands/verify-plugin.js";
 import { targetsOrExit, worst } from "./project/index.js";
-import { VERSION } from "./upgrade/version.js";
+import { VERSION } from "./version.js";
 
 /**
  * Optional, because a command inside a project already knows what it means:
@@ -258,24 +257,6 @@ const verifyPlugin = defineCommand({
   },
 });
 
-const upgrade = defineCommand({
-  meta: { name: "upgrade", description: "Update a global install to the latest version" },
-  args: {
-    yes: { type: "boolean", description: "Do not ask before upgrading", default: false },
-    "dry-run": {
-      type: "boolean",
-      description: "Print the command without running it",
-      default: false,
-    },
-  },
-  run: async ({ args }) => {
-    process.exitCode = await upgradeCommand({
-      version: VERSION,
-      options: { yes: args.yes, dryRun: args["dry-run"] },
-    });
-  },
-});
-
 const main = defineCommand({
   meta: { name: "venn", description: "Venn CLI", version: VERSION },
   subCommands: {
@@ -292,7 +273,6 @@ const main = defineCommand({
     fmt,
     check,
     "verify-plugin": verifyPlugin,
-    upgrade,
   },
 });
 

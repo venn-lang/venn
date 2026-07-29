@@ -13,7 +13,7 @@ const CANDIDATES = ["../package.json", "../../package.json", "../../../package.j
  * release cannot ship a binary that reports the version before it.
  *
  * The path is searched rather than assumed. The bundle flattens
- * `src/upgrade/version.ts` into `dist/cli.mjs`, so the manifest is two levels up
+ * `src/version.ts` into `dist/cli.mjs`, so the manifest is two levels up
  * while developing and one in a release; assuming either one reports `0.0.0` to
  * everybody living with the other, and the name check keeps the search from
  * settling on some other package's manifest on the way up.

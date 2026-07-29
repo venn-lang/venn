@@ -40,7 +40,11 @@ export async function upgradeCommand(args: {
  * every install inside a project look global.
  */
 function currentSite(): InstallSite {
-  return installSiteOf({ path: fileURLToPath(import.meta.url), cwd: process.cwd() });
+  return installSiteOf({
+    path: fileURLToPath(import.meta.url),
+    cwd: process.cwd(),
+    nodePath: process.execPath,
+  });
 }
 
 function fail(message: string): number {

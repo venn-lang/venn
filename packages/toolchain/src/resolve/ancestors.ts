@@ -25,7 +25,19 @@ export function ancestors(directory: string): string[] {
 /** Backslashes to slashes, and no trailing one, so paths compare as text. */
 function normalise(path: string): string {
   const forward = path.split("\\").join("/");
-  return forward.length > 1 ? forward.replace(/\/+$/, "") : forward;
+  return forward.length > 1 ? withoutTrailingSlashes(forward) : forward;
+}
+
+/**
+ * Scanned rather than matched with `/\/+$/`, which the engine retries at every
+ * position when the string does not end in one: quadratic on a long path, and
+ * a path is whatever it was handed. Half a second at forty thousand characters,
+ * measured when the same pattern was found in the memory filesystem.
+ */
+function withoutTrailingSlashes(path: string): string {
+  let end = path.length;
+  while (end > 1 && path.charCodeAt(end - 1) === 47) end -= 1;
+  return path.slice(0, end);
 }
 
 /**

@@ -1,6 +1,5 @@
-import type { OutputChannel, WorkspaceFolder } from "vscode";
-import { LanguageClient, type ServerOptions, TransportKind } from "vscode-languageclient/node";
-import { serverFor } from "./find-server.js";
+import type { WorkspaceFolder } from "vscode";
+import type { Connect, Find, Say, Session } from "./clients.types.js";
 
 /**
  * One language server per workspace folder, each on the version that folder
@@ -10,19 +9,23 @@ import { serverFor } from "./find-server.js";
  * one would give the other diagnostics from a compiler it does not use. Keyed
  * by folder so each gets its own, and so a folder can be restarted alone when
  * its pin changes.
+ *
+ * Finding and starting are handed in rather than reached for. When to restart
+ * is the part worth getting right, and this way it can be watched without an
+ * editor or a compiler anywhere near it.
  */
 export class Clients {
-  private readonly running = new Map<string, LanguageClient>();
+  private readonly running = new Map<string, Session>();
   /** The version each folder is on, so a restart is skipped when it did not move. */
   private readonly versions = new Map<string, string>();
 
-  constructor(private readonly log: OutputChannel) {}
+  constructor(private readonly on: { find: Find; connect: Connect; say: Say }) {}
 
   /** Starts the server for a folder, or replaces the one running if it moved. */
   async open(folder: WorkspaceFolder): Promise<void> {
-    const found = await serverFor(folder.uri.fsPath);
+    const found = await this.on.find(folder.uri.fsPath);
     if (found.kind === "missing") {
-      this.log.appendLine(`${folder.name}: ${found.reason}`);
+      this.on.say(`${folder.name}: ${found.reason}`);
       await this.close(folder);
       return;
     }
@@ -42,20 +45,20 @@ export class Clients {
   }): Promise<void> {
     const key = args.folder.uri.toString();
     await this.close(args.folder);
-    this.log.appendLine(`${args.folder.name}: starting Venn ${args.version}`);
-    const client = clientFor({ folder: args.folder, entry: args.entry });
-    this.running.set(key, client);
+    this.on.say(`${args.folder.name}: starting Venn ${args.version}`);
+    const session = this.on.connect({ folder: args.folder, entry: args.entry });
+    this.running.set(key, session);
     this.versions.set(key, args.version);
-    await client.start();
+    await session.start();
   }
 
   /** Stops the server for a folder, if one is running. */
   async close(folder: WorkspaceFolder): Promise<void> {
     const key = folder.uri.toString();
-    const client = this.running.get(key);
+    const session = this.running.get(key);
     this.running.delete(key);
     this.versions.delete(key);
-    await client?.stop();
+    await session?.stop();
   }
 
   /** Stops every server, for when the extension itself is going away. */
@@ -63,24 +66,6 @@ export class Clients {
     const running = [...this.running.values()];
     this.running.clear();
     this.versions.clear();
-    await Promise.all(running.map((client) => client.stop()));
+    await Promise.all(running.map((session) => session.stop()));
   }
-}
-
-/** Scoped to its folder, so each server sees only the documents it answers for. */
-function clientFor(args: { folder: WorkspaceFolder; entry: string }): LanguageClient {
-  const server: ServerOptions = {
-    run: { module: args.entry, transport: TransportKind.ipc },
-    debug: {
-      module: args.entry,
-      transport: TransportKind.ipc,
-      options: { execArgv: ["--nolazy", "--inspect=6009"] },
-    },
-  };
-  return new LanguageClient("venn", "Venn", server, {
-    documentSelector: [
-      { scheme: "file", language: "venn", pattern: `${args.folder.uri.fsPath}/**` },
-    ],
-    workspaceFolder: args.folder,
-  });
 }

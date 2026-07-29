@@ -1,5 +1,7 @@
 import { type ExtensionContext, window, workspace } from "vscode";
 import { Clients } from "./clients.js";
+import { connect } from "./connect.js";
+import { serverFor } from "./find-server.js";
 
 /** What a folder pins its version in, either of which changes which server runs. */
 const PINS = "**/{venn.toml,.venn-version}";
@@ -17,7 +19,11 @@ let clients: Clients | undefined;
  */
 export function activate(context: ExtensionContext): void {
   const log = window.createOutputChannel("Venn");
-  const started = new Clients(log);
+  const started = new Clients({
+    find: serverFor,
+    connect,
+    say: (line) => log.appendLine(line),
+  });
   clients = started;
   context.subscriptions.push(log);
 

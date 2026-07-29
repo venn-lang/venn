@@ -1,11 +1,7 @@
 import { homedir } from "node:os";
 import { createNodeFs } from "@venn-lang/contracts/node";
 import { planFor, vennHome } from "@venn-lang/toolchain";
-
-/** Where a folder's server is, or why there is none. */
-export type ServerFor =
-  | { readonly kind: "found"; readonly version: string; readonly entry: string }
-  | { readonly kind: "missing"; readonly reason: string };
+import type { ServerFor } from "./clients.types.js";
 
 /**
  * The server for a folder: the same version its commands would run on.

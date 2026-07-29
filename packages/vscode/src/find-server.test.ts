@@ -76,6 +76,25 @@ describe("finding the server for a folder", () => {
     expect(found.kind === "missing" && found.reason).toContain("venn version install 0.9.9");
   });
 
+  /**
+   * A version from before the server was split out of the command is installed
+   * and runs tests perfectly well. It just has nothing for the editor to talk
+   * to, and saying so beats underlining nothing and never explaining why.
+   */
+  it("says so when the installed version carries no server", async () => {
+    const root = join(home, "versions", "0.1.0", "dist", "bin");
+    await mkdir(root, { recursive: true });
+    await writeFile(join(root, "venn-run.mjs"), "#!/usr/bin/env node\n");
+    const bin = { "venn-run": "./dist/bin/venn-run.mjs" };
+    await writeFile(join(home, "versions", "0.1.0", "package.json"), JSON.stringify({ bin }));
+    const folder = await folderPinned("0.1.0");
+
+    const found = await serverFor(folder);
+
+    expect(found.kind).toBe("missing");
+    expect(found.kind === "missing" && found.reason).toContain("no lsp entry");
+  });
+
   it("says so when nothing is installed at all", async () => {
     const folder = await mkdtemp(join(tmpdir(), "venn-folder-"));
 

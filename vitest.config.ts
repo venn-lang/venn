@@ -20,6 +20,10 @@ export default defineConfig({
         // Conformance suites are the specification of a port, and they run as
         // part of another package's tests rather than on their own.
         "**/*.suite.ts",
+        // Stubs stand in for something a test cannot have, such as the VS Code
+        // extension host. They are how other files are covered, not code that
+        // ships.
+        "**/*.stub.ts",
         "**/index.ts",
         "**/bin/**",
       ],

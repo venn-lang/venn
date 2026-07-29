@@ -70,6 +70,36 @@ A prerelease only answers a range that asks for it by name. Running on a release
 candidate is a decision, and `1.x` quietly picking up a `1.5.0-rc.1` that
 happened to be installed is not how anyone would want to make it.
 
+## Asking the registry what exists
+
+The same range language, against what is published rather than what is
+installed. A tag is looked up rather than parsed, so `latest` means what the
+registry says it means.
+
+```ts
+import { catalogueOf, createFetchJson, releaseFor } from "@venn-lang/toolchain";
+
+const catalogue = await catalogueOf({ fetchJson: createFetchJson() });
+
+releaseFor({ catalogue, request: "latest" });
+// { version: "0.1.3", tarball: "https://…/cli-0.1.3.tgz", integrity: "sha512-…" }
+
+releaseFor({ catalogue, request: "0.1.x" });   // the newest published 0.1
+releaseFor({ catalogue, request: "9.x" });     // undefined
+```
+
+`fetchJson` is passed in rather than reached for, so this is testable without a
+network and a mirror or a proxy is a different function rather than a rewrite.
+
+It asks for the abbreviated document, which holds the tags, the versions and
+each tarball with its hash. For this package that is 4 KB where the full one is
+21, and the full one grows with every release while the abbreviated one keeps
+its shape.
+
+A version published without a tarball or without an integrity hash is left out.
+It could not be installed and could not be checked, so offering it would only
+fail later and further away.
+
 ## The reason travels with the answer
 
 `describe` exists because someone asking which version they are on has usually

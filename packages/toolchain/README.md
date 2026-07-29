@@ -139,6 +139,38 @@ Only regular files are taken. Directories arrive implicitly with the files in
 them, and a symlink, a hard link or a device node has no business coming out of
 a package tarball.
 
+## The whole decision, in one call
+
+```ts
+const home = vennHome({ env: process.env, home: homedir() });
+const plan = await planFor({ fs, home, directory: process.cwd() });
+
+switch (plan.kind) {
+  case "run":     // hand over to plan.entry
+  case "install": // fetch plan.request first, then hand over
+  case "stop":    // say plan.reason
+}
+```
+
+The orchestrator holds no policy of its own: it asks what to do and does it. A
+test can ask the same question without anything happening.
+
+A version that is not installed is fetched rather than refused. Someone who
+pinned a version and ran a command has already said which one they want, and
+being asked whether they meant it helps nobody.
+
+### What counts as installed
+
+A directory under `versions/` whose manifest declares an entry point that is
+actually there. Read from the disk rather than from a file listing them, because
+a file can disagree with the disk and then two things need repairing instead of
+one.
+
+The entry point comes from the version's own `bin` field rather than a fixed
+path, so a version decides where it keeps things. That also lets a version
+published before the language separated from the orchestrator keep working: it
+declares `venn`, where a newer one declares `venn-run`, and both are found.
+
 ## The reason travels with the answer
 
 `describe` exists because someone asking which version they are on has usually

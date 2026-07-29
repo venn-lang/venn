@@ -87,8 +87,9 @@ venn test
 ```
 
 `venn run src/main.vn` runs a file as a program, `venn check .` checks without
-running, and `venn version` is how a machine holds more than one version of the
-language at a time. Full command list under [Tooling](#tooling).
+running, `venn upgrade` moves you to the newest language, and `venn version` is
+how a machine holds more than one at a time. Full command list under
+[Tooling](#tooling).
 
 ---
 
@@ -380,6 +381,7 @@ venn add zod           # add an npm dependency
 And one more, for the versions of the language themselves:
 
 ```bash
+venn upgrade               # fetch the newest and make it the default
 venn version list          # what is installed, and which one this directory uses
 venn version install 0.2   # fetch one, or the newest a range allows
 venn version use 0.2       # pin this directory to it, in venn.toml

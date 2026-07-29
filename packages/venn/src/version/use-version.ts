@@ -1,5 +1,6 @@
 import { installedVersions, isUsableRange, selectVersion } from "@venn-lang/toolchain";
 import type { CommandResult, VersionCommand } from "./version.types.js";
+import { writeDefault } from "./write-default.js";
 
 /** The file a directory pins a version in when it is not a project. */
 const VERSION_FILE = ".venn-version";
@@ -49,7 +50,7 @@ async function useGlobally(args: {
   if (chosen.version === undefined) {
     return fail(command, `no installed version matches ${request}. Install it first`);
   }
-  await write(command, `${command.where.home}/default`, chosen.version);
+  await writeDefault({ where: command.where, version: chosen.version });
   command.where.say(`Now using ${chosen.version} by default`);
   return 0;
 }

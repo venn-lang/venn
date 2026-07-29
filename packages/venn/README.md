@@ -45,6 +45,7 @@ venn = "0.2.x"
 ## Managing versions
 
 ```bash
+venn upgrade                         # fetch the newest and make it the default
 venn version list                    # what is here, and which one this directory uses
 venn version install latest          # or a version, or a range
 venn version use 0.2.x               # pin this directory
@@ -55,6 +56,20 @@ venn version remove 0.1.0
 Everything else `venn` is given goes to the language untouched, so `venn
 install` and `venn remove` keep meaning dependencies. Nothing a project already
 scripts changes.
+
+`upgrade` is the two common ones together, and it moves the machine, not your
+projects. A directory that pins a version goes on using it, and says so rather
+than leaving you to wonder why the old one still runs:
+
+```
+Installing 0.2.4
+Installed 0.2.4
+Now using 0.2.4 by default
+This directory still uses 0.1.x, asked for by /work/api/venn.toml
+```
+
+It upgrades the language. To upgrade `venn` itself, which changes rarely, use
+the package manager you installed it with: `npm i -g @venn-lang/venn`.
 
 `list` marks the one in use and says what decided it:
 

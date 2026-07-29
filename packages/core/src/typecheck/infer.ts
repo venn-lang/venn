@@ -194,6 +194,18 @@ function inferMember(expr: Member, env: TypeEnv, infer: Infer): Type {
 }
 
 /**
+ * Whether a member the shape does not carry is a mistake.
+ *
+ * `?.` asks whether something is there, so "no" is an answer rather than an
+ * error. Reporting one made the operator useless exactly where the shape is
+ * known, which is the only place it could have helped. Plain `.` still says the
+ * member is there, and is still wrong when it is not.
+ */
+function asking(expr: Member): boolean {
+  return expr.optional === true;
+}
+
+/**
  * The kinds whose members are all known: a string, a list, a handle, a literal.
  *
  * There is no shape one of these could turn out to have later, so answering
@@ -204,6 +216,7 @@ const CLOSED_MEMBERS = new Set(["list", "prim", "opaque", "literal"]);
 
 function unknownMember(receiver: Type, expr: Member, infer: Infer): Type {
   if (!CLOSED_MEMBERS.has(receiver.kind)) return DYNAMIC;
+  if (asking(expr)) return DYNAMIC;
   infer.ctx.mismatches.push({
     node: expr,
     expected: receiver,
@@ -220,6 +233,7 @@ function recordField(
 ): Type {
   const found = fieldType(receiver, expr.member);
   if (found) return found;
+  if (asking(expr)) return DYNAMIC;
   infer.ctx.mismatches.push({
     node: expr,
     expected: receiver,

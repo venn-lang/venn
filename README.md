@@ -53,7 +53,14 @@ npm install -g @venn-lang/venn
 
 Needs Node 24. That installs the `venn` command, which is small and carries no
 language of its own: it fetches the newest one in the background, and hands
-each project to the version that project asked for. Then:
+each project to the version that project asked for.
+
+> Already have `@venn-lang/cli` from 0.1.x? Remove it first, with
+> `npm rm -g @venn-lang/cli`. Both packages want to be called `venn`, and npm
+> refuses to take a name another package holds. That package is a version of
+> the language now, and `venn` fetches it for you.
+
+Then:
 
 ```bash
 venn new my-suite && cd my-suite

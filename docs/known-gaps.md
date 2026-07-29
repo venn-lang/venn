@@ -70,7 +70,7 @@ This is the gap most likely to hurt a real project.
 
 ## 5. A bare argument cannot hold a binary operator
 
-**Severity: low, but it surprises everyone.**
+**Half closed.** It still surprises everyone, but it no longer leaves them guessing.
 
 ```ruby
 print 300ms + 1s      # syntax error
@@ -79,8 +79,16 @@ print a ?? b          # syntax error
 ```
 
 An unparenthesised argument to an action call parses as an `ActionArg`, which
-does not admit binary operators. The error message points at the operator rather
-than explaining that the argument needs brackets.
+does not admit binary operators. **The message now explains it**, and writes out
+the line to use:
+
+```
+An argument cannot hold `+` unless it is bracketed. Write `print (300ms + 1s)`.
+```
+
+The grammar still refuses. Accepting `print a - b` means deciding whether that
+is one argument or two, since `-` also negates, and that is a change to the
+language rather than a fix to a message.
 
 ## 6. A `Type` decorator runs but cannot type-check
 

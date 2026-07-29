@@ -84,10 +84,12 @@ than explaining that the argument needs brackets.
 
 ## 6. A `Type` decorator runs but cannot type-check
 
-**Severity: low.** `target.addField("id", "string")` works at run time, but
-`venn check` runs before expansion, so a binding annotated with the widened type
-fails VN3010. A decorator that changes a shape therefore cannot be used in a file
-that also type-checks.
+**Closed.** The decorators that change a shape run before anything is checked
+against one, so the check sees the type the program actually has. Only
+declarations of types are expanded: a decorator that wraps a function changes
+nothing the checker can see, and `venn check` should not execute a body to learn
+nothing. A decorator contributed by a plugin is still invisible to the checker,
+which cannot reach one.
 
 ## 7. Step titles do not interpolate
 

@@ -42,11 +42,21 @@ export function expand(args: {
   uri?: string;
   /** The `pub deco`s this file's imports reach, by name. */
   imported?: ReadonlyMap<string, ImportedDeco>;
+  /**
+   * Which decorated nodes to run. Everything, unless a caller narrows it.
+   *
+   * The checker narrows it to declarations of types, because a decorator that
+   * changes a shape changes what the checker has to check, while one that wraps
+   * a function changes nothing it can see. Running only what it needs keeps
+   * `venn check` from executing bodies for no reason.
+   */
+  only?: (node: AstNode) => boolean;
 }): ExpandResult {
   const problems: Problem[] = [];
   const uri = args.uri ?? "memory://inline.vn";
   const decorators = withDocumentDecos({ ...args, uri, problems });
-  const sites = walkAst(args.document).filter(decorated);
+  const wanted = args.only ?? (() => true);
+  const sites = walkAst(args.document).filter(decorated).filter(wanted);
   for (const node of sites.reverse()) {
     applyAll({ node, decorators, uri, problems });
   }

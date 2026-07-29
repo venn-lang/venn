@@ -407,7 +407,7 @@ pnpm install
 pnpm -r --sort run build
 pnpm test
 
-node packages/cli/dist/bin/venn.mjs test examples/testing/
+node packages/cli/dist/bin/venn-run.mjs test examples/testing/
 ```
 
 Then read [`examples/`](examples): 38 files that all run, from

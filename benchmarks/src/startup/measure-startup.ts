@@ -5,7 +5,7 @@ import { measure } from "../harness/index.ts";
 import { findPython } from "../python/index.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
-const VENN = resolve(ROOT, "packages/cli/dist/bin/venn.mjs");
+const VENN = resolve(ROOT, "packages/cli/dist/bin/venn-run.mjs");
 const CASES = resolve(ROOT, "benchmarks/cases");
 
 /**

@@ -46,7 +46,7 @@ The repository is not published, so from a source checkout the binary is:
 
 ```bash
 pnpm --filter @venn-lang/cli build
-node packages/cli/dist/bin/venn.mjs test examples/
+node packages/cli/dist/bin/venn-run.mjs test examples/
 ```
 
 ## Commands

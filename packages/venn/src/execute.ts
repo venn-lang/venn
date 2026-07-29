@@ -8,6 +8,7 @@ import {
   planFor,
   releaseFor,
 } from "@venn-lang/toolchain";
+import { versionCommand } from "./version/index.js";
 
 /**
  * Everything the orchestrator touches outside itself.
@@ -46,6 +47,8 @@ export async function execute(args: {
   where: Surroundings;
 }): Promise<number> {
   const { where } = args;
+  const own = await versionCommand(args);
+  if (own !== undefined) return own;
   const plan = await planFor({ fs: where.fs, home: where.home, directory: where.cwd });
   if (plan.kind === "stop") return refuse(where, plan.reason);
   if (plan.kind === "run") return where.handOver({ entry: plan.entry, args: args.argv });

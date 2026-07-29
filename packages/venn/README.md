@@ -34,6 +34,44 @@ venn = "0.2.x"
 
 `VENN_HOME` says where versions live, if `~/.venn` is not where they should go.
 
+## Managing versions
+
+```bash
+venn version list                    # what is here, and which one this directory uses
+venn version install latest          # or a version, or a range
+venn version use 0.2.x               # pin this directory
+venn version use 0.2.4 --global      # the answer for everything that does not ask
+venn version remove 0.1.0
+```
+
+Everything else `venn` is given goes to the language untouched, so `venn
+install` and `venn remove` keep meaning dependencies. Nothing a project already
+scripts changes.
+
+`list` marks the one in use and says what decided it:
+
+```
+* 0.1.1
+  0.1.3
+
+Using 0.1.1, as asked, pinned by /work/api/.venn-version
+```
+
+### What it refuses
+
+Removing the version this directory is pinned to, or the one set as the default.
+Both leave someone unable to run anything and finding out at the next command,
+so each is refused with the way out of it named.
+
+`use` writes a `.venn-version` file rather than editing a `venn.toml`. A
+manifest is under review and belongs to whoever wrote it, and a command that
+rewrites one shows up in somebody's diff unannounced. A project that wants the
+pin in its manifest can put it there by hand, and it wins over the file.
+
+`use --global` resolves a range to one version before writing it. The default is
+the answer for everything that did not ask, and an answer that moves when
+something else is installed is not one.
+
 ## Handing over
 
 Spawned, not linked. A symlink on Windows needs a privilege that is not always

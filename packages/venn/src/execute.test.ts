@@ -63,22 +63,27 @@ interface Watched {
 
 async function surroundings(files: Record<string, string> = {}): Promise<Watched> {
   const served = await tarball();
-  const fs = await filesystemWith(files);
   const said: string[] = [];
   const ran: { entry: string; args: readonly string[] }[] = [];
   const where: Surroundings = {
-    fs,
+    fs: await filesystemWith(files),
     home: HOME,
     cwd: "/work",
     fetchJson: async () => catalogueFor(served.integrity),
     fetchBytes: async () => served.bytes,
-    handOver: async (args) => {
-      ran.push(args);
-      return 0;
-    },
+    handOver: async (args) => watch(ran, args),
     say: (line) => said.push(line),
   };
   return { said, ran, where };
+}
+
+/** Records what would have run, and reports the success it would have had. */
+async function watch(
+  ran: { entry: string; args: readonly string[] }[],
+  args: { entry: string; args: readonly string[] },
+): Promise<number> {
+  ran.push(args);
+  return 0;
 }
 
 async function filesystemWith(files: Record<string, string>): Promise<FileSystem> {

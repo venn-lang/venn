@@ -45,6 +45,15 @@ export default defineConfig([
     platform: "node",
     dts: false,
   },
+  // Where a 0.1.x install lands when it upgrades. This package was the command
+  // then, so upgrading it brings this, which says where the command went. It is
+  // a sentence and an exit code, and it goes away once nobody is on 0.1.x.
+  {
+    entry: { "bin/venn": "src/bin/moved.ts" },
+    format: ["esm"],
+    platform: "node",
+    dts: false,
+  },
   // The language server, bundled whole. The tarball is unpacked on its own,
   // with no install step to fetch anything it might otherwise depend on.
   {

@@ -75,6 +75,26 @@ describe("finding what to run", () => {
     );
   });
 
+  /**
+   * A version that declares both, which every version from 0.2.0 does: `venn`
+   * there is a note saying the command moved to another package, kept for
+   * people upgrading a 0.1.x install.
+   *
+   * Running that instead of `venn-run` would turn every `venn test` into the
+   * note, so the order these are tried in is not an implementation detail.
+   */
+  it("prefers the command over the note left for the old name", async () => {
+    const fs = createMemoryFs();
+    await addVersion(fs, "0.2.0", {
+      venn: "./dist/bin/venn.mjs",
+      "venn-run": "./dist/bin/venn-run.mjs",
+    });
+
+    expect(await entryOf({ fs, home: HOME, version: "0.2.0", kind: "run" })).toBe(
+      "/home/v/.venn/versions/0.2.0/dist/bin/venn-run.mjs",
+    );
+  });
+
   it("has nothing for a version that is not there", async () => {
     const fs = createMemoryFs();
 

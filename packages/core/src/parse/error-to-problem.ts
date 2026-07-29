@@ -1,5 +1,6 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import type { Problem, Span } from "../problem/index.js";
+import { bracketTheArgument } from "./bracket-the-argument.js";
 
 /** Structural view of a Chevrotain lexer error (avoids importing chevrotain). */
 interface LexerError {
@@ -29,15 +30,47 @@ export function lexerErrorToProblem(args: { error: LexerError; uri: string }): P
   return buildProblem({ spec: CODES.VN1001_LEX, span, title: e.message });
 }
 
-/** Map a parser error to VN1002. */
-export function parserErrorToProblem(args: { error: RecognitionError; uri: string }): Problem {
+/**
+ * Map a parser error to VN1002.
+ *
+ * @param args The error, the uri for the span, and the source, which one case
+ * reads to say what to write instead of what was expected.
+ */
+export function parserErrorToProblem(args: {
+  error: RecognitionError;
+  uri: string;
+  text?: string;
+}): Problem {
   const t = args.error.token;
   const span: Span = {
     uri: args.uri,
-    offset: t.startOffset,
+    offset: at(t.startOffset, 0),
     length: t.image?.length ?? 1,
-    line: t.startLine ?? 1,
-    column: t.startColumn ?? 1,
+    line: at(t.startLine, 1),
+    column: at(t.startColumn, 1),
   };
-  return buildProblem({ spec: CODES.VN1002_PARSE, span, title: args.error.message });
+  return buildProblem({ spec: CODES.VN1002_PARSE, span, title: titleFor(args) });
+}
+
+/**
+ * A position, or where to point when there is none.
+ *
+ * The token for the end of the file carries `NaN` rather than nothing, so `??`
+ * lets it through and the report reads `at file.vn:NaN:NaN`.
+ */
+function at(value: number | undefined, fallback: number): number {
+  return Number.isFinite(value) ? (value as number) : fallback;
+}
+
+/** The parser's own words, unless this is an error the language can explain. */
+function titleFor(args: { error: RecognitionError; text?: string }): string {
+  const explained =
+    args.text === undefined
+      ? undefined
+      : bracketTheArgument({
+          operator: args.error.token.image,
+          text: args.text,
+          offset: args.error.token.startOffset,
+        });
+  return explained ?? args.error.message;
 }

@@ -15,12 +15,16 @@ import type { ParseOutput } from "./parse-output.types.js";
 export function parse(text: string, options: { uri?: string } = {}): ParseOutput {
   const uri = options.uri ?? "memory://inline.vn";
   const result = vennServices().parser.LangiumParser.parse<Document>(text);
-  return { ast: result.value, problems: collectProblems({ result, uri }) };
+  return { ast: result.value, problems: collectProblems({ result, uri, text }) };
 }
 
-function collectProblems(args: { result: ParseResult<Document>; uri: string }): Problem[] {
-  const { result, uri } = args;
+function collectProblems(args: {
+  result: ParseResult<Document>;
+  uri: string;
+  text: string;
+}): Problem[] {
+  const { result, uri, text } = args;
   const lexical = result.lexerErrors.map((error) => lexerErrorToProblem({ error, uri }));
-  const syntactic = result.parserErrors.map((error) => parserErrorToProblem({ error, uri }));
+  const syntactic = result.parserErrors.map((error) => parserErrorToProblem({ error, uri, text }));
   return [...lexical, ...syntactic];
 }

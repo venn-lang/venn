@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/lsp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "The Venn language server: diagnostics, hover, completion, definition, references, rename, signature help, semantic tokens, formatting, document highlight and quick fixes for .vn files.",
   "keywords": [
     "venn",

@@ -1,5 +1,13 @@
 # @venn-lang/sdk
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [[`e12a24d`](https://github.com/venn-lang/venn/commit/e12a24d8f81d38568f4d66a7a2b16d4aa9b5ca10)]:
+  - @venn-lang/types@0.4.0
+  - @venn-lang/contracts@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

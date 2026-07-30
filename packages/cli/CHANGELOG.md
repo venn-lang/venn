@@ -1,5 +1,23 @@
 # @venn-lang/cli
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [[`5fc1774`](https://github.com/venn-lang/venn/commit/5fc17743005962cbc420580fd292a0ee31e5b291), [`e12a24d`](https://github.com/venn-lang/venn/commit/e12a24d8f81d38568f4d66a7a2b16d4aa9b5ca10), [`17b6fdb`](https://github.com/venn-lang/venn/commit/17b6fdbecbe4f567b750f58eb3f3ffef5448f1df), [`7a21703`](https://github.com/venn-lang/venn/commit/7a21703916428e1d32a1ad2757820d493fbc03c4), [`d05eb04`](https://github.com/venn-lang/venn/commit/d05eb04c415f3dd090e883a1909618ea00e782a6)]:
+  - @venn-lang/core@0.4.0
+  - @venn-lang/runtime@0.4.0
+  - @venn-lang/types@0.4.0
+  - @venn-lang/lsp@0.4.0
+  - @venn-lang/stdlib@0.4.0
+  - @venn-lang/dts@0.4.0
+  - @venn-lang/sdk@0.4.0
+  - @venn-lang/assert@0.4.0
+  - @venn-lang/http@0.4.0
+  - @venn-lang/io@0.4.0
+  - @venn-lang/contracts@0.4.0
+  - @venn-lang/project@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

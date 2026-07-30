@@ -1,5 +1,5 @@
 import type { BindsValue } from "@venn-lang/core";
-import { patternSlots, readPath } from "@venn-lang/core";
+import { patternSlots, slotValue } from "@venn-lang/core";
 import type { Scope } from "./scope.types.js";
 
 /** Put a value in scope under whatever the site names. */
@@ -22,6 +22,6 @@ export function binderFor(site: BindsValue): Binder {
   if (!site.pattern) return () => undefined;
   const slots = patternSlots(site.pattern);
   return (value, scope) => {
-    for (const bound of slots) scope.set(bound.name, readPath(value, bound.path));
+    for (const bound of slots) scope.set(bound.name, slotValue(value, bound));
   };
 }

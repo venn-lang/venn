@@ -79,6 +79,72 @@ const b: number = second`;
   });
 });
 
+describe("the rest of a value", () => {
+  it("says nothing about a list whose shape is unknown", () => {
+    const source = `fn show(o) {
+  let [first, ...rest] = o
+  return first
+}`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  it("is the shape without the fields the pattern named", () => {
+    const source = `${ORDER}const { id, ...others } = order
+const a: number = others.total`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  it("no longer carries what was named", () => {
+    const source = `${ORDER}const { id, ...others } = order
+print others.id`;
+
+    expect(said(source)[0]).toContain('has no field "id"');
+  });
+
+  it("refuses it read as the wrong type", () => {
+    const source = `${ORDER}const { id, ...others } = order
+const a: string = others.total`;
+
+    expect(said(source)[0]).toContain("expected string, found number");
+  });
+
+  /** Taking some keys away changes how many there are, not what they hold. */
+  it("keeps a map of one value a map of that value", () => {
+    const source = `const headers: map<string> = { a: "1", b: "2" }
+const { a, ...rest } = headers
+const b: string = rest.get("b")`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  it("is a list of the same thing when it comes off a list", () => {
+    const source = `const xs = [1, 2, 3]
+const [first, ...rest] = xs
+const a: list<number> = rest`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  it("refuses that list read as another", () => {
+    const source = `const xs = [1, 2, 3]
+const [first, ...rest] = xs
+const a: list<string> = rest`;
+
+    expect(said(source)[0]).toContain("expected list<string>, found list<number>");
+  });
+
+  it("takes the rest of a value a match arm asked about", () => {
+    const source = `${ORDER}const said: number = match order {
+  { id: "a1", ...body } => body.total
+  _ => 0
+}`;
+
+    expect(said(source)).toEqual([]);
+  });
+});
+
 describe("taking apart what a loop hands over", () => {
   it("gives each name the field's type", () => {
     const source = `const people = [{ name: "ana", age: 30 }]

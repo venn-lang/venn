@@ -166,8 +166,17 @@ Pattern:
   // A name binds what is there, a literal asks whether that is what is there.
   // One rule, and it is what lets a pattern both test and take apart at once.
   | {infer LiteralPattern} value=LiteralValue
-  | {infer MapPattern} '{' NL* (fields+=FieldPattern ((',' | NL)+ fields+=FieldPattern)*)? (',' | NL)* '}'
-  | {infer ListPattern} '[' NL* (items+=Pattern ((',' | NL)+ items+=Pattern)*)? (',' | NL)* ']';
+  // `...rest` takes whatever the pattern did not name: the other fields as a map,
+  // or the items after the last one, as a list. It comes last, because what is
+  // left is only known once the rest of the pattern has had its say.
+  | {infer MapPattern} '{' NL*
+      ( fields+=FieldPattern ((',' | NL)+ fields+=FieldPattern)* ((',' | NL)+ '...' rest=ID)?
+      | '...' rest=ID )?
+      (',' | NL)* '}'
+  | {infer ListPattern} '[' NL*
+      ( items+=Pattern ((',' | NL)+ items+=Pattern)* ((',' | NL)+ '...' rest=ID)?
+      | '...' rest=ID )?
+      (',' | NL)* ']';
 
 // The literals a pattern may ask about, which are the ones a value can be equal
 // to. The same nodes an expression is made of, so what they mean is decided once.

@@ -33,6 +33,7 @@ export type VennKeywordNames =
     | "-"
     | "->"
     | "."
+    | "..."
     | "/"
     | ":"
     | "<"
@@ -748,11 +749,13 @@ export interface ListPattern extends langium.AstNode {
     readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | MatchArm | Param;
     readonly $type: 'ListPattern';
     items: Array<Pattern>;
+    rest?: string;
 }
 
 export const ListPattern = {
     $type: 'ListPattern',
-    items: 'items'
+    items: 'items',
+    rest: 'rest'
 } as const;
 
 export function isListPattern(item: unknown): item is ListPattern {
@@ -867,11 +870,13 @@ export interface MapPattern extends langium.AstNode {
     readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | MatchArm | Param;
     readonly $type: 'MapPattern';
     fields: Array<FieldPattern>;
+    rest?: string;
 }
 
 export const MapPattern = {
     $type: 'MapPattern',
-    fields: 'fields'
+    fields: 'fields',
+    rest: 'rest'
 } as const;
 
 export function isMapPattern(item: unknown): item is MapPattern {
@@ -2165,6 +2170,10 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: ListPattern.items,
                     defaultValue: [],
                     optional: true
+                },
+                rest: {
+                    name: ListPattern.rest,
+                    optional: true
                 }
             },
             superTypes: [Pattern.$type]
@@ -2250,6 +2259,10 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 fields: {
                     name: MapPattern.fields,
                     defaultValue: [],
+                    optional: true
+                },
+                rest: {
+                    name: MapPattern.rest,
                     optional: true
                 }
             },

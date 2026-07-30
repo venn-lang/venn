@@ -10,7 +10,8 @@
 import type { Frame } from "../expr/frame.js";
 import { readSlot } from "../expr/frame.js";
 import type { Param, Pattern } from "../generated/ast.js";
-import { patternNames, patternSlots, readPath } from "../pattern/index.js";
+import type { PatternSlot } from "../pattern/index.js";
+import { patternNames, patternSlots, slotValue } from "../pattern/index.js";
 import type { CompiledLocal, Thunk } from "./compile.types.js";
 import type { LexScope } from "./lex-scope.js";
 
@@ -53,10 +54,10 @@ export function paramLocals(params: readonly Param[], scope: LexScope): Compiled
 export function unpack(pattern: Pattern, scope: LexScope, from: number): CompiledLocal[] {
   return patternSlots(pattern).map((bound) => ({
     slot: scope.names.indexOf(bound.name),
-    value: pathThunk(from, bound.path),
+    value: slotThunk(from, bound),
   }));
 }
 
-function pathThunk(from: number, path: readonly (string | number)[]): Thunk {
-  return (env) => readPath(readSlot(env as Frame, from), path);
+function slotThunk(from: number, bound: PatternSlot): Thunk {
+  return (env) => slotValue(readSlot(env as Frame, from), bound);
 }

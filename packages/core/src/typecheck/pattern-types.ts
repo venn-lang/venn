@@ -9,7 +9,7 @@
 import type { FieldPattern, Pattern } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import type { Infer } from "./infer.js";
-import { DYNAMIC, type Type } from "./type.types.js";
+import { DYNAMIC, list, mapOf, record, type Type } from "./type.types.js";
 import { fieldType, prune } from "./unify.js";
 
 /** One name a pattern binds, with what it holds. */
@@ -30,7 +30,21 @@ export function patternTypes(args: { pattern: Pattern; type: Type; infer: Infer 
   if (ast.isListPattern(pattern)) return items(pattern, type, infer);
   const held = prune(type);
   if (!open(held) && held.kind !== "record") return [notA(pattern, held, "map", infer)];
-  return pattern.fields.flatMap((field) => fieldOf(field, held, infer));
+  const named = pattern.fields.flatMap((field) => fieldOf(field, held, infer));
+  return pattern.rest ? [...named, [pattern.rest, leftOver(pattern, held)]] : named;
+}
+
+/**
+ * What the name after `...` holds: the shape without the fields the pattern
+ * already named. A map of one value stays a map of that value, since taking
+ * some keys away changes how many there are and not what they hold.
+ */
+function leftOver(pattern: ast.MapPattern, held: Type): Type {
+  if (held.kind !== "record") return DYNAMIC;
+  if (held.rest) return mapOf(held.rest);
+  const named = new Set(pattern.fields.map((field) => field.name));
+  const left = [...held.fields].filter(([name]) => !named.has(name));
+  return record(new Map(left), held.open);
 }
 
 /** A type that could still turn out to be anything, which is nobody's mistake. */
@@ -47,9 +61,20 @@ function fieldOf(field: FieldPattern, held: Type, infer: Infer): Bound[] {
 
 function items(pattern: ast.ListPattern, type: Type, infer: Infer): Bound[] {
   const held = prune(type);
-  if (open(held)) return pattern.items.flatMap((item) => under(item, DYNAMIC, infer));
+  if (open(held))
+    return withRest(
+      pattern,
+      pattern.items.flatMap((i) => under(i, DYNAMIC, infer)),
+      DYNAMIC,
+    );
   if (held.kind !== "list") return [notA(pattern, held, "list", infer)];
-  return pattern.items.flatMap((item) => under(item, held.element, infer));
+  const named = pattern.items.flatMap((item) => under(item, held.element, infer));
+  return withRest(pattern, named, held.element);
+}
+
+/** What is left of a list is a list of the same thing, however much of it. */
+function withRest(pattern: ast.ListPattern, named: Bound[], element: Type): Bound[] {
+  return pattern.rest ? [...named, [pattern.rest, list(element)]] : named;
 }
 
 function under(pattern: Pattern, type: Type, infer: Infer): Bound[] {

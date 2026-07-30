@@ -10,6 +10,7 @@ import {
   isMatcherClause,
   isMember,
   isNamedType,
+  isNullType,
   isRunStmt,
   isUseDecl,
   isValueImport,
@@ -153,6 +154,8 @@ export class VennHoverProvider implements HoverProvider {
     if (isActionCall(node) && on(leaf, node, "target"))
       return this.callTarget(node, leaf, document);
     if (isNamedType(node)) return typeNameHover(node.name, this.catalog);
+    // `null` written as a type is a keyword, so it arrives as its own node.
+    if (isNullType(node)) return typeNameHover("null", this.catalog);
     if (isMatcherClause(node) && on(leaf, node, "name"))
       return matcherHover(node.name, this.catalog);
     if (isUseDecl(node) && on(leaf, node, "pkg")) return useHover(node, this.catalog);

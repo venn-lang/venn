@@ -1,5 +1,5 @@
 import type { SingleType, TypeBody, TypeRef } from "../generated/ast.js";
-import { isNamedType, isShapeType } from "../generated/ast.js";
+import { isNamedType, isNullType, isShapeType } from "../generated/ast.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
@@ -42,6 +42,8 @@ export function typeRefToType(args: RefScope & { ref: TypeRef | undefined }): Ty
 function singleToType(args: RefScope & { single: SingleType }): Type {
   const { single } = args;
   if (isShapeType(single)) return shapeOf({ ...args, body: single.body });
+  // The same `T | null` an optional field already builds, said out loud.
+  if (isNullType(single)) return NULL;
   // A `SingleType` that is neither a name nor a shape is a written-out literal
   // such as `"GET"`, and it means that one value. Widening it to `string` would
   // enforce nothing.

@@ -6,6 +6,7 @@ const SOURCE = `type Preco {
   valor: number
   prazo: duration
   bruto: dynamic
+  achado: string | null
 }
 `;
 
@@ -43,5 +44,13 @@ describe("hovering a built-in type", () => {
 
   it("still describes a number", async () => {
     expect(await hoverOn("number")).toContain("no separate integer type");
+  });
+
+  /** `null` is a keyword, so it reaches the hover as its own kind of node. */
+  it("explains the one written as a keyword", async () => {
+    const text = await hoverOn("null");
+
+    expect(text).toContain("The absence of a value");
+    expect(text).toContain("found: string | null");
   });
 });

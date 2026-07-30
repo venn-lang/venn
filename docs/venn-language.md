@@ -559,6 +559,22 @@ match res.status {
 }
 ```
 
+Um ramo pode pedir mais do que a forma, com `if` depois do padrão. O que separa
+os dois é o que acontece quando a condição falha: **o próximo ramo é tentado**, e
+é por isso que a condição não podia ficar só no corpo.
+
+```venn
+match msg {
+  { kind: "text", body } if body.len > 100 => "longo"
+  { kind: "text", body }                   => body
+  _                                        => "outra"
+}
+```
+
+Guard lê o que o padrão ligou, e **ramo com guard não cobre nada**: a condição
+pode falhar, então o caso continua sendo de ninguém. Um `match` cujo único ramo
+para um branch é guardado ainda está incompleto, e o checker diz isso.
+
 Primeiro ramo que casa ganha, sem cair para o de baixo. Caso que ninguém escreveu
 é **VN3019**, ramo que nada pode alcançar é **VN3020**. Sujeito que não é um
 conjunto de ramos (um `number`, por exemplo) não é cobrado: não há lista de casos

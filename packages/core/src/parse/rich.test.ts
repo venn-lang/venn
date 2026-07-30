@@ -54,7 +54,7 @@ flow "Checkout" {
     }
 
     repeat 3 as n { wait 1s }
-    while res.pending == true { wait 2s }
+    loop res.pending == true { wait 2s }
 
     try {
       step "Pay" { stripe.charge { amount: 9900 } }

@@ -36,7 +36,7 @@ const KERNEL = [
   "forEach",
   "in",
   "repeat",
-  "while",
+  "loop",
   "parallel",
   "race",
   "try",

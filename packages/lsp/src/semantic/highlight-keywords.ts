@@ -17,6 +17,7 @@ import {
   isIfStmt,
   isLetStmt,
   isLifecycleDecl,
+  isLoopStmt,
   isMatrixDecl,
   isParallelStmt,
   isRaceStmt,
@@ -29,7 +30,6 @@ import {
   isTypeDecl,
   isUseDecl,
   isValueImport,
-  isWhileStmt,
 } from "@venn-lang/core";
 import type { SemanticTokenAcceptor } from "langium/lsp";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
@@ -85,7 +85,7 @@ function control(node: AstNode): string[] | undefined {
   if (isIfStmt(node)) return node.otherwise ? ["if", "else"] : ["if"];
   if (isForEachStmt(node)) return ["forEach", "in"];
   if (isRepeatStmt(node)) return node.index ? ["repeat", "as"] : ["repeat"];
-  if (isWhileStmt(node)) return ["while"];
+  if (isLoopStmt(node)) return ["loop"];
   if (isParallelStmt(node)) return ["parallel"];
   if (isRaceStmt(node)) return ["race"];
   if (isTryStmt(node)) return tryWords(node.handler, node.finalizer);

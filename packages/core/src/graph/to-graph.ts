@@ -6,11 +6,11 @@ import {
   isForEachStmt,
   isGroupDecl,
   isIfStmt,
+  isLoopStmt,
   isParallelStmt,
   isRaceStmt,
   isRepeatStmt,
   isStepDecl,
-  isWhileStmt,
 } from "../generated/ast.js";
 import type { Graph, GraphNode } from "./graph.types.js";
 
@@ -57,7 +57,7 @@ function containerOf(stmt: Statement): { kind: string; label: string; body: Bloc
   if (isForEachStmt(stmt))
     return { kind: "forEach", label: `forEach ${stmt.item}`, body: stmt.body };
   if (isRepeatStmt(stmt)) return { kind: "repeat", label: "repeat", body: stmt.body };
-  if (isWhileStmt(stmt)) return { kind: "while", label: "while", body: stmt.body };
+  if (isLoopStmt(stmt)) return { kind: "loop", label: loopLabel(stmt), body: stmt.body };
   if (isParallelStmt(stmt)) return { kind: "parallel", label: "parallel", body: stmt.body };
   if (isRaceStmt(stmt)) return { kind: "race", label: "race", body: stmt.body };
   if (isIfStmt(stmt)) return { kind: "if", label: "if", body: stmt.then };
@@ -84,4 +84,10 @@ function addNode(graph: Graph, node: GraphNode): string {
 
 function exprText(stmt: ExpectStmt): string {
   return (stmt as { $cstNode?: { text?: string } }).$cstNode?.text ?? "expect";
+}
+
+/** What a `loop` reads as in the graph: its condition, its state, or nothing. */
+function loopLabel(stmt: { cond?: unknown; state?: { name: string } }): string {
+  if (stmt.state) return `loop ${stmt.state.name}`;
+  return stmt.cond ? "loop <cond>" : "loop";
 }

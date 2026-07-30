@@ -3,7 +3,16 @@
 // failures.
 
 export class BreakSignal {}
-export class ContinueSignal {}
+/**
+ * `continue`, carrying what the next pass of a `loop` should start from.
+ *
+ * Undefined for a bare `continue`, which repeats the pass with the state the
+ * current one had. That is how a value crosses an iteration boundary without
+ * anything being assigned.
+ */
+export class ContinueSignal {
+  constructor(readonly value?: unknown) {}
+}
 export class ReturnSignal {
   constructor(readonly value: unknown) {}
 }

@@ -15,7 +15,7 @@ const KEYWORDS = [
   "else",
   "forEach",
   "repeat",
-  "while",
+  "loop",
   "parallel",
   "race",
   "try",

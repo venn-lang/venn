@@ -22,7 +22,7 @@ export function matchNames(body: FnBody): string[] {
 function walk(node: object, into: string[]): void {
   if (ast.isFnExpr(node)) return;
   if (ast.isMatchExpr(node)) {
-    for (const arm of node.arms) into.push(...patternNames(arm.pattern));
+    for (const arm of node.arms) for (const one of arm.patterns) into.push(...patternNames(one));
   }
   for (const [key, value] of Object.entries(node)) {
     if (key.startsWith("$")) continue;

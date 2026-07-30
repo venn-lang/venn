@@ -4901,8 +4901,8 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
         "elements": [
           {
             "$type": "Assignment",
-            "feature": "pattern",
-            "operator": "=",
+            "feature": "patterns",
+            "operator": "+=",
             "terminal": {
               "$type": "RuleCall",
               "rule": {
@@ -4910,6 +4910,28 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
               },
               "arguments": []
             }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "|"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "patterns",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@38"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "*"
           },
           {
             "$type": "Group",

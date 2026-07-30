@@ -2,7 +2,7 @@ import { childEnv } from "../../expr/closure.js";
 import type { EvalEnv } from "../../expr/eval-env.types.js";
 import type { Frame } from "../../expr/frame.js";
 import { writeSlot } from "../../expr/frame.js";
-import type { MatchArm, MatchExpr } from "../../generated/ast.js";
+import type { MatchArm, MatchExpr, Pattern } from "../../generated/ast.js";
 import type { Step } from "../../pattern/index.js";
 import {
   answers,
@@ -16,13 +16,19 @@ import type { Thunk } from "../compile.types.js";
 import type { LexScope } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
 
-/** One arm, ready to run: what it asks, what it names, and what it gives back. */
+/** One arm, ready to run: the ways in, the condition, and what it gives back. */
 interface Arm {
-  readonly tests: readonly PatternTest[];
-  readonly binds: readonly Bound[];
+  /** One per `|`, tried in order. An arm without any has exactly one. */
+  readonly ways: readonly Way[];
   /** The condition after the pattern, which reads what the pattern bound. */
   readonly guard: Thunk | undefined;
   readonly value: Thunk;
+}
+
+/** One way an arm can be reached: what it asks, and what it names when it is. */
+interface Way {
+  readonly tests: readonly PatternTest[];
+  readonly binds: readonly Bound[];
 }
 
 /** One name an arm binds, and the slot it goes in when the body has a frame. */
@@ -47,8 +53,9 @@ export function compileMatch(expr: MatchExpr, scope: LexScope, compileIn: Compil
   return (env) => {
     const value = subject(env);
     for (const arm of arms) {
-      if (!answers(value, arm.tests)) continue;
-      const inner = bind(env, arm.binds, value);
+      const way = arm.ways.find((one) => answers(value, one.tests));
+      if (!way) continue;
+      const inner = bind(env, way.binds, value);
       // The guard is asked last, with the names in hand, and a no moves on to
       // the next arm rather than ending the match.
       if (arm.guard && !truthy(arm.guard(inner))) continue;
@@ -59,17 +66,20 @@ export function compileMatch(expr: MatchExpr, scope: LexScope, compileIn: Compil
 }
 
 function armOf(arm: MatchArm, scope: LexScope, compileIn: CompileIn): Arm {
-  const binds = patternSlots(arm.pattern).map((bound) => ({
+  return {
+    ways: arm.patterns.map((pattern) => wayOf(pattern, scope)),
+    guard: arm.guard ? compileIn(arm.guard, scope) : undefined,
+    value: arm.value ? compileIn(arm.value, scope) : NOTHING,
+  };
+}
+
+function wayOf(pattern: Pattern, scope: LexScope): Way {
+  const binds = patternSlots(pattern).map((bound) => ({
     name: bound.name,
     path: bound.path,
     slot: scope.names.indexOf(bound.name),
   }));
-  return {
-    tests: patternTests(arm.pattern),
-    binds,
-    guard: arm.guard ? compileIn(arm.guard, scope) : undefined,
-    value: arm.value ? compileIn(arm.value, scope) : NOTHING,
-  };
+  return { tests: patternTests(pattern), binds };
 }
 
 const NOTHING: Thunk = () => null;

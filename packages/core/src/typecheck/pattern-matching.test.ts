@@ -147,6 +147,53 @@ const said = match status {
   });
 });
 
+describe("an arm reached more than one way", () => {
+  it("is complete when its ways cover between them", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok" } | { kind: "err" } => "either"
+}`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  it("still leaves what none of its ways covers", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok" } | { kind: "nope" } => "either"
+}`;
+
+    expect(said(source)[0]).toContain('VN3019 Nothing here says what to do when this is "err"');
+  });
+
+  it("gives a name bound by every way the type of either", () => {
+    const source = `type Ping { kind: "ping", at: number }
+type Pong { kind: "pong", at: number }
+type Beat = Ping | Pong
+const b: Beat = { kind: "ping", at: 1 }
+const said: number = match b {
+  { kind: "ping", at } | { kind: "pong", at } => at
+}`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  /** Which way matched is not knowable here, so the body could not read it. */
+  it("refuses a name only some of its ways bind", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok", value } | { kind: "err" } => "either"
+}`;
+
+    expect(said(source)[0]).toContain('Every way into this arm has to name "value"');
+  });
+
+  it("reads each way against the branches that way alone can be", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok", value } | { kind: "err", value } => "either"
+}`;
+
+    expect(said(source).join(" ")).toContain('has no field "value"');
+  });
+});
+
 describe("an arm with a guard", () => {
   it("reads what its pattern bound", () => {
     const source = `${RESULT}const said = match r {

@@ -7,13 +7,14 @@
  */
 
 import { CODES } from "../codes/index.js";
-import type { MatchArm, MatchExpr } from "../generated/ast.js";
+import type { MatchArm, MatchExpr, Pattern } from "../generated/ast.js";
 import { type Asked, patternTests } from "../pattern/index.js";
 import { checkBlock } from "./check-stmts.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { tagAt, written } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
-import { mono } from "./scheme.js";
+import { mono, type Scheme } from "./scheme.js";
+import { showType } from "./show.js";
 import { DYNAMIC, type Type, union } from "./type.types.js";
 import { type TypeEnv, withAll } from "./type-env.js";
 import { prune } from "./unify.js";
@@ -67,12 +68,7 @@ function checkArm(args: {
 }): Arm {
   const { arm, left, infer, env } = args;
   const reaching = left.filter((branch) => reaches(branch, arm));
-  const held = reaching.length > 0 ? union(reaching) : DYNAMIC;
-  const bound = patternTypes({ pattern: arm.pattern, type: held, infer });
-  const scope = withAll(
-    env,
-    bound.map(([name, type]) => [name, mono(type)] as const),
-  );
+  const scope = withAll(env, boundBy({ arm, left, infer }));
   // Read in the arm's own scope, since asking about what the pattern named is
   // the whole reason to write one.
   if (arm.guard) inferExpr(arm.guard, scope, infer);
@@ -83,9 +79,50 @@ function checkArm(args: {
   };
 }
 
+/**
+ * What the arm binds, whichever way it was reached.
+ *
+ * Each way is read against the branches it alone can be, so `{ kind: "ping", at }`
+ * asks Ping for `at` and nothing else does. A name bound by more than one way
+ * holds either of them, and one bound by only some is refused: which of them
+ * matched is not knowable here, so the body could not read it.
+ */
+function boundBy(args: { arm: MatchArm; left: readonly Type[]; infer: Infer }): [string, Scheme][] {
+  const { arm, left, infer } = args;
+  const ways = arm.patterns.map((pattern) => ({
+    pattern,
+    bound: patternTypes({ pattern, type: heldBy(pattern, left), infer }),
+  }));
+  const held = new Map<string, Type[]>();
+  for (const way of ways) {
+    for (const [name, type] of way.bound) held.set(name, [...(held.get(name) ?? []), type]);
+  }
+  for (const [name, types] of held) {
+    if (types.length !== ways.length) partly(arm, name, infer);
+  }
+  return [...held].map(([name, types]) => [name, mono(merged(types))]);
+}
+
+/** Two ways that hand back the same type hand back one, not a union of twins. */
+function merged(types: readonly Type[]): Type {
+  const seen = new Map<string, Type>();
+  for (const type of types) seen.set(showType(type), type);
+  return union([...seen.values()]);
+}
+
+/** The branches one way in can be, which is what its own names are read from. */
+function heldBy(pattern: Pattern, left: readonly Type[]): Type {
+  const reaching = left.filter((branch) => couldBe(branch, pattern));
+  return reaching.length > 0 ? union(reaching) : DYNAMIC;
+}
+
 /** Whether this branch of the subject could be the one the arm matches. */
 function reaches(branch: Type, arm: MatchArm): boolean {
-  return patternTests(arm.pattern).every((test) => {
+  return arm.patterns.some((pattern) => couldBe(branch, pattern));
+}
+
+function couldBe(branch: Type, pattern: Pattern): boolean {
+  return patternTests(pattern).every((test) => {
     const tag = tagAt(branch, test.path);
     return tag === undefined || tag === test.value;
   });
@@ -103,7 +140,9 @@ function reaches(branch: Type, arm: MatchArm): boolean {
  * whose only arm for a branch is guarded from passing for complete.
  */
 function taken(branch: Type, arm: MatchArm): boolean {
-  return patternTests(arm.pattern).every((test) => tagAt(branch, test.path) === test.value);
+  return arm.patterns.some((pattern) =>
+    patternTests(pattern).every((test) => tagAt(branch, test.path) === test.value),
+  );
 }
 
 function bodyType(args: {
@@ -150,13 +189,13 @@ function known(tag: Asked | undefined): tag is Asked {
 
 /** What a branch is filed under, read at the path the arms are asking about. */
 function tagOfBranch(branch: Type, expr: MatchExpr): Asked | undefined {
-  const first = expr.arms.flatMap((arm) => patternTests(arm.pattern))[0];
+  const first = expr.arms.flatMap((arm) => arm.patterns.flatMap(patternTests))[0];
   return first && tagAt(branch, first.path);
 }
 
 function unreachable(arm: MatchArm, infer: Infer): void {
   infer.ctx.mismatches.push({
-    node: arm.pattern,
+    node: arm.patterns[0] ?? arm,
     expected: DYNAMIC,
     actual: DYNAMIC,
     code: CODES.VN3020_UNREACHABLE_CASE,
@@ -179,6 +218,16 @@ function listed(missing: readonly Asked[]): string {
   const all = missing.map(written);
   const last = all[all.length - 1] as string;
   return all.length === 1 ? last : `${all.slice(0, -1).join(", ")} or ${last}`;
+}
+
+/** A name only some of the ways in bind, which the body could not count on. */
+function partly(arm: MatchArm, name: string, infer: Infer): void {
+  infer.ctx.mismatches.push({
+    node: arm.patterns[0] ?? arm,
+    expected: DYNAMIC,
+    actual: DYNAMIC,
+    sentence: `Every way into this arm has to name "${name}", since which one matched is not knowable here.`,
+  });
 }
 
 function noValue(arm: MatchArm, infer: Infer): void {

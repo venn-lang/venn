@@ -176,12 +176,22 @@ function generalizeFns(fns: readonly FnDecl[], env: TypeEnv, infer: Infer): Type
   return next;
 }
 
+/**
+ * What the top level of a file binds, in the order it is written.
+ *
+ * A `loop` carrying state is one of them: the name outlives the loop, holding
+ * what the last pass left, which is how a running total is read afterwards.
+ */
 function bindValues(document: Document, env: TypeEnv, infer: Infer): TypeEnv {
   let next = env;
   for (const decl of document.decls) {
-    if (ast.isLetStmt(decl)) next = checkStatement(decl, next, infer);
+    if (binds(decl)) next = checkStatement(decl as never, next, infer);
   }
   return next;
+}
+
+function binds(decl: Declaration): boolean {
+  return ast.isLetStmt(decl) || (ast.isLoopStmt(decl) && decl.state !== undefined);
 }
 
 /** Check the executable parts: flows, fragments, and top-level statements. */

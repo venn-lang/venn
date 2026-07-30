@@ -157,6 +157,21 @@ loop at = 0 {
     expect(printed).toEqual(["42"]);
   });
 
+  /** A bare `continue` in a loop with no state at all: nothing to carry. */
+  it("takes a bare continue in a loop that carries nothing", async () => {
+    const source = `loop count = 0 {
+  if count == 3 { break }
+  if count == 1 {
+    print "skipped one"
+    continue count + 1
+  }
+  print "saw \${count}"
+  continue count + 1
+}`;
+
+    expect(await run(source)).toEqual(["saw 0", "skipped one", "saw 2"]);
+  });
+
   it("takes break and continue from the nearest loop", async () => {
     const source = `loop outer = 0 {
   if outer == 2 { break }

@@ -263,3 +263,25 @@ describe("a decorator declared in the language", () => {
     expect(at("target: Fn")).toBe("parameter");
   });
 });
+
+describe("loop", () => {
+  it("is a keyword in each of its three shapes", async () => {
+    const source = `flow "F" {
+  loop {
+    step "a" { expect true }
+  }
+  loop total = 0 {
+    step "b" { expect true }
+  }
+  loop 1 > 0 {
+    step "c" { expect true }
+  }
+}`;
+    const { document, tokens } = await tokensOf(source);
+    const at = (needle: string) => typeAt(document, tokens, needle);
+
+    expect(at("loop {")).toBe("keyword");
+    expect(at("loop total")).toBe("keyword");
+    expect(at("loop 1 > 0")).toBe("keyword");
+  });
+});

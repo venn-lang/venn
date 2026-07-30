@@ -1,18 +1,16 @@
 import type { TypeContext } from "./context.js";
+import { listMember } from "./list-members.js";
+import { recordMember } from "./map-members.js";
 import {
   BOOL,
   baseOf,
-  callback,
-  DYNAMIC,
-  type FnType,
   fn,
   list,
   NUMBER,
+  optional,
   prim,
-  type RecordType,
   STRING,
   type Type,
-  type TypeVar,
   type UnionType,
   union,
 } from "./type.types.js";
@@ -35,7 +33,7 @@ export function memberType(receiver: Type, name: string, ctx: TypeContext): Type
   if (t.kind === "union") return unionMember(t, name, ctx);
   if (t.kind === "prim" && t.name === "string") return stringMember(name);
   if (t.kind === "prim" && t.name === "number") return numberMember(name);
-  if (t.kind === "record") return recordMember(t, name);
+  if (t.kind === "record") return recordMember(t, name, ctx);
   if (t.kind === "prim") return unitMember(t.name, name);
   // A handle answers to what it published, and to nothing else: its inside is
   // none of the reader's business, which is what makes it opaque.
@@ -74,84 +72,6 @@ function unitMember(unit: string, name: string): Type | undefined {
   return UNIT_MEMBERS[unit]?.[name];
 }
 
-function listMember(element: Type, name: string, ctx: TypeContext): Type | undefined {
-  const u = (): TypeVar => ctx.fresh();
-  const self = list(element);
-  /** Every list callback is handed the index too; `p => p.age` may ignore it. */
-  const over = (result: Type): FnType => callback([element, NUMBER], result, 1);
-  const predicate = over(BOOL);
-  const table: Record<string, () => Type> = {
-    len: () => NUMBER,
-    first: () => element,
-    last: () => element,
-    reverse: () => self,
-    flatten: () => list(DYNAMIC),
-    isEmpty: () => BOOL,
-    sum: () => NUMBER,
-    average: () => NUMBER,
-    min: () => NUMBER,
-    max: () => NUMBER,
-    toMap: () => DYNAMIC,
-    // Selecting keeps the element type; only the shape of the result changes.
-    take: () => fn([NUMBER], self),
-    drop: () => fn([NUMBER], self),
-    takeLast: () => fn([NUMBER], self),
-    dropLast: () => fn([NUMBER], self),
-    takeWhile: () => fn([predicate], self),
-    dropWhile: () => fn([predicate], self),
-    distinct: () => self,
-    distinctBy: () => fn([over(u())], self),
-    sortBy: () => fn([over(u())], self),
-    minBy: () => fn([over(NUMBER)], element),
-    maxBy: () => fn([over(NUMBER)], element),
-    sumBy: () => fn([over(NUMBER)], NUMBER),
-    flatMap: () => flatMapType(over, u()),
-    // Grouping changes the shape: a list becomes a map, or a list of lists.
-    groupBy: () => fn([over(DYNAMIC)], DYNAMIC),
-    countBy: () => fn([over(DYNAMIC)], DYNAMIC),
-    keyBy: () => fn([over(DYNAMIC)], DYNAMIC),
-    partition: () => fn([predicate], list(self)),
-    chunk: () => fn([NUMBER], list(self)),
-    windows: () => fn([NUMBER], list(self)),
-    pairwise: () => list(self),
-    zip: () => fn([list(DYNAMIC)], list(list(DYNAMIC))),
-    unzip: () => list(list(DYNAMIC)),
-    map: () => mapType(over, u()),
-    filter: () => fn([predicate], list(element)),
-    find: () => fn([predicate], element),
-    some: () => fn([predicate], BOOL),
-    every: () => fn([predicate], BOOL),
-    forEach: () => fn([over(DYNAMIC)], NULL_VOID),
-    reduce: () => reduceType(element, u(), NUMBER),
-    contains: () => fn([element], BOOL),
-    indexOf: () => fn([element], NUMBER),
-    join: () => fn([STRING], STRING),
-    sort: () => fn([fn([element, element], NUMBER)], list(element)),
-    slice: () => fn([NUMBER, NUMBER], list(element)),
-    concat: () => fn([list(element)], list(element)),
-    push: () => fn([element], list(element)),
-  };
-  return table[name]?.();
-}
-
-const NULL_VOID = { kind: "prim", name: "null" } as const;
-
-/** The callback shape a list method hands its element to. */
-type Over = (result: Type) => FnType;
-
-function mapType(over: Over, into: Type): Type {
-  return fn([over(into)], list(into));
-}
-
-function flatMapType(over: Over, into: Type): Type {
-  return fn([over(list(into))], list(into));
-}
-
-/** `reduce` hands over the running total, the item, and the index. */
-function reduceType(element: Type, acc: Type, index: Type): Type {
-  return fn([callback([acc, element, index], acc, 2), acc], acc);
-}
-
 function stringMember(name: string): Type | undefined {
   const table: Record<string, Type> = {
     len: NUMBER,
@@ -161,14 +81,14 @@ function stringMember(name: string): Type | undefined {
     reverse: STRING,
     toNumber: NUMBER,
     split: fn([STRING], list(STRING)),
-    replace: fn([STRING, STRING], STRING),
+    replace: optional([STRING, STRING], STRING, 1),
     contains: fn([STRING], BOOL),
     startsWith: fn([STRING], BOOL),
     endsWith: fn([STRING], BOOL),
-    slice: fn([NUMBER, NUMBER], STRING),
+    slice: optional([NUMBER, NUMBER], STRING, 1),
     repeat: fn([NUMBER], STRING),
-    padStart: fn([NUMBER, STRING], STRING),
-    padEnd: fn([NUMBER, STRING], STRING),
+    padStart: optional([NUMBER, STRING], STRING, 1),
+    padEnd: optional([NUMBER, STRING], STRING, 1),
     indexOf: fn([STRING], NUMBER),
     words: list(STRING),
     lines: list(STRING),
@@ -200,8 +120,8 @@ function numberMember(name: string): Type | undefined {
     sqrt: NUMBER,
     isEven: BOOL,
     isOdd: BOOL,
-    round: fn([NUMBER], NUMBER),
-    toFixed: fn([NUMBER], STRING),
+    round: optional([NUMBER], NUMBER, 0),
+    toFixed: optional([NUMBER], STRING, 0),
     clamp: fn([NUMBER, NUMBER], NUMBER),
     pow: fn([NUMBER], NUMBER),
     times: list(NUMBER),
@@ -226,31 +146,6 @@ const TO_UNIT: Record<string, Type> = {
   toRatio: PERCENT,
   toPercent: PERCENT,
 };
-
-function recordMember(receiver: RecordType, name: string): Type | undefined {
-  const table: Record<string, Type> = {
-    keys: list(STRING),
-    values: list(DYNAMIC),
-    entries: list(DYNAMIC),
-    len: NUMBER,
-    has: fn([STRING], BOOL),
-    get: fn([STRING], DYNAMIC),
-    merge: fn([DYNAMIC], DYNAMIC),
-    mergeDeep: fn([DYNAMIC], DYNAMIC),
-    // A map's callbacks are handed the key alongside the value, or the other
-    // way round for `mapKeys`. Taking the second one is optional.
-    mapValues: fn([callback([DYNAMIC, STRING], DYNAMIC, 1)], DYNAMIC),
-    mapKeys: fn([callback([STRING, DYNAMIC], STRING, 1)], DYNAMIC),
-    filterValues: fn([callback([DYNAMIC, STRING], BOOL, 1)], DYNAMIC),
-    pick: fn([STRING], DYNAMIC),
-    omit: fn([STRING], DYNAMIC),
-    invert: DYNAMIC,
-    isEmpty: BOOL,
-    getPath: fn([STRING], DYNAMIC),
-    hasPath: fn([STRING], BOOL),
-  };
-  return receiver.fields.has(name) ? undefined : table[name];
-}
 
 /**
  * A member as the language reads it: the built-in when there is one, otherwise

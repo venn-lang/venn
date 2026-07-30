@@ -147,6 +147,7 @@ function sharedArity(a: FnType, b: FnType): number | undefined {
 function unifyRecord(a: RecordType, b: RecordType): boolean {
   const open = a.open || b.open;
   if (a.rest && b.rest && !unify(a.rest, b.rest)) return false;
+  if (!restHolds(a, b) || !restHolds(b, a)) return false;
   for (const [name, type] of a.fields) {
     const other = b.fields.get(name);
     if (other) {
@@ -156,6 +157,19 @@ function unifyRecord(a: RecordType, b: RecordType): boolean {
     }
   }
   return open || everyPresent(b, a);
+}
+
+/**
+ * A `map<V>` says what every key it did not name holds, and a field is one of
+ * those keys. Without this a map of strings would take a map of numbers, which
+ * is the whole of what writing `map<string>` was asking about.
+ */
+function restHolds(from: RecordType, into: RecordType): boolean {
+  if (!from.rest) return true;
+  for (const [name, type] of into.fields) {
+    if (!from.fields.has(name) && !unify(from.rest, type)) return false;
+  }
+  return true;
 }
 
 /**

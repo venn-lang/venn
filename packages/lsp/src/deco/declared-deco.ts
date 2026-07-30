@@ -41,8 +41,11 @@ function signatureOf(decl: DecoDecl): string {
 }
 
 function paramText(param: Param): string {
+  // A `deco` takes its arguments by name; one written as a pattern is refused
+  // where the signature is read, and shows here as whatever was written.
+  const name = param.name ?? param.pattern?.$cstNode?.text ?? "";
   const type = typeNames(param.paramType).join(" | ");
-  return type ? `${param.name}: ${type}` : param.name;
+  return type ? `${name}: ${type}` : name;
 }
 
 /** Each alternative of a written type: `Fn | Flow` is two kinds, not one. */

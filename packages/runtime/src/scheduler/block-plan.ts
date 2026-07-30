@@ -6,7 +6,7 @@ import {
   type LetStmt,
   type Statement,
 } from "@venn-lang/core";
-import type { Scope } from "../scope/index.js";
+import { type Binder, binderFor, type Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { actionCall } from "./invocation.js";
 import type { Pending } from "./pending.types.js";
@@ -55,12 +55,12 @@ function plainLet(stmt: Statement): Step | undefined {
   if (let_.args.length > 0 || let_.opts) return undefined;
   const call = actionCall(let_.value);
   if (call && call.target.indexOf(".") >= 0) return undefined;
-  const name = let_.name;
+  const bind_ = binderFor(let_);
   const thunk = compileExpr(let_.value);
-  return (_engine, scope) => bind(name, thunk(scope), scope);
+  return (_engine, scope) => bind(bind_, thunk(scope), scope);
 }
 
-function bind(name: string, value: unknown, scope: Scope): Pending {
-  if (isPending(value)) return value.then((settled) => scope.set(name, settled));
-  return void scope.set(name, value);
+function bind(binder: Binder, value: unknown, scope: Scope): Pending {
+  if (isPending(value)) return value.then((settled) => binder(settled, scope));
+  return void binder(value, scope);
 }

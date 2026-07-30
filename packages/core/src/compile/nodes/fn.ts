@@ -5,8 +5,9 @@ import type { Closure } from "../../expr/closure.types.js";
 import type { EvalEnv } from "../../expr/eval-env.types.js";
 import { INLINE_SLOTS } from "../../expr/frame.js";
 import type { FnBody, FnDecl, FnExpr, ParamList } from "../../generated/ast.js";
-import type { CompiledBody, Thunk } from "../compile.types.js";
+import type { CompiledBody, CompiledLocal, Thunk } from "../compile.types.js";
 import { type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
+import { paramLocals, paramSlotName, unpack, wholeValueName } from "../unpack.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
 export type CompileIn = (expr: FnBody["result"], scope: LexScope) => Thunk;
@@ -71,10 +72,11 @@ function compileInScope(
 ): { compiled: CompiledBody; bare: boolean; wasBare: boolean } {
   const { body, compileIn } = args;
   const wasBare = Boolean(scope.bare);
-  const locals = body.locals.map((local) => ({
-    slot: scope.names.indexOf(local.name),
-    value: compileIn(local.value, scope),
-  }));
+  const params = args.params?.params ?? [];
+  const locals = [
+    ...paramLocals(params, scope),
+    ...body.locals.flatMap((local, at) => localsOf({ local, at, scope, compileIn })),
+  ];
   const result = compileIn(body.result, scope);
   const bare = stayedBare(scope);
   const extra = Math.max(0, scope.names.length - INLINE_SLOTS);
@@ -83,5 +85,22 @@ function compileInScope(
 }
 
 function paramNames(params: ParamList | undefined): readonly string[] {
-  return (params?.params ?? []).map((param) => param.name);
+  return (params?.params ?? []).map(paramSlotName);
+}
+
+/**
+ * One `let` of the body, compiled. A pattern is several: the value lands in the
+ * slot holding it whole, and each name it binds reads its way out of that.
+ */
+function localsOf(args: {
+  local: FnBody["locals"][number];
+  at: number;
+  scope: LexScope;
+  compileIn: CompileIn;
+}): CompiledLocal[] {
+  const { local, at, scope, compileIn } = args;
+  const value = compileIn(local.value, scope);
+  if (!local.pattern) return [{ slot: scope.names.indexOf(local.name as string), value }];
+  const whole = scope.names.indexOf(wholeValueName("let", at));
+  return [{ slot: whole, value }, ...unpack(local.pattern, scope, whole)];
 }

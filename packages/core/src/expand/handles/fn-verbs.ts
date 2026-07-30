@@ -1,5 +1,6 @@
 import { nativeFn } from "../../expr/index.js";
 import type { FnDecl, Param, ParamList } from "../../generated/ast.js";
+import { boundNames } from "../../pattern/index.js";
 import type { VerbTable } from "./handle.types.js";
 
 /**
@@ -18,8 +19,9 @@ export const FN_VERBS: VerbTable = {
   },
 };
 
+/** Every name the parameters put in scope, which is what a pattern binds. */
 function names(decl: FnDecl): string[] {
-  return (decl.params?.params ?? []).map((param) => param.name);
+  return (decl.params?.params ?? []).flatMap(boundNames);
 }
 
 function addParam(decl: FnDecl, name: string): null {

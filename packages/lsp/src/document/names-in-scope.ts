@@ -1,6 +1,8 @@
 import {
   type AstNode,
+  type BindsValue,
   type Block,
+  boundNames,
   type Document,
   isBlock,
   isCaptureStmt,
@@ -15,6 +17,7 @@ import {
   isLetStmt,
   isRepeatStmt,
   isValueImport,
+  loopBinding,
   type ParamList,
 } from "@venn-lang/core";
 
@@ -62,28 +65,30 @@ function beingWritten(scoped: ScopedName, at: number | undefined): boolean {
 }
 
 function bindingsIn(node: AstNode): ScopedName[] {
-  if (isForEachStmt(node)) return [{ name: node.item, node, origin: "each" }];
+  if (isForEachStmt(node)) return sites(loopBinding(node), node, "each");
   if (isRepeatStmt(node)) return node.index ? [{ name: node.index, node, origin: "index" }] : [];
   if (isFragmentDecl(node) || isFnDecl(node) || isFnExpr(node) || isDecoDecl(node))
     return params(node.params);
-  if (isFnBody(node)) return node.locals.map((local) => named(local, local.name, "let"));
+  if (isFnBody(node)) return node.locals.flatMap((local) => sites(local, local, "let"));
   if (isBlock(node)) return blockNames(node);
   if (isDocument(node)) return documentNames(node);
   return [];
 }
 
 function blockNames(block: Block): ScopedName[] {
-  return block.stmts
-    .filter((stmt) => isLetStmt(stmt) || isCaptureStmt(stmt))
-    .map((stmt) => named(stmt, (stmt as { name: string }).name, kindOf(stmt)));
+  return block.stmts.flatMap(declaredNames);
 }
 
 function documentNames(document: Document): ScopedName[] {
-  const declared = document.decls.filter(declares).map((decl) => {
-    const name = (decl as unknown as { name: string }).name;
-    return named(decl, name, kindOf(decl));
-  });
-  return [...declared, ...importedInto(document)];
+  return [...document.decls.flatMap(declaredNames), ...importedInto(document)];
+}
+
+/** What one declaration puts in scope, which a pattern makes more than one of. */
+function declaredNames(node: AstNode): ScopedName[] {
+  if (isLetStmt(node)) return sites(node, node, kindOf(node));
+  if (isCaptureStmt(node)) return [named(node, node.name, kindOf(node))];
+  if (!declares(node)) return [];
+  return [named(node, (node as unknown as { name: string }).name, kindOf(node))];
 }
 
 /**
@@ -118,7 +123,15 @@ function kindOf(node: AstNode): string {
 }
 
 function params(list: ParamList | undefined): ScopedName[] {
-  return (list?.params ?? []).map((param) => named(param, param.name, "parameter"));
+  return (list?.params ?? []).flatMap((param) => sites(param, param, "parameter"));
+}
+
+/**
+ * What one binding site puts in scope. A pattern is several names, and the
+ * editor has to know each of them: they are what the body reads.
+ */
+function sites(site: BindsValue, node: AstNode, origin: string): ScopedName[] {
+  return boundNames(site).map((name) => named(node, name, origin));
 }
 
 function named(node: AstNode, name: string, origin: string): ScopedName {

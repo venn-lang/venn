@@ -1,6 +1,6 @@
 import { VennError } from "@venn-lang/contracts";
 import { evaluate, type FragmentDecl, type ParamList, type RunStmt } from "@venn-lang/core";
-import { createScope, type Scope } from "../scope/index.js";
+import { binderFor, createScope, type Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
 import { ReturnSignal } from "./signals.js";
@@ -28,7 +28,7 @@ async function runFragment(engine: Engine, fragment: FragmentDecl, scope: Scope)
 
 function bindParams(scope: Scope, params: ParamList | undefined, args: readonly unknown[]): void {
   (params?.params ?? []).forEach((param, index) => {
-    scope.set(param.name, args[index]);
+    binderFor(param)(args[index], scope);
   });
 }
 

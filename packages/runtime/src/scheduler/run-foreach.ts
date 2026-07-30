@@ -3,10 +3,11 @@ import {
   CODES,
   evaluate,
   type ForEachStmt,
+  loopBinding,
   ProblemError,
   typeName,
 } from "@venn-lang/core";
-import type { Scope } from "../scope/index.js";
+import { binderFor, type Scope } from "../scope/index.js";
 import { planOf } from "./block-plan.js";
 import { runPool } from "./concurrency.js";
 import type { Engine } from "./engine.types.js";
@@ -64,12 +65,12 @@ function sequential(
   scope: Scope,
 ): Pending {
   const plan = planOf(stmt.body);
-  const name = stmt.item;
+  const bind = binderFor(loopBinding(stmt));
   if (plan.defers) return slowSequential(engine, stmt, items, scope);
   const child = scope.child();
   for (let at = 0; at < items.length; at += 1) {
     try {
-      child.set(name, items[at]);
+      bind(items[at], child);
       const pending = runSteps(engine, plan.steps, child);
       if (pending) return resume(engine, stmt, items, at + 1, scope, pending);
     } catch (error) {
@@ -102,7 +103,7 @@ function slowSequential(
 
 function iterate(engine: Engine, stmt: ForEachStmt, item: unknown, scope: Scope): Pending {
   const child = scope.child();
-  child.set(stmt.item, item);
+  binderFor(loopBinding(stmt))(item, child);
   return runBlock(engine, stmt.body, child);
 }
 
@@ -138,7 +139,7 @@ async function runIteration(args: {
   scope: Scope;
 }): Promise<void> {
   const child = args.scope.child();
-  child.set(args.stmt.item, args.item);
+  binderFor(loopBinding(args.stmt))(args.item, child);
   try {
     await runBlock(args.engine, args.stmt.body, child);
   } catch (error) {

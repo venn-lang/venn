@@ -68,7 +68,7 @@ describe("a deco's signature", () => {
   it("is reported when it declares no parameter at all", () => {
     expect(codes("deco memoize() { }")).toEqual(["VN2015"]);
     expect(titles("deco memoize() { }")[0]).toBe(
-      "`deco memoize` needs a first parameter — the thing it decorates.",
+      "`deco memoize` needs a first parameter, named: the thing it decorates.",
     );
   });
 

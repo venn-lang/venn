@@ -49,6 +49,16 @@ export {
 } from "./module/index.js";
 export type { ParseOutput } from "./parse/index.js";
 export { EXPRESSION_OFFSET, parse, parseExpression } from "./parse/index.js";
+export {
+  type BindsValue,
+  boundNames,
+  loopBinding,
+  type PatternSlot,
+  patternNames,
+  patternSlots,
+  readPath,
+  type Step,
+} from "./pattern/index.js";
 export * from "./problem/index.js";
 // Static type inference (Hindley-Milner) + generics.
 export {

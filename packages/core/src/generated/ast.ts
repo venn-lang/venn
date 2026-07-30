@@ -459,6 +459,23 @@ export function isFieldDecl(item: unknown): item is FieldDecl {
     return reflection.isInstance(item, FieldDecl.$type);
 }
 
+export interface FieldPattern extends langium.AstNode {
+    readonly $container: MapPattern;
+    readonly $type: 'FieldPattern';
+    name: string;
+    value?: Pattern;
+}
+
+export const FieldPattern = {
+    $type: 'FieldPattern',
+    name: 'name',
+    value: 'value'
+} as const;
+
+export function isFieldPattern(item: unknown): item is FieldPattern {
+    return reflection.isInstance(item, FieldPattern.$type);
+}
+
 export interface FlowDecl extends Declaration {
     readonly $type: 'FlowDecl';
     body: Block;
@@ -538,8 +555,9 @@ export function isFnExpr(item: unknown): item is FnExpr {
 export interface ForEachStmt extends Declaration, Statement {
     readonly $type: 'ForEachStmt';
     body: Block;
-    item: string;
+    item?: string;
     opts?: MapLit;
+    pattern?: Pattern;
     source: Expr;
 }
 
@@ -549,6 +567,7 @@ export const ForEachStmt = {
     body: 'body',
     item: 'item',
     opts: 'opts',
+    pattern: 'pattern',
     source: 'source'
 } as const;
 
@@ -665,8 +684,9 @@ export interface LetStmt extends Declaration, Statement {
     declaredType?: TypeRef;
     export: boolean;
     kind: 'const' | 'let';
-    name: string;
+    name?: string;
     opts?: MapLit;
+    pattern?: Pattern;
     value: Expr;
 }
 
@@ -679,6 +699,7 @@ export const LetStmt = {
     kind: 'kind',
     name: 'name',
     opts: 'opts',
+    pattern: 'pattern',
     value: 'value'
 } as const;
 
@@ -720,6 +741,21 @@ export const ListLit = {
 
 export function isListLit(item: unknown): item is ListLit {
     return reflection.isInstance(item, ListLit.$type);
+}
+
+export interface ListPattern extends langium.AstNode {
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | Param;
+    readonly $type: 'ListPattern';
+    items: Array<Pattern>;
+}
+
+export const ListPattern = {
+    $type: 'ListPattern',
+    items: 'items'
+} as const;
+
+export function isListPattern(item: unknown): item is ListPattern {
+    return reflection.isInstance(item, ListPattern.$type);
 }
 
 export interface LiteralType extends langium.AstNode {
@@ -811,6 +847,21 @@ export function isMapLit(item: unknown): item is MapLit {
     return reflection.isInstance(item, MapLit.$type);
 }
 
+export interface MapPattern extends langium.AstNode {
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | Param;
+    readonly $type: 'MapPattern';
+    fields: Array<FieldPattern>;
+}
+
+export const MapPattern = {
+    $type: 'MapPattern',
+    fields: 'fields'
+} as const;
+
+export function isMapPattern(item: unknown): item is MapPattern {
+    return reflection.isInstance(item, MapPattern.$type);
+}
+
 export interface MatcherClause extends langium.AstNode {
     readonly $container: ExpectStmt;
     readonly $type: 'MatcherClause';
@@ -881,6 +932,21 @@ export function isNamedType(item: unknown): item is NamedType {
     return reflection.isInstance(item, NamedType.$type);
 }
 
+export interface NamePattern extends langium.AstNode {
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | Param;
+    readonly $type: 'NamePattern';
+    name: string;
+}
+
+export const NamePattern = {
+    $type: 'NamePattern',
+    name: 'name'
+} as const;
+
+export function isNamePattern(item: unknown): item is NamePattern {
+    return reflection.isInstance(item, NamePattern.$type);
+}
+
 export interface NullLit extends langium.AstNode {
     readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'NullLit';
@@ -943,15 +1009,17 @@ export interface Param extends langium.AstNode {
     readonly $container: ParamList;
     readonly $type: 'Param';
     annotations: Array<Annotation>;
-    name: string;
+    name?: string;
     paramType?: TypeRef;
+    pattern?: Pattern;
 }
 
 export const Param = {
     $type: 'Param',
     annotations: 'annotations',
     name: 'name',
-    paramType: 'paramType'
+    paramType: 'paramType',
+    pattern: 'pattern'
 } as const;
 
 export function isParam(item: unknown): item is Param {
@@ -971,6 +1039,16 @@ export const ParamList = {
 
 export function isParamList(item: unknown): item is ParamList {
     return reflection.isInstance(item, ParamList.$type);
+}
+
+export type Pattern = ListPattern | MapPattern | NamePattern;
+
+export const Pattern = {
+    $type: 'Pattern'
+} as const;
+
+export function isPattern(item: unknown): item is Pattern {
+    return reflection.isInstance(item, Pattern.$type);
 }
 
 export type QualifiedName = string;
@@ -1332,6 +1410,7 @@ export type VennAstType = {
     Expr: Expr
     FactoryDecl: FactoryDecl
     FieldDecl: FieldDecl
+    FieldPattern: FieldPattern
     FlowDecl: FlowDecl
     FnBody: FnBody
     FnDecl: FnDecl
@@ -1346,14 +1425,17 @@ export type VennAstType = {
     LetStmt: LetStmt
     LifecycleDecl: LifecycleDecl
     ListLit: ListLit
+    ListPattern: ListPattern
     LiteralType: LiteralType
     LoopState: LoopState
     LoopStmt: LoopStmt
     MapEntry: MapEntry
     MapLit: MapLit
+    MapPattern: MapPattern
     MatcherClause: MatcherClause
     MatrixDecl: MatrixDecl
     Member: Member
+    NamePattern: NamePattern
     NamedType: NamedType
     NullLit: NullLit
     NullType: NullType
@@ -1361,6 +1443,7 @@ export type VennAstType = {
     ParallelStmt: ParallelStmt
     Param: Param
     ParamList: ParamList
+    Pattern: Pattern
     RaceStmt: RaceStmt
     Ref: Ref
     RepeatStmt: RepeatStmt
@@ -1723,6 +1806,19 @@ export class VennAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        FieldPattern: {
+            name: FieldPattern.$type,
+            properties: {
+                name: {
+                    name: FieldPattern.name
+                },
+                value: {
+                    name: FieldPattern.value,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         FlowDecl: {
             name: FlowDecl.$type,
             properties: {
@@ -1812,10 +1908,15 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: ForEachStmt.body
                 },
                 item: {
-                    name: ForEachStmt.item
+                    name: ForEachStmt.item,
+                    optional: true
                 },
                 opts: {
                     name: ForEachStmt.opts,
+                    optional: true
+                },
+                pattern: {
+                    name: ForEachStmt.pattern,
                     optional: true
                 },
                 source: {
@@ -1945,10 +2046,15 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: LetStmt.kind
                 },
                 name: {
-                    name: LetStmt.name
+                    name: LetStmt.name,
+                    optional: true
                 },
                 opts: {
                     name: LetStmt.opts,
+                    optional: true
+                },
+                pattern: {
+                    name: LetStmt.pattern,
                     optional: true
                 },
                 value: {
@@ -1993,6 +2099,17 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Expr.$type]
+        },
+        ListPattern: {
+            name: ListPattern.$type,
+            properties: {
+                items: {
+                    name: ListPattern.items,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [Pattern.$type]
         },
         LiteralType: {
             name: LiteralType.$type,
@@ -2060,6 +2177,17 @@ export class VennAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: [Expr.$type]
         },
+        MapPattern: {
+            name: MapPattern.$type,
+            properties: {
+                fields: {
+                    name: MapPattern.fields,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [Pattern.$type]
+        },
         MatcherClause: {
             name: MatcherClause.$type,
             properties: {
@@ -2108,6 +2236,15 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Expr.$type]
+        },
+        NamePattern: {
+            name: NamePattern.$type,
+            properties: {
+                name: {
+                    name: NamePattern.name
+                }
+            },
+            superTypes: [Pattern.$type]
         },
         NamedType: {
             name: NamedType.$type,
@@ -2171,10 +2308,15 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     optional: true
                 },
                 name: {
-                    name: Param.name
+                    name: Param.name,
+                    optional: true
                 },
                 paramType: {
                     name: Param.paramType,
+                    optional: true
+                },
+                pattern: {
+                    name: Param.pattern,
                     optional: true
                 }
             },
@@ -2187,6 +2329,12 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: ParamList.params,
                     defaultValue: []
                 }
+            },
+            superTypes: []
+        },
+        Pattern: {
+            name: Pattern.$type,
+            properties: {
             },
             superTypes: []
         },

@@ -16,7 +16,7 @@ function run(source: string, expr: string): unknown {
   const env: EvalEnv = { lookup: (name) => bindings[name] };
   for (const decl of program.decls) {
     if (isFnDecl(decl)) bindings[decl.name] = closureOfDecl(decl, env);
-    else if (isLetStmt(decl)) bindings[decl.name] = evaluate(decl.value, env);
+    else if (isLetStmt(decl) && decl.name) bindings[decl.name] = evaluate(decl.value, env);
   }
   const main = (parse(`fn __main() => ${expr}`).ast as Document).decls[0] as FnDecl;
   return callClosure(closureOfDecl(main, env), []);

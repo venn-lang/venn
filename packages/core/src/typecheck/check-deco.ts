@@ -24,7 +24,9 @@ export function checkDecoBody(decl: DecoDecl, env: TypeEnv, infer: Infer): void 
   for (const param of decl.params?.params ?? []) {
     const type = decoParamType(param, infer);
     infer.types?.set(param, type);
-    scope = scope.with(param.name, mono(type));
+    // A `deco` takes its arguments by name, and says so where the signature is
+    // read; a pattern here binds nothing rather than binding something wrong.
+    if (param.name) scope = scope.with(param.name, mono(type));
   }
   checkBlock(decl.body, scope, infer);
 }

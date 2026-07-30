@@ -56,7 +56,16 @@ describe("reading what a `deco` decorates off its signature", () => {
   it("refuses a `deco` with no parameters", () => {
     const { problems } = run("deco bad() { }");
 
-    expect(problems[0]?.title).toBe("`deco bad` needs a first parameter — the thing it decorates.");
+    expect(problems[0]?.title).toBe(
+      "`deco bad` needs a first parameter, named: the thing it decorates.",
+    );
+  });
+
+  /** `@name(…)` fills them in order, so there is nothing for a pattern to read. */
+  it("refuses a `deco` that takes an argument apart", () => {
+    const { problems } = run("deco bad(target: Flow, { times }) { }");
+
+    expect(problems[0]?.title).toContain("names its arguments one by one");
   });
 });
 
@@ -90,6 +99,21 @@ describe("running a decorator body", () => {
 
     expect(problems).toEqual([]);
     expect(readMeta(at("FlowDecl"), "tags")).toEqual(["smoke"]);
+  });
+
+  it("takes a `const` of its own apart", () => {
+    const { problems, at } = run(
+      [
+        'deco tagged(target: Flow) { const { first } = { first: "smoke" }',
+        '  target.meta "tags" first',
+        "}",
+        "@tagged",
+        'flow "f" { }',
+      ].join("\n"),
+    );
+
+    expect(problems).toEqual([]);
+    expect(readMeta(at("FlowDecl"), "tags")).toBe("smoke");
   });
 
   it("decorates every kind its union allows", () => {

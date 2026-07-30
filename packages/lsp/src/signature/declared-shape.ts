@@ -6,6 +6,7 @@ import {
   isFnExpr,
   isFragmentDecl,
   isLetStmt,
+  type Param,
   type ParamList,
   showTypes,
 } from "@venn-lang/core";
@@ -29,6 +30,11 @@ export interface DeclaredShapeArgs {
  * pins it down. A name with `a` next to it still tells the reader which
  * argument they are on, which is the question a half-typed call asks.
  */
+/** How the parameter reads back: its name, or the pattern as it was written. */
+function writtenName(param: Param): string {
+  return param.name ?? param.pattern?.$cstNode?.text ?? "";
+}
+
 export function declaredShape(args: DeclaredShapeArgs): CallShape | undefined {
   const params = paramsOf(args.binding);
   if (!params) return undefined;
@@ -37,7 +43,10 @@ export function declaredShape(args: DeclaredShapeArgs): CallShape | undefined {
   const shown = showTypes(params.params.map((param) => known.get(param) ?? DYNAMIC));
   return {
     target: args.name,
-    args: params.params.map((param, at) => ({ name: param.name, type: shown[at] ?? "dynamic" })),
+    args: params.params.map((param, at) => ({
+      name: writtenName(param),
+      type: shown[at] ?? "dynamic",
+    })),
     options: [],
     returns: undefined,
   };

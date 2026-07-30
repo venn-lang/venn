@@ -1,6 +1,8 @@
 import type { Cell } from "../expr/cell.types.js";
 import type { Expr, FnBody, ParamList } from "../generated/ast.js";
+import { boundNames } from "../pattern/index.js";
 import type { Thunk } from "./compile.types.js";
+import { paramPatternNames, paramSlotName, wholeValueName } from "./unpack.js";
 
 /**
  * What the compiler knows by name at one point in the source: the parameters
@@ -54,9 +56,14 @@ export function rootScope(): LexScope {
  * repeats a parameter's name takes that slot, the way an assignment would.
  */
 export function scopeOf(params: ParamList | undefined, body: FnBody): LexScope {
-  const names: string[] = (params?.params ?? []).map((param) => param.name);
+  const params_ = params?.params ?? [];
+  // The parameters first, one slot each and in order, because that is where the
+  // caller writes them. What their patterns bind comes after all of them.
+  const names: string[] = params_.map(paramSlotName);
+  for (const name of paramPatternNames(params_)) if (!names.includes(name)) names.push(name);
   for (const local of body.locals) {
-    if (!names.includes(local.name)) names.push(local.name);
+    if (local.pattern) names.push(wholeValueName("let", body.locals.indexOf(local)));
+    for (const name of boundNames(local)) if (!names.includes(name)) names.push(name);
   }
   // Worth trying without a frame: one name, and nothing bound after it.
   const bare = names.length === 1 && body.locals.length === 0;

@@ -58,7 +58,9 @@ function settled(values: readonly LetStmt[], infer: Infer): ValueSeeds {
   for (const decl of values) {
     const found = infer.types?.get(decl);
     const solid = found && solidify(found);
-    if (solid) seeds.set(decl.name, solid);
+    // A pattern is left out: what each name it binds holds is worked out from
+    // the value, and the value is what this seeded pass does not have yet.
+    if (solid && decl.name) seeds.set(decl.name, solid);
   }
   return seeds;
 }

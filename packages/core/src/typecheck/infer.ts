@@ -13,6 +13,7 @@ import type {
   Member,
   Param,
   ParamList,
+  Pattern,
   StringLit,
   Ternary,
   TypeRef,
@@ -28,6 +29,7 @@ import { badPatternIn } from "./check-pattern.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
+import { patternTypes } from "./pattern-types.js";
 import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
@@ -45,7 +47,7 @@ import {
   type UnionType,
   union,
 } from "./type.types.js";
-import type { TypeEnv } from "./type-env.js";
+import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
 import { fieldType, prune, unify } from "./unify.js";
 import { combinedType, literalType } from "./unit-types.js";
@@ -447,11 +449,10 @@ export function inferFn(
 ): Type {
   const params = (decl.params?.params ?? []).map((param) => ({
     node: param,
-    name: param.name,
     type: paramType(param, infer),
   }));
   let body = env;
-  for (const param of params) body = body.with(param.name, mono(param.type));
+  for (const param of params) body = inScope(param, body, infer);
   const result = inferBody(decl.body, body, infer);
   // Record each parameter once the body has constrained it, so hover and
   // completion know what `p` is inside `xs.filter(fn (p) => …)`.
@@ -493,9 +494,26 @@ function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
   let scope = env;
   for (const local of body.locals) {
     if (!local.value) continue;
-    scope = scope.with(local.name, mono(inferExpr(local.value, scope, infer)));
+    const type = inferExpr(local.value, scope, infer);
+    scope = local.name ? scope.with(local.name, mono(type)) : takenApart(local, type, scope, infer);
   }
   return body.result ? inferExpr(body.result, scope, infer) : DYNAMIC;
+}
+
+/** A parameter in the body's scope: under its name, or taken apart. */
+function inScope(param: { node: Param; type: Type }, env: TypeEnv, infer: Infer): TypeEnv {
+  const { node, type } = param;
+  return node.name ? env.with(node.name, mono(type)) : takenApart(node, type, env, infer);
+}
+
+/** Every name a pattern binds, in scope, with what the value says each holds. */
+function takenApart(node: { pattern?: Pattern }, type: Type, env: TypeEnv, infer: Infer): TypeEnv {
+  if (!node.pattern) return env;
+  const bound = patternTypes({ pattern: node.pattern, type, infer });
+  return withAll(
+    env,
+    bound.map(([name, held]) => [name, mono(held)] as const),
+  );
 }
 
 /** Unify `actual` with `expected`, recording a mismatch on the node if it fails. */

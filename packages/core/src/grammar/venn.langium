@@ -193,7 +193,16 @@ ActionCall:
 
 // A positional argument: postfix over an Atom (member/index/call), but NEVER a
 // bare map literal, since that trailing `{ … }` is always `opts`.
+//
+// A leading `-` negates it, which is the only way to write a negative argument:
+// brackets after a value are always a call, so `print a (-1)` calls `a`. Read as
+// the negation only when it is written as one, tight against the value it
+// negates; with a space after it, it is a subtraction nobody bracketed, and the
+// check that follows the parse says so.
 ActionArg infers Expr:
+    {infer Unary} operator='-' operand=ArgValue | ArgValue;
+
+ArgValue infers Expr:
     Atom (
         {infer Member.receiver=current} (optional?='?.' | '.') member=ID
       | {infer Index.receiver=current} '[' index=Expr ']'

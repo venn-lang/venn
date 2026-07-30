@@ -30,11 +30,10 @@ const JOINING = new Set([
 ]);
 
 /**
- * `-` also negates, so `print a - b` could in principle be two arguments, the
- * second negative. It cannot: `print a (-1)` reads as calling `a`, because
- * brackets after a value are always a call, so there is no way to write that and
- * nothing to be ambiguous with. It is read as the subtraction, which is what
- * Haskell, Elm and OCaml read it as too.
+ * `-` also negates, and there the two readings are told apart by how it was
+ * written: `a -1` is two arguments, `a - 1` and `a-1` are the subtraction. The
+ * grammar takes the negation, so a `-` only reaches this when it was spaced like
+ * an operator, and then the advice below is the right one.
  */
 const NEGATES = "-";
 

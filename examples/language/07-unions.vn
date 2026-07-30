@@ -1,0 +1,51 @@
+# Deciding between shapes: a union, and the field that tells its branches apart.
+# Run: venn run examples/language/07-unions.vn
+
+## Every message this little protocol carries. They have one field in common,
+## and its value is different in each, which is what makes the union decidable.
+type Ping { kind: "ping", at: number }
+type Text { kind: "text", body: string }
+type Close { kind: "close", why: string }
+type Message = Ping | Text | Close
+
+## One way in per shape, so a list of messages is a list of one type.
+fn ping(at: number) -> Message => { kind: "ping", at: at }
+fn text(body: string) -> Message => { kind: "text", body: body }
+fn close(why: string) -> Message => { kind: "close", why: why }
+
+const inbox: list<Message> = [ping(1), text("hello"), close("done")]
+
+## Inside `m.kind == "text"` the value is a Text and nothing else, so `body` is
+## there to be read. Outside it is not: `m.body` on a Message is a compile error,
+## and being told that is the reason to write the union in the first place.
+fn describe(m: Message) -> string => (
+  m.kind == "ping" ? "ping at ${m.at}"
+  : m.kind == "text" ? "text: ${m.body}"
+  : "closed: ${m.why}"
+)
+
+forEach m in inbox {
+  print describe(m)
+}
+
+# A chain of `if`s narrows the same way, and the `else` holds whatever no branch
+# took: one shape, here, so `why` is readable without asking.
+forEach m in inbox {
+  if m.kind == "ping" {
+    print "still there, at ${m.at}"
+  } else if m.kind == "text" {
+    print m.body.upper
+  } else {
+    print "closing because ${m.why}"
+  }
+}
+
+# Two things the checker will not let past, both of them worth trying:
+#
+#   if m.kind == "pong" { … }        # kind is never "pong": nothing can be it
+#
+#   if m.kind == "ping" { … }        # and no else: nothing says what to do
+#   else if m.kind == "text" { … }   # when kind is "close"
+#
+# The second is the one that matters. A case nobody wrote is a case that falls
+# through in silence, and a union exists to say those are all the cases there are.

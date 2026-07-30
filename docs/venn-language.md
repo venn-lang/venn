@@ -340,6 +340,41 @@ Do lado do plugin, `t.param("T")` é o que diz isso: o mesmo nome é o mesmo tip
 dentro de uma assinatura, e cada chamada recebe os seus, então duas chamadas do
 mesmo verbo no mesmo arquivo não decidem uma pela outra.
 
+****União discriminada****
+
+Uma união de formas com um campo que as separa é decidível: dentro do `if`, o
+valor é uma delas e só ela, e o campo daquela forma está lá para ser lido.
+
+```venn
+type Ping { kind: "ping", at: number }
+type Text { kind: "text", body: string }
+type Close { kind: "close", why: string }
+type Message = Ping | Text | Close
+
+fn descreve(m: Message) -> string => (
+  m.kind == "ping" ? "ping em ${m.at}"
+  : m.kind == "text" ? "texto: ${m.body}"
+  : "fechou: ${m.why}"
+)
+```
+
+Fora do estreitamento, `m.body` é erro: a mensagem pode ser uma das outras duas.
+`if`, `else`, `!=` e `&&` estreitam do mesmo jeito, e o `else` de uma cadeia
+carrega o que nenhum ramo levou.
+
+Uma cadeia que lista os casos precisa listar todos. Sem `else`, o que ficou de
+fora é **VN3019**; um ramo que testa um valor que a união nunca carrega, ou que
+um ramo anterior já levou, é **VN3020**.
+
+```venn
+if m.kind == "ping" { … }
+else if m.kind == "text" { … }
+# VN3019: nada aqui diz o que fazer quando m.kind é "close"
+```
+
+Um `if` sozinho faz uma pergunta e não é cobrado por isso. A cobrança é da
+cadeia, que se propõe a enumerar.
+
 
 ---
 

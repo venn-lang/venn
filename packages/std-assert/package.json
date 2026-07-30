@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/assert",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The words that follow expect: equals, contains, oneOf and closeTo.",
   "keywords": [
     "venn",

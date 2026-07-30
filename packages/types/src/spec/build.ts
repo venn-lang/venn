@@ -5,6 +5,7 @@ import type {
   LiteralSpec,
   MapSpec,
   OpaqueSpec,
+  ParamSpec,
   PrimSpec,
   RecordSpec,
   RefSpec,
@@ -41,6 +42,14 @@ export interface TypeBuilder {
   /** A named handle. `members` is what it publishes; without them, a bare name. */
   opaque(name: string, members?: Readonly<Record<string, TypeSpec>>): OpaqueSpec;
   ref(name: string): RefSpec;
+  /**
+   * A type this signature is polymorphic in.
+   *
+   * `t.fn([t.list(t.param("T")), t.callback([t.param("T")], t.param("U"), 1)],
+   * t.list(t.param("U")))` is `map`: the same name is the same type within one
+   * signature, and every call gets its own.
+   */
+  param(name: string): ParamSpec;
 }
 
 function prim(name: PrimSpec["name"]): PrimSpec {
@@ -75,4 +84,5 @@ export const t: TypeBuilder = {
   opaque: (name, members) =>
     members ? { kind: "opaque", name, members } : { kind: "opaque", name },
   ref: (name) => ({ kind: "ref", name }),
+  param: (name) => ({ kind: "param", name }),
 };

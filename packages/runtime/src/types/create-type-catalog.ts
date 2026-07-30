@@ -24,7 +24,10 @@ export function createTypeCatalog(plugins: readonly PluginDefinition[]): TypeCat
   const reader = createReader(published);
   return {
     typeOf: (name) => reader.read(published.types, name),
-    signatureOf: (target) => asFn(reader.read(published.signatures, target)),
+    // Built per call rather than read from the cache. A polymorphic signature
+    // has to hand out fresh variables each time: cached, the first `data.first`
+    // in a file would decide what `T` is for every one after it.
+    signatureOf: (target) => asFn(reader.signature(published.signatures, target)),
   };
 }
 
@@ -60,7 +63,19 @@ function createReader(published: Published) {
     cache.set(name, type);
     return type;
   };
-  return { read };
+  /**
+   * A signature, with its own parameters each time.
+   *
+   * Not cached, and that is the difference from a named type: a type is one
+   * thing every reader shares, while a signature is a shape each call fills in
+   * for itself. The named types it refers to still come from the cache.
+   */
+  const signature = (from: Map<string, TypeSpec>, name: string): Type | undefined => {
+    const spec = from.get(name);
+    if (!spec) return undefined;
+    return specToType(spec, (ref) => read(published.types, ref), new Map());
+  };
+  return { read, signature };
 }
 
 function asFn(type: Type | undefined): FnType | undefined {

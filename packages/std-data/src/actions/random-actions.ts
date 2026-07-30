@@ -12,8 +12,10 @@ import { rng, shuffleWith } from "../rng/index.js";
 export const oneOf: ActionDefinition = defineAction({
   name: "oneOf",
   doc: "Pick one of the given values deterministically.",
-  args: [restArg("choices", t.dynamic, "The candidates. One of them comes back.")],
-  result: t.dynamic,
+  // Polymorphic: whatever goes in is what comes back, so `data.oneOf("a", "b")`
+  // is a string to the checker rather than something it knows nothing about.
+  args: [restArg("choices", t.param("T"), "The candidates. One of them comes back.")],
+  result: t.param("T"),
   run: (_ctx, input) => input.args[Math.floor(rng() * input.args.length)],
 });
 
@@ -39,10 +41,10 @@ function integerInRange(input: ActionInput<unknown>): number {
 export const shuffle: ActionDefinition = defineAction({
   name: "shuffle",
   doc: "A deterministic shuffle of the given array.",
-  // Elements come back unchanged, only reordered, but a signature cannot carry
-  // the element type through, so both sides stay `dynamic`.
-  args: [arg("values", t.list(t.dynamic), "What to shuffle. The original is left alone.")],
-  result: t.list(t.dynamic),
+  // Elements come back unchanged, only reordered, and the signature says so: a
+  // shuffled `list<string>` is still a `list<string>`.
+  args: [arg("values", t.list(t.param("T")), "What to shuffle. The original is left alone.")],
+  result: t.list(t.param("T")),
   run: (_ctx, input) => shuffleWith(toArray(input.args[0]), rng),
 });
 

@@ -23,6 +23,7 @@ export type TypeSpec =
   | UnionSpec
   | OpaqueSpec
   | RefSpec
+  | ParamSpec
   | DynamicSpec;
 
 /** The scalars, including the units the language treats as first class. */
@@ -107,6 +108,22 @@ export interface OpaqueSpec {
    * more, which is right for something only its own verbs ever touch.
    */
   readonly members?: Readonly<Record<string, TypeSpec>>;
+  readonly name: string;
+}
+
+/**
+ * A type this signature is polymorphic in: the `T` of `map(list<T>, fn(T) -> U)`.
+ *
+ * Two params of the same name in one signature are the same type, and each use
+ * of the signature gets its own: calling `map` on a `list<string>` must not
+ * decide what `T` is for every other call.
+ *
+ * Only meaningful inside a signature. A published *type* that carried one would
+ * be a type nobody can name, since there is nowhere to say what it stands for.
+ */
+export interface ParamSpec {
+  readonly kind: "param";
+  /** How it is written, and what makes two of them the same: `"T"`, `"U"`. */
   readonly name: string;
 }
 

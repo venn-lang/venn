@@ -147,6 +147,58 @@ const said = match status {
   });
 });
 
+describe("an arm with a guard", () => {
+  it("reads what its pattern bound", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok", value } if value > 10 => "big"
+  _ => "small"
+}`;
+
+    expect(said(source)).toEqual([]);
+  });
+
+  it("is checked inside, like anything else", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok", value } if value.nope => "big"
+  _ => "small"
+}`;
+
+    expect(said(source)[0]).toContain('Type number has no member "nope"');
+  });
+
+  /**
+   * The condition may fail, so the case is still nobody's. This is the rule that
+   * keeps the checker honest about what a match covers.
+   */
+  it("settles nothing, so the case it asks about is still missing", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok", value } if value > 10 => "big"
+  { kind: "err" } => "err"
+}`;
+
+    expect(said(source)[0]).toContain('VN3019 Nothing here says what to do when this is "ok"');
+  });
+
+  it("does not complete a match even when it takes everything", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok" } => "ok"
+  other if other.kind == "err" => "err"
+}`;
+
+    expect(said(source)[0]).toContain("VN3019");
+  });
+
+  it("is still an arm anything can reach", () => {
+    const source = `${RESULT}const said = match r {
+  { kind: "ok", value } if value > 10 => "big"
+  { kind: "ok" } => "ok"
+  { kind: "err" } => "err"
+}`;
+
+    expect(said(source)).toEqual([]);
+  });
+});
+
 describe("an arm written as steps", () => {
   it("is refused where a value is wanted", () => {
     const source = `${RESULT}const said = match r {

@@ -157,6 +157,67 @@ io.print(take({ b: 2, held: 9 }))`;
   });
 });
 
+describe("an arm with a guard", () => {
+  it("runs when the condition holds", async () => {
+    const source = `const said = match { n: 8 } {
+  { n } if n > 5 => "big"
+  _ => "small"
+}
+io.print(said)`;
+
+    expect(await runScript(source)).toEqual(["big"]);
+  });
+
+  /** The point of a guard: a no moves on rather than ending the match. */
+  it("passes the arm over when it does not, and tries the next", async () => {
+    const source = `const said = match { n: 2 } {
+  { n } if n > 5 => "big"
+  { n } if n > 1 => "some"
+  _ => "none"
+}
+io.print(said)`;
+
+    expect(await runScript(source)).toEqual(["some"]);
+  });
+
+  it("leaves nothing at all when every guard says no", async () => {
+    const source = `const said = match { n: 0 } {
+  { n } if n > 5 => "big"
+  { n } if n > 1 => "some"
+}
+io.print(said)`;
+
+    expect(await runScript(source)).toEqual(["null"]);
+  });
+
+  it("reads what the pattern bound, not only the subject", async () => {
+    const source = `const said = match { kind: "text", body: "hello" } {
+  { kind: "text", body } if body.len > 3 => "long: \${body}"
+  { kind: "text", body } => "short: \${body}"
+  _ => "other"
+}
+io.print(said)`;
+
+    expect(await runScript(source)).toEqual(["long: hello"]);
+  });
+
+  it("guards an arm that runs steps too", async () => {
+    const source = `match { n: 7 } {
+  { n } if n > 10 {
+    io.print "over ten"
+  }
+  { n } if n > 5 {
+    io.print "over five"
+  }
+  _ {
+    io.print "small"
+  }
+}`;
+
+    expect(await runScript(source)).toEqual(["over five"]);
+  });
+});
+
 describe("a match standing on its own", () => {
   it("runs the steps of the arm it took", async () => {
     const source = `${MESSAGE}match m {

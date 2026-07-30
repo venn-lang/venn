@@ -73,8 +73,11 @@ function checkArm(args: {
     env,
     bound.map(([name, type]) => [name, mono(type)] as const),
   );
+  // Read in the arm's own scope, since asking about what the pattern named is
+  // the whole reason to write one.
+  if (arm.guard) inferExpr(arm.guard, scope, infer);
   return {
-    takes: left.filter((branch) => taken(branch, arm)),
+    takes: arm.guard ? [] : left.filter((branch) => taken(branch, arm)),
     reachable: reaching.length > 0,
     type: bodyType({ arm, scope, infer, wantsValue: args.wantsValue }),
   };
@@ -94,6 +97,10 @@ function reaches(branch: Type, arm: MatchArm): boolean {
  * Only a branch filed under one value is: `200` takes the `200` of a union and
  * nothing at all of a plain `number`, since a number can still be anything else.
  * A pattern that asks nothing takes whatever is left, which is the catch-all.
+ *
+ * A guarded arm settles nothing at all, whatever its pattern says: the condition
+ * may fail, and then the case is still nobody's. That is what keeps a match
+ * whose only arm for a branch is guarded from passing for complete.
  */
 function taken(branch: Type, arm: MatchArm): boolean {
   return patternTests(arm.pattern).every((test) => tagAt(branch, test.path) === test.value);

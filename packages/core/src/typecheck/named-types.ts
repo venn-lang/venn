@@ -3,8 +3,8 @@ import { isTypeDecl } from "../generated/ast.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
 import { KIND_TYPES } from "./kind-types.js";
-import { NULL, record, type Type, union } from "./type.types.js";
-import { typeRefToType } from "./type-ref.js";
+import type { Type } from "./type.types.js";
+import { shapeOf, typeRefToType } from "./type-ref.js";
 
 /** The named types a document declares, such as `type User { … }`, by name. */
 export interface NamedTypes {
@@ -52,10 +52,5 @@ interface Scope {
 
 /** A record of the declared fields. An optional one reads as `T | null`. */
 function recordOf(args: Scope & { decl: TypeDecl }): Type {
-  const fields = new Map<string, Type>();
-  for (const field of args.decl.body?.fields ?? []) {
-    const type = typeRefToType({ ...args, ref: field.fieldType });
-    fields.set(field.name, field.optional ? union([type, NULL]) : type);
-  }
-  return record(fields);
+  return shapeOf({ ...args, body: args.decl.body });
 }

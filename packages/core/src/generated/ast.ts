@@ -1072,7 +1072,22 @@ export function isRunStmt(item: unknown): item is RunStmt {
     return reflection.isInstance(item, RunStmt.$type);
 }
 
-export type SingleType = LiteralType | NamedType;
+export interface ShapeType extends langium.AstNode {
+    readonly $container: TypeRef;
+    readonly $type: 'ShapeType';
+    body: TypeBody;
+}
+
+export const ShapeType = {
+    $type: 'ShapeType',
+    body: 'body'
+} as const;
+
+export function isShapeType(item: unknown): item is ShapeType {
+    return reflection.isInstance(item, ShapeType.$type);
+}
+
+export type SingleType = LiteralType | NamedType | ShapeType;
 
 export const SingleType = {
     $type: 'SingleType'
@@ -1169,7 +1184,7 @@ export function isTryStmt(item: unknown): item is TryStmt {
 }
 
 export interface TypeBody extends langium.AstNode {
-    readonly $container: TypeDecl;
+    readonly $container: ShapeType | TypeDecl;
     readonly $type: 'TypeBody';
     fields: Array<FieldDecl>;
 }
@@ -1338,6 +1353,7 @@ export type VennAstType = {
     ReportDecl: ReportDecl
     ReturnStmt: ReturnStmt
     RunStmt: RunStmt
+    ShapeType: ShapeType
     SingleType: SingleType
     Statement: Statement
     StepDecl: StepDecl
@@ -2253,6 +2269,15 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Declaration.$type, Statement.$type]
+        },
+        ShapeType: {
+            name: ShapeType.$type,
+            properties: {
+                body: {
+                    name: ShapeType.body
+                }
+            },
+            superTypes: [SingleType.$type]
         },
         SingleType: {
             name: SingleType.$type,

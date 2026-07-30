@@ -85,7 +85,11 @@ Param: (annotations+=Annotation)* name=ID (':' paramType=TypeRef)?;
 TypeRef: members+=SingleType ('|' members+=SingleType)*;
 SingleType:
     {infer NamedType} name=QualifiedName ('<' args+=TypeRef (',' args+=TypeRef)* '>')?
-  | {infer LiteralType} value=STRING;
+  | {infer LiteralType} value=STRING
+  // A shape written where it is used, for the one that is not worth a name of
+  // its own. The same `{ … }` a `type` declares, so the two read alike and the
+  // checker builds the same record from either.
+  | {infer ShapeType} body=TypeBody;
 
 Block: '{' NL* (stmts+=Statement (NL+ stmts+=Statement)* NL*)? '}';
 

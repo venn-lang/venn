@@ -1,9 +1,9 @@
-import type { SingleType, TypeRef } from "../generated/ast.js";
-import { isNamedType } from "../generated/ast.js";
+import type { SingleType, TypeBody, TypeRef } from "../generated/ast.js";
+import { isNamedType, isShapeType } from "../generated/ast.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
-import { DYNAMIC, fn, list, literal, prim, type Type, union } from "./type.types.js";
+import { DYNAMIC, fn, list, literal, NULL, prim, record, type Type, union } from "./type.types.js";
 
 const PRIMS = new Set(["number", "string", "bool", "null", "void"]);
 
@@ -30,14 +30,36 @@ export function typeRefToType(args: RefScope & { ref: TypeRef | undefined }): Ty
 
 function singleToType(args: RefScope & { single: SingleType }): Type {
   const { single } = args;
-  // A `SingleType` that is not a name is a written-out literal such as `"GET"`,
-  // and it means that one value. Widening it to `string` would enforce nothing.
+  if (isShapeType(single)) return shapeOf({ ...args, body: single.body });
+  // A `SingleType` that is neither a name nor a shape is a written-out literal
+  // such as `"GET"`, and it means that one value. Widening it to `string` would
+  // enforce nothing.
   if (!isNamedType(single)) return literalOf(single);
   const name = single.name;
   const generic = genericType(name, single, args);
   if (generic) return generic;
   if (PRIMS.has(name)) return prim(name as "number");
   return args.named.get(name) ?? args.catalog?.typeOf(name) ?? DYNAMIC;
+}
+
+/**
+ * The record a `{ … }` describes, whether it was written after `type User` or
+ * inline where it is used.
+ *
+ * One function for both, so a shape means the same thing wherever it appears: an
+ * inline `{ city: string }` and a `type Address { city: string }` build the same
+ * record and are interchangeable.
+ *
+ * @param args The body, and what resolving the fields' own annotations needs.
+ * @returns A record type. An optional field reads as `T | null`.
+ */
+export function shapeOf(args: RefScope & { body: TypeBody | undefined }): Type {
+  const fields = new Map<string, Type>();
+  for (const field of args.body?.fields ?? []) {
+    const type = typeRefToType({ ...args, ref: field.fieldType });
+    fields.set(field.name, field.optional ? union([type, NULL]) : type);
+  }
+  return record(fields);
 }
 
 /** `"GET"` written as a type. The quotes are the grammar's, not the value's. */

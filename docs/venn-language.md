@@ -278,7 +278,21 @@ type User {
   name:     string
   plan:     Plan
   credits?: int          # `?` marca opcional
+  address:  { city: string, zip?: string }   # forma escrita onde é usada
 }
+
+Uma forma pode ser escrita no lugar de um nome, em qualquer posição onde um tipo
+cabe: campo, parâmetro, retorno, binding, e dentro de um genérico.
+
+```venn
+fn onde(u: { city: string }) -> string => u.city
+const pedido: { id: number, itens: list<{ sku: string }> } = { id: 1, itens: [] }
+```
+
+As duas grafias são o mesmo tipo: um valor de um `type Address { city: string }`
+serve onde se espera `{ city: string }`, e o contrário também. Nomear vale quando
+a forma se repete ou merece um nome; escrever inline vale quando ela é usada uma
+vez só.
 
 factory User {
   email: data.faker.email

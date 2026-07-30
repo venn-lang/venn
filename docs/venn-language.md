@@ -793,6 +793,23 @@ const _ = api.close()     # expressão: fecha
 
 Na dúvida, escreva os parênteses. Eles nunca estão errados.
 
+****Um argumento é um valor, e um valor pode ser negativo****
+
+Argumentos são separados por espaço, então um argumento não carrega operador:
+`print total + 1` para no `+` e diz o que escrever no lugar. O `-` é o único que
+também nega, e como ele foi escrito é o que decide qual dos dois é:
+
+```venn
+print total -1        # dois argumentos, o segundo negativo
+print total - 1       # a subtração que faltou parêntese: `print (total - 1)`
+print total-1         # a mesma subtração, e o mesmo recado
+```
+
+Grudado no valor, com ar antes: nega. Espaçado dos dois lados, ou de nenhum: é o
+operador. É a regra do Swift, e existe porque parêntese depois de um valor é
+sempre chamada, então `print total (-1)` chamaria `total`. A regra vale igual num
+matcher: `expect xs contains -1`.
+
 ### Função sem nome
 
 Uma função também pode ser escrita no meio de uma expressão, para passar adiante. Um parâmetro dispensa os parênteses; mais de um exige. `fn (x) => …` continua valendo e diz exatamente a mesma coisa.

@@ -1,12 +1,14 @@
 import {
   type Document,
   isFnDecl,
+  isLetStmt,
   isPackageSpecifier,
   isValueImport,
   type ValueImport,
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { bindFunctions, bindPlainValues } from "./bind-globals.js";
+import { inDependencyOrder } from "./import-order.js";
 
 /** The files an import graph reached, and how one file names another. */
 export interface ImportGraph {
@@ -47,12 +49,19 @@ export function bindImports(args: {
     built.set(uri, scope);
     bindFunctions(module, scope);
   }
-  for (const [uri, module] of args.graph.modules) {
+  const link = (uri: string, module: Document): void => {
     wire({ document: module, uri, into: scopeAt(built, uri), graph: args.graph, built });
+  };
+  // Functions across every module first, so a value that calls an imported one
+  // finds it whichever file it lives in.
+  for (const [uri, module] of args.graph.modules) link(uri, module);
+  // Then the values, imports before importers: a `pub const` is computed where
+  // it stands, so the module it reads from has to be filled already. Linked
+  // again on the way past, to pick up the values that now exist.
+  for (const [uri, module] of inDependencyOrder(args.graph)) {
+    link(uri, module);
+    bindPlainValues(module, scopeAt(built, uri));
   }
-  // Last, because a value is read where it stands: whatever it names, local
-  // function or imported one, has to be in place by now.
-  for (const [uri, module] of args.graph.modules) bindPlainValues(module, scopeAt(built, uri));
   wire({ document: args.document, uri: args.uri, into: args.scope, graph: args.graph, built });
 }
 
@@ -101,7 +110,7 @@ function takePackage(args: { decl: ValueImport; graph: ImportGraph; into: Scope 
 }
 
 function take(args: { decl: ValueImport; module: Document; source: Scope; into: Scope }): void {
-  const exported = exportedFunctions(args.module);
+  const exported = exportedValues(args.module);
   if (args.decl.wildcard) {
     args.into.set(args.decl.wildcard, gathered(exported, args.source));
     return;
@@ -120,11 +129,17 @@ function gathered(names: ReadonlySet<string>, source: Scope): Record<string, unk
   return out;
 }
 
-/** The names a module made `pub` that are values a caller can hold. */
-function exportedFunctions(document: Document): Set<string> {
+/**
+ * The names a module made `pub` that are values a caller can hold.
+ *
+ * A function and a binding. A `pub type` is published too, but it is a name the
+ * checker resolves rather than a value anything holds at run time, so there is
+ * nothing here to bind for it.
+ */
+function exportedValues(document: Document): Set<string> {
   const names = new Set<string>();
   for (const decl of document.decls) {
-    if (isFnDecl(decl) && decl.export) names.add(decl.name);
+    if ((isFnDecl(decl) || isLetStmt(decl)) && decl.export) names.add(decl.name);
   }
   return names;
 }

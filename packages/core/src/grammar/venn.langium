@@ -66,7 +66,7 @@ ConfigDecl: 'config' body=MapLit;
 MatrixDecl: 'matrix' body=MapLit;
 ReportDecl: 'report' reporters+=Expr (',' reporters+=Expr)*;
 
-TypeDecl: 'type' name=ID ('=' alias=TypeRef | body=TypeBody);
+TypeDecl: (export?='pub')? 'type' name=ID ('=' alias=TypeRef | body=TypeBody);
 TypeBody: '{' (',' | NL)* fields+=FieldDecl ((',' | NL)+ fields+=FieldDecl)* (',' | NL)* '}';
 // A field carries decorators like anything else. The `NL*` is what lets the
 // annotation sit on its own line, which is where everyone writes it, and it
@@ -126,8 +126,12 @@ LifecycleDecl:
 // an action returned. Both are one rule: `Expr` stops before a bare argument
 // (same shape as `expect subject matcher`), so trailing args and opts, and only
 // those, mark this as a call.
+// `pub` is on the same rule rather than a second one, so a binding reads the
+// same wherever it is written. A `pub` on one that is not at the top of a file
+// is refused by the checker, not by the grammar: the message it can give names
+// the file and the line, and a parse error at that point would name a token.
 LetStmt:
-    kind=('let' | 'const') name=ID (':' declaredType=TypeRef)? '='
+    (export?='pub')? kind=('let' | 'const') name=ID (':' declaredType=TypeRef)? '='
     value=Expr (args+=ActionArg)* (opts=MapLit)?;
 
 // Removed from the language: `capture` and `let` mean the same thing. Still

@@ -660,6 +660,7 @@ export interface LetStmt extends Declaration, Statement {
     readonly $type: 'LetStmt';
     args: Array<Expr>;
     declaredType?: TypeRef;
+    export: boolean;
     kind: 'const' | 'let';
     name: string;
     opts?: MapLit;
@@ -671,6 +672,7 @@ export const LetStmt = {
     annotations: 'annotations',
     args: 'args',
     declaredType: 'declaredType',
+    export: 'export',
     kind: 'kind',
     name: 'name',
     opts: 'opts',
@@ -1146,6 +1148,7 @@ export interface TypeDecl extends Declaration {
     readonly $type: 'TypeDecl';
     alias?: TypeRef;
     body?: TypeBody;
+    export: boolean;
     name: string;
 }
 
@@ -1154,6 +1157,7 @@ export const TypeDecl = {
     alias: 'alias',
     annotations: 'annotations',
     body: 'body',
+    export: 'export',
     name: 'name'
 } as const;
 
@@ -1875,6 +1879,11 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: LetStmt.declaredType,
                     optional: true
                 },
+                export: {
+                    name: LetStmt.export,
+                    defaultValue: false,
+                    optional: true
+                },
                 kind: {
                     name: LetStmt.kind
                 },
@@ -2292,6 +2301,11 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 },
                 body: {
                     name: TypeDecl.body,
+                    optional: true
+                },
+                export: {
+                    name: TypeDecl.export,
+                    defaultValue: false,
                     optional: true
                 },
                 name: {

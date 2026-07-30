@@ -25,9 +25,13 @@ export function collectNamedTypes(
   doc: Document,
   ctx: TypeContext,
   catalog?: TypeCatalog,
+  imported?: ReadonlyMap<string, Type>,
 ): NamedTypes {
   const table = new Map<string, Type>(KIND_TYPES);
-  const named: NamedTypes = { get: (name) => table.get(name) };
+  // Local first, then what a `pub type` in another file published. A file that
+  // declares a name of its own keeps it, the way a local binding wins over an
+  // imported one.
+  const named: NamedTypes = { get: (name) => table.get(name) ?? imported?.get(name) };
   for (const decl of doc.decls.filter(isTypeDecl)) {
     table.set(decl.name, declaredType({ decl, ctx, named, catalog }));
   }

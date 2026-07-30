@@ -5,6 +5,8 @@ import {
   isDecoDecl,
   isFnDecl,
   isFragmentDecl,
+  isLetStmt,
+  isTypeDecl,
   isValueImport,
   type Problem,
   type ValueImport,
@@ -62,21 +64,36 @@ function missing(args: {
  */
 function hint(name: string, module: Document): string {
   const declared = module.decls.some(
-    (decl) =>
-      (isFnDecl(decl) || isFragmentDecl(decl) || isDecoDecl(decl)) &&
-      (decl as { name?: string }).name === name,
+    (decl) => publishable(decl) && (decl as { name?: string }).name === name,
   );
   return declared
     ? `It is declared there, but not marked \`pub\`.`
     : `Nothing of that name is declared there.`;
 }
 
-/** Everything a file marked `pub`: functions, fragments and decorators alike. */
+/**
+ * What a file marked `pub`.
+ *
+ * Everything that has a name and can be used from elsewhere: a function, a
+ * fragment, a decorator, a type, and a binding. A type and a binding are what
+ * make a shared vocabulary possible, which is the whole reason a file boundary
+ * exists rather than a convention about copying declarations.
+ */
 function exported(document: Document): Set<string> {
   const names = new Set<string>();
   for (const decl of document.decls) {
-    if (!isFnDecl(decl) && !isFragmentDecl(decl) && !isDecoDecl(decl)) continue;
-    if (decl.export) names.add(decl.name);
+    if (publishable(decl) && decl.export) names.add(decl.name);
   }
   return names;
+}
+
+/** The declarations `pub` means something on. */
+function publishable(decl: unknown): decl is { name: string; export?: boolean } {
+  return (
+    isFnDecl(decl) ||
+    isFragmentDecl(decl) ||
+    isDecoDecl(decl) ||
+    isTypeDecl(decl) ||
+    isLetStmt(decl)
+  );
 }

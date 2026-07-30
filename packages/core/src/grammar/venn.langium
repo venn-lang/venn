@@ -286,10 +286,16 @@ MatchExpr infers MatchExpr:
     'match' subject=Expr '{' NL*
     (arms+=MatchArm ((',' | NL)+ arms+=MatchArm)* (',' | NL)*)? '}';
 
-// A pattern asks about shape; a guard asks about anything else. What separates
-// them is what a failure does: the arm is passed over and the next one is tried,
+// An arm may be reached more than one way, written with `|`, the way a union of
+// types is: `200 | 201 | 204` is one arm and three answers. Each way binds for
+// itself, and the checker asks that they all bind the same names.
+//
+// A guard asks about anything the shape cannot. What separates it from a pattern
+// is what a failure does: the arm is passed over and the next one is tried,
 // which is why the condition cannot just live in the body.
-MatchArm: pattern=Pattern ('if' guard=Expr)? ('=>' value=Expr | body=Block);
+MatchArm:
+    patterns+=Pattern ('|' patterns+=Pattern)*
+    ('if' guard=Expr)? ('=>' value=Expr | body=Block);
 
 Atom infers Expr:
     {infer NumberLit} raw=NUMBER

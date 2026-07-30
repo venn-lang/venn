@@ -157,6 +157,55 @@ io.print(take({ b: 2, held: 9 }))`;
   });
 });
 
+describe("an arm reached more than one way", () => {
+  it("runs when any one of its ways matches", async () => {
+    const source = `fn family(status) => match status {
+  200 | 201 | 204 => "ok"
+  400 | 404 => "the request"
+  _ => "the server"
+}
+io.print(family(201))
+io.print(family(404))
+io.print(family(500))`;
+
+    expect(await runScript(source)).toEqual(["ok", "the request", "the server"]);
+  });
+
+  it("binds from the way that matched", async () => {
+    const source = `fn beat(m) => match m {
+  { kind: "ping", at } | { kind: "pong", at } => "beat at \${at}"
+  _ => "other"
+}
+io.print(beat({ kind: "pong", at: 9 }))`;
+
+    expect(await runScript(source)).toEqual(["beat at 9"]);
+  });
+
+  it("runs the steps of an arm reached either way", async () => {
+    const source = `match 404 {
+  400 | 404 {
+    io.print "the request"
+  }
+  _ {
+    io.print "other"
+  }
+}`;
+
+    expect(await runScript(source)).toEqual(["the request"]);
+  });
+
+  it("asks its guard once the way is settled", async () => {
+    const source = `fn beat(m) => match m {
+  { kind: "ping", at } | { kind: "pong", at } if at > 5 => "late"
+  { kind: "ping", at } | { kind: "pong", at } => "early"
+  _ => "other"
+}
+io.print(beat({ kind: "ping", at: 2 }))`;
+
+    expect(await runScript(source)).toEqual(["early"]);
+  });
+});
+
 describe("an arm with a guard", () => {
   it("runs when the condition holds", async () => {
     const source = `const said = match { n: 8 } {

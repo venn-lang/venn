@@ -559,6 +559,26 @@ match res.status {
 }
 ```
 
+Um ramo pode ser alcançado de mais de um jeito, escrito com `|`, como uma união
+de tipos:
+
+```venn
+match res.status {
+  200 | 201 | 204 => "ok"
+  400 | 404       => "pedido"
+  _               => "servidor"
+}
+```
+
+A cobertura conta todos os caminhos, então dois deles juntos completam a união.
+Cada caminho liga para si, e o checker cobra que **todos liguem os mesmos nomes**:
+qual deles casou não é sabível ali, então um nome que só alguns ligam não poderia
+ser lido pelo corpo.
+
+```venn
+{ kind: "ping", at } | { kind: "pong", at } => "batida em ${at}"
+```
+
 Um ramo pode pedir mais do que a forma, com `if` depois do padrão. O que separa
 os dois é o que acontece quando a condição falha: **o próximo ramo é tentado**, e
 é por isso que a condição não podia ficar só no corpo.

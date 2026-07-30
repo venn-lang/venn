@@ -3,6 +3,7 @@ import {
   evaluate,
   type MatchArm,
   type MatchExpr,
+  type Pattern,
   patternSlots,
   patternTests,
   readPath,
@@ -30,8 +31,9 @@ export function runMatch(engine: Engine, stmt: MatchExpr, scope: Scope): Pending
 
 function taken(engine: Engine, stmt: MatchExpr, scope: Scope, value: unknown): Pending {
   for (const arm of stmt.arms) {
-    if (!answers(value, patternTests(arm.pattern))) continue;
-    const child = bound(arm, scope, value);
+    const way = arm.patterns.find((one) => answers(value, patternTests(one)));
+    if (!way) continue;
+    const child = bound(way, scope, value);
     // The guard is asked with the names in hand, and a no moves on to the next
     // arm rather than ending the match.
     if (arm.guard && !truthy(evaluate(arm.guard, child))) continue;
@@ -40,10 +42,10 @@ function taken(engine: Engine, stmt: MatchExpr, scope: Scope, value: unknown): P
   return undefined;
 }
 
-/** The scope the arm runs in: what its pattern named, over the one outside. */
-function bound(arm: MatchArm, scope: Scope, value: unknown): Scope {
+/** The scope the arm runs in: what the way it was reached named, over the outer. */
+function bound(way: Pattern, scope: Scope, value: unknown): Scope {
   const child = scope.child();
-  for (const slot of patternSlots(arm.pattern)) {
+  for (const slot of patternSlots(way)) {
     child.set(slot.name, readPath(value, slot.path));
   }
   return child;

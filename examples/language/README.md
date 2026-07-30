@@ -12,7 +12,7 @@ and wants to know what the kernel offers beyond statements.
 | [`04-modules.vn`](04-modules.vn) | `use` versus `import`, named and namespace imports, and why `pub` is opt-in |
 | [`05-shared-alias.vn`](05-shared-alias.vn) | a `#shared` path alias out of `venn.toml`, and a `pub deco` applied across files |
 | [`06-fragments.vn`](06-fragments.vn) | `fragment` as reusable steps, `run … as`, and what a fragment can and cannot see |
-| [`07-unions.vn`](07-unions.vn) | a union told apart by a field, narrowing it with `if` and `?:`, and the cases the checker insists on |
+| [`07-unions.vn`](07-unions.vn) | a union told apart by a field, `match` over its shapes, narrowing with `if`, and the cases the checker insists on |
 | [`shared/`](shared) | the helpers the files above import: `pub fn`, `pub deco`, `pub fragment` |
 
 Run them with:

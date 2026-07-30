@@ -293,6 +293,18 @@ fn rotulo({ nome, idade }) => "${nome}/${idade}"
 fragment mostra({ total }: Pedido) { … }
 ```
 
+`...nome` no fim leva o que o padrão não nomeou: os outros campos como um mapa,
+ou os itens depois do último, como lista.
+
+```venn
+const { id, ...corpo } = pedido     # corpo é o Pedido sem o `id`
+const [primeiro, ...resto] = xs     # resto é uma lista do mesmo
+```
+
+O tipo acompanha: o resto de uma forma é a forma sem os campos que saíram, então
+`corpo.id` é erro; o resto de um `map<V>` continua `map<V>`, porque tirar chaves
+muda quantas são e não o que elas guardam.
+
 Vale em binding, parâmetro (de `fn` e de `fragment`) e variável de loop. Um `deco`
 é a exceção: ele recebe os argumentos por nome, na ordem em que `@nome(…)` os
 preenche, então um padrão ali não teria o que separar e é recusado.

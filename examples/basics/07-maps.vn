@@ -65,6 +65,10 @@ print pretty(rows.keyBy(r => r.sku))
 const { name, address: { city } } = user
 print "${name} lives in ${city}"
 
+# `...` takes what was left, which is the shape without what came out of it.
+const { credits, ...whoever } = user
+print "${credits} credits, and ${whoever.len} other fields"
+
 fn line({ sku, qty }) => "${qty} of ${sku}"
 print rows.map(line).join(", ")
 print "${scores.entries.sortBy(e => e[1]).map(e => e[0])}"

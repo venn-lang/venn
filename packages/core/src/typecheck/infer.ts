@@ -1,5 +1,6 @@
 import type { AstNode } from "langium";
 import { dottedPath } from "../ast/index.js";
+import { CODES } from "../codes/index.js";
 import type {
   Binary,
   Call,
@@ -26,11 +27,24 @@ import type { TypeCatalog } from "./catalog.types.js";
 import { badPatternIn } from "./check-pattern.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
+import { narrowed } from "./narrow.js";
 import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
 import { showType } from "./show.js";
-import { BOOL, DYNAMIC, fn, list, NULL, NUMBER, record, STRING, type Type } from "./type.types.js";
+import {
+  BOOL,
+  DYNAMIC,
+  fn,
+  list,
+  NULL,
+  NUMBER,
+  record,
+  STRING,
+  type Type,
+  type UnionType,
+  union,
+} from "./type.types.js";
 import type { TypeEnv } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
 import { fieldType, prune, unify } from "./unify.js";
@@ -192,7 +206,42 @@ function inferMember(expr: Member, env: TypeEnv, infer: Infer): Type {
   const built = memberType(receiver, expr.member, infer.ctx);
   if (built) return built;
   if (receiver.kind === "record") return recordField(receiver, expr, infer);
+  if (receiver.kind === "union") return unionField(receiver, expr, infer);
   return unknownMember(receiver, expr, infer);
+}
+
+/**
+ * A field on a union: every branch's answer, as one type.
+ *
+ * A field only some shapes carry is the whole reason narrowing exists, so it is
+ * reported rather than answered with `dynamic`: inside `if r.kind == "ok"` the
+ * value is one shape, and the field is there. Only shapes, though. A
+ * `string | number` is a value two things could be rather than a decision
+ * somebody has to make, and reading it has always been the run's business.
+ */
+function unionField(receiver: UnionType, expr: Member, infer: Infer): Type {
+  const found = receiver.members.map((member) => branchField(member, expr.member));
+  if (found.every((type) => type !== undefined)) return union(found as Type[]);
+  if (asking(expr) || !receiver.members.every(isShape)) return DYNAMIC;
+  infer.ctx.mismatches.push({
+    node: expr,
+    expected: receiver,
+    actual: DYNAMIC,
+    note: `does not carry "${expr.member}" on every branch`,
+  });
+  return DYNAMIC;
+}
+
+/** A branch whose fields are all known, which is what makes a missing one wrong. */
+function isShape(member: Type): boolean {
+  return prune(member).kind === "record";
+}
+
+/** What one branch of a union answers for a field, or nothing when it has none. */
+function branchField(member: Type, name: string): Type | undefined {
+  const t = prune(member);
+  if (t.kind === "dynamic" || t.kind === "var") return DYNAMIC;
+  return t.kind === "record" ? fieldType(t, name) : undefined;
 }
 
 /**
@@ -334,10 +383,10 @@ function mismatched(infer: Infer, node: AstNode, left: Type, right: Type, op: st
     node,
     expected: left,
     actual: right,
-    unit: true,
+    code: CODES.VN3012_UNIT_MISMATCH,
     // The sentence the evaluator raises, so a mismatch reads the same whether
     // the checker or the run finds it.
-    note: `Cannot combine ${showType(left)} with ${showType(right)} using "${op}".`,
+    sentence: `Cannot combine ${showType(left)} with ${showType(right)} using "${op}".`,
   });
 }
 
@@ -354,10 +403,15 @@ function inferUnary(expr: Unary, env: TypeEnv, infer: Infer): Type {
   return NUMBER;
 }
 
+/**
+ * A ternary narrows the way an `if` does, and has to: a `fn` body is one
+ * expression, so this is where a pure function tells a union's branches apart.
+ */
 function inferTernary(expr: Ternary, env: TypeEnv, infer: Infer): Type {
   inferExpr(expr.condition, env, infer);
-  const then = inferExpr(expr.then, env, infer);
-  const otherwise = inferExpr(expr.otherwise, env, infer);
+  const branch = narrowed(expr.condition, env, infer);
+  const then = inferExpr(expr.then, branch.whenTrue, infer);
+  const otherwise = inferExpr(expr.otherwise, branch.whenFalse, infer);
   return unify(then, otherwise) ? then : DYNAMIC;
 }
 
@@ -402,22 +456,30 @@ export function inferFn(
   // Record each parameter once the body has constrained it, so hover and
   // completion know what `p` is inside `xs.filter(fn (p) => …)`.
   for (const param of params) infer.types?.set(param.node, param.type);
-  if (decl.returns)
-    expect(
-      infer,
-      decl.body,
-      result,
-      typeRefToType({
-        ref: decl.returns,
-        ctx: infer.ctx,
-        named: infer.named,
-        catalog: infer.catalog,
-      }),
-    );
   return fn(
     params.map((param) => param.type),
-    result,
+    declaredResult(decl, result, infer),
   );
+}
+
+/**
+ * What callers are handed back: the annotation when there is one.
+ *
+ * The body is checked against it either way, but a `-> Message` that returns one
+ * of the shapes a Message can be must reach its callers as a Message. Handing
+ * back what the body happened to build makes the union unwritable: a list of two
+ * of them would be a list of two different things.
+ */
+function declaredResult(
+  decl: { returns?: TypeRef; body: FnBody },
+  result: Type,
+  infer: Infer,
+): Type {
+  if (!decl.returns) return result;
+  const { ctx, named, catalog } = infer;
+  const declared = typeRefToType({ ref: decl.returns, ctx, named, catalog });
+  expect(infer, decl.body, result, declared);
+  return declared;
 }
 
 /**

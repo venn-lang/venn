@@ -1,4 +1,5 @@
 import type { AstNode } from "langium";
+import type { CodeSpec } from "../codes/index.js";
 import type { Type, TypeVar } from "./type.types.js";
 
 /**
@@ -22,8 +23,8 @@ export interface TypeMismatch {
    * types can. Used where naming the types explains nothing about the mistake.
    */
   sentence?: string;
-  /** A unit clash rather than a plain type clash: VN3012 instead of VN3010. */
-  unit?: boolean;
+  /** What to report this under. A plain clash of two types is VN3010. */
+  code?: CodeSpec;
 }
 
 /** A fresh inference context: variable ids from zero, no mismatches recorded. */

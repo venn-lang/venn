@@ -12,7 +12,7 @@ each one assumes the one before it.
 | [`04-functions.vn`](04-functions.vn) | `fn`, the arrow form, functions as values, recursion |
 | [`05-control-flow.vn`](05-control-flow.vn) | `if`, the ternary, `forEach`, `repeat`, `while`, `break`, `continue` |
 | [`06-lists.vn`](06-lists.vn) | `map`, `filter`, `reduce`, `sort`, `sortBy`, `groupBy` and friends |
-| [`07-maps.vn`](07-maps.vn) | map literals, `keys`, `get`, `merge`, `mapValues`, `entries` |
+| [`07-maps.vn`](07-maps.vn) | map literals, `keys`, `get`, `merge`, `mapValues`, `entries`, and taking one apart with `{ … }` |
 | [`08-units.vn`](08-units.vn) | `300ms`, `2mb`, `99.9%`, and how arithmetic keeps the unit |
 
 Run them with:

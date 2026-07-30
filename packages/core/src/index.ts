@@ -50,12 +50,17 @@ export {
 export type { ParseOutput } from "./parse/index.js";
 export { EXPRESSION_OFFSET, parse, parseExpression } from "./parse/index.js";
 export {
+  type Asked,
+  answers,
+  asked,
   type BindsValue,
   boundNames,
   loopBinding,
   type PatternSlot,
+  type PatternTest,
   patternNames,
   patternSlots,
+  patternTests,
   readPath,
   type Step,
 } from "./pattern/index.js";

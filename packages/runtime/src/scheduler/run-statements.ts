@@ -8,6 +8,7 @@ import type {
   IfStmt,
   LetStmt,
   LoopStmt,
+  MatchExpr,
   ParallelStmt,
   RaceStmt,
   RepeatStmt,
@@ -28,6 +29,7 @@ import { runForEach } from "./run-foreach.js";
 import { runGroup } from "./run-group.js";
 import { runIf } from "./run-if.js";
 import { runLoop } from "./run-loop.js";
+import { runMatch } from "./run-match.js";
 import { runParallel } from "./run-parallel.js";
 import { runRace } from "./run-race.js";
 import { runRepeat } from "./run-repeat.js";
@@ -72,6 +74,8 @@ export function runStatement(engine: Engine, stmt: Statement, scope: Scope): Pen
       return runStep(engine, stmt as StepDecl, scope);
     case "GroupDecl":
       return runGroup(engine, stmt as GroupDecl, scope);
+    case "MatchExpr":
+      return runMatch(engine, stmt as unknown as MatchExpr, scope);
     default:
       return control(engine, stmt, scope);
   }

@@ -25,6 +25,8 @@ export type Bound = readonly [name: string, type: Type];
 export function patternTypes(args: { pattern: Pattern; type: Type; infer: Infer }): Bound[] {
   const { pattern, type, infer } = args;
   if (ast.isNamePattern(pattern)) return [[pattern.name, type]];
+  // A literal names nothing: it asks whether the value is that one.
+  if (ast.isLiteralPattern(pattern)) return [];
   if (ast.isListPattern(pattern)) return items(pattern, type, infer);
   const held = prune(type);
   if (!open(held) && held.kind !== "record") return [notA(pattern, held, "map", infer)];

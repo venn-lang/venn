@@ -40,6 +40,8 @@ function collect(pattern: Pattern, path: Step[], into: PatternSlot[]): void {
     items(pattern, path, into);
     return;
   }
+  // A literal asks a question rather than giving a name to the answer.
+  if (!ast.isMapPattern(pattern)) return;
   for (const field of pattern.fields) {
     const inner = [...path, field.name];
     if (field.value) collect(field.value, inner, into);

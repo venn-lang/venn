@@ -5,4 +5,5 @@ export { constLit, constThunk } from "./const-lit.js";
 export type { CompileIn } from "./fn.js";
 export { closureIn, compileFnExpr } from "./fn.js";
 export { compileInstant, compileNumber, compileString, constant } from "./literal.js";
+export { compileMatch } from "./match.js";
 export { compileIndex, compileMember } from "./member.js";

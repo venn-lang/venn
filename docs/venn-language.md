@@ -529,6 +529,44 @@ loop {
   wait 2s
 }
 
+### match
+
+A única construção que se propõe a enumerar, e por isso a única a quem se cobra
+cobertura. `if` faz uma pergunta; `match` diz que estes são os casos.
+
+```venn
+fn descreve(m: Message) -> string => match m {
+  { kind: "ping", at }   => "ping em ${at}"
+  { kind: "text", body } => "texto: ${body}"
+  { kind: "close", why } => "fechou: ${why}"
+}
+```
+
+O padrão é o mesmo de qualquer binding, com uma leitura a mais: **nome liga,
+literal testa**. `{ kind: "ping", at }` pergunta pelo `kind` e liga o `at`, na
+mesma escrita. Um nome sozinho não pergunta nada, então é ele quem pega o resto,
+e `_` é só um nome como outro qualquer.
+
+`=>` devolve um valor e `{ … }` roda passos, que é a divisão que `fn` e `flow` já
+fazem. Um ramo escrito em passos não tem valor, e por isso não pode estar onde um
+valor é esperado:
+
+```venn
+match res.status {
+  200 { step "criado" { expect res.json.id != null } }
+  404 { fail "não encontrado" }
+  _   { fail "status inesperado: ${res.status}" }
+}
+```
+
+Primeiro ramo que casa ganha, sem cair para o de baixo. Caso que ninguém escreveu
+é **VN3019**, ramo que nada pode alcançar é **VN3020**. Sujeito que não é um
+conjunto de ramos (um `number`, por exemplo) não é cobrado: não há lista de casos
+que alguém pudesse escrever.
+
+Dentro de `( )` o lexer tira as quebras de linha, então lá os ramos se separam
+por vírgula, como mapa e lista.
+
 ### loop
 
 Uma palavra para todo loop cujo fim não se sabe de antemão, em três formas:

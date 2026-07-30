@@ -2,6 +2,7 @@ import type { Cell } from "../expr/cell.types.js";
 import type { Expr, FnBody, ParamList } from "../generated/ast.js";
 import { boundNames } from "../pattern/index.js";
 import type { Thunk } from "./compile.types.js";
+import { matchNames } from "./match-names.js";
 import { paramPatternNames, paramSlotName, wholeValueName } from "./unpack.js";
 
 /**
@@ -65,6 +66,9 @@ export function scopeOf(params: ParamList | undefined, body: FnBody): LexScope {
     if (local.pattern) names.push(wholeValueName("let", body.locals.indexOf(local)));
     for (const name of boundNames(local)) if (!names.includes(name)) names.push(name);
   }
+  // What a `match` arm binds is a local like any other: written before its body
+  // runs, and only one arm ever runs, so two arms may share a name and a slot.
+  for (const name of matchNames(body)) if (!names.includes(name)) names.push(name);
   // Worth trying without a frame: one name, and nothing bound after it.
   const bare = names.length === 1 && body.locals.length === 0;
   return { names, cache: new WeakMap(), free: [], bare };

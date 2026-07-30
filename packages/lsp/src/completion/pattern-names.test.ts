@@ -35,6 +35,19 @@ describe("names a pattern put in scope", () => {
     expect(offered).toContain("name");
   });
 
+  it("offers what a match arm took apart, inside that arm", async () => {
+    const source = `const m = { kind: "text" }
+match m {
+  { kind: "text", body } {
+    ▮
+  }
+}
+`;
+    const offered = await offeredAt(source);
+
+    expect(offered).toContain("body");
+  });
+
   it("offers the name a field was bound under, not the field", async () => {
     const offered = await offeredAt('const { id: reference } = { id: "a" }\n▮\n');
 

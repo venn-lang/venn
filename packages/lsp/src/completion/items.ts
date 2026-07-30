@@ -13,6 +13,7 @@ const KEYWORDS = [
   "group",
   "if",
   "else",
+  "match",
   "forEach",
   "repeat",
   "loop",

@@ -10,6 +10,7 @@ import { CODES } from "../codes/index.js";
 import type { Expr } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { scanInterpolations } from "../interpolation/index.js";
+import type { Asked, Step } from "../pattern/index.js";
 import type { Infer } from "./infer.js";
 import { instantiate, mono } from "./scheme.js";
 import { type Type, union } from "./type.types.js";
@@ -136,21 +137,38 @@ function impossible(cond: Expr, found: Discriminant, infer: Infer): void {
 }
 
 /** A value as it was written, so the message names what the source names. */
-export function written(value: Tag): string {
-  return value === null ? "null" : `"${value}"`;
+export function written(value: Asked): string {
+  if (value === null) return "null";
+  return typeof value === "string" ? `"${value}"` : String(value);
 }
 
 /** What a member of the union has to be for this branch: its tag, or nothing. */
 export function tagOf(member: Type, field: string | undefined): Tag | undefined {
-  const held = field ? fieldOf(member, field) : member;
-  const t = held && prune(held);
-  if (t?.kind === "prim" && t.name === "null") return null;
-  return t?.kind === "literal" && typeof t.value === "string" ? t.value : undefined;
+  const found = tagAt(member, field ? [field] : []);
+  return typeof found === "number" || typeof found === "boolean" ? undefined : found;
 }
 
-function fieldOf(member: Type, field: string): Type | undefined {
-  const t = prune(member);
-  return t.kind === "record" ? fieldType(t, field) : undefined;
+/**
+ * The one value a type stands for, at the end of a path into it.
+ *
+ * Only a literal or `null` has one: those are the types a branch can be filed
+ * under, and everything else is a value that could be many things.
+ *
+ * @param type The branch being asked about.
+ * @param path Field names and list positions, from the outside in.
+ * @returns The value, or undefined when the type is not one single value.
+ */
+export function tagAt(type: Type, path: readonly Step[]): Asked | undefined {
+  const held = path.reduce<Type | undefined>((into, step) => into && stepInto(into, step), type);
+  const t = held && prune(held);
+  if (t?.kind === "prim" && t.name === "null") return null;
+  return t?.kind === "literal" ? t.value : undefined;
+}
+
+function stepInto(type: Type, step: Step): Type | undefined {
+  const t = prune(type);
+  if (typeof step === "number") return t.kind === "list" ? t.element : undefined;
+  return t.kind === "record" ? fieldType(t, step) : undefined;
 }
 
 /** The type a name holds right here, which is what a narrowed scope changes. */

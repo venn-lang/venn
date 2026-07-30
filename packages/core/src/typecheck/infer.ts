@@ -25,6 +25,7 @@ import { callType } from "./action-signature.js";
 import { memberType } from "./builtins.js";
 import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
+import { checkMatch } from "./check-match.js";
 import { badPatternIn } from "./check-pattern.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
@@ -121,6 +122,8 @@ function inferKind(expr: Expr, env: TypeEnv, infer: Infer): Type {
       return inferMap(expr, env, infer);
     case "FnExpr":
       return inferFn({ params: expr.params, body: expr.body, returns: expr.returns }, env, infer);
+    case "MatchExpr":
+      return checkMatch({ expr, env, infer, wantsValue: true });
     default:
       return DYNAMIC;
   }

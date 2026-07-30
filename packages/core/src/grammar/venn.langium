@@ -31,7 +31,7 @@ Declaration:
     ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl | FactoryDecl | DatasetDecl
     | ConfigDecl | MatrixDecl | ReportDecl | LifecycleDecl
     | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
-    | TryStmt | RunStmt | LetStmt | ExpectStmt | ActionCall );
+    | TryStmt | RunStmt | LetStmt | ExpectStmt | MatchExpr | ActionCall );
 
 Annotation: '@' name=ID ('(' (args=ArgList)? ')')?;
 
@@ -100,7 +100,7 @@ Statement:
     (annotations+=Annotation NL*)*
     ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
     | ParallelStmt | RaceStmt | TryStmt | LifecycleDecl | LetStmt | CaptureStmt
-    | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | ActionCall );
+    | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | MatchExpr | ActionCall );
 
 StepDecl: 'step' title=STRING body=Block;
 GroupDecl: 'group' title=STRING body=Block;
@@ -163,8 +163,19 @@ LetStmt:
 // name the whole thing, which is what makes the three nest in each other.
 Pattern:
     {infer NamePattern} name=ID
+  // A name binds what is there, a literal asks whether that is what is there.
+  // One rule, and it is what lets a pattern both test and take apart at once.
+  | {infer LiteralPattern} value=LiteralValue
   | {infer MapPattern} '{' NL* (fields+=FieldPattern ((',' | NL)+ fields+=FieldPattern)*)? (',' | NL)* '}'
   | {infer ListPattern} '[' NL* (items+=Pattern ((',' | NL)+ items+=Pattern)*)? (',' | NL)* ']';
+
+// The literals a pattern may ask about, which are the ones a value can be equal
+// to. The same nodes an expression is made of, so what they mean is decided once.
+LiteralValue infers Expr:
+    {infer StringLit} value=STRING
+  | {infer NumberLit} raw=NUMBER
+  | {infer BoolLit} value=('true' | 'false')
+  | {infer NullLit} 'null';
 
 // `{ id }` binds the field to its own name, `{ id: orderId }` to another one,
 // and `{ user: { name } }` goes on taking it apart.
@@ -216,7 +227,7 @@ ActionArg infers Expr:
 
 ArgValue infers Expr:
     Atom (
-        {infer Member.receiver=current} (optional?='?.' | '.') member=ID
+        {infer Member.receiver=current} (optional?='?.' | '.') member=Word
       | {infer Index.receiver=current} '[' index=Expr ']'
       | {infer Call.callee=current} '(' (args=ArgList)? ')'
     )*;
@@ -259,7 +270,23 @@ Postfix infers Expr:
     )*;
 
 Primary infers Expr:
-    Atom | MapLit;
+    Atom | MapLit | MatchExpr;
+
+// The one construction that claims to enumerate. `if` asks a question and is not
+// asked to cover anything; `match` says these are the cases, so a case nobody
+// wrote is reported rather than falling through in silence.
+//
+// `=>` gives a value back and `{ … }` runs steps, which is the split `fn` and
+// `flow` already make: an arm written as steps has no value, and cannot stand
+// where one is wanted.
+// Arms are separated by a newline, or by a comma where the newlines were taken
+// away: inside `( )` the lexer drops them, the way it does for a map or a list,
+// and those separate with commas there too.
+MatchExpr infers MatchExpr:
+    'match' subject=Expr '{' NL*
+    (arms+=MatchArm ((',' | NL)+ arms+=MatchArm)* (',' | NL)*)? '}';
+
+MatchArm: pattern=Pattern ('=>' value=Expr | body=Block);
 
 Atom infers Expr:
     {infer NumberLit} raw=NUMBER
@@ -322,7 +349,7 @@ Word returns string:
   | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'
   | 'else' | 'forEach' | 'in' | 'repeat' | 'while' | 'parallel' | 'race' | 'try'
   | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
-  | 'all' | 'soft' | 'not';
+  | 'all' | 'soft' | 'not' | 'match';
 
 // A statement terminator: one or more newlines or `;`, plus adjacent blanks.
 // Not hidden, because the parser consumes it. The lexer drops it inside ( ) and [ ].

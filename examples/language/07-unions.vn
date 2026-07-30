@@ -15,14 +15,14 @@ fn close(why: string) -> Message => { kind: "close", why: why }
 
 const inbox: list<Message> = [ping(1), text("hello"), close("done")]
 
-## Inside `m.kind == "text"` the value is a Text and nothing else, so `body` is
-## there to be read. Outside it is not: `m.body` on a Message is a compile error,
-## and being told that is the reason to write the union in the first place.
-fn describe(m: Message) -> string => (
-  m.kind == "ping" ? "ping at ${m.at}"
-  : m.kind == "text" ? "text: ${m.body}"
-  : "closed: ${m.why}"
-)
+## `match` is the way to decide between them: the pattern asks about `kind` and
+## names what that shape carries in the same breath, so `body` is in hand only
+## where there is one. Leave a case out and the checker says which.
+fn describe(m: Message) -> string => match m {
+  { kind: "ping", at }   => "ping at ${at}"
+  { kind: "text", body } => "text: ${body}"
+  { kind: "close", why } => "closed: ${why}"
+}
 
 forEach m in inbox {
   print describe(m)
@@ -40,12 +40,30 @@ forEach m in inbox {
   }
 }
 
-# Two things the checker will not let past, both of them worth trying:
+# Standing on its own, a `match` arm runs steps instead of giving a value back.
+# `=>` for a value, `{ … }` for steps: the same split `fn` and `flow` make.
+forEach m in inbox {
+  match m {
+    { kind: "close", why } {
+      print "goodbye: ${why}"
+    }
+    other {
+      print "still open"
+    }
+  }
+}
+
+# Three things the checker will not let past, all of them worth trying:
 #
 #   if m.kind == "pong" { … }        # kind is never "pong": nothing can be it
 #
 #   if m.kind == "ping" { … }        # and no else: nothing says what to do
 #   else if m.kind == "text" { … }   # when kind is "close"
 #
-# The second is the one that matters. A case nobody wrote is a case that falls
-# through in silence, and a union exists to say those are all the cases there are.
+#   match m {                        # the same, and here it is the whole point:
+#     { kind: "ping" } => "p"        # `match` says these are the cases, so a
+#     { kind: "text" } => "t"        # case nobody wrote is one the checker names
+#   }
+#
+# A case nobody wrote is a case that falls through in silence, and a union exists
+# to say those are all the cases there are.

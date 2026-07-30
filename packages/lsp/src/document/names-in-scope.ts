@@ -15,6 +15,7 @@ import {
   isForEachStmt,
   isFragmentDecl,
   isLetStmt,
+  isMatchArm,
   isRepeatStmt,
   isValueImport,
   loopBinding,
@@ -66,6 +67,7 @@ function beingWritten(scoped: ScopedName, at: number | undefined): boolean {
 
 function bindingsIn(node: AstNode): ScopedName[] {
   if (isForEachStmt(node)) return sites(loopBinding(node), node, "each");
+  if (isMatchArm(node)) return sites({ pattern: node.pattern }, node, "match");
   if (isRepeatStmt(node)) return node.index ? [{ name: node.index, node, origin: "index" }] : [];
   if (isFragmentDecl(node) || isFnDecl(node) || isFnExpr(node) || isDecoDecl(node))
     return params(node.params);

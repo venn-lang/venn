@@ -157,7 +157,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@75"
+                "$ref": "#/rules@77"
               },
               "arguments": []
             }
@@ -176,7 +176,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 }
@@ -227,7 +227,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@77"
+                        "$ref": "#/rules@79"
                       },
                       "arguments": []
                     }
@@ -246,7 +246,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@77"
+                            "$ref": "#/rules@79"
                           },
                           "arguments": []
                         }
@@ -278,7 +278,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@77"
+                        "$ref": "#/rules@79"
                       },
                       "arguments": []
                     }
@@ -292,7 +292,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 }
@@ -310,7 +310,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@75"
+                "$ref": "#/rules@77"
               },
               "arguments": []
             }
@@ -535,7 +535,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -590,7 +590,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@75"
+                "$ref": "#/rules@77"
               },
               "arguments": []
             }
@@ -640,7 +640,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -733,7 +733,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -931,7 +931,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -1098,7 +1098,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -1287,7 +1287,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -1341,7 +1341,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -1381,7 +1381,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -1502,7 +1502,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -1676,7 +1676,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@75"
+                    "$ref": "#/rules@77"
                   },
                   "arguments": []
                 }
@@ -1955,7 +1955,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@75"
+                "$ref": "#/rules@77"
               },
               "arguments": []
             }
@@ -1995,7 +1995,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@75"
+                "$ref": "#/rules@77"
               },
               "arguments": []
             }
@@ -2123,7 +2123,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -2211,7 +2211,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 }
@@ -2395,7 +2395,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 },
@@ -2511,7 +2511,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 }
@@ -2593,7 +2593,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -2685,7 +2685,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -2782,7 +2782,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 }
@@ -3053,7 +3053,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@77"
+                "$ref": "#/rules@79"
               },
               "arguments": []
             }
@@ -3229,7 +3229,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@77"
+                        "$ref": "#/rules@79"
                       },
                       "arguments": []
                     }
@@ -4131,7 +4131,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@76"
+                    "$ref": "#/rules@78"
                   },
                   "arguments": []
                 }
@@ -4179,7 +4179,55 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
+                    "$ref": "#/rules@77"
+                  },
+                  "arguments": []
+                }
+              }
+            ]
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Action",
+                "inferredType": {
+                  "$type": "InferredType",
+                  "name": "StringLit"
+                }
+              },
+              {
+                "$type": "Assignment",
+                "feature": "value",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
                     "$ref": "#/rules@75"
+                  },
+                  "arguments": []
+                }
+              }
+            ]
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Action",
+                "inferredType": {
+                  "$type": "InferredType",
+                  "name": "StringLit"
+                }
+              },
+              {
+                "$type": "Assignment",
+                "feature": "value",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@76"
                   },
                   "arguments": []
                 }
@@ -4508,7 +4556,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@77"
+            "$ref": "#/rules@79"
           },
           "arguments": []
         }
@@ -4777,7 +4825,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@75"
+              "$ref": "#/rules@77"
             },
             "arguments": []
           }
@@ -4849,7 +4897,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 }
@@ -4889,7 +4937,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@77"
+              "$ref": "#/rules@79"
             },
             "arguments": []
           },
@@ -4926,7 +4974,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@77"
+              "$ref": "#/rules@79"
             },
             "arguments": []
           },
@@ -4958,7 +5006,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@77"
+              "$ref": "#/rules@79"
             },
             "arguments": []
           },
@@ -5191,6 +5239,28 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
       "definition": {
         "$type": "RegexToken",
         "regex": "/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\\\.[0-9]+)?Z/",
+        "parenthesized": false
+      },
+      "fragment": false,
+      "hidden": false
+    },
+    {
+      "$type": "TerminalRule",
+      "name": "BLOCK_STRING",
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "/\\"\\"\\"[\\\\s\\\\S]*?\\"\\"\\"/",
+        "parenthesized": false
+      },
+      "fragment": false,
+      "hidden": false
+    },
+    {
+      "$type": "TerminalRule",
+      "name": "RAW_STRING",
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "/r\\"[^\\"]*\\"/",
         "parenthesized": false
       },
       "fragment": false,

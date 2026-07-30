@@ -246,11 +246,23 @@ r"C:\raw\sem\escape"
 
 # outros
 true   false   null
-/Order #(\d+)/i
 [1, 2, 3]
 { chave: "valor", aninhado: { a: 1 } }
 2026-07-23T12:00:00Z          # instante ISO-8601 é literal de primeira classe
 ```
+
+**Padrão não tem literal próprio.** `~=` recebe texto, e a forma de escrever um
+padrão é a string crua, que preserva cada barra invertida. As flags vão dentro
+dele:
+
+```venn
+expect (pedido ~= r"Order #(\d+)")
+expect (nome ~= r"(?i:ana)")
+```
+
+O literal `/padrão/i` foi descartado pela mesma razão que caminho deixou de ser
+bare token (§02): `/` é divisão, e distinguir os dois exigiria do lexer um
+lookahead semântico. A string crua não custa nada disso e diz a mesma coisa.
 
 ### Tipos nominais
 
@@ -314,7 +326,7 @@ Mini-linguagem completa, com precedência definida. É a parte que todo projeto 
 ```venn
 let elegivel = user.plan != "free" && (user.credits ?? 0) > 10
 let saudacao = "Olá, ${user.name ?? "visitante"}"
-let numero   = mail.body ~= /Order #(\d+)/
+let numero   = mail.body ~= r"Order #(\d+)"
 let dentro   = res.time < 300ms && res.size < 2mb
 let membro   = user.plan in ["pro", "enterprise"]
 ```
@@ -467,7 +479,7 @@ expect.all {
 
 # extração — captura é tipada e escopada ao bloco
 capture token   = res.json.token
-capture orderId = mail.body ~= /Order #(\d+)/ { group: 1 }
+capture orderId = mail.body ~= r"Order #(\d+)" { group: 1 }
 ```
 
 > **Escopo de `capture`.** Uma captura é visível do ponto de declaração até o fim do bloco. Dentro de `parallel`, cada ramo tem escopo próprio — capturar num ramo e ler no irmão é erro de compilação, não corrida silenciosa em runtime.
@@ -1689,7 +1701,7 @@ flow "Checkout" {
       mail.waitFor { to: cliente.email, subject: ~"Order confirmed", within: 30s }
       expect mail.body contains "Total: $99.00"
       expect mail.attachments hasLength 1
-      capture orderId = mail.body ~= /Order #(\d+)/ { group: 1 }
+      capture orderId = mail.body ~= r"Order #(\d+)" { group: 1 }
     }
 
     # ── conciliação em banco, com espera ativa ──

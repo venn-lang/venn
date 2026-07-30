@@ -13,10 +13,18 @@ import {
   VennLanguageMetaData,
 } from "../generated/module.js";
 import { VennLexer } from "./venn-lexer.js";
+import { VennValueConverter } from "./venn-value-converter.js";
 
-// The newline-aware lexer: `NL` is suppressed inside brackets.
-const VennLexerModule: Module<LangiumCoreServices, { parser: { Lexer: VennLexer } }> = {
-  parser: { Lexer: (services) => new VennLexer(services) },
+// The newline-aware lexer, and the converter that unquotes the string forms
+// Langium does not know about.
+const VennLexerModule: Module<
+  LangiumCoreServices,
+  { parser: { Lexer: VennLexer; ValueConverter: VennValueConverter } }
+> = {
+  parser: {
+    Lexer: (services) => new VennLexer(services),
+    ValueConverter: () => new VennValueConverter(),
+  },
 };
 
 function modeModule(

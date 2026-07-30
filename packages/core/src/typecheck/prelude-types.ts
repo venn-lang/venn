@@ -1,3 +1,4 @@
+import { REGEX_TYPE } from "./regex-type.js";
 import { DYNAMIC, list, NUMBER, STRING, type Type, variadic } from "./type.types.js";
 
 /** One argument of a prelude verb, named so the editor can point at it. */
@@ -27,6 +28,24 @@ export interface PreludeSpec {
  * the prose. Two tables would drift; this one cannot.
  */
 export const PRELUDE_SPECS: Readonly<Record<string, PreludeSpec>> = {
+  regex: {
+    signature: "regex(pattern: string, flags?: string) -> regex",
+    doc: "Compile a pattern once, here, rather than on every comparison. Write the pattern as a raw string so every backslash survives, and read it back with `.test`, `.match`, `.source` and `.flags`.",
+    example:
+      'const order = regex(r"Order #(\\d+)")\nexpect (body ~= order)\nlet n = order.match(body)[1]',
+    // Variadic because the flags are optional: `regex(r"…")` is the common
+    // spelling and `regex(r"…", "g")` is the other one.
+    type: variadic([STRING], REGEX_TYPE),
+    args: [
+      { name: "pattern", type: "string", doc: 'The pattern. `r"…"` keeps its backslashes.' },
+      {
+        name: "flags",
+        type: "string",
+        doc: "Regular expression flags. `(?i:…)` inside the pattern is the other way, and works per group.",
+        optional: true,
+      },
+    ],
+  },
   spawn: {
     signature: "spawn(fn () -> T) -> task",
     doc: "Start work without waiting for it. Everything else waits by itself, so this is how to carry on — ask for the value later with `.wait`.",

@@ -51,6 +51,10 @@ export const BUILTIN_TYPES: Readonly<Record<string, BuiltinType>> = {
     doc: "A moment in time, written as an ISO date: `2026-07-27T12:00:00Z`.",
     example: "at: instant",
   },
+  regex: {
+    doc: 'A compiled pattern. Made with `regex(r"…")`, and read with `.test`, `.match`, `.source` and `.flags`.',
+    example: "matcher: regex",
+  },
   never: {
     doc: "What a verb that always fails answers with. No value has this type.",
     example: "-> never",

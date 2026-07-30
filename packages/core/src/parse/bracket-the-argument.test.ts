@@ -60,14 +60,18 @@ describe("an argument holding an operator", () => {
   });
 
   /**
-   * `-` also negates, so this line could in principle be two arguments with a
-   * negative second one. It cannot be written: brackets after a value are a
-   * call, so `print a (-1)` calls `a`. The subtraction is the only reading there
-   * is, and it is the one Haskell, Elm and OCaml give it as well.
+   * `-` also negates, and how it is written is what says which one it is. Tight
+   * against the value, with air before it, it negates; spaced apart on both
+   * sides, or on neither, it is the operator and an argument holds no operator.
    */
-  it("reads a minus as the subtraction, the only thing it can be", () => {
-    expect(suggested("print a -1")).toBe("print (a - 1)");
-    expect(suggested("print -1")).toBe("print (-1)");
+  it("reads a minus written as a negation as one", () => {
+    expect(titles("const a = 1\nprint a -1")).toEqual([]);
+    expect(titles("print -1")).toEqual([]);
+  });
+
+  it("still reads a spaced minus as the subtraction nobody bracketed", () => {
+    expect(suggested("print a - 1")).toBe("print (a - 1)");
+    expect(suggested("print a-1")).toBe("print (a - 1)");
   });
 
   /** The line, not the rest of the file, when the mistake is not on the last one. */

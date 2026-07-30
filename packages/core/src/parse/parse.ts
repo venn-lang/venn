@@ -4,6 +4,7 @@ import { vennServices } from "../lang/index.js";
 import type { Problem } from "../problem/index.js";
 import { lexerErrorToProblem, parserErrorToProblem } from "./error-to-problem.js";
 import type { ParseOutput } from "./parse-output.types.js";
+import { spacedMinus } from "./spaced-minus.js";
 
 /**
  * Parse `.vn` source into an AST plus VN1xxx problems. Synchronous and
@@ -26,5 +27,8 @@ function collectProblems(args: {
   const { result, uri, text } = args;
   const lexical = result.lexerErrors.map((error) => lexerErrorToProblem({ error, uri }));
   const syntactic = result.parserErrors.map((error) => parserErrorToProblem({ error, uri, text }));
-  return [...lexical, ...syntactic];
+  // After the parse, since the grammar accepts what this refuses: a `-` written
+  // apart from what follows it is an operator, and an argument holds no operator.
+  const spaced = spacedMinus({ ast: result.value, text, uri });
+  return [...lexical, ...syntactic, ...spaced];
 }

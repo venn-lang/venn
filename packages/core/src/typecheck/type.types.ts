@@ -136,6 +136,16 @@ export function callback(params: readonly Type[], result: Type, takes: number): 
   return { kind: "fn", params, result, ignorableFrom: takes };
 }
 
+/**
+ * A function whose last parameters may be left out: `padStart(8)` pads with a
+ * space, `padStart(8, ".")` with a dot. The same shape as {@link callback} read
+ * from the other side, since a parameter nobody has to pass and one a callback
+ * may ignore are the same fact about arity.
+ */
+export function optional(params: readonly Type[], result: Type, required: number): FnType {
+  return { kind: "fn", params, result, ignorableFrom: required };
+}
+
 export function record(fields: ReadonlyMap<string, Type>, open = false, rest?: Type): RecordType {
   return rest ? { kind: "record", fields, open, rest } : { kind: "record", fields, open };
 }

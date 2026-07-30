@@ -3,7 +3,18 @@ import { isNamedType, isShapeType } from "../generated/ast.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
-import { DYNAMIC, fn, list, literal, NULL, prim, record, type Type, union } from "./type.types.js";
+import {
+  DYNAMIC,
+  fn,
+  list,
+  literal,
+  mapOf,
+  NULL,
+  prim,
+  record,
+  type Type,
+  union,
+} from "./type.types.js";
 
 const PRIMS = new Set(["number", "string", "bool", "null", "void"]);
 
@@ -79,6 +90,9 @@ function genericType(
   const params = (single.args ?? []).map((ref) => typeRefToType({ ...args, ref }));
   if (name === "list") return list(params[0] ?? DYNAMIC);
   if (name === "fn") return fn(params.slice(0, -1), params[params.length - 1] ?? DYNAMIC);
-  if (name === "map") return DYNAMIC;
+  // Keys unnamed, values all alike. The value is the last argument, so
+  // `map<string, User>` and `map<User>` mean the same thing: a key is a name
+  // either way. A bare `map` is the loose map a JSON body arrives as.
+  if (name === "map") return mapOf(params[params.length - 1] ?? DYNAMIC);
   return undefined;
 }

@@ -324,8 +324,21 @@ let attempts = 0
 | string int float bool | kernel | Primitivos |
 | duration size percent | kernel | Aritmética com unidade é verificada: `300ms + 1s` vale, `300ms + 2mb` é erro |
 | regex instant json | kernel | `json` é o tipo dinâmico de escape |
-| list<T> map<string,T> | kernel | Genéricos só nestes dois |
+| list<T> map<V> | kernel | Genéricos só nestes dois. `map<string, V>` é a mesma coisa: a chave é um nome de qualquer jeito |
 | Response Page Message Row | stdlib | Plugins registram tipos próprios |
+
+Um plugin publica assinatura polimórfica, e o editor infere através dela:
+
+```venn
+use "venn/data"
+
+const escolhido = data.oneOf("a", "b")     # string, não `dynamic`
+const baralho = data.shuffle([1, 2, 3])    # list<number>, ainda
+```
+
+Do lado do plugin, `t.param("T")` é o que diz isso: o mesmo nome é o mesmo tipo
+dentro de uma assinatura, e cada chamada recebe os seus, então duas chamadas do
+mesmo verbo no mesmo arquivo não decidem uma pela outra.
 
 
 ---

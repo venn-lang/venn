@@ -23,6 +23,7 @@ import {
   compileInstant,
   compileList,
   compileMap,
+  compileMatch,
   compileMember,
   compileNumber,
   compileString,
@@ -93,6 +94,10 @@ function dispatch(expr: Expr, scope: LexScope): Thunk {
       // around it, so there has to be one for it to capture.
       scope.dynamic = true;
       return compileFnExpr(expr, compileIn);
+    // Compiled with the scope rather than only with a way to compile: what an
+    // arm binds needs a slot, and slots belong to the scope.
+    case "MatchExpr":
+      return compileMatch(expr, scope, compileIn);
     default:
       return operation(expr, (inner) => compileIn(inner, scope));
   }

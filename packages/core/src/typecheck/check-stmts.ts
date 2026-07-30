@@ -3,6 +3,7 @@ import type { Block, Expr, FragmentDecl, Statement } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { callType } from "./action-signature.js";
 import { checkCases } from "./check-cases.js";
+import { checkMatch } from "./check-match.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { narrowed } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
@@ -19,6 +20,8 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isActionCall(node)) return actionArgs(node, env, infer);
   if (ast.isRunStmt(node)) return runArgs(node, env, infer);
   if (ast.isIfStmt(node)) return wholeChain(node, env, infer);
+  // Standing on its own, so nothing is waiting for a value: an arm may run steps.
+  if (ast.isMatchExpr(node)) return matchStmt(node, env, infer);
   if (ast.isForEachStmt(node)) return forEach(node, env, infer);
   if (ast.isLoopStmt(node)) return checkLoop(node, env, infer);
   if (ast.isRepeatStmt(node)) return repeat(node, env, infer);
@@ -41,6 +44,11 @@ function wholeChain(node: ast.IfStmt, env: TypeEnv, infer: Infer): TypeEnv {
 }
 
 /** Check a nested block, then keep the outer scope: its bindings do not escape. */
+function matchStmt(node: ast.MatchExpr, env: TypeEnv, infer: Infer): TypeEnv {
+  checkMatch({ expr: node, env, infer, wantsValue: false });
+  return env;
+}
+
 function nested(block: Block, env: TypeEnv, infer: Infer): TypeEnv {
   checkBlock(block, env, infer);
   return env;

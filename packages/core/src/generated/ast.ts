@@ -77,6 +77,7 @@ export type VennKeywordNames =
     | "in"
     | "let"
     | "loop"
+    | "match"
     | "matrix"
     | "module"
     | "not"
@@ -179,7 +180,7 @@ export function isArgList(item: unknown): item is ArgList {
 }
 
 export interface Binary extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Binary';
     left: Expr;
     operator: '!=' | '%' | '&&' | '*' | '+' | '-' | '/' | '<' | '<=' | '==' | '>' | '>=' | '??' | 'in' | '||' | '~=';
@@ -198,7 +199,7 @@ export function isBinary(item: unknown): item is Binary {
 }
 
 export interface Block extends langium.AstNode {
-    readonly $container: DecoDecl | FlowDecl | ForEachStmt | FragmentDecl | GroupDecl | IfStmt | LifecycleDecl | LoopStmt | ParallelStmt | RaceStmt | RepeatStmt | StepDecl | TryStmt;
+    readonly $container: DecoDecl | FlowDecl | ForEachStmt | FragmentDecl | GroupDecl | IfStmt | LifecycleDecl | LoopStmt | MatchArm | ParallelStmt | RaceStmt | RepeatStmt | StepDecl | TryStmt;
     readonly $type: 'Block';
     stmts: Array<Statement>;
 }
@@ -213,7 +214,7 @@ export function isBlock(item: unknown): item is Block {
 }
 
 export interface BoolLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'BoolLit';
     value: 'false' | 'true';
 }
@@ -241,7 +242,7 @@ export function isBreakStmt(item: unknown): item is BreakStmt {
 }
 
 export interface Call extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Call';
     args?: ArgList;
     callee: Expr;
@@ -326,7 +327,7 @@ export function isDatasetDecl(item: unknown): item is DatasetDecl {
 }
 
 export interface Declaration extends langium.AstNode {
-    readonly $type: 'ActionCall' | 'ConfigDecl' | 'DatasetDecl' | 'Declaration' | 'DecoDecl' | 'ExpectStmt' | 'FactoryDecl' | 'FlowDecl' | 'FnDecl' | 'ForEachStmt' | 'FragmentDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatrixDecl' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'ReportDecl' | 'RunStmt' | 'TryStmt' | 'TypeDecl';
+    readonly $type: 'ActionCall' | 'ConfigDecl' | 'DatasetDecl' | 'Declaration' | 'DecoDecl' | 'ExpectStmt' | 'FactoryDecl' | 'FlowDecl' | 'FnDecl' | 'ForEachStmt' | 'FragmentDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'MatrixDecl' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'ReportDecl' | 'RunStmt' | 'TryStmt' | 'TypeDecl';
     annotations: Array<Annotation>;
 }
 
@@ -411,7 +412,7 @@ export function isExpectStmt(item: unknown): item is ExpectStmt {
     return reflection.isInstance(item, ExpectStmt.$type);
 }
 
-export type Expr = Binary | BoolLit | Call | FnExpr | Index | InstantLit | ListLit | MapLit | Member | NullLit | NumberLit | Ref | StringLit | Ternary | Unary;
+export type Expr = Binary | BoolLit | Call | FnExpr | Index | InstantLit | ListLit | MapLit | MatchExpr | Member | NullLit | NumberLit | Ref | StringLit | Ternary | Unary;
 
 export const Expr = {
     $type: 'Expr'
@@ -534,7 +535,7 @@ export function isFnDecl(item: unknown): item is FnDecl {
 }
 
 export interface FnExpr extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'FnExpr';
     body: FnBody;
     params: ParamList;
@@ -646,7 +647,7 @@ export function isImportDecl(item: unknown): item is ImportDecl {
 }
 
 export interface Index extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Index';
     index: Expr;
     receiver: Expr;
@@ -663,7 +664,7 @@ export function isIndex(item: unknown): item is Index {
 }
 
 export interface InstantLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'InstantLit';
     value: string;
 }
@@ -729,7 +730,7 @@ export function isLifecycleDecl(item: unknown): item is LifecycleDecl {
 }
 
 export interface ListLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'ListLit';
     items: Array<Expr>;
 }
@@ -744,7 +745,7 @@ export function isListLit(item: unknown): item is ListLit {
 }
 
 export interface ListPattern extends langium.AstNode {
-    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | Param;
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | MatchArm | Param;
     readonly $type: 'ListPattern';
     items: Array<Pattern>;
 }
@@ -756,6 +757,21 @@ export const ListPattern = {
 
 export function isListPattern(item: unknown): item is ListPattern {
     return reflection.isInstance(item, ListPattern.$type);
+}
+
+export interface LiteralPattern extends langium.AstNode {
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | MatchArm | Param;
+    readonly $type: 'LiteralPattern';
+    value: Expr;
+}
+
+export const LiteralPattern = {
+    $type: 'LiteralPattern',
+    value: 'value'
+} as const;
+
+export function isLiteralPattern(item: unknown): item is LiteralPattern {
+    return reflection.isInstance(item, LiteralPattern.$type);
 }
 
 export interface LiteralType extends langium.AstNode {
@@ -833,7 +849,7 @@ export function isMapKey(item: unknown): item is MapKey {
 }
 
 export interface MapLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ConfigDecl | ContinueStmt | DatasetDecl | ExpectStmt | FactoryDecl | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | MatrixDecl | Member | ParallelStmt | RaceStmt | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ConfigDecl | ContinueStmt | DatasetDecl | ExpectStmt | FactoryDecl | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | MatrixDecl | Member | ParallelStmt | RaceStmt | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'MapLit';
     entries: Array<MapEntry>;
 }
@@ -848,7 +864,7 @@ export function isMapLit(item: unknown): item is MapLit {
 }
 
 export interface MapPattern extends langium.AstNode {
-    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | Param;
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | MatchArm | Param;
     readonly $type: 'MapPattern';
     fields: Array<FieldPattern>;
 }
@@ -860,6 +876,25 @@ export const MapPattern = {
 
 export function isMapPattern(item: unknown): item is MapPattern {
     return reflection.isInstance(item, MapPattern.$type);
+}
+
+export interface MatchArm extends langium.AstNode {
+    readonly $container: MatchExpr;
+    readonly $type: 'MatchArm';
+    body?: Block;
+    pattern: Pattern;
+    value?: Expr;
+}
+
+export const MatchArm = {
+    $type: 'MatchArm',
+    body: 'body',
+    pattern: 'pattern',
+    value: 'value'
+} as const;
+
+export function isMatchArm(item: unknown): item is MatchArm {
+    return reflection.isInstance(item, MatchArm.$type);
 }
 
 export interface MatcherClause extends langium.AstNode {
@@ -881,6 +916,24 @@ export function isMatcherClause(item: unknown): item is MatcherClause {
     return reflection.isInstance(item, MatcherClause.$type);
 }
 
+export interface MatchExpr extends Declaration, Statement {
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $type: 'MatchExpr';
+    arms: Array<MatchArm>;
+    subject: Expr;
+}
+
+export const MatchExpr = {
+    $type: 'MatchExpr',
+    annotations: 'annotations',
+    arms: 'arms',
+    subject: 'subject'
+} as const;
+
+export function isMatchExpr(item: unknown): item is MatchExpr {
+    return reflection.isInstance(item, MatchExpr.$type);
+}
+
 export interface MatrixDecl extends Declaration {
     readonly $type: 'MatrixDecl';
     body: MapLit;
@@ -897,9 +950,9 @@ export function isMatrixDecl(item: unknown): item is MatrixDecl {
 }
 
 export interface Member extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Member';
-    member: Word | string;
+    member: Word;
     optional: boolean;
     receiver: Expr;
 }
@@ -933,7 +986,7 @@ export function isNamedType(item: unknown): item is NamedType {
 }
 
 export interface NamePattern extends langium.AstNode {
-    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | Param;
+    readonly $container: FieldPattern | ForEachStmt | LetStmt | ListPattern | MatchArm | Param;
     readonly $type: 'NamePattern';
     name: string;
 }
@@ -948,7 +1001,7 @@ export function isNamePattern(item: unknown): item is NamePattern {
 }
 
 export interface NullLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'NullLit';
 }
 
@@ -974,7 +1027,7 @@ export function isNullType(item: unknown): item is NullType {
 }
 
 export interface NumberLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'NumberLit';
     raw: string;
 }
@@ -1041,7 +1094,7 @@ export function isParamList(item: unknown): item is ParamList {
     return reflection.isInstance(item, ParamList.$type);
 }
 
-export type Pattern = ListPattern | MapPattern | NamePattern;
+export type Pattern = ListPattern | LiteralPattern | MapPattern | NamePattern;
 
 export const Pattern = {
     $type: 'Pattern'
@@ -1075,7 +1128,7 @@ export function isRaceStmt(item: unknown): item is RaceStmt {
 }
 
 export interface Ref extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Ref';
     name: RefName;
 }
@@ -1189,7 +1242,7 @@ export function isSingleType(item: unknown): item is SingleType {
 }
 
 export interface Statement extends langium.AstNode {
-    readonly $type: 'ActionCall' | 'BreakStmt' | 'CaptureStmt' | 'ContinueStmt' | 'ExpectStmt' | 'ForEachStmt' | 'GroupDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'ReturnStmt' | 'RunStmt' | 'Statement' | 'StepDecl' | 'TryStmt';
+    readonly $type: 'ActionCall' | 'BreakStmt' | 'CaptureStmt' | 'ContinueStmt' | 'ExpectStmt' | 'ForEachStmt' | 'GroupDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'ReturnStmt' | 'RunStmt' | 'Statement' | 'StepDecl' | 'TryStmt';
     annotations: Array<Annotation>;
 }
 
@@ -1220,7 +1273,7 @@ export function isStepDecl(item: unknown): item is StepDecl {
 }
 
 export interface StringLit extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'StringLit';
     value: string;
 }
@@ -1235,7 +1288,7 @@ export function isStringLit(item: unknown): item is StringLit {
 }
 
 export interface Ternary extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Ternary';
     condition: Expr;
     otherwise: Expr;
@@ -1326,7 +1379,7 @@ export function isTypeRef(item: unknown): item is TypeRef {
 }
 
 export interface Unary extends langium.AstNode {
-    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
+    readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Unary';
     operand: Expr;
     operator: '!' | '-';
@@ -1382,10 +1435,10 @@ export function isValueImport(item: unknown): item is ValueImport {
     return reflection.isInstance(item, ValueImport.$type);
 }
 
-export type Word = 'afterEach' | 'all' | 'as' | 'beforeEach' | 'break' | 'capture' | 'catch' | 'config' | 'const' | 'continue' | 'dataset' | 'deco' | 'defer' | 'else' | 'expect' | 'factory' | 'finally' | 'flow' | 'fn' | 'forEach' | 'fragment' | 'from' | 'group' | 'if' | 'import' | 'in' | 'let' | 'matrix' | 'module' | 'not' | 'on' | 'parallel' | 'pub' | 'race' | 'repeat' | 'report' | 'return' | 'run' | 'setup' | 'soft' | 'step' | 'teardown' | 'try' | 'type' | 'use' | 'while' | string;
+export type Word = 'afterEach' | 'all' | 'as' | 'beforeEach' | 'break' | 'capture' | 'catch' | 'config' | 'const' | 'continue' | 'dataset' | 'deco' | 'defer' | 'else' | 'expect' | 'factory' | 'finally' | 'flow' | 'fn' | 'forEach' | 'fragment' | 'from' | 'group' | 'if' | 'import' | 'in' | 'let' | 'match' | 'matrix' | 'module' | 'not' | 'on' | 'parallel' | 'pub' | 'race' | 'repeat' | 'report' | 'return' | 'run' | 'setup' | 'soft' | 'step' | 'teardown' | 'try' | 'type' | 'use' | 'while' | string;
 
 export function isWord(item: unknown): item is Word {
-    return item === 'module' || item === 'use' || item === 'as' || item === 'pub' || item === 'import' || item === 'from' || item === 'flow' || item === 'fragment' || item === 'fn' || item === 'deco' || item === 'return' || item === 'const' || item === 'let' || item === 'config' || item === 'matrix' || item === 'report' || item === 'type' || item === 'factory' || item === 'dataset' || item === 'setup' || item === 'teardown' || item === 'beforeEach' || item === 'afterEach' || item === 'defer' || item === 'on' || item === 'step' || item === 'group' || item === 'if' || item === 'else' || item === 'forEach' || item === 'in' || item === 'repeat' || item === 'while' || item === 'parallel' || item === 'race' || item === 'try' || item === 'catch' || item === 'finally' || item === 'capture' || item === 'run' || item === 'break' || item === 'continue' || item === 'expect' || item === 'all' || item === 'soft' || item === 'not' || (typeof item === 'string' && (/[_a-zA-Z]\w*/.test(item)));
+    return item === 'module' || item === 'use' || item === 'as' || item === 'pub' || item === 'import' || item === 'from' || item === 'flow' || item === 'fragment' || item === 'fn' || item === 'deco' || item === 'return' || item === 'const' || item === 'let' || item === 'config' || item === 'matrix' || item === 'report' || item === 'type' || item === 'factory' || item === 'dataset' || item === 'setup' || item === 'teardown' || item === 'beforeEach' || item === 'afterEach' || item === 'defer' || item === 'on' || item === 'step' || item === 'group' || item === 'if' || item === 'else' || item === 'forEach' || item === 'in' || item === 'repeat' || item === 'while' || item === 'parallel' || item === 'race' || item === 'try' || item === 'catch' || item === 'finally' || item === 'capture' || item === 'run' || item === 'break' || item === 'continue' || item === 'expect' || item === 'all' || item === 'soft' || item === 'not' || item === 'match' || (typeof item === 'string' && (/[_a-zA-Z]\w*/.test(item)));
 }
 
 export type VennAstType = {
@@ -1426,12 +1479,15 @@ export type VennAstType = {
     LifecycleDecl: LifecycleDecl
     ListLit: ListLit
     ListPattern: ListPattern
+    LiteralPattern: LiteralPattern
     LiteralType: LiteralType
     LoopState: LoopState
     LoopStmt: LoopStmt
     MapEntry: MapEntry
     MapLit: MapLit
     MapPattern: MapPattern
+    MatchArm: MatchArm
+    MatchExpr: MatchExpr
     MatcherClause: MatcherClause
     MatrixDecl: MatrixDecl
     Member: Member
@@ -2111,6 +2167,15 @@ export class VennAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: [Pattern.$type]
         },
+        LiteralPattern: {
+            name: LiteralPattern.$type,
+            properties: {
+                value: {
+                    name: LiteralPattern.value
+                }
+            },
+            superTypes: [Pattern.$type]
+        },
         LiteralType: {
             name: LiteralType.$type,
             properties: {
@@ -2187,6 +2252,42 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Pattern.$type]
+        },
+        MatchArm: {
+            name: MatchArm.$type,
+            properties: {
+                body: {
+                    name: MatchArm.body,
+                    optional: true
+                },
+                pattern: {
+                    name: MatchArm.pattern
+                },
+                value: {
+                    name: MatchArm.value,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        MatchExpr: {
+            name: MatchExpr.$type,
+            properties: {
+                annotations: {
+                    name: MatchExpr.annotations,
+                    defaultValue: [],
+                    optional: true
+                },
+                arms: {
+                    name: MatchExpr.arms,
+                    defaultValue: [],
+                    optional: true
+                },
+                subject: {
+                    name: MatchExpr.subject
+                }
+            },
+            superTypes: [Declaration.$type, Statement.$type, Expr.$type]
         },
         MatcherClause: {
             name: MatcherClause.$type,

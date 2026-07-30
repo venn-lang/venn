@@ -119,7 +119,11 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     summary: "Run the body a fixed number of times, optionally binding the 1-based index.",
     example: 'repeat 3 as attempt {\n  step "poll" { … }\n}',
   },
-  while: { summary: "Repeat while a condition holds. Every loop inherits a timeout." },
+  loop: {
+    summary: "Repeat until `break`, or while a condition holds, carrying a value if it needs one.",
+    example:
+      "loop { … }\n\nloop queue.len > 0 { … }\n\nloop total = 0 {\n  if total >= 6 { break }\n  continue total + 2\n}",
+  },
   parallel: {
     summary: "Run the statements concurrently and wait for all of them.",
     example: 'parallel { concurrency: 4 } {\n  step "a" { … }\n  step "b" { … }\n}',
@@ -148,7 +152,11 @@ const KEYWORDS: Record<string, KeywordDoc> = {
       "Return a value early. A `fn` already returns its last expression, so `return` is only needed to leave sooner; it also stops a fragment.",
   },
   break: { summary: "Leave the innermost loop." },
-  continue: { summary: "Skip to the next iteration of the innermost loop." },
+  continue: {
+    summary:
+      "Start the next pass of the innermost loop. In a `loop` carrying a value, `continue next` is what the next pass begins with; on its own it repeats with the value this pass had.",
+    example: "loop total = 0 {\n  if total >= 6 { break }\n  continue total + 2\n}",
+  },
   true: { summary: "The boolean true." },
   false: { summary: "The boolean false." },
   null: { summary: "The absence of a value." },

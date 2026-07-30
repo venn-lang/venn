@@ -58,6 +58,13 @@ def loop():
     return len(xs)
 
 
+def counter():
+    total = 0
+    while total < 50_000:
+        total = total + 1
+    return total
+
+
 def records():
     rows = [{"id": i, "score": i % 13} for i in make_range(20_000)]
     return len([r for r in rows if r["score"] > 6])
@@ -73,6 +80,7 @@ CASES = [
     ("branch 50k", branch_count),
     ("pipeline 5k", pipeline),
     ("loop 50k", loop),
+    ("counter 50k", counter),
     ("records 20k", records),
     ("strings 10k", strings),
 ]

@@ -201,7 +201,7 @@ Estas são todas as palavras reservadas. Nada além disto entra na gramática, n
 | Configuração | config env matrix report | Ambiente e saída da suíte |
 | Estrutura | flow step group | Unidades executáveis |
 | Ciclo de vida | setup teardown beforeEach afterEach on defer | Ganchos determinísticos |
-| Controle | if else forEach in repeat while parallel race try catch finally break continue return run | Composição de execução |
+| Controle | if else forEach in repeat loop parallel race try catch finally break continue return run | Composição de execução |
 | Asserção | expect capture | Verificação e extração |
 | Literal | true false null | Constantes da linguagem |
 
@@ -407,9 +407,45 @@ forEach user in users { concurrency: 4 } {
   run checkoutCompleto(user)
 }
 
-# repetição contada e condicional
+# repetição contada, e o loop aberto para tudo o mais
 repeat 3 as tentativa { log "tentativa ${tentativa}" }
-while res.json.status == "pending" { wait 2s; http.get "/api/job/${jobId}" }
+loop {
+  const job = http.get "/api/job/${jobId}"
+  if job.json.status == "done" { break }
+  wait 2s
+}
+
+### loop
+
+Uma palavra para todo loop cujo fim não se sabe de antemão, em três formas:
+
+```venn
+loop { … }                     # até `break` ou `return`
+loop fila.len > 0 { … }        # enquanto a condição valer
+loop total = 0 {               # carregando um valor
+  if total >= 6 { break }
+  continue total + 2
+}
+print total                    # 6: o nome guarda o que a última passada deixou
+```
+
+`continue valor` começa a passada seguinte com o valor ligado ao nome, então um
+estado atravessa a fronteira sem que nada seja atribuído: cada passada liga o
+nome uma vez, e a garantia de que um nome vale um valor continua de pé. `continue`
+sozinho repete com o mesmo valor.
+
+Nada limita um `loop`: um programa que pretende rodar para sempre, um jogo entre
+eles, pode. O que encerra um que devia ter encerrado é o timeout do step ou do
+flow em volta, que é o que a linguagem já promete.
+
+> **Por que não há `while`.** Ele respondia à mesma pergunta que `loop` e numa
+> linguagem sem atribuição sua condição nunca podia ser movida pelo próprio
+> corpo: todo `while` que alguém escrevia precisava de um `break` para não
+> pendurar, inclusive o do tutorial. Uma construção que parece funcionar e não
+> funciona custa mais do que uma palavra a menos no vocabulário.
+
+Qual escrever tem uma resposta só: `repeat` quando o número de vezes é conhecido,
+`forEach` quando há uma coleção, `loop` quando é nenhum dos dois.
 
 # blocos concorrentes — nomes distintos, semânticas distintas
 parallel {
@@ -1815,7 +1851,8 @@ Statement:
 IfStmt:       'if' cond=Expr then=Block ('else' else=(IfStmt|Block))?;
 ForEachStmt:  'forEach' item=ID 'in' src=Expr opts=MapLit? body=Block;
 RepeatStmt:   'repeat' count=Expr ('as' idx=ID)? body=Block;
-WhileStmt:    'while' cond=Expr body=Block;
+LoopStmt:     'loop' (state=LoopState | cond=Expr)? body=Block;
+LoopState:    name=ID '=' initial=Expr;
 ParallelStmt: 'parallel' opts=MapLit? body=Block;
 RaceStmt:     'race'     opts=MapLit? body=Block;
 TryStmt:      'try' body=Block ('catch' err=ID? handler=Block)?
@@ -1856,7 +1893,7 @@ Toda construção precisa de representação visual definida _antes_ de você es
 | forEach | Container de laço com badge de concorrência | total |
 | parallel / race | Fork-join com raias paralelas | total |
 | try / catch / finally | Container com borda de erro e saída alternativa | total |
-| repeat / while | Container com aresta de retorno | editar condição |
+| repeat / loop | Container com aresta de retorno | editar condição |
 | on / defer | Nó ancorado na borda do container | total |
 | setup / teardown | Faixas fixas acima e abaixo do canvas | total |
 | fn, type, expressão complexa | Nó "código" somente leitura | abre o editor de texto naquele trecho |
@@ -1893,4 +1930,4 @@ Estes são os `semanticTokenTypes` que o LSP deve emitir. As cores abaixo são a
 
 ### O que ficou de fora de propósito
 
-Coisas que parecem faltar mas não faltam: **classes e herança** (composição por `fragment` basta e mantém o grafo desenhável), **loops infinitos sem limite** (todo `while` tem timeout herdado), **chamada arbitrária de shell** (isso é plugin, com sandbox), e **expressões lambda** (empurram a linguagem para Turing-completa e destroem a garantia de que todo código tem representação visual).
+Coisas que parecem faltar mas não faltam: **classes e herança** (composição por `fragment` basta e mantém o grafo desenhável), **loops que se explicam sozinhos** (`loop` roda até `break`, e o que encerra um que devia ter encerrado é o timeout do step ou do flow, não um contador de iterações), **chamada arbitrária de shell** (isso é plugin, com sandbox), e **expressões lambda** (empurram a linguagem para Turing-completa e destroem a garantia de que todo código tem representação visual).

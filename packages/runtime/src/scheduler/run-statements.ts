@@ -1,11 +1,13 @@
 import type {
   ActionCall,
   CaptureStmt,
+  ContinueStmt,
   ExpectStmt,
   ForEachStmt,
   GroupDecl,
   IfStmt,
   LetStmt,
+  LoopStmt,
   ParallelStmt,
   RaceStmt,
   RepeatStmt,
@@ -14,8 +16,8 @@ import type {
   Statement,
   StepDecl,
   TryStmt,
-  WhileStmt,
 } from "@venn-lang/core";
+import { evaluate } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
@@ -25,13 +27,13 @@ import { runExpect } from "./run-expect.js";
 import { runForEach } from "./run-foreach.js";
 import { runGroup } from "./run-group.js";
 import { runIf } from "./run-if.js";
+import { runLoop } from "./run-loop.js";
 import { runParallel } from "./run-parallel.js";
 import { runRace } from "./run-race.js";
 import { runRepeat } from "./run-repeat.js";
 import { runRun } from "./run-run.js";
 import { runStep } from "./run-step.js";
 import { runTry } from "./run-try.js";
-import { runWhile } from "./run-while.js";
 import { BreakSignal, CancelSignal, ContinueSignal } from "./signals.js";
 
 /** Run a block's statements in order. */
@@ -82,8 +84,8 @@ function control(engine: Engine, stmt: Statement, scope: Scope): Pending {
       return runForEach(engine, stmt as ForEachStmt, scope);
     case "RepeatStmt":
       return runRepeat(engine, stmt as RepeatStmt, scope);
-    case "WhileStmt":
-      return runWhile(engine, stmt as WhileStmt, scope);
+    case "LoopStmt":
+      return runLoop(engine, stmt as LoopStmt, scope);
     case "ParallelStmt":
       return runParallel(engine, stmt as ParallelStmt, scope);
     case "RaceStmt":
@@ -101,7 +103,17 @@ function leaf(stmt: Statement, scope: Scope): Pending {
   if (stmt.$type === "CaptureStmt") return runCapture(stmt as CaptureStmt, scope);
   if (stmt.$type === "ReturnStmt") return runReturn(stmt as ReturnStmt, scope);
   if (stmt.$type === "BreakStmt") throw new BreakSignal();
-  if (stmt.$type === "ContinueStmt") throw new ContinueSignal();
+  if (stmt.$type === "ContinueStmt") throw continueWith(stmt as ContinueStmt, scope);
   // LifecycleDecl (on/defer) is handled by runBlock / runFlow, not here.
   return undefined;
+}
+
+/**
+ * `continue` on its own, or `continue next` feeding the following pass.
+ *
+ * The value is evaluated here rather than in the loop, because this is where the
+ * expression is written and where the scope holding its names still stands.
+ */
+function continueWith(stmt: ContinueStmt, scope: Scope): ContinueSignal {
+  return new ContinueSignal(stmt.value ? evaluate(stmt.value, scope) : undefined);
 }

@@ -9,7 +9,7 @@
 
 **A general-purpose language that takes testing seriously.**
 
-Faster than CPython. Beats hand-written TypeScript on three of seven benchmarks.<br>
+Faster than CPython on seven of eight benchmarks, and ahead of hand-written TypeScript on three.<br>
 Small enough to read in an afternoon.
 
 [![CI](https://github.com/venn-lang/venn/actions/workflows/ci.yml/badge.svg)](https://github.com/venn-lang/venn/actions/workflows/ci.yml)
@@ -155,27 +155,28 @@ against the same algorithm hand-written in TypeScript on V8, and in CPython.
 
 | workload | Venn | TypeScript (V8) | CPython |
 | :--- | ---: | ---: | ---: |
-| **50k reductions** | **1.28 ms** | 2.09 ms | 2.87 ms |
-| **50k branches** | **1.82 ms** | 2.14 ms | 3.42 ms |
-| **50k loop iterations** | **1.65 ms** | 2.06 ms | 1.73 ms |
-| 20k records built and filtered | 1.86 ms | 1.19 ms | 2.88 ms |
-| 5k record pipeline | 1.30 ms | 0.59 ms | 1.43 ms |
-| 10k interpolated strings | 1.75 ms | 1.00 ms | 1.28 ms |
-| recursion, `fib(25)` | 5.11 ms | 0.63 ms | 8.92 ms |
+| **50k reductions** | **1.11 ms** | 2.13 ms | 2.36 ms |
+| **50k branches** | **1.75 ms** | 2.17 ms | 3.04 ms |
+| **50k loop iterations** | **1.43 ms** | 2.28 ms | 1.78 ms |
+| 10k interpolated strings | 0.70 ms | 0.68 ms | 1.33 ms |
+| 5k record pipeline | 1.18 ms | 0.65 ms | 1.35 ms |
+| 20k records built and filtered | 1.91 ms | 1.18 ms | 2.69 ms |
+| recursion, `fib(25)` | 4.43 ms | 0.64 ms | 7.94 ms |
+| 50k passes carrying a counter | 3.24 ms | 0.02 ms | 0.88 ms |
 
 <table>
 <tr>
 <td align="center" width="33%">
 
-### ~1.3×
+### ~1.6×
 **the speed of CPython**
 
-<sub>ahead on five of seven workloads</sub>
+<sub>ahead on seven of eight workloads</sub>
 
 </td>
 <td align="center" width="33%">
 
-### 3 of 7
+### 3 of 8
 **workloads beat V8**
 
 <sub>reductions, branches, loops</sub>
@@ -183,8 +184,8 @@ against the same algorithm hand-written in TypeScript on V8, and in CPython.
 </td>
 <td align="center" width="33%">
 
-### ~65%
-**of V8's speed overall**
+### ~76%
+**of V8's speed, by median**
 
 <sub>up from 34%, and still climbing</sub>
 
@@ -199,12 +200,26 @@ is built, so a recursive call never searches for its own name. Each operator
 compiles to a thunk written for that operator alone. Nothing allocates a list to
 hold a single argument.
 
-The numbers move a few percent between runs, so treat the ratios as the result
-rather than the milliseconds. Reproduce them yourself:
+The last row is the one to read carefully, and it is in the table on purpose. A
+tight arithmetic loop is where a JIT wins outright: V8 compiles it to three
+native instructions and finishes 50,000 passes in the time a tree-walking
+interpreter needs for a few hundred. Against CPython, which also interprets, the
+same row is 3.7x. Nothing here closes that gap without generating code, and this
+is the honest shape of the trade.
+
+The headline is a **median** rather than a mean, for the same reason: one
+workload at 210x would drag any average and say nothing true about the other
+seven.
+
+Numbers move between runs, so treat the ratios as the result rather than the
+milliseconds, and reproduce them yourself:
 
 ```bash
-pnpm run bench
+pnpm run bench -- --rounds 3
 ```
+
+Each case is then measured 27 times, warmup included, and every sample counts
+towards the summary.
 
 ---
 
@@ -333,6 +348,22 @@ belongs to that step. Beyond this there are lifecycle hooks (`on`, `defer`),
 expected failure (`try`), concurrency (`parallel`, `race`, and a `concurrency`
 option on `forEach`), and `matrix` for running one flow across variants. All of
 it is in [`examples/testing/`](examples/testing).
+
+Three words cover every repetition, and which to write has one answer each:
+`repeat` when the count is known, `forEach` when there is a collection, and
+`loop` when it is neither. There is no assignment in the language, so a `loop`
+that needs to advance something carries it:
+
+```ruby
+loop total = 0 {
+  if total >= 6 { break }
+  continue total + 2
+}
+print total          # 6
+```
+
+Each pass binds the name once, which is what keeps every read resolvable to an
+index, and nothing caps a `loop`: a program meant to run forever may.
 
 ## Servers
 

@@ -17,7 +17,7 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isRunStmt(node)) return runArgs(node, env, infer);
   if (ast.isIfStmt(node)) return ifStmt(node, env, infer);
   if (ast.isForEachStmt(node)) return forEach(node, env, infer);
-  if (ast.isWhileStmt(node)) return blockAfterCond(node.cond, node.body, env, infer);
+  if (ast.isLoopStmt(node)) return checkLoop(node, env, infer);
   if (ast.isRepeatStmt(node)) return repeat(node, env, infer);
   if (ast.isTryStmt(node)) return tryStmt(node, env, infer);
   if (ast.isReturnStmt(node)) return maybeInfer(node.value, env, infer);
@@ -126,10 +126,23 @@ function tryStmt(node: ast.TryStmt, env: TypeEnv, infer: Infer): TypeEnv {
   return env;
 }
 
-function blockAfterCond(cond: Expr, body: Block, env: TypeEnv, infer: Infer): TypeEnv {
-  inferExpr(cond, env, infer);
-  checkBlock(body, env, infer);
-  return env;
+/**
+ * `loop`, in all three shapes.
+ *
+ * The state is bound in the scope the loop stands in, not only inside it, so a
+ * running total can be read after the loop the way the runtime leaves it. Its
+ * type comes from the initial value; a `continue` of another type is a mismatch
+ * the ordinary check reports where it is written.
+ */
+function checkLoop(node: ast.LoopStmt, env: TypeEnv, infer: Infer): TypeEnv {
+  if (node.cond) inferExpr(node.cond, env, infer);
+  if (!node.state) {
+    checkBlock(node.body, env, infer);
+    return env;
+  }
+  const carried = env.with(node.state.name, mono(inferExpr(node.state.initial, env, infer)));
+  checkBlock(node.body, carried, infer);
+  return carried;
 }
 
 function maybeInfer(expr: Expr | undefined, env: TypeEnv, infer: Infer): TypeEnv {

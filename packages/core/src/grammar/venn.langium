@@ -30,7 +30,7 @@ Declaration:
     (annotations+=Annotation NL*)*
     ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl | FactoryDecl | DatasetDecl
     | ConfigDecl | MatrixDecl | ReportDecl | LifecycleDecl
-    | IfStmt | ForEachStmt | RepeatStmt | WhileStmt | ParallelStmt | RaceStmt
+    | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
     | TryStmt | RunStmt | LetStmt | ExpectStmt | ActionCall );
 
 Annotation: '@' name=ID ('(' (args=ArgList)? ')')?;
@@ -91,7 +91,7 @@ Block: '{' NL* (stmts+=Statement (NL+ stmts+=Statement)* NL*)? '}';
 
 Statement:
     (annotations+=Annotation NL*)*
-    ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt | WhileStmt
+    ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
     | ParallelStmt | RaceStmt | TryStmt | LifecycleDecl | LetStmt | CaptureStmt
     | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | ActionCall );
 
@@ -103,7 +103,24 @@ ElseBranch: IfStmt | Block;
 
 ForEachStmt: 'forEach' item=ID 'in' source=Expr (opts=MapLit)? body=Block;
 RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=Block;
-WhileStmt: 'while' cond=Expr body=Block;
+// The open loop: one word, three shapes.
+//
+//   loop { … }                 forever, until `break` or `return`
+//   loop count > 0 { … }       while the condition holds
+//   loop total = 0 { … }       carrying a value, advanced by `continue`
+//
+// One word rather than four, because "which loop do I write" should have one
+// answer per intent: `repeat` when the count is known, `forEach` when there is a
+// collection, `loop` when neither. `while` was the fourth, it answered the same
+// question as this one, and in a language with no assignment its condition could
+// never be moved by its own body: every `while` anybody wrote needed a `break` to
+// avoid hanging, including the one in the tutorial.
+//
+// The state is bound once per pass, so a name still means one value: `continue
+// next` starts the following pass with a fresh binding, and after the loop the
+// name holds whatever the last pass left.
+LoopStmt: 'loop' (state=LoopState | cond=Expr)? body=Block;
+LoopState: name=ID '=' initial=Expr;
 
 ParallelStmt: 'parallel' (opts=MapLit)? body=Block;
 RaceStmt: 'race' (opts=MapLit)? body=Block;
@@ -141,7 +158,7 @@ CaptureStmt: 'capture' name=ID '=' value=Expr (opts=MapLit)?;
 RunStmt: 'run' target=QualifiedName '(' (args=ArgList)? ')' ('as' bind=ID)?;
 ReturnStmt: {infer ReturnStmt} 'return' (value=Expr)?;
 BreakStmt: {infer BreakStmt} 'break';
-ContinueStmt: {infer ContinueStmt} 'continue';
+ContinueStmt: {infer ContinueStmt} 'continue' (value=Expr)?;
 
 // `expect` is boolean-expression based, or a bareword matcher clause. A newline
 // (or `;`) after the subject terminates the statement, so a trailing matcher

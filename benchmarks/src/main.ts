@@ -10,6 +10,18 @@ import { measureStartup } from "./startup/index.ts";
 
 const CASE_DIR = resolve(import.meta.dirname, "../cases");
 
+/**
+ * How many times each case is measured end to end. `--rounds 3` for a number
+ * worth writing down; one is enough while working on a case.
+ */
+const ROUNDS = rounds();
+
+function rounds(): number {
+  const at = process.argv.indexOf("--rounds");
+  const asked = at === -1 ? Number.NaN : Number(process.argv[at + 1]);
+  return Number.isFinite(asked) && asked > 0 ? Math.floor(asked) : 1;
+}
+
 /** A value no case can produce, so the comparison below never fires. */
 const UNREACHABLE = Symbol("unreachable");
 
@@ -40,7 +52,7 @@ function warmParser(): void {
 
 async function runCase(bench: BenchCase): Promise<CaseResult> {
   const program = await loadProgram(resolve(CASE_DIR, bench.vn));
-  const timing = { reps: bench.reps, warmup: bench.warmup };
+  const timing = { reps: bench.reps, warmup: bench.warmup, rounds: ROUNDS };
   const vn = await measure({ ...timing, run: program.execute });
   const ts = await measure({ ...timing, run: bench.ts });
   return {

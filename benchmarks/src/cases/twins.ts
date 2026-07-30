@@ -62,6 +62,19 @@ export function loop(): number {
   return xs.length + (sink > 0 ? 0 : 0);
 }
 
+/**
+ * The open loop, carrying a value from one pass to the next.
+ *
+ * Written with an assignment, because that is what the languages compared
+ * against have. Venn advances the state with `continue`, which is the same work
+ * without the mutation.
+ */
+export function counter(): number {
+  let total = 0;
+  while (total < 50_000) total = total + 1;
+  return total;
+}
+
 export function records(): number {
   return range(20_000)
     .map((i) => ({ id: i, score: i % 13 }))

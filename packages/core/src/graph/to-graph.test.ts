@@ -26,4 +26,25 @@ describe("toGraph", () => {
     // action → expect sequential edge inside the Login step
     expect(graph.edges.some((edge) => edge.from === action?.id)).toBe(true);
   });
+
+  /** A `loop` is a container in the graph, labelled by what makes it one. */
+  it("labels each shape of loop by what it carries", () => {
+    const { ast } = parse(`flow "F" {
+  loop {
+    step "forever" { expect true }
+  }
+  loop total = 0 {
+    step "carrying" { expect true }
+  }
+  loop 1 > 0 {
+    step "while" { expect true }
+  }
+}`);
+
+    const labels = toGraph(ast)
+      .nodes.filter((node) => node.kind === "loop")
+      .map((node) => node.label);
+
+    expect(labels).toEqual(["loop", "loop total", "loop <cond>"]);
+  });
 });

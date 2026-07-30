@@ -37,7 +37,8 @@ state across iterations.
 **Closed.** Two of the three forms are in the grammar:
 
 ```venn
-r"C:aw
+r"C:
+aw
 o\escape"      # every backslash survives
 """
   a block
@@ -75,14 +76,22 @@ when it is not, and a field that does exist keeps its type either way.
 
 ## 4. `pub` covers only three declarations
 
-**Severity: medium.** Only `fn`, `fragment` and `deco` can be exported. A `type`
-or a `const` cannot cross a file boundary, so every file redeclares the shapes it
-needs and there is no way to share a constant.
+**Closed.** `pub` covers `fn`, `fragment`, `deco`, `type` and a binding, so a
+file can publish a shared vocabulary rather than every file redeclaring it.
 
-`packages/runtime/src/check/check-imports.ts` treats only those three as
-published, and importing anything else reports VN2009.
+```venn
+pub type User { name: string }
+pub const LIMIT = 10
+```
 
-This is the gap most likely to hurt a real project.
+An imported type is resolved by the checker, so a value of the wrong shape is
+refused where it is written, one file away from the declaration. An imported
+binding carries the type it has.
+
+Two things fell out of it. A `pub` that is not at the top of a file published
+nothing in silence, and is now refused. And a `pub const` is computed where it
+stands, so modules are filled in the order they import each other: a chain of
+three used to compute the middle one against nothing.
 
 ## 5. A bare argument cannot hold a binary operator
 

@@ -588,7 +588,11 @@ module acme.lib.auth
 use "venn/http"
 use "venn/auth"
 
-type Sessao { token: string, refresh: string, expira: instant }
+# público: quem importar este módulo pode nomear esta forma
+pub type Sessao { token: string, refresh: string, expira: instant }
+
+# público: uma constante compartilhada, para não haver duas verdades
+pub const TIMEOUT_LOGIN = 10s
 
 # privado: só este módulo enxerga
 fn cabecalhoBasico(u: User) -> map {
@@ -615,6 +619,15 @@ pub fragment loginViaUI(u: User) {
   }
 }
 ```
+
+`pub` vale para `fn`, `fragment`, `deco`, `type` e binding (`let`/`const`), e só
+no topo do arquivo: um `pub` dentro de um step ou de uma função não publica nada,
+e é recusado em vez de ser ignorado.
+
+Um `pub type` publica um nome que o checker resolve, não um valor: importe-o e
+uma forma errada é recusada onde ela é escrita, do outro lado da fronteira. Um
+`pub const` é calculado no arquivo onde está, então um módulo que lê a constante
+de outro é preenchido depois dele.
 
 > **Regras duras.** Ciclos entre módulos são erro de compilação. Um arquivo tem exatamente um `module`. Colisão de namespace no `use` exige `as` — nada de resolução implícita por ordem.
 

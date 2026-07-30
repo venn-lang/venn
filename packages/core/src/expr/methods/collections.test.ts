@@ -10,7 +10,7 @@ function run(program: string, expr: string): unknown {
   const bindings: Record<string, unknown> = {};
   const env: EvalEnv = { lookup: (name) => bindings[name] };
   for (const decl of (parse(program).ast as Document).decls) {
-    if (isLetStmt(decl)) bindings[decl.name] = evaluate(decl.value, env);
+    if (isLetStmt(decl) && decl.name) bindings[decl.name] = evaluate(decl.value, env);
   }
   const parsed = parseExpression(expr);
   if (!parsed) throw new Error(`could not parse: ${expr}`);

@@ -1,4 +1,11 @@
-import type { Block, Document, ExpectStmt, FlowDecl, Statement } from "../generated/ast.js";
+import type {
+  Block,
+  Document,
+  ExpectStmt,
+  FlowDecl,
+  ForEachStmt,
+  Statement,
+} from "../generated/ast.js";
 import {
   isActionCall,
   isExpectStmt,
@@ -51,11 +58,16 @@ function addStatement(
   return undefined;
 }
 
+/** What the loop calls its item: a name, or the pattern as it was written. */
+function loopName(stmt: ForEachStmt): string {
+  return stmt.item ?? stmt.pattern?.$cstNode?.text ?? "";
+}
+
 function containerOf(stmt: Statement): { kind: string; label: string; body: Block } | undefined {
   if (isStepDecl(stmt)) return { kind: "step", label: stmt.title, body: stmt.body };
   if (isGroupDecl(stmt)) return { kind: "group", label: stmt.title, body: stmt.body };
   if (isForEachStmt(stmt))
-    return { kind: "forEach", label: `forEach ${stmt.item}`, body: stmt.body };
+    return { kind: "forEach", label: `forEach ${loopName(stmt)}`, body: stmt.body };
   if (isRepeatStmt(stmt)) return { kind: "repeat", label: "repeat", body: stmt.body };
   if (isLoopStmt(stmt)) return { kind: "loop", label: loopLabel(stmt), body: stmt.body };
   if (isParallelStmt(stmt)) return { kind: "parallel", label: "parallel", body: stmt.body };

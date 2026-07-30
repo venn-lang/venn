@@ -80,7 +80,7 @@ DatasetDecl: 'dataset' name=ID (':' declaredType=TypeRef)? '=' value=Expr;
 ParamList: params+=Param (',' params+=Param)*;
 // A parameter carries decorators too. No `NL*` here: a parameter list lives
 // inside `( )`, where the lexer already dropped the newlines.
-Param: (annotations+=Annotation)* name=ID (':' paramType=TypeRef)?;
+Param: (annotations+=Annotation)* (name=ID | pattern=Pattern) (':' paramType=TypeRef)?;
 
 TypeRef: members+=SingleType ('|' members+=SingleType)*;
 SingleType:
@@ -108,7 +108,7 @@ GroupDecl: 'group' title=STRING body=Block;
 IfStmt: 'if' cond=Expr then=Block ('else' otherwise=ElseBranch)?;
 ElseBranch: IfStmt | Block;
 
-ForEachStmt: 'forEach' item=ID 'in' source=Expr (opts=MapLit)? body=Block;
+ForEachStmt: 'forEach' (item=ID | pattern=Pattern) 'in' source=Expr (opts=MapLit)? body=Block;
 RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=Block;
 // The open loop: one word, three shapes.
 //
@@ -155,8 +155,20 @@ LifecycleDecl:
 // is refused by the checker, not by the grammar: the message it can give names
 // the file and the line, and a parse error at that point would name a token.
 LetStmt:
-    (export?='pub')? kind=('let' | 'const') name=ID (':' declaredType=TypeRef)? '='
+    (export?='pub')? kind=('let' | 'const') (name=ID | pattern=Pattern) (':' declaredType=TypeRef)? '='
     value=Expr (args+=ActionArg)* (opts=MapLit)?;
+
+// A pattern takes a value apart where a name would have taken all of it. Each
+// shape mirrors the literal it reads: `{ … }` a map, `[ … ]` a list, and a bare
+// name the whole thing, which is what makes the three nest in each other.
+Pattern:
+    {infer NamePattern} name=ID
+  | {infer MapPattern} '{' NL* (fields+=FieldPattern ((',' | NL)+ fields+=FieldPattern)*)? (',' | NL)* '}'
+  | {infer ListPattern} '[' NL* (items+=Pattern ((',' | NL)+ items+=Pattern)*)? (',' | NL)* ']';
+
+// `{ id }` binds the field to its own name, `{ id: orderId }` to another one,
+// and `{ user: { name } }` goes on taking it apart.
+FieldPattern: name=ID (':' value=Pattern)?;
 
 // Removed from the language: `capture` and `let` mean the same thing. Still
 // parsed so the editor can say so and offer the one-word fix, instead of

@@ -3,6 +3,7 @@ import { callArgs } from "../../ast/index.js";
 import { buildProblem, CODES } from "../../codes/index.js";
 import { evaluate, invoke, memberValue } from "../../expr/index.js";
 import type { ActionCall, Block, IfStmt, LetStmt, Statement } from "../../generated/ast.js";
+import { patternSlots, readPath } from "../../pattern/index.js";
 import { type Problem, ProblemError } from "../../problem/index.js";
 import { truthy } from "../../value/index.js";
 import { handleSurface, missingVerb } from "../handles/index.js";
@@ -49,7 +50,11 @@ function dispatch(stmt: Statement, args: DecoBodyArgs): void {
 /** `const cache = {}`. Trailing arguments would make it an action, which it cannot be. */
 function bind(stmt: LetStmt, args: DecoBodyArgs): void {
   if (stmt.args.length > 0 || stmt.opts) throw refuse(IMPURE_LET);
-  args.env.bind(stmt.name, evaluate(stmt.value, args.env));
+  const value = evaluate(stmt.value, args.env);
+  if (stmt.name) return void args.env.bind(stmt.name, value);
+  for (const bound of stmt.pattern ? patternSlots(stmt.pattern) : []) {
+    args.env.bind(bound.name, readPath(value, bound.path));
+  }
 }
 
 /** `target.wrap(f)`, `target.meta "retry" 3`: a verb on something already in hand. */

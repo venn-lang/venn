@@ -7,7 +7,7 @@ import {
   isLetStmt,
   type LetStmt,
 } from "@venn-lang/core";
-import type { Scope } from "../scope/index.js";
+import { binderFor, type Scope } from "../scope/index.js";
 
 /**
  * Bind every top-level `fn` as a callable closure. Hoisted so a function can be
@@ -46,7 +46,9 @@ export function bindGlobals(doc: Document, scope: Scope): void {
  */
 export function bindPlainValues(doc: Document, scope: Scope): void {
   for (const decl of doc.decls) {
-    if (isLetStmt(decl) && isPlainValue(decl)) scope.set(decl.name, evaluate(decl.value, scope));
+    if (isLetStmt(decl) && isPlainValue(decl)) {
+      binderFor(decl)(evaluate(decl.value, scope), scope);
+    }
   }
 }
 

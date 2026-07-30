@@ -276,6 +276,38 @@ O literal `/padrão/i` foi descartado pela mesma razão que caminho deixou de se
 bare token (§02): `/` é divisão, e distinguir os dois exigiria do lexer um
 lookahead semântico. A string crua não custa nada disso e diz a mesma coisa.
 
+### Tirando um valor de dentro de outro
+
+Onde cabe um nome, cabe um padrão. Ele espelha o literal que lê: `{ … }` um mapa,
+`[ … ]` uma lista, e um nome sozinho o valor inteiro, que é o que faz os três se
+aninharem.
+
+```venn
+const { id, total } = pedido            # dois nomes, dois campos
+const { id: referencia } = pedido       # o campo sob outro nome
+const { cliente: { cidade } } = pedido  # e mais fundo
+const [primeiro, segundo] = par         # lista, por posição
+
+forEach { nome, idade } in pessoas { … }
+fn rotulo({ nome, idade }) => "${nome}/${idade}"
+fragment mostra({ total }: Pedido) { … }
+```
+
+Vale em binding, parâmetro (de `fn` e de `fragment`) e variável de loop. Um `deco`
+é a exceção: ele recebe os argumentos por nome, na ordem em que `@nome(…)` os
+preenche, então um padrão ali não teria o que separar e é recusado.
+
+**Campo que a forma não tem é erro onde está escrito**, e é isso que o padrão
+ganha da anotação:
+
+```venn
+type Pedido { id: string, total: number }
+const { totl } = pedido    # VN3010: Pedido não tem campo "totl"
+```
+
+Sem anotação nenhuma o checker não inventa: um valor cuja forma ninguém sabe se
+deixa separar em silêncio, como qualquer outro acesso a campo.
+
 ### Tipos nominais
 
 Declarar tipo não é burocracia: é o que dá autocomplete em `user.` dentro do editor e o que gera o formulário de propriedades do nó no grafo.

@@ -1,5 +1,6 @@
 import {
   type AstNode,
+  boundNames,
   buildProblem,
   CODES,
   type DecoDecl,
@@ -69,7 +70,7 @@ function reachesTheWorld(namespace: string, ctx: CheckContext): boolean {
 }
 
 function paramNames(deco: DecoDecl): Set<string> {
-  return new Set((deco.params?.params ?? []).map((param) => param.name));
+  return new Set((deco.params?.params ?? []).flatMap(boundNames));
 }
 
 function problem(node: AstNode, ctx: CheckContext, title: string): Problem {

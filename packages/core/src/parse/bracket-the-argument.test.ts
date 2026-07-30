@@ -83,7 +83,7 @@ describe("an argument holding an operator", () => {
   });
 
   it("leaves every other syntax error in the parser's words", () => {
-    expect(titles("const = 1")[0]).toContain("Expecting token of type");
+    expect(titles("const = 1")[0]).toContain("Expecting");
   });
 
   /**

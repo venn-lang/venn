@@ -1,4 +1,5 @@
 import {
+  boundNames,
   type Document,
   isFnDecl,
   isLetStmt,
@@ -139,7 +140,8 @@ function gathered(names: ReadonlySet<string>, source: Scope): Record<string, unk
 function exportedValues(document: Document): Set<string> {
   const names = new Set<string>();
   for (const decl of document.decls) {
-    if ((isFnDecl(decl) || isLetStmt(decl)) && decl.export) names.add(decl.name);
+    if (isFnDecl(decl) && decl.export) names.add(decl.name);
+    if (isLetStmt(decl) && decl.export) for (const name of boundNames(decl)) names.add(name);
   }
   return names;
 }

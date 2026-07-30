@@ -5,7 +5,7 @@ import {
   type LetStmt,
   type ReturnStmt,
 } from "@venn-lang/core";
-import type { Scope } from "../scope/index.js";
+import { type Binder, binderFor, type Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { actionCall, type Invocation, invocationOf } from "./invocation.js";
 import type { Pending } from "./pending.types.js";
@@ -21,10 +21,11 @@ import { resolveTarget } from "./target.js";
  */
 export function runLet(engine: Engine, stmt: LetStmt, scope: Scope): Pending {
   const call = invocationOf(stmt) ?? impliedCall(engine, stmt, scope);
+  const binder = binderFor(stmt);
   // Only a call suspends. Binding a plain expression is the common case, and
   // an `async` here would cost a promise per iteration of every loop.
-  if (!call) return bind(stmt.name, evaluate(stmt.value, scope), scope);
-  return runAction(engine, call, scope).then((value) => scope.set(stmt.name, value));
+  if (!call) return bind(binder, evaluate(stmt.value, scope), scope);
+  return runAction(engine, call, scope).then((value) => binder(value, scope));
 }
 
 /**
@@ -50,9 +51,9 @@ function bound(scope: Scope, name: string): boolean {
 }
 
 /** Bind now, or once the value it is waiting on arrives. */
-function bind(name: string, value: unknown, scope: Scope): Pending {
-  if (isPending(value)) return value.then((settled) => scope.set(name, settled));
-  return void scope.set(name, value);
+function bind(binder: Binder, value: unknown, scope: Scope): Pending {
+  if (isPending(value)) return value.then((settled) => binder(settled, scope));
+  return void binder(value, scope);
 }
 
 /** `capture` is removed in favour of `let`; still run, so old files keep working. */

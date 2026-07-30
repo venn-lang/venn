@@ -5,9 +5,10 @@ import { callType } from "./action-signature.js";
 import { checkCases } from "./check-cases.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { narrowed } from "./narrow.js";
-import { mono } from "./scheme.js";
+import { patternTypes } from "./pattern-types.js";
+import { mono, type Scheme } from "./scheme.js";
 import { DYNAMIC, type Type } from "./type.types.js";
-import type { TypeEnv } from "./type-env.js";
+import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
 import { prune } from "./unify.js";
 
@@ -54,7 +55,21 @@ function bindLet(node: ast.LetStmt, env: TypeEnv, infer: Infer): TypeEnv {
   if (declared) expect(infer, node.value, type, declared);
   // Record it on the declaration too, so a hover on the name knows the type.
   infer.types?.set(node, declared ?? type);
-  return env.with(node.name, mono(declared ?? type));
+  return bound(node, declared ?? type, env, infer);
+}
+
+/**
+ * The binding, or every binding a pattern makes. Both are the same statement,
+ * and both make their names visible from here on.
+ */
+function bound(node: ast.LetStmt, type: Type, env: TypeEnv, infer: Infer): TypeEnv {
+  if (node.name) return env.with(node.name, mono(type));
+  if (!node.pattern) return env;
+  return withAll(env, patternTypes({ pattern: node.pattern, type, infer }).map(scheme));
+}
+
+function scheme([name, type]: readonly [string, Type]): [string, Scheme] {
+  return [name, mono(type)];
 }
 
 function declaredTypeOf(node: ast.LetStmt, infer: Infer): Type | undefined {
@@ -124,8 +139,15 @@ function checkBlockOrIf(node: Block | ast.IfStmt, env: TypeEnv, infer: Infer): v
 function forEach(node: ast.ForEachStmt, env: TypeEnv, infer: Infer): TypeEnv {
   const source = prune(inferExpr(node.source, env, infer));
   const item: Type = source.kind === "list" ? source.element : DYNAMIC;
-  checkBlock(node.body, env.with(node.item, mono(item)), infer);
+  checkBlock(node.body, iterating(node, item, env, infer), infer);
   return env;
+}
+
+/** The scope the body runs in: the item under its name, or taken apart. */
+function iterating(node: ast.ForEachStmt, item: Type, env: TypeEnv, infer: Infer): TypeEnv {
+  if (node.item) return env.with(node.item, mono(item));
+  if (!node.pattern) return env;
+  return withAll(env, patternTypes({ pattern: node.pattern, type: item, infer }).map(scheme));
 }
 
 function repeat(node: ast.RepeatStmt, env: TypeEnv, infer: Infer): TypeEnv {
@@ -183,7 +205,11 @@ export function checkBlock(block: Block, env: TypeEnv, infer: Infer): void {
 export function checkFragment(decl: FragmentDecl, env: TypeEnv, infer: Infer): void {
   let scope = env;
   for (const param of decl.params?.params ?? []) {
-    scope = scope.with(param.name, mono(annotated(param, infer)));
+    const type = annotated(param, infer);
+    if (param.name) scope = scope.with(param.name, mono(type));
+    else if (param.pattern) {
+      scope = withAll(scope, patternTypes({ pattern: param.pattern, type, infer }).map(scheme));
+    }
   }
   checkBlock(decl.body, scope, infer);
 }

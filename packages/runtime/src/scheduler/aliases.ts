@@ -1,4 +1,4 @@
-import { type Document, isLetStmt, isUseDecl } from "@venn-lang/core";
+import { boundNames, type Document, isLetStmt, isUseDecl } from "@venn-lang/core";
 import type { Registry } from "../registry/index.js";
 
 /**
@@ -27,7 +27,7 @@ export function collectNamespaces(document: Document, registry: Registry): Set<s
 export function collectBoundNames(document: Document): Set<string> {
   const names = new Set<string>();
   for (const decl of document.decls) {
-    if (isLetStmt(decl)) names.add(decl.name);
+    if (isLetStmt(decl)) for (const name of boundNames(decl)) names.add(name);
   }
   return names;
 }

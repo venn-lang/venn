@@ -1,5 +1,34 @@
 # @venn-lang/stdlib
 
+## 0.3.0
+
+### Patch Changes
+
+- Updated dependencies [[`a8ad8b2`](https://github.com/venn-lang/venn/commit/a8ad8b205b257e9c57022b52ae3d20780b5a452a), [`03f7331`](https://github.com/venn-lang/venn/commit/03f73316ef5e2517dc0ca0085340bf684c4f0aa0), [`adb36ab`](https://github.com/venn-lang/venn/commit/adb36abf8cc2026eac6fd4cf56b079c660a2a6ec)]:
+  - @venn-lang/runtime@0.3.0
+  - @venn-lang/contracts@0.3.0
+  - @venn-lang/sdk@0.3.0
+  - @venn-lang/artifacts@0.3.0
+  - @venn-lang/assert@0.3.0
+  - @venn-lang/auth@0.3.0
+  - @venn-lang/browser@0.3.0
+  - @venn-lang/crypto@0.3.0
+  - @venn-lang/data@0.3.0
+  - @venn-lang/db@0.3.0
+  - @venn-lang/env@0.3.0
+  - @venn-lang/fmt@0.3.0
+  - @venn-lang/graphql@0.3.0
+  - @venn-lang/grpc@0.3.0
+  - @venn-lang/http@0.3.0
+  - @venn-lang/io@0.3.0
+  - @venn-lang/load@0.3.0
+  - @venn-lang/mail@0.3.0
+  - @venn-lang/mock@0.3.0
+  - @venn-lang/mqtt@0.3.0
+  - @venn-lang/notify@0.3.0
+  - @venn-lang/ws@0.3.0
+  - @venn-lang/types@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes

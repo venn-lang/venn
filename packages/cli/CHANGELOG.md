@@ -1,5 +1,23 @@
 # @venn-lang/cli
 
+## 0.3.0
+
+### Patch Changes
+
+- Updated dependencies [[`a8ad8b2`](https://github.com/venn-lang/venn/commit/a8ad8b205b257e9c57022b52ae3d20780b5a452a), [`03f7331`](https://github.com/venn-lang/venn/commit/03f73316ef5e2517dc0ca0085340bf684c4f0aa0), [`5fd9dc5`](https://github.com/venn-lang/venn/commit/5fd9dc5712065d8046de2c5621f4a7aa263536ac), [`badce1b`](https://github.com/venn-lang/venn/commit/badce1b8073274554ecc6d7b3033eb6daad2665b), [`f6016f3`](https://github.com/venn-lang/venn/commit/f6016f39dea8fb4d1b64bbb5163e6aedd7bac1ab), [`873c398`](https://github.com/venn-lang/venn/commit/873c39842b9d3b6095286d8dc08cb7862d19f2d5), [`adb36ab`](https://github.com/venn-lang/venn/commit/adb36abf8cc2026eac6fd4cf56b079c660a2a6ec), [`0735ab6`](https://github.com/venn-lang/venn/commit/0735ab6d7856672c3b300ec825de404ec20c4945)]:
+  - @venn-lang/core@0.3.0
+  - @venn-lang/lsp@0.3.0
+  - @venn-lang/runtime@0.3.0
+  - @venn-lang/stdlib@0.3.0
+  - @venn-lang/contracts@0.3.0
+  - @venn-lang/dts@0.3.0
+  - @venn-lang/project@0.3.0
+  - @venn-lang/sdk@0.3.0
+  - @venn-lang/assert@0.3.0
+  - @venn-lang/http@0.3.0
+  - @venn-lang/io@0.3.0
+  - @venn-lang/types@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

@@ -894,6 +894,19 @@ export function isNullLit(item: unknown): item is NullLit {
     return reflection.isInstance(item, NullLit.$type);
 }
 
+export interface NullType extends langium.AstNode {
+    readonly $container: TypeRef;
+    readonly $type: 'NullType';
+}
+
+export const NullType = {
+    $type: 'NullType'
+} as const;
+
+export function isNullType(item: unknown): item is NullType {
+    return reflection.isInstance(item, NullType.$type);
+}
+
 export interface NumberLit extends langium.AstNode {
     readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListLit | LoopState | LoopStmt | MapEntry | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'NumberLit';
@@ -1087,7 +1100,7 @@ export function isShapeType(item: unknown): item is ShapeType {
     return reflection.isInstance(item, ShapeType.$type);
 }
 
-export type SingleType = LiteralType | NamedType | ShapeType;
+export type SingleType = LiteralType | NamedType | NullType | ShapeType;
 
 export const SingleType = {
     $type: 'SingleType'
@@ -1343,6 +1356,7 @@ export type VennAstType = {
     Member: Member
     NamedType: NamedType
     NullLit: NullLit
+    NullType: NullType
     NumberLit: NumberLit
     ParallelStmt: ParallelStmt
     Param: Param
@@ -2114,6 +2128,12 @@ export class VennAstReflection extends langium.AbstractAstReflection {
             properties: {
             },
             superTypes: [Expr.$type]
+        },
+        NullType: {
+            name: NullType.$type,
+            properties: {
+            },
+            superTypes: [SingleType.$type]
         },
         NumberLit: {
             name: NumberLit.$type,

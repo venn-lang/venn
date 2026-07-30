@@ -16,8 +16,11 @@ import { type Type, union } from "./type.types.js";
 import type { TypeEnv } from "./type-env.js";
 import { fieldType, prune } from "./unify.js";
 
-/** What a value has to be for a branch to run. */
-export type Tag = string | number | boolean;
+/**
+ * What a value has to be for a branch to run: a name a shape is filed under, or
+ * nothing at all, which is the commonest branch there is.
+ */
+export type Tag = string | null;
 
 /** What a condition says about a name: the `r.kind == "ok"` of it. */
 export interface Discriminant {
@@ -51,10 +54,29 @@ export function narrowed(cond: Expr, env: TypeEnv, infer: Infer): Branches {
   const type = found && subject(found.name, env, infer);
   if (!found || !type) return both;
   const members = branchesOf(type);
-  // Every branch has to be filed under a value it alone carries. Anything else
-  // is an ordinary comparison, where `s == "a"` says nothing about what `s` is.
-  if (members.some((member) => tagOf(member, found.field) === undefined)) return both;
+  if (!decidable(members, found)) return both;
   return split({ found, members, env, infer, cond });
+}
+
+/**
+ * Whether every branch has an answer to the question being asked.
+ *
+ * For a value, each has to be filed under a name it alone carries, or the
+ * comparison is an ordinary one: `s == "a"` says nothing about what `s` is. For
+ * `null` the question is answerable by any branch whose type is settled, since
+ * being nothing or being something is not a thing a shape has to declare. Only
+ * of the name itself, though: a scope binds names, so `u.address == null` has
+ * nowhere to record what it learned.
+ */
+function decidable(members: readonly Type[], found: Discriminant): boolean {
+  if (found.value === null) return !found.field && members.every(settled);
+  return members.every((member) => tagOf(member, found.field) !== undefined);
+}
+
+/** `dynamic` could turn out to be anything, including nothing. */
+function settled(member: Type): boolean {
+  const kind = prune(member).kind;
+  return kind !== "dynamic" && kind !== "var";
 }
 
 /** A union is its members; anything else is the one thing it is. */
@@ -115,14 +137,15 @@ function impossible(cond: Expr, found: Discriminant, infer: Infer): void {
 
 /** A value as it was written, so the message names what the source names. */
 export function written(value: Tag): string {
-  return typeof value === "string" ? `"${value}"` : String(value);
+  return value === null ? "null" : `"${value}"`;
 }
 
 /** What a member of the union has to be for this branch: its tag, or nothing. */
 export function tagOf(member: Type, field: string | undefined): Tag | undefined {
   const held = field ? fieldOf(member, field) : member;
   const t = held && prune(held);
-  return t?.kind === "literal" ? t.value : undefined;
+  if (t?.kind === "prim" && t.name === "null") return null;
+  return t?.kind === "literal" && typeof t.value === "string" ? t.value : undefined;
 }
 
 function fieldOf(member: Type, field: string): Type | undefined {
@@ -164,14 +187,14 @@ function tested(expr: Expr): { name: string; field?: string } | undefined {
 }
 
 /**
- * The side that is a value: a string, written out.
+ * The side that is a value: `null`, or a string written out.
  *
- * Only a string, because only a string can be written as a type: `"ok" | "err"`
- * is a union anyone can declare and `1 | 2` is not, so a tag is always text. A
- * `${…}` inside it makes the string a value the run works out, which is no tag
- * at all.
+ * Only those two, because only those two can be written as a type: `"ok" | "err"`
+ * is a union anyone can declare and `1 | 2` is not. A `${…}` inside the string
+ * makes it a value the run works out, which is no tag at all.
  */
 function literalOf(expr: Expr): Tag | undefined {
+  if (ast.isNullLit(expr)) return null;
   if (!ast.isStringLit(expr)) return undefined;
   return scanInterpolations(expr.value).length > 0 ? undefined : expr.value;
 }

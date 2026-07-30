@@ -58,7 +58,7 @@ não a maquinaria.
 | `string` `number` `boolean` | `prim` | |
 | `"a" \| "b"` | `union` de `literal` | vira enum de verdade no editor |
 | `interface { … }` | `record` | daqui saem `req.url`, `req.method` |
-| `campo?: T` | campo `T \| null` | ausência dita em voz alta |
+| `campo?: T` | campo `T \| null` | ausência dita em voz alta, e escrevível assim também |
 | `Record<string, T>` / index signature | `map` | |
 | `(req: R) => S` | `fn([R], S)` | **é isto que tipa o `req`** |
 | `class` / handle (`Server`, `Socket`) | `opaque` | não vira record de 200 membros |

@@ -86,6 +86,9 @@ TypeRef: members+=SingleType ('|' members+=SingleType)*;
 SingleType:
     {infer NamedType} name=QualifiedName ('<' args+=TypeRef (',' args+=TypeRef)* '>')?
   | {infer LiteralType} value=STRING
+  // `null` is a keyword rather than a name, so it needs saying here or the most
+  // common union there is, `T | null`, cannot be written at all.
+  | {infer NullType} 'null'
   // A shape written where it is used, for the one that is not worth a name of
   // its own. The same `{ … }` a `type` declares, so the two read alike and the
   // checker builds the same record from either.

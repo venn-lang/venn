@@ -1700,6 +1700,22 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "$type": "Action",
                 "inferredType": {
                   "$type": "InferredType",
+                  "name": "NullType"
+                }
+              },
+              {
+                "$type": "Keyword",
+                "value": "null"
+              }
+            ]
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Action",
+                "inferredType": {
+                  "$type": "InferredType",
                   "name": "ShapeType"
                 }
               },

@@ -24,13 +24,16 @@ export const BUILTIN_TYPES: Readonly<Record<string, BuiltinType>> = {
     example: "age: number",
   },
   bool: {
-    doc: "`true` or `false`, and nothing else — no truthiness, no coercion.",
+    doc: "`true` or `false`, and nothing else: no truthiness, no coercion.",
     example: "active: bool",
   },
-  null: { doc: "The absence of a value. Written `null`.", example: "found: string | null" },
+  null: {
+    doc: "The absence of a value. Stands in a union wherever a value may not be there.",
+    example: "found: string | null",
+  },
   void: { doc: "What a verb answers with when it answers nothing.", example: "-> void" },
   dynamic: {
-    doc: "A value whose shape nothing can know — a parsed response, a JSON field. Name a type and annotate a binding to give it one.",
+    doc: "A value whose shape nothing can know: a parsed response, a JSON field. Name a type and annotate a binding to give it one.",
     example: "const price: Price = res.json",
   },
   list: { doc: "Many of one thing, in order.", example: "tags: list<string>" },

@@ -6,6 +6,7 @@ import {
   patternSlots,
   patternTests,
   readPath,
+  truthy,
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
@@ -28,15 +29,27 @@ export function runMatch(engine: Engine, stmt: MatchExpr, scope: Scope): Pending
 }
 
 function taken(engine: Engine, stmt: MatchExpr, scope: Scope, value: unknown): Pending {
-  const arm = stmt.arms.find((one) => answers(value, patternTests(one.pattern)));
-  return arm ? run(engine, arm, scope, value) : undefined;
+  for (const arm of stmt.arms) {
+    if (!answers(value, patternTests(arm.pattern))) continue;
+    const child = bound(arm, scope, value);
+    // The guard is asked with the names in hand, and a no moves on to the next
+    // arm rather than ending the match.
+    if (arm.guard && !truthy(evaluate(arm.guard, child))) continue;
+    return run(engine, arm, child);
+  }
+  return undefined;
 }
 
-function run(engine: Engine, arm: MatchArm, scope: Scope, value: unknown): Pending {
+/** The scope the arm runs in: what its pattern named, over the one outside. */
+function bound(arm: MatchArm, scope: Scope, value: unknown): Scope {
   const child = scope.child();
-  for (const bound of patternSlots(arm.pattern)) {
-    child.set(bound.name, readPath(value, bound.path));
+  for (const slot of patternSlots(arm.pattern)) {
+    child.set(slot.name, readPath(value, slot.path));
   }
+  return child;
+}
+
+function run(engine: Engine, arm: MatchArm, child: Scope): Pending {
   if (arm.body) return runBlock(engine, arm.body, child);
   return arm.value ? void evaluate(arm.value, child) : undefined;
 }

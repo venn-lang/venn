@@ -882,6 +882,7 @@ export interface MatchArm extends langium.AstNode {
     readonly $container: MatchExpr;
     readonly $type: 'MatchArm';
     body?: Block;
+    guard?: Expr;
     pattern: Pattern;
     value?: Expr;
 }
@@ -889,6 +890,7 @@ export interface MatchArm extends langium.AstNode {
 export const MatchArm = {
     $type: 'MatchArm',
     body: 'body',
+    guard: 'guard',
     pattern: 'pattern',
     value: 'value'
 } as const;
@@ -2258,6 +2260,10 @@ export class VennAstReflection extends langium.AbstractAstReflection {
             properties: {
                 body: {
                     name: MatchArm.body,
+                    optional: true
+                },
+                guard: {
+                    name: MatchArm.guard,
                     optional: true
                 },
                 pattern: {

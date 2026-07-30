@@ -4912,6 +4912,28 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
             }
           },
           {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "if"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "guard",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@51"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
             "$type": "Alternatives",
             "elements": [
               {

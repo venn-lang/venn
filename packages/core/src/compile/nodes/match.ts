@@ -11,6 +11,7 @@ import {
   patternTests,
   readPath,
 } from "../../pattern/index.js";
+import { truthy } from "../../value/index.js";
 import type { Thunk } from "../compile.types.js";
 import type { LexScope } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
@@ -19,6 +20,8 @@ import type { CompileIn } from "./fn.js";
 interface Arm {
   readonly tests: readonly PatternTest[];
   readonly binds: readonly Bound[];
+  /** The condition after the pattern, which reads what the pattern bound. */
+  readonly guard: Thunk | undefined;
   readonly value: Thunk;
 }
 
@@ -44,7 +47,12 @@ export function compileMatch(expr: MatchExpr, scope: LexScope, compileIn: Compil
   return (env) => {
     const value = subject(env);
     for (const arm of arms) {
-      if (answers(value, arm.tests)) return arm.value(bind(env, arm.binds, value));
+      if (!answers(value, arm.tests)) continue;
+      const inner = bind(env, arm.binds, value);
+      // The guard is asked last, with the names in hand, and a no moves on to
+      // the next arm rather than ending the match.
+      if (arm.guard && !truthy(arm.guard(inner))) continue;
+      return arm.value(inner);
     }
     return null;
   };
@@ -59,6 +67,7 @@ function armOf(arm: MatchArm, scope: LexScope, compileIn: CompileIn): Arm {
   return {
     tests: patternTests(arm.pattern),
     binds,
+    guard: arm.guard ? compileIn(arm.guard, scope) : undefined,
     value: arm.value ? compileIn(arm.value, scope) : NOTHING,
   };
 }

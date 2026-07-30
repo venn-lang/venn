@@ -4,6 +4,8 @@ import * as ast from "../generated/ast.js";
 import { isPackageSpecifier } from "../module/index.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import { checkTypes } from "./check-types.js";
+import { createContext } from "./context.js";
+import { collectNamedTypes } from "./named-types.js";
 import { type ResolveRef, specToType } from "./spec-to-type.js";
 import { record, type Type } from "./type.types.js";
 
@@ -114,14 +116,30 @@ function publishedBy(uri: string, state: State): ReadonlyMap<string, Type> {
   return out;
 }
 
+/**
+ * What one module publishes, by name.
+ *
+ * A function and a binding publish the type of what they are, read off the check
+ * of that module. A `pub type` publishes the shape it declares, which is a name
+ * the checker resolves rather than a value: it goes in the same map, since a name
+ * imported from a file is one thing whichever side of the language it is used on.
+ */
 function exportedTypes(module: Document, uri: string, state: State): Map<string, Type> {
   const imports = bindingsOf({ document: module, uri, state });
   const checked = checkTypes(module, { uri, catalog: state.catalog, imports });
   const out = new Map<string, Type>();
+  const named = collectNamedTypes(module, createContext(), state.catalog, imports);
   for (const decl of module.decls) {
-    if (!ast.isFnDecl(decl) || !decl.export) continue;
-    const found = checked.types.get(decl);
+    if (!published(decl)) continue;
+    const found = ast.isTypeDecl(decl) ? named.get(decl.name) : checked.types.get(decl);
     if (found) out.set(decl.name, found);
   }
   return out;
+}
+
+/** A declaration this module offered, whatever kind it is. */
+function published(decl: unknown): decl is { name: string } {
+  const kind = decl as { export?: boolean };
+  if (!kind.export) return false;
+  return ast.isFnDecl(decl) || ast.isTypeDecl(decl) || ast.isLetStmt(decl);
 }

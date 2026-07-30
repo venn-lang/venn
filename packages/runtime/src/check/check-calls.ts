@@ -4,6 +4,7 @@ import {
   buildProblem,
   type CaptureStmt,
   CODES,
+  isDocument,
   type LetStmt,
   type MapLit,
   type Problem,
@@ -23,12 +24,27 @@ export function checkAction(call: ActionCall, ctx: CheckContext): Problem[] {
  * a false "unknown action" is worse than a missed one.
  */
 export function checkLet(stmt: LetStmt, ctx: CheckContext): Problem[] {
+  const misplaced = checkPub(stmt, ctx);
+  if (misplaced) return [misplaced];
   if (stmt.args.length === 0 && !stmt.opts) return [];
   const target = actionTarget(stmt.value);
   if (target === undefined) {
     return [problem(stmt, ctx, CODES.VN2003_UNKNOWN_ACTION, "This is not an action to call.")];
   }
   return checkTarget({ node: stmt, target, opts: stmt.opts, ctx });
+}
+
+/**
+ * `pub` on a binding that is not at the top of a file.
+ *
+ * A file publishes what another file can import, and only its top level is
+ * reachable from outside. A `pub` inside a step or a function did nothing at all,
+ * which is the kind of silence somebody spends an afternoon on.
+ */
+function checkPub(stmt: LetStmt, ctx: CheckContext): Problem | undefined {
+  if (!stmt.export || isDocument(stmt.$container)) return undefined;
+  const title = "`pub` only publishes at the top of a file, and this one is inside something.";
+  return problem(stmt, ctx, CODES.VN2009_NOT_EXPORTED, title);
 }
 
 /** `capture` is folded into `let`; say so where it is written. */

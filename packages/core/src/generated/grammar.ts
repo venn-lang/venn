@@ -1088,6 +1088,16 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
         "$type": "Group",
         "elements": [
           {
+            "$type": "Assignment",
+            "feature": "export",
+            "operator": "?=",
+            "terminal": {
+              "$type": "Keyword",
+              "value": "pub"
+            },
+            "cardinality": "?"
+          },
+          {
             "$type": "Keyword",
             "value": "type"
           },
@@ -2568,6 +2578,16 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
       "definition": {
         "$type": "Group",
         "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "export",
+            "operator": "?=",
+            "terminal": {
+              "$type": "Keyword",
+              "value": "pub"
+            },
+            "cardinality": "?"
+          },
           {
             "$type": "Assignment",
             "feature": "kind",

@@ -68,7 +68,7 @@ export function checkTypes(document: Document, options: CheckTypesOptions = {}):
   const seeds = seedParams(shared);
   const infer: Infer = {
     ctx,
-    named: collectNamedTypes(document, ctx, options.catalog),
+    named: collectNamedTypes(document, ctx, options.catalog, options.imports),
     catalog: options.catalog,
     decos,
     seeds,

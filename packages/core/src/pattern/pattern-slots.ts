@@ -4,11 +4,21 @@ import * as ast from "../generated/ast.js";
 /** One step into a value: a field by name, or an item by position. */
 export type Step = string | number;
 
+/**
+ * What a name takes when it takes what is left: the fields the pattern already
+ * named, or the position the items it named ended at.
+ */
+export type Rest =
+  | { readonly of: "map"; readonly without: readonly string[] }
+  | { readonly of: "list"; readonly from: number };
+
 /** One name a pattern binds, and where in the value it is read from. */
 export interface PatternSlot {
   readonly name: string;
   /** From the outside in. Empty when the pattern is the name itself. */
   readonly path: readonly Step[];
+  /** Absent for a name that takes one value, which is nearly all of them. */
+  readonly rest?: Rest;
 }
 
 /**
@@ -47,10 +57,25 @@ function collect(pattern: Pattern, path: Step[], into: PatternSlot[]): void {
     if (field.value) collect(field.value, inner, into);
     else into.push({ name: field.name, path: inner });
   }
+  if (pattern.rest) into.push(restOfMap(pattern, path));
 }
 
 function items(pattern: ast.ListPattern, path: Step[], into: PatternSlot[]): void {
   pattern.items.forEach((item, at) => {
     collect(item, [...path, at], into);
   });
+  if (pattern.rest) {
+    const rest = { of: "list", from: pattern.items.length } as const;
+    into.push({ name: pattern.rest, path: [...path], rest });
+  }
+}
+
+/** Everything the pattern did not name, which is what it already listed. */
+function restOfMap(pattern: ast.MapPattern, path: Step[]): PatternSlot {
+  const without = pattern.fields.map((field) => field.name);
+  return {
+    name: pattern.rest as string,
+    path: [...path],
+    rest: { of: "map", without },
+  };
 }

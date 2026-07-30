@@ -3,13 +3,13 @@ import type { EvalEnv } from "../../expr/eval-env.types.js";
 import type { Frame } from "../../expr/frame.js";
 import { writeSlot } from "../../expr/frame.js";
 import type { MatchArm, MatchExpr, Pattern } from "../../generated/ast.js";
-import type { Step } from "../../pattern/index.js";
+import type { PatternSlot } from "../../pattern/index.js";
 import {
   answers,
   type PatternTest,
   patternSlots,
   patternTests,
-  readPath,
+  slotValue,
 } from "../../pattern/index.js";
 import { truthy } from "../../value/index.js";
 import type { Thunk } from "../compile.types.js";
@@ -33,8 +33,7 @@ interface Way {
 
 /** One name an arm binds, and the slot it goes in when the body has a frame. */
 interface Bound {
-  readonly name: string;
-  readonly path: readonly Step[];
+  readonly of: PatternSlot;
   /** -1 where there are no slots, which is anywhere outside a function body. */
   readonly slot: number;
 }
@@ -75,8 +74,7 @@ function armOf(arm: MatchArm, scope: LexScope, compileIn: CompileIn): Arm {
 
 function wayOf(pattern: Pattern, scope: LexScope): Way {
   const binds = patternSlots(pattern).map((bound) => ({
-    name: bound.name,
-    path: bound.path,
+    of: bound,
     slot: scope.names.indexOf(bound.name),
   }));
   return { tests: patternTests(pattern), binds };
@@ -95,12 +93,12 @@ const NOTHING: Thunk = () => null;
 function bind(env: EvalEnv, binds: readonly Bound[], value: unknown): EvalEnv {
   if (binds.length === 0) return env;
   if (binds[0]?.slot === -1) return childEnv(env, held(binds, value));
-  for (const bound of binds) writeSlot(env as Frame, bound.slot, readPath(value, bound.path));
+  for (const bound of binds) writeSlot(env as Frame, bound.slot, slotValue(value, bound.of));
   return env;
 }
 
 function held(binds: readonly Bound[], value: unknown): Record<string, unknown> {
   const bindings: Record<string, unknown> = {};
-  for (const bound of binds) bindings[bound.name] = readPath(value, bound.path);
+  for (const bound of binds) bindings[bound.of.name] = slotValue(value, bound.of);
   return bindings;
 }

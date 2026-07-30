@@ -61,8 +61,10 @@ export {
   patternNames,
   patternSlots,
   patternTests,
+  type Rest,
   readPath,
   type Step,
+  slotValue,
 } from "./pattern/index.js";
 export * from "./problem/index.js";
 // Static type inference (Hindley-Milner) + generics.

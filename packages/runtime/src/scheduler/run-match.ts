@@ -6,7 +6,7 @@ import {
   type Pattern,
   patternSlots,
   patternTests,
-  readPath,
+  slotValue,
   truthy,
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
@@ -46,7 +46,7 @@ function taken(engine: Engine, stmt: MatchExpr, scope: Scope, value: unknown): P
 function bound(way: Pattern, scope: Scope, value: unknown): Scope {
   const child = scope.child();
   for (const slot of patternSlots(way)) {
-    child.set(slot.name, readPath(value, slot.path));
+    child.set(slot.name, slotValue(value, slot));
   }
   return child;
 }

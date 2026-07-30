@@ -2928,40 +2928,11 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "cardinality": "*"
               },
               {
-                "$type": "Group",
+                "$type": "Alternatives",
                 "elements": [
-                  {
-                    "$type": "Assignment",
-                    "feature": "fields",
-                    "operator": "+=",
-                    "terminal": {
-                      "$type": "RuleCall",
-                      "rule": {
-                        "$ref": "#/rules@40"
-                      },
-                      "arguments": []
-                    }
-                  },
                   {
                     "$type": "Group",
                     "elements": [
-                      {
-                        "$type": "Alternatives",
-                        "elements": [
-                          {
-                            "$type": "Keyword",
-                            "value": ","
-                          },
-                          {
-                            "$type": "RuleCall",
-                            "rule": {
-                              "$ref": "#/rules@78"
-                            },
-                            "arguments": []
-                          }
-                        ],
-                        "cardinality": "+"
-                      },
                       {
                         "$type": "Assignment",
                         "feature": "fields",
@@ -2973,9 +2944,103 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                           },
                           "arguments": []
                         }
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Alternatives",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "RuleCall",
+                                "rule": {
+                                  "$ref": "#/rules@78"
+                                },
+                                "arguments": []
+                              }
+                            ],
+                            "cardinality": "+"
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "fields",
+                            "operator": "+=",
+                            "terminal": {
+                              "$type": "RuleCall",
+                              "rule": {
+                                "$ref": "#/rules@40"
+                              },
+                              "arguments": []
+                            }
+                          }
+                        ],
+                        "cardinality": "*"
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Alternatives",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "RuleCall",
+                                "rule": {
+                                  "$ref": "#/rules@78"
+                                },
+                                "arguments": []
+                              }
+                            ],
+                            "cardinality": "+"
+                          },
+                          {
+                            "$type": "Keyword",
+                            "value": "..."
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "rest",
+                            "operator": "=",
+                            "terminal": {
+                              "$type": "RuleCall",
+                              "rule": {
+                                "$ref": "#/rules@86"
+                              },
+                              "arguments": []
+                            }
+                          }
+                        ],
+                        "cardinality": "?"
                       }
-                    ],
-                    "cardinality": "*"
+                    ]
+                  },
+                  {
+                    "$type": "Group",
+                    "elements": [
+                      {
+                        "$type": "Keyword",
+                        "value": "..."
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "rest",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@86"
+                          },
+                          "arguments": []
+                        }
+                      }
+                    ]
                   }
                 ],
                 "cardinality": "?"
@@ -3026,40 +3091,11 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                 "cardinality": "*"
               },
               {
-                "$type": "Group",
+                "$type": "Alternatives",
                 "elements": [
-                  {
-                    "$type": "Assignment",
-                    "feature": "items",
-                    "operator": "+=",
-                    "terminal": {
-                      "$type": "RuleCall",
-                      "rule": {
-                        "$ref": "#/rules@38"
-                      },
-                      "arguments": []
-                    }
-                  },
                   {
                     "$type": "Group",
                     "elements": [
-                      {
-                        "$type": "Alternatives",
-                        "elements": [
-                          {
-                            "$type": "Keyword",
-                            "value": ","
-                          },
-                          {
-                            "$type": "RuleCall",
-                            "rule": {
-                              "$ref": "#/rules@78"
-                            },
-                            "arguments": []
-                          }
-                        ],
-                        "cardinality": "+"
-                      },
                       {
                         "$type": "Assignment",
                         "feature": "items",
@@ -3071,9 +3107,103 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                           },
                           "arguments": []
                         }
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Alternatives",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "RuleCall",
+                                "rule": {
+                                  "$ref": "#/rules@78"
+                                },
+                                "arguments": []
+                              }
+                            ],
+                            "cardinality": "+"
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "items",
+                            "operator": "+=",
+                            "terminal": {
+                              "$type": "RuleCall",
+                              "rule": {
+                                "$ref": "#/rules@38"
+                              },
+                              "arguments": []
+                            }
+                          }
+                        ],
+                        "cardinality": "*"
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Alternatives",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "RuleCall",
+                                "rule": {
+                                  "$ref": "#/rules@78"
+                                },
+                                "arguments": []
+                              }
+                            ],
+                            "cardinality": "+"
+                          },
+                          {
+                            "$type": "Keyword",
+                            "value": "..."
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "rest",
+                            "operator": "=",
+                            "terminal": {
+                              "$type": "RuleCall",
+                              "rule": {
+                                "$ref": "#/rules@86"
+                              },
+                              "arguments": []
+                            }
+                          }
+                        ],
+                        "cardinality": "?"
                       }
-                    ],
-                    "cardinality": "*"
+                    ]
+                  },
+                  {
+                    "$type": "Group",
+                    "elements": [
+                      {
+                        "$type": "Keyword",
+                        "value": "..."
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "rest",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@86"
+                          },
+                          "arguments": []
+                        }
+                      }
+                    ]
                   }
                 ],
                 "cardinality": "?"

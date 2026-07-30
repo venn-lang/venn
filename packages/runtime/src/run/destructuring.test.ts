@@ -122,6 +122,38 @@ forEach { name } in people { concurrency: 2 } {
     expect((await runScript(source)).sort()).toEqual(["ana", "bea"]);
   });
 
+  it("hands the rest of a map to the name after the dots", async () => {
+    // What it holds and how many: the field it named is gone from the rest.
+    const source = `${ORDER}const { id, ...others } = order
+io.print(others.total, others.len)`;
+    const out = await runScript(source);
+
+    expect(out).toEqual(["42 1"]);
+  });
+
+  it("hands the rest of a list to it, from where the names stopped", async () => {
+    const source = `const [first, ...rest] = [1, 2, 3]
+io.print(first, rest)`;
+    const out = await runScript(source);
+
+    expect(out).toEqual(["1 2,3"]);
+  });
+
+  it("hands over an empty one when nothing is left", async () => {
+    const source = `const [only, ...rest] = [1]
+io.print(rest.len)`;
+    const out = await runScript(source);
+
+    expect(out).toEqual(["0"]);
+  });
+
+  it("takes the rest of a parameter apart the same way", async () => {
+    const source = `fn body({ id, ...rest }) => rest.n
+io.print(body({ id: "a", n: 1 }))`;
+
+    expect(await runScript(source)).toEqual(["1"]);
+  });
+
   it("takes apart a binding inside a block", async () => {
     const source = `${ORDER}forEach x in [1] {
   const { id } = order

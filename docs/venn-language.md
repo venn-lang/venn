@@ -251,14 +251,26 @@ true   false   null
 2026-07-23T12:00:00Z          # instante ISO-8601 é literal de primeira classe
 ```
 
-**Padrão não tem literal próprio.** `~=` recebe texto, e a forma de escrever um
-padrão é a string crua, que preserva cada barra invertida. As flags vão dentro
-dele:
+**Padrão não tem literal próprio, tem tipo.** `regex(…)` compila um, e `regex` é
+o tipo dele. A string crua é como o padrão se escreve, porque preserva cada barra
+invertida; as flags vão dentro dele ou como segundo argumento:
 
 ```venn
-expect (pedido ~= r"Order #(\d+)")
-expect (nome ~= r"(?i:ana)")
+const pedido = regex(r"Order #(\d+)")
+
+expect (corpo ~= pedido)         # o operador
+expect pedido.test(corpo)        # a mesma pergunta, como membro
+let n = pedido.match(corpo)[1]   # o grupo, que é a razão de capturar
+
+print pedido.source              # Order #(\d+)
 ```
+
+Compilar onde se escreve tem duas consequências: um `~=` dentro de um loop
+compila uma vez em vez de a cada passada, e um padrão que não compila é recusado
+por `venn check`, na linha que o escreveu, e não na que o usou.
+
+`~=` continua aceitando texto, então `corpo ~= r"Order #\d+"` vale o mesmo. O
+padrão compilado é a forma melhor quando o mesmo padrão é usado mais de uma vez.
 
 O literal `/padrão/i` foi descartado pela mesma razão que caminho deixou de ser
 bare token (§02): `/` é divisão, e distinguir os dois exigiria do lexer um

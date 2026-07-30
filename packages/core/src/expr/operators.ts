@@ -2,6 +2,7 @@ import { buildProblem, CODES } from "../codes/index.js";
 import { ProblemError } from "../problem/index.js";
 import { combine, type Numeric } from "../units/index.js";
 import { isNumeric, strictEquals } from "../value/index.js";
+import { isPattern } from "./methods/regex-methods.js";
 import { isWaiting, whenBothReady } from "./pending.js";
 
 const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
@@ -73,18 +74,19 @@ function isIn(left: unknown, right: unknown): boolean {
 }
 
 /**
- * `subject ~= pattern`, where the pattern is text.
+ * `subject ~= pattern`, where the pattern is a compiled one or the text of one.
  *
- * A pattern that does not compile used to answer `false`, which reads as "it did
- * not match" and sends whoever wrote it looking at the subject. It is the
- * pattern that is wrong, and there is no answer to give.
+ * Text still works, because every `~=` written before patterns existed passes
+ * text and none of them should break. A compiled pattern is the better spelling
+ * where the same one is used more than once: it compiles where it is written
+ * rather than on every comparison.
  *
- * `r"…"` is the form to write one in, since a raw string keeps every backslash.
- * Flags go inside it: `r"(?i:order #\d+)"`.
+ * `r"…"` is how the text of one is written, since a raw string keeps every
+ * backslash, and flags go inside it: `r"(?i:order #\d+)"`.
  */
-function regexMatch(subject: unknown, pattern: unknown): boolean {
-  const source = String(pattern);
-  return compile(source).test(String(subject));
+function regexMatch(subject: unknown, value: unknown): boolean {
+  const found = isPattern(value) ? value.compiled : compile(String(value));
+  return found.test(String(subject));
 }
 
 function compile(source: string): RegExp {

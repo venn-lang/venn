@@ -23,6 +23,7 @@ import { callType } from "./action-signature.js";
 import { memberType } from "./builtins.js";
 import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
+import { badPatternIn } from "./check-pattern.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
 import { instantiate, mono } from "./scheme.js";
@@ -253,6 +254,15 @@ function recordField(
  * every verb written in the form most people reach for.
  */
 function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
+  const badPattern = badPatternIn(expr);
+  if (badPattern) {
+    infer.ctx.mismatches.push({
+      node: expr,
+      expected: DYNAMIC,
+      actual: DYNAMIC,
+      sentence: badPattern,
+    });
+  }
   const verb = verbCall(expr, env, infer);
   if (verb) return verb;
   const callee = prune(inferExpr(expr.callee, env, infer));

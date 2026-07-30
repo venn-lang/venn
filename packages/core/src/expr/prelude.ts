@@ -1,5 +1,6 @@
 import { isClosure } from "./closure.js";
 import { invoke } from "./invoke.js";
+import { pattern } from "./methods/regex-methods.js";
 import { isNativeFn, nativeFn } from "./native.types.js";
 import { startTask } from "./task.js";
 
@@ -64,6 +65,9 @@ export const PRELUDE_VALUES: Readonly<Record<string, unknown>> = {
   // Start work without stopping for it. Everything else waits by itself, so
   // this is the only way to say "carry on"; `.wait` asks for it back.
   spawn: nativeFn((args) => startTask(() => invoke(args[0], []))),
+  // A pattern is compiled where it is written, so a `~=` in a loop compiles once
+  // and a pattern that does not compile is found on the line that wrote it.
+  regex: nativeFn((args) => pattern(String(args[0] ?? ""), String(args[1] ?? ""))),
 };
 
 function prettyJson(value: unknown): string {

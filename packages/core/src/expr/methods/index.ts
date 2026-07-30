@@ -6,6 +6,7 @@ import { LIST_SELECTION } from "./list-selection.js";
 import { MAP_EXTRAS } from "./map-extras.js";
 import { MAP_METHODS } from "./map-methods.js";
 import { NUMBER_METHODS } from "./number-methods.js";
+import { REGEX_METHODS } from "./regex-methods.js";
 import { STRING_EXTRAS } from "./string-extras.js";
 import { STRING_METHODS } from "./string-methods.js";
 import { DURATION_METHODS, NUMBER_TO_UNIT, PERCENT_METHODS, SIZE_METHODS } from "./unit-methods.js";
@@ -47,10 +48,13 @@ export function builtinMember(receiver: unknown, member: string, invoke: Invoke)
   return (method as (r: unknown, i: Invoke) => unknown)(receiver, invoke);
 }
 
+// Keyed by the `kind` a value carries. A pattern is here rather than beside the
+// units because it is dispatched the same way, not because it is one.
 const UNIT_TABLES: Record<string, Record<string, unknown>> = {
   duration: DURATION_METHODS,
   size: SIZE_METHODS,
   percent: PERCENT_METHODS,
+  regex: REGEX_METHODS,
 };
 
 function tableFor(receiver: unknown): Record<string, unknown> | undefined {

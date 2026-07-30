@@ -15,7 +15,15 @@ const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
  * @throws ProblemError VN3013 when the value is not callable.
  */
 export function invoke(callee: unknown, values: readonly unknown[]): unknown {
-  if (isClosure(callee)) return callClosure(callee, values);
+  if (isClosure(callee)) {
+    const body = callee.body;
+    if (body.bare) return body.result(values[0] as never);
+    const frame = new Frame(callee);
+    const arity = callee.params.length;
+    for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
+    fill(callee, frame);
+    return body.result(frame);
+  }
   if (isNativeFn(callee)) return callee.call(values);
   throw notCallable(callee);
 }
@@ -41,7 +49,14 @@ export const INVOKE: Invoke = Object.assign(invoke, {
  * @throws ProblemError VN3013 when the value is not callable.
  */
 export function invoke1(callee: unknown, arg: unknown): unknown {
-  if (isClosure(callee)) return callClosure1(callee, arg);
+  if (isClosure(callee)) {
+    const body = callee.body;
+    if (body.bare) return body.result(arg as never);
+    const frame = new Frame(callee);
+    if (callee.params.length > 0) frame.s0 = arg;
+    fill(callee, frame);
+    return body.result(frame);
+  }
   if (isNativeFn(callee)) return callee.call([arg]);
   throw notCallable(callee);
 }
@@ -78,23 +93,8 @@ export function callClosure(closure: Closure, values: readonly unknown[]): unkno
   const frame = new Frame(closure);
   const arity = closure.params.length;
   for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
-  return runBody(closure, frame);
-}
-
-/**
- * The one-argument call.
- *
- * A body the compiler found needs no environment gets the value itself as one:
- * its single name reads as `env`, so the call is the body running on the
- * argument, with nothing allocated. That is most of what `map`, `filter` and
- * `sortBy` call.
- */
-function callClosure1(closure: Closure, value: unknown): unknown {
-  const body = closure.body;
-  if (body.bare) return body.result(value as never);
-  const frame = new Frame(closure);
-  if (closure.params.length > 0) frame.s0 = value;
-  return runBody(closure, frame);
+  fill(closure, frame);
+  return closure.body.result(frame);
 }
 
 // A function declaring fewer parameters than it is handed ignores the rest:
@@ -105,7 +105,8 @@ function callClosure2(closure: Closure, a: unknown, b: unknown): unknown {
   const arity = closure.params.length;
   if (arity > 0) frame.s0 = a;
   if (arity > 1) frame.s1 = b;
-  return runBody(closure, frame);
+  fill(closure, frame);
+  return closure.body.result(frame);
 }
 
 function callClosure3(closure: Closure, a: unknown, b: unknown, c: unknown): unknown {
@@ -115,18 +116,24 @@ function callClosure3(closure: Closure, a: unknown, b: unknown, c: unknown): unk
   if (arity > 0) frame.s0 = a;
   if (arity > 1) frame.s1 = b;
   if (arity > 2) frame.s2 = c;
-  return runBody(closure, frame);
+  fill(closure, frame);
+  return closure.body.result(frame);
 }
 
-/** Fill the body's locals in order, then answer with its result. */
-function runBody(closure: Closure, frame: Frame): unknown {
-  const body = closure.body;
-  const locals = body.locals;
+/**
+ * Fill the body's locals in order, then answer with its result.
+ *
+ * Written out at each call site rather than called, because every frame on the
+ * way in is a frame recursion cannot use: a Venn call that goes through one
+ * extra JS function divides the depth a program can reach. Four sites is the
+ * price of the depth, and the loop is three lines.
+ */
+function fill(closure: Closure, frame: Frame): void {
+  const locals = closure.body.locals;
   for (let at = 0; at < locals.length; at += 1) {
     const local = locals[at] as (typeof locals)[number];
     writeSlot(frame, local.slot, local.value(frame));
   }
-  return body.result(frame);
 }
 
 function notCallable(value: unknown): ProblemError {

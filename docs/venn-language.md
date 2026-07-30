@@ -322,6 +322,7 @@ let attempts = 0
 | Tipo | Origem | Notas |
 | --- | --- | --- |
 | string int float bool | kernel | Primitivos |
+| null | kernel | A ausência de valor. `T \| null` é o que `campo?: T` já constrói, agora escrevível |
 | duration size percent | kernel | Aritmética com unidade é verificada: `300ms + 1s` vale, `300ms + 2mb` é erro |
 | regex instant json | kernel | `json` é o tipo dinâmico de escape |
 | list<T> map<V> | kernel | Genéricos só nestes dois. `map<string, V>` é a mesma coisa: a chave é um nome de qualquer jeito |
@@ -356,6 +357,13 @@ fn descreve(m: Message) -> string => (
   : m.kind == "text" ? "texto: ${m.body}"
   : "fechou: ${m.why}"
 )
+```
+
+`T | null` é a união mais comum de todas, e estreita igual: depois de
+`if achado != null`, o valor está lá.
+
+```venn
+fn nomeDe(u: User | null) -> string => u == null ? "ninguém" : u.name
 ```
 
 Fora do estreitamento, `m.body` é erro: a mensagem pode ser uma das outras duas.

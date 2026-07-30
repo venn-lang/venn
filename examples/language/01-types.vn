@@ -4,7 +4,8 @@
 ## A closed set of values. Nothing outside these three is a Plan.
 type Plan = "free" | "pro" | "team"
 
-## A record. `?` marks a field that may be absent.
+## A record. `?` marks a field that may be absent, which is the same as saying
+## the field is `string | null`. Either spelling builds the same type.
 type Seat {
   email: string
   plan: Plan
@@ -44,6 +45,15 @@ print acme.seats.map(s => s.email).join(", ")
 
 # An absent optional field reads as null, so give it somewhere to land.
 print(spare.nickname ?? "no nickname")
+
+# "this or nothing" written out. Compare it with `null` and the checker knows
+# which side of the question it is on: here, `first` is a Seat and has an email.
+fn firstEmail(seats: list<Seat>) -> string | null => (
+  seats.isEmpty ? null : seats.first.email
+)
+
+const found: string | null = firstEmail(acme.seats)
+print "first seat: ${found ?? 'none'}"
 
 # None of this is compulsory. Drop every annotation and the program still runs;
 # what you lose is the checker's opinion, and the editor's.

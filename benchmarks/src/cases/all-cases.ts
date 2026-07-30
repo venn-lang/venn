@@ -1,5 +1,5 @@
 import type { BenchCase } from "../bench.types.ts";
-import { branchCount, fib, loop, pipeline, records, reduceSum, strings } from "./twins.ts";
+import { branchCount, counter, fib, loop, pipeline, records, reduceSum, strings } from "./twins.ts";
 
 /**
  * Every workload, sized so one repetition takes tens of milliseconds on the
@@ -44,6 +44,14 @@ export const CASES: readonly BenchCase[] = [
     stresses: "forEach: a statement executed per item",
     vn: "loop.vn",
     ts: loop,
+    reps: 9,
+    warmup: 6,
+  },
+  {
+    name: "counter 50k",
+    stresses: "loop carrying state, against a while with assignment",
+    vn: "counter.vn",
+    ts: counter,
     reps: 9,
     warmup: 6,
   },

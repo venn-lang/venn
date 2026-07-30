@@ -1,0 +1,9 @@
+# The open loop carrying state: 50k passes, each advancing a total.
+# The twin in TypeScript and Python is a `while` with an assignment, which is
+# what this replaces.
+loop total = 0 {
+  if total >= 50000 { break }
+  continue total + 1
+}
+
+print total

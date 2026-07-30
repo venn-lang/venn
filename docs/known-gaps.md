@@ -9,28 +9,28 @@ surprised by.
 
 ---
 
-## 1. `while` cannot count
+## 1. Nothing can carry state through a loop
 
-**Severity: high.** The specification's own example would not terminate.
+**Closed by `loop`.** A value crosses an iteration boundary through `continue`,
+so nothing is assigned and a name still means one value:
 
-There is no assignment, so a loop cannot advance a counter. The condition is
-evaluated in the enclosing scope while the body runs in a child scope, so a
-`const` rebound inside the body is invisible to the condition.
-
-```ruby
-const n = 0
-while n < 3 {
-  const n = n + 1     # binds a new `n` in the body's scope
-}                     # the condition still reads the outer `n`, forever
+```venn
+loop total = 0 {
+  if total >= 6 { break }
+  continue total + 2
+}
+print total          # 6
 ```
 
-`docs/venn-language.md:400` shows a counting `while`. It cannot work as written,
-and `packages/runtime/src/scheduler/while-limit.test.ts` asserts that this exact
-shape is stopped by the loop limit (VN8002).
+`while` is gone. It answered the same question `loop` answers, and in a language
+with no assignment its condition could never be moved by its own body: every
+`while` anybody wrote needed a `break` to avoid hanging, including the one in the
+tutorial. The 100,000 iteration cap went with it, since a program that means to
+run forever is allowed to, and what ends one that should have ended is the
+timeout on the step or the flow.
 
-Today `while` is only useful with `break`, or waiting on something a verb
-changes. Either the spec should say that, or the language needs a way to carry
-state across iterations.
+Three words, three intents, no overlap: `repeat` when the count is known,
+`forEach` when there is a collection, `loop` when it is neither.
 
 ## 2. The specification promises syntax the grammar does not have
 

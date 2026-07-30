@@ -39,16 +39,28 @@ forEach n in range(10) {
   print "small and even: ${n}"
 }
 
-# `while` repeats for as long as its condition holds. Venn has no assignment,
-# so nothing inside the body can move a counter the condition reads: a `while`
-# is for waiting on something outside itself, such as a server that keeps
-# answering "pending". In a program that talks to nothing, `break` is the exit,
-# and a loop with no exit at all is reported as an error rather than hanging.
-let queue = ["job-1", "job-2"]
-while queue.len > 0 {
+# `loop` is every loop whose end is not known in advance. On its own it runs
+# until `break`, which is what a game loop or a server wants.
+loop {
+  print "once around"
+  break
+}
+
+# With a condition, it runs while the condition holds.
+const queue = ["job-1", "job-2"]
+loop queue.len > 0 {
   print "${queue.len} still queued"
   break
 }
+
+# With a value, each pass gets it from `continue`, so a total can be carried
+# without anything being assigned. After the loop the name holds the last value.
+loop total = 0 {
+  if total >= 6 { break }
+  print "counted to ${total}"
+  continue total + 2
+}
+print "ended at ${total}"
 
 # Loops nest, and `break` and `continue` belong to the nearest one.
 forEach row in range(3) {

@@ -64,7 +64,7 @@ function againstPython(results: readonly CaseResult[]): string {
 }
 
 function mean(ratios: readonly number[]): string {
-  return `geometric mean ${times(geomean(ratios))} — Venn runs at ${share(geomean(ratios))}`;
+  return `median ${times(median(ratios))} — Venn runs at ${share(median(ratios))}`;
 }
 
 /** Naming the cases Venn won, rather than assuming it never does. */
@@ -73,10 +73,23 @@ function wins(won: readonly CaseResult[]): string {
   return ` Venn is ahead in: ${won.map((result) => result.name).join(", ")}.`;
 }
 
-/** The geometric mean is the honest average of ratios; the arithmetic one is not. */
-function geomean(values: readonly number[]): number {
-  const sum = values.reduce((total, value) => total + Math.log(value), 0);
-  return Math.exp(sum / (values.length || 1));
+/**
+ * The middle ratio, which is what a reader wants from a headline number: half
+ * the workloads do better than this.
+ *
+ * A mean of any kind answers a different question. The geometric mean this used
+ * to report is the right average *of ratios*, but it still moves with a single
+ * outlier: adding one workload where a JIT wins by 213x took it from 1.5x to
+ * 3.0x, reading as a regression when every other case had held or improved. The
+ * median does not move, and the spread on the line above is where an outlier
+ * belongs, named rather than blended in.
+ */
+function median(values: readonly number[]): number {
+  if (values.length === 0) return 1;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middle] as number;
+  return ((sorted[middle - 1] as number) + (sorted[middle] as number)) / 2;
 }
 
 function startupLines(startup: StartupResult): string {

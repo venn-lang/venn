@@ -2,7 +2,9 @@ import { callArgs } from "../ast/index.js";
 import type { Block, Expr, FragmentDecl, Statement } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { callType } from "./action-signature.js";
+import { checkCases } from "./check-cases.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
+import { narrowed } from "./narrow.js";
 import { mono } from "./scheme.js";
 import { DYNAMIC, type Type } from "./type.types.js";
 import type { TypeEnv } from "./type-env.js";
@@ -15,7 +17,7 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isExpectStmt(node)) return expectStmt(node, env, infer);
   if (ast.isActionCall(node)) return actionArgs(node, env, infer);
   if (ast.isRunStmt(node)) return runArgs(node, env, infer);
-  if (ast.isIfStmt(node)) return ifStmt(node, env, infer);
+  if (ast.isIfStmt(node)) return wholeChain(node, env, infer);
   if (ast.isForEachStmt(node)) return forEach(node, env, infer);
   if (ast.isLoopStmt(node)) return checkLoop(node, env, infer);
   if (ast.isRepeatStmt(node)) return repeat(node, env, infer);
@@ -25,6 +27,16 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isParallelStmt(node) || ast.isRaceStmt(node)) return nested(node.body, env, infer);
   if (ast.isLifecycleDecl(node)) return nested(node.body, env, infer);
   return env;
+}
+
+/**
+ * The head of a chain of `if`s, which is the only place the whole chain is in
+ * view: an `else if` arrives through {@link ifStmt} instead, and asking there
+ * whether every case was covered would ask it once per branch.
+ */
+function wholeChain(node: ast.IfStmt, env: TypeEnv, infer: Infer): TypeEnv {
+  checkCases(node, env, infer);
+  return ifStmt(node, env, infer);
 }
 
 /** Check a nested block, then keep the outer scope: its bindings do not escape. */
@@ -89,10 +101,17 @@ function runArgs(node: ast.RunStmt, env: TypeEnv, infer: Infer): TypeEnv {
   return node.bind ? env.with(node.bind, mono(DYNAMIC)) : env;
 }
 
+/**
+ * Each side of an `if` is checked in the scope its condition leaves behind, so a
+ * union that was told apart stays told apart for the whole block. The `else`
+ * carries what is left, which is what makes the last branch of a chain the one
+ * case nobody had to name.
+ */
 function ifStmt(node: ast.IfStmt, env: TypeEnv, infer: Infer): TypeEnv {
   inferExpr(node.cond, env, infer);
-  checkBlockOrIf(node.then, env, infer);
-  if (node.otherwise) checkBlockOrIf(node.otherwise, env, infer);
+  const branch = narrowed(node.cond, env, infer);
+  checkBlockOrIf(node.then, branch.whenTrue, infer);
+  if (node.otherwise) checkBlockOrIf(node.otherwise, branch.whenFalse, infer);
   return env;
 }
 
@@ -156,9 +175,20 @@ export function checkBlock(block: Block, env: TypeEnv, infer: Infer): void {
   for (const stmt of block.stmts) scope = checkStatement(stmt, scope, infer);
 }
 
-/** A fragment's params are in scope throughout its body. */
+/**
+ * A fragment's params are in scope throughout its body, each holding what it was
+ * annotated with. Without the annotation there is nothing to go on: a fragment
+ * is called by name from a flow, so no caller teaches it anything.
+ */
 export function checkFragment(decl: FragmentDecl, env: TypeEnv, infer: Infer): void {
   let scope = env;
-  for (const param of decl.params?.params ?? []) scope = scope.with(param.name, mono(DYNAMIC));
+  for (const param of decl.params?.params ?? []) {
+    scope = scope.with(param.name, mono(annotated(param, infer)));
+  }
   checkBlock(decl.body, scope, infer);
+}
+
+function annotated(param: ast.Param, infer: Infer): Type {
+  const { ctx, named, catalog } = infer;
+  return param.paramType ? typeRefToType({ ref: param.paramType, ctx, named, catalog }) : DYNAMIC;
 }

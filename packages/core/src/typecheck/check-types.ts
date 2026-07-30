@@ -219,16 +219,15 @@ function placeholder(infer: Infer): Type {
 function problem(mismatch: TypeMismatch, uri: string): Problem {
   const title = titleOf(mismatch);
   return buildProblem({
-    spec: mismatch.unit ? CODES.VN3012_UNIT_MISMATCH : CODES.VN3010_TYPE_MISMATCH,
+    spec: mismatch.code ?? CODES.VN3010_TYPE_MISMATCH,
     span: spanOf(mismatch.node, uri),
     title,
   });
 }
 
-/** A unit clash already reads as a sentence; anything else is a type mismatch. */
+/** Some clashes read better as a sentence than as the two types that clashed. */
 function titleOf(mismatch: TypeMismatch): string {
   if (mismatch.sentence) return mismatch.sentence;
-  if (mismatch.unit) return mismatch.note ?? "These values cannot be combined.";
   if (mismatch.note) return `Type ${showType(mismatch.expected)} ${mismatch.note}.`;
   return `Type mismatch: expected ${showType(mismatch.expected)}, found ${showType(mismatch.actual)}.`;
 }

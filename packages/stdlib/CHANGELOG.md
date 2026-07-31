@@ -1,5 +1,48 @@
 # @venn-lang/stdlib
 
+## 0.6.0
+
+### Minor Changes
+
+- [#152](https://github.com/venn-lang/venn/pull/152) [`2667eb6`](https://github.com/venn-lang/venn/commit/2667eb68a1440a604f36898e777569a6f769680a) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Tell the time, write it out, read it where people are.
+
+- [#149](https://github.com/venn-lang/venn/pull/149) [`2f6fc07`](https://github.com/venn-lang/venn/commit/2f6fc07efdb01a3407a926a0e8222f81a13b5e58) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Read text into a value.
+
+- [#150](https://github.com/venn-lang/venn/pull/150) [`5fe5dcd`](https://github.com/venn-lang/venn/commit/5fe5dcd265374e8bf5ff7fbfebfd26b4c2930ffe) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - The constants and functions a number has no member for.
+
+- [#153](https://github.com/venn-lang/venn/pull/153) [`70ae154`](https://github.com/venn-lang/venn/commit/70ae1549871c8a007eab67d8173d66906eb51688) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Join a path, take one apart, ask where it leads.
+
+### Patch Changes
+
+- Updated dependencies [[`2667eb6`](https://github.com/venn-lang/venn/commit/2667eb68a1440a604f36898e777569a6f769680a), [`3534c4c`](https://github.com/venn-lang/venn/commit/3534c4c3fbc4c9cafe69798290add826098e0ba6), [`9193aeb`](https://github.com/venn-lang/venn/commit/9193aebcb85e1cac72fef13fa005fdb5d82c47a3), [`2f6fc07`](https://github.com/venn-lang/venn/commit/2f6fc07efdb01a3407a926a0e8222f81a13b5e58), [`5fe5dcd`](https://github.com/venn-lang/venn/commit/5fe5dcd265374e8bf5ff7fbfebfd26b4c2930ffe), [`70ae154`](https://github.com/venn-lang/venn/commit/70ae1549871c8a007eab67d8173d66906eb51688)]:
+  - @venn-lang/date@0.6.0
+  - @venn-lang/runtime@0.6.0
+  - @venn-lang/contracts@0.6.0
+  - @venn-lang/io@0.6.0
+  - @venn-lang/json@0.6.0
+  - @venn-lang/math@0.6.0
+  - @venn-lang/sdk@0.6.0
+  - @venn-lang/path@0.6.0
+  - @venn-lang/artifacts@0.6.0
+  - @venn-lang/auth@0.6.0
+  - @venn-lang/browser@0.6.0
+  - @venn-lang/crypto@0.6.0
+  - @venn-lang/data@0.6.0
+  - @venn-lang/db@0.6.0
+  - @venn-lang/graphql@0.6.0
+  - @venn-lang/grpc@0.6.0
+  - @venn-lang/http@0.6.0
+  - @venn-lang/load@0.6.0
+  - @venn-lang/mail@0.6.0
+  - @venn-lang/mock@0.6.0
+  - @venn-lang/mqtt@0.6.0
+  - @venn-lang/notify@0.6.0
+  - @venn-lang/ws@0.6.0
+  - @venn-lang/assert@0.6.0
+  - @venn-lang/env@0.6.0
+  - @venn-lang/fmt@0.6.0
+  - @venn-lang/types@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes

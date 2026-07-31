@@ -1,5 +1,13 @@
 # @venn-lang/venn
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies [[`9193aeb`](https://github.com/venn-lang/venn/commit/9193aebcb85e1cac72fef13fa005fdb5d82c47a3), [`70ae154`](https://github.com/venn-lang/venn/commit/70ae1549871c8a007eab67d8173d66906eb51688)]:
+  - @venn-lang/contracts@0.6.0
+  - @venn-lang/toolchain@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes

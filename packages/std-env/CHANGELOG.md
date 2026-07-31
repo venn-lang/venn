@@ -1,5 +1,12 @@
 # @venn-lang/env
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies [[`5fe5dcd`](https://github.com/venn-lang/venn/commit/5fe5dcd265374e8bf5ff7fbfebfd26b4c2930ffe)]:
+  - @venn-lang/sdk@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes

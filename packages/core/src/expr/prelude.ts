@@ -13,6 +13,10 @@ export function display(value: unknown): string {
   if (typeof value === "string") return value;
   if (value === null || value === undefined) return String(value);
   if (typeof value !== "object") return String(value);
+  // A moment prints as the moment. How it is held is nobody's business, and
+  // `{"kind":"instant","epochMs":…}` is the inside of the language leaking out.
+  const iso = (value as { kind?: unknown; iso?: unknown }).kind === "instant" && value;
+  if (iso) return String((value as { iso: string }).iso);
   try {
     return JSON.stringify(value);
   } catch {

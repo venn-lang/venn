@@ -62,10 +62,37 @@ const PERCENT: Type = { kind: "prim", name: "percent" };
  * exists to keep `300ms + 2mb` from type-checking; once you are printing or
  * comparing against raw data, these are the way across.
  */
+const INSTANT: Type = { kind: "prim", name: "instant" };
+const DURATION_TYPE: Type = { kind: "prim", name: "duration" };
+
+/**
+ * What a moment answers about itself, read in UTC. Where somebody is standing is
+ * a question for `date.in`, not for the moment.
+ */
+const INSTANT_MEMBERS: Record<string, Type> = {
+  iso: STRING,
+  epochMs: NUMBER,
+  year: NUMBER,
+  month: NUMBER,
+  day: NUMBER,
+  hour: NUMBER,
+  minute: NUMBER,
+  second: NUMBER,
+  weekday: NUMBER,
+  date: STRING,
+  time: STRING,
+  plus: fn([DURATION_TYPE], INSTANT),
+  minus: fn([DURATION_TYPE], INSTANT),
+  until: fn([INSTANT], DURATION_TYPE),
+  isBefore: fn([INSTANT], BOOL),
+  isAfter: fn([INSTANT], BOOL),
+};
+
 const UNIT_MEMBERS: Record<string, Record<string, Type>> = {
   duration: { ms: NUMBER, seconds: NUMBER, minutes: NUMBER, hours: NUMBER },
   size: { bytes: NUMBER, kb: NUMBER, mb: NUMBER, gb: NUMBER },
   percent: { ratio: NUMBER, percent: NUMBER, of: fn([NUMBER], NUMBER) },
+  instant: INSTANT_MEMBERS,
 };
 
 function unitMember(unit: string, name: string): Type | undefined {

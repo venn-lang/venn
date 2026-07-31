@@ -1,5 +1,6 @@
 import type { Invoke } from "../native.types.js";
 import { isTask, TASK_METHODS } from "../task.js";
+import { INSTANT_METHODS } from "./instant-methods.js";
 import { LIST_GROUPING } from "./list-grouping.js";
 import { LIST_METHODS } from "./list-methods.js";
 import { LIST_SELECTION } from "./list-selection.js";
@@ -29,6 +30,7 @@ export const MEMBER_NAMES: Readonly<Record<string, readonly string[]>> = {
   duration: Object.keys(DURATION_METHODS),
   size: Object.keys(SIZE_METHODS),
   percent: Object.keys(PERCENT_METHODS),
+  instant: Object.keys(INSTANT_METHODS),
 };
 
 /**
@@ -54,6 +56,7 @@ const UNIT_TABLES: Record<string, Record<string, unknown>> = {
   duration: DURATION_METHODS,
   size: SIZE_METHODS,
   percent: PERCENT_METHODS,
+  instant: INSTANT_METHODS,
   regex: REGEX_METHODS,
 };
 

@@ -1,0 +1,43 @@
+# A moment, and the two things it cannot know alone: what time it is, and where
+# whoever is reading it stands.
+# Run: venn run examples/basics/12-dates.vn
+
+import { date } from "venn/date"
+
+## Written out, a moment is a literal like any other value.
+const launch = 2026-07-23T12:00:00Z
+
+# What it answers about itself is a member, and always in UTC.
+print "launch: ${launch}"
+print "that is ${launch.date} at ${launch.time}, a weekday numbered ${launch.weekday}"
+
+# Arithmetic uses the durations the language already has.
+const deadline = launch.plus(36h)
+print "deadline: ${deadline.date} ${deadline.time}"
+print "which is ${launch.until(deadline).hours} hours later"
+print "and it comes after: ${deadline.isAfter(launch)}"
+
+# Writing it out takes a pattern. Anything that is not a token stays as it is.
+print date.format(launch, "YYYY-MM-DD")
+print date.format(launch, "D/M/YY H:mm")
+
+# The same instant, where people are. This is the whole reason the zone is an
+# argument: read in the machine's own, a suite passes in one office and fails in
+# another.
+forEach zone in ["America/Sao_Paulo", "Europe/Lisbon", "Asia/Tokyo"] {
+  const shown = date.format(launch, 'YYYY-MM-DD HH:mm', zone)
+  print "${zone.padEnd(20)} ${shown}"
+}
+
+# Building one from parts, and reading one from text that might not be a date.
+const newYear = date.of({ year: 2027, month: 1, day: 1 })
+print "new year: ${newYear.date}"
+
+forEach text in ["2026-12-25", "not a date"] {
+  const found = date.parse(text)
+  if found == null {
+    print "${text} is not a date"
+  } else {
+    print "${text} is ${found.year}"
+  }
+}

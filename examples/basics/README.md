@@ -17,6 +17,7 @@ each one assumes the one before it.
 | [`09-terminal.vn`](09-terminal.vn) | reading a line and a key, asking what the terminal is, moving the cursor, and the same program through a pipe |
 | [`10-json.vn`](10-json.vn) | reading text into a value with a shape, the text nobody promised was JSON, and writing it back out |
 | [`11-math.vn`](11-math.vn) | constants read as values, trigonometry, and what stays a member of a number |
+| [`12-dates.vn`](12-dates.vn) | what a moment answers about itself, arithmetic with durations, and the same instant where people are |
 
 Run them with:
 

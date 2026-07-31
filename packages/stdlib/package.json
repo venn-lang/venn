@@ -50,6 +50,7 @@
     "@venn-lang/contracts": "workspace:*",
     "@venn-lang/crypto": "workspace:*",
     "@venn-lang/data": "workspace:*",
+    "@venn-lang/date": "workspace:*",
     "@venn-lang/db": "workspace:*",
     "@venn-lang/env": "workspace:*",
     "@venn-lang/fmt": "workspace:*",

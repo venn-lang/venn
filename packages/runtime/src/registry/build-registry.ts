@@ -1,5 +1,5 @@
 import { type HostCapability, missingCapabilities, VennError } from "@venn-lang/contracts";
-import type { ActionDefinition, PluginDefinition } from "@venn-lang/sdk";
+import type { ActionDefinition, PluginDefinition, ValueDefinition } from "@venn-lang/sdk";
 import type { Registry, ResolvedAction, ResolvedMatcher } from "./registry.types.js";
 
 /**
@@ -38,7 +38,9 @@ function indexPlugins(plugins: readonly PluginDefinition[]): Registry {
   const namespaces = new Set<string>();
   const packages = new Map<string, string>();
   const byPackage = new Map<string, PluginDefinition>();
+  const values: { namespace: string; value: ValueDefinition }[] = [];
   for (const plugin of plugins) {
+    for (const value of plugin.values ?? []) values.push({ namespace: plugin.namespace, value });
     addPlugin({ plugin, actions, matchers, namespaces, packages });
     byPackage.set(plugin.name, plugin);
   }
@@ -49,6 +51,7 @@ function indexPlugins(plugins: readonly PluginDefinition[]): Registry {
     namespaceOf: (pkg) => packages.get(pkg),
     plugin: (pkg) => byPackage.get(pkg),
     actions: () => listActions(actions),
+    values: () => values,
   };
 }
 

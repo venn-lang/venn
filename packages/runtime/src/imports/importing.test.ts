@@ -28,6 +28,7 @@ const PLUGIN = definePlugin({
     }),
   ],
   decorators: [{ name: "twice", expand: (target) => target }],
+  values: [{ name: "rate", doc: "How fast, in a test.", type: t.number, value: 42 }],
   typeDefs: { Voice: t.record({ pitch: t.number }) },
 });
 
@@ -89,6 +90,16 @@ describe("what an import of a package brings", () => {
 
   it("brings a decorator by its own name", () => {
     expect([...imported('import { twice } from "@t/kit"').decos]).toEqual([["twice", "twice"]]);
+  });
+
+  it("brings a constant by its own name, since a value is a name", () => {
+    expect([...imported('import { rate } from "@t/kit"').values]).toEqual([["rate", "kit.rate"]]);
+  });
+
+  it("brings a constant under another name when one is written", () => {
+    const found = imported('import { rate as speed } from "@t/kit"');
+
+    expect([...found.values]).toEqual([["speed", "kit.rate"]]);
   });
 
   it("brings a type by its own name", () => {

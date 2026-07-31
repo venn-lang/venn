@@ -5,6 +5,7 @@ import type { ActionDefinition } from "./action.types.js";
 import type { DecoratorDefinition } from "./decorator.types.js";
 import type { MatcherDefinition } from "./matcher.types.js";
 import type { ResourceDefinition } from "./resource.types.js";
+import type { ValueDefinition } from "./value.types.js";
 
 /** Everything a plugin contributes. The registry ingests this shape. */
 export interface PluginDefinition {
@@ -15,6 +16,15 @@ export interface PluginDefinition {
   /** Host capabilities without which loading fails, with a diagnostic, before any run. */
   requires?: readonly HostCapability[];
   actions?: readonly ActionDefinition[];
+  /**
+   * The constants this namespace publishes: `math.pi`, and anything else that is
+   * data rather than something to call.
+   *
+   * A verb with no arguments would have to be written `math.pi()`, and reading
+   * one without the brackets hands back the verb itself. A value is read as what
+   * it is.
+   */
+  values?: readonly ValueDefinition[];
   matchers?: readonly MatcherDefinition[];
   /** The `@name`s this plugin contributes, run over the tree before anything reads it. */
   decorators?: readonly DecoratorDefinition[];

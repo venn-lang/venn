@@ -25,6 +25,13 @@ export function bindNamespaces(args: {
     place({ members, path: entry.name, action: entry.action, ctx: args.ctx });
     byNamespace.set(entry.namespace, members);
   }
+  // A constant is placed the same way a verb is, so `math.pi` and `math.sin(x)`
+  // are read off one object and nothing downstream has to know the difference.
+  for (const { namespace, value } of args.registry.values()) {
+    const members = byNamespace.get(namespace) ?? {};
+    members[value.name] = value.value;
+    byNamespace.set(namespace, members);
+  }
   for (const [namespace, members] of byNamespace) {
     for (const local of localNames(namespace, args.named)) {
       args.scope.set(local, namespaceValue(members));

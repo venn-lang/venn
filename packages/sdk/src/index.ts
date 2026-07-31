@@ -6,6 +6,7 @@ export { defineDecorator } from "./define-decorator.js";
 export { defineMatcher } from "./define-matcher.js";
 export { definePlugin } from "./define-plugin.js";
 export { defineResource } from "./define-resource.js";
+export { defineValue } from "./define-value.js";
 export { Duration } from "./duration.js";
 export * from "./schema/index.js";
 export type { DecoratedNode, DecoratorDefinition, ExpandContext } from "./types/decorator.types.js";

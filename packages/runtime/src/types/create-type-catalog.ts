@@ -6,6 +6,7 @@ import type { TypeSpec } from "@venn-lang/types";
 interface Published {
   types: Map<string, TypeSpec>;
   signatures: Map<string, TypeSpec>;
+  values: Map<string, TypeSpec>;
 }
 
 /**
@@ -19,7 +20,7 @@ interface Published {
  * @returns A catalog answering a type name or an action's signature.
  */
 export function createTypeCatalog(plugins: readonly PluginDefinition[]): TypeCatalog {
-  const published: Published = { types: new Map(), signatures: new Map() };
+  const published: Published = { types: new Map(), signatures: new Map(), values: new Map() };
   for (const plugin of plugins) collect(plugin, published);
   const reader = createReader(published);
   return {
@@ -28,12 +29,16 @@ export function createTypeCatalog(plugins: readonly PluginDefinition[]): TypeCat
     // has to hand out fresh variables each time: cached, the first `data.first`
     // in a file would decide what `T` is for every one after it.
     signatureOf: (target) => asFn(reader.signature(published.signatures, target)),
+    valueOf: (target) => reader.read(published.values, target),
   };
 }
 
 function collect(plugin: PluginDefinition, into: Published): void {
   for (const [name, spec] of Object.entries(plugin.typeDefs ?? {})) {
     into.types.set(`${plugin.namespace}.${name}`, spec);
+  }
+  for (const value of plugin.values ?? []) {
+    into.values.set(`${plugin.namespace}.${value.name}`, value.type);
   }
   for (const action of plugin.actions ?? []) {
     const key = `${plugin.namespace}.${action.name}`;

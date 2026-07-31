@@ -34,6 +34,7 @@ interface Mutable {
   namespaces: Map<string, string>;
   matchers: Map<string, string>;
   types: Map<string, string>;
+  values: Map<string, string>;
   decos: Map<string, string>;
   unknown: UnknownImport[];
 }
@@ -43,6 +44,7 @@ function blank(): Mutable {
     namespaces: new Map(),
     matchers: new Map(),
     types: new Map(),
+    values: new Map(),
     decos: new Map(),
     unknown: [],
   };
@@ -72,6 +74,11 @@ function place(args: {
   }
   if (plugin.decorators?.some((deco) => deco.name === name)) {
     return void into.decos.set(local, name);
+  }
+  // A constant is a value like any other, so it arrives by name the way one from
+  // another file does: `import { pi } from "venn/math"`.
+  if (plugin.values?.some((value) => value.name === name)) {
+    return void into.values.set(local, `${plugin.namespace}.${name}`);
   }
   into.unknown.push({ pkg: plugin.name, name, note: whatItIs(name, plugin) });
 }

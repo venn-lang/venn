@@ -1,5 +1,13 @@
 # @venn-lang/contracts
 
+## 0.6.0
+
+### Minor Changes
+
+- [#144](https://github.com/venn-lang/venn/pull/144) [`9193aeb`](https://github.com/venn-lang/venn/commit/9193aebcb85e1cac72fef13fa005fdb5d82c47a3) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Read from the terminal, and see the one being written to.
+
+- [#153](https://github.com/venn-lang/venn/pull/153) [`70ae154`](https://github.com/venn-lang/venn/commit/70ae1549871c8a007eab67d8173d66906eb51688) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Join a path, take one apart, ask where it leads.
+
 ## 0.5.0
 
 ## 0.4.0

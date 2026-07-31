@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/ws",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "The ws namespace: open a WebSocket, send, wait for a message, close.",
   "keywords": [
     "venn",

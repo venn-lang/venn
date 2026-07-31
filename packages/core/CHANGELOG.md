@@ -1,5 +1,36 @@
 # @venn-lang/core
 
+## 0.6.0
+
+### Minor Changes
+
+- [#141](https://github.com/venn-lang/venn/pull/141) [`3534c4c`](https://github.com/venn-lang/venn/commit/3534c4c3fbc4c9cafe69798290add826098e0ba6) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - **This breaks every file that says `use`.** Before 1.0 a break rides a minor
+  bump, which is the 0.x convention; the version to read it by is the changelog,
+  not the number.
+
+  Remove `use`, and bring everything in by name.
+
+  ```venn
+  import { http } from "venn/http"
+  import { expect } from "venn/assert"
+  ```
+
+  One keyword brings a namespace, a verb, a matcher, a type or a value into a
+  file, and nothing arrives unasked except the prelude. `use` parsed a whole
+  package in and left the file quiet about what it actually took, which is the
+  difference between reading an import and guessing one.
+
+- [#151](https://github.com/venn-lang/venn/pull/151) [`b126f71`](https://github.com/venn-lang/venn/commit/b126f712fcf7fb2229bd1af2888d440a7793c189) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - Let a moment answer about itself.
+
+- [#150](https://github.com/venn-lang/venn/pull/150) [`5fe5dcd`](https://github.com/venn-lang/venn/commit/5fe5dcd265374e8bf5ff7fbfebfd26b4c2930ffe) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - The constants and functions a number has no member for.
+
+### Patch Changes
+
+- Updated dependencies [[`3534c4c`](https://github.com/venn-lang/venn/commit/3534c4c3fbc4c9cafe69798290add826098e0ba6), [`9193aeb`](https://github.com/venn-lang/venn/commit/9193aebcb85e1cac72fef13fa005fdb5d82c47a3), [`70ae154`](https://github.com/venn-lang/venn/commit/70ae1549871c8a007eab67d8173d66906eb51688)]:
+  - @venn-lang/prelude@0.6.0
+  - @venn-lang/contracts@0.6.0
+  - @venn-lang/types@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes

@@ -1,4 +1,4 @@
-import { isUnitValue } from "../units/index.js";
+import { isInstant, isUnitValue } from "../units/index.js";
 import { INVOKE } from "./invoke.js";
 import { builtinMember, NO_METHOD } from "./methods/index.js";
 import { nativeFn } from "./native.types.js";
@@ -47,6 +47,7 @@ function isOwned(receiver: unknown): boolean {
     OWNED.has(typeof receiver) ||
     Array.isArray(receiver) ||
     isUnitValue(receiver) ||
+    isInstant(receiver) ||
     isTask(receiver) ||
     isPlainMap(receiver)
   );
@@ -86,6 +87,9 @@ function isData(receiver: unknown): boolean {
     typeof receiver === "object" &&
     !Array.isArray(receiver) &&
     !isUnitValue(receiver) &&
+    // A moment is held as a shape with an `epochMs` in it, and reading it as a
+    // map would answer `"instant"` for `.kind`. What it publishes is its own.
+    !isInstant(receiver) &&
     !isTask(receiver)
   );
 }

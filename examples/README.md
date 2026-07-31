@@ -4,7 +4,7 @@ Every file here runs. They are checked in CI the same way you would run them, so
 if one stops working it is a bug in Venn, not in the example.
 
 ```bash
-venn check examples/                      # type-check all 41 at once
+venn check examples/                      # type-check all 42 at once
 venn run   examples/basics/01-hello.vn    # a program: statements, top to bottom
 venn test  examples/testing/01-first-flow.vn   # a test: runs the flow blocks
 ```

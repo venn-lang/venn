@@ -14,6 +14,7 @@ import { ioPlugin } from "@venn-lang/io";
 import { jsonPlugin } from "@venn-lang/json";
 import { loadPlugin } from "@venn-lang/load";
 import { mailPlugin } from "@venn-lang/mail";
+import { mathPlugin } from "@venn-lang/math";
 import { mockPlugin } from "@venn-lang/mock";
 import { mqttPlugin } from "@venn-lang/mqtt";
 import { notifyPlugin } from "@venn-lang/notify";
@@ -35,6 +36,7 @@ export const allPlugins: PluginDefinition[] = [
   envPlugin,
   fmtPlugin,
   jsonPlugin,
+  mathPlugin,
   ioPlugin,
   mockPlugin,
   authPlugin,

@@ -1,0 +1,29 @@
+# What a number cannot answer about itself.
+# Run: venn run examples/basics/11-math.vn
+
+import { math } from "venn/math"
+
+## A constant is read as the value it is, with no brackets: it is data, not
+## something to call.
+const radius = 3
+print "circle of ${radius}: area ${math.pi * radius.pow(2)}"
+print "one turn is ${math.tau} radians, which is ${math.degrees(math.tau)} degrees"
+
+# Trigonometry takes radians. `atan2` is given both sides, which is what tells
+# one quadrant from another; `atan` alone cannot.
+const angle = math.atan2(1, 1)
+print "the corner is at ${math.degrees(angle)} degrees"
+print "sin: ${math.sin(angle)}, cos: ${math.cos(angle)}"
+
+# Two numbers, neither of them the subject.
+print "gcd(12, 18) = ${math.gcd(12, 18)}"
+print "lcm(4, 6) = ${math.lcm(4, 6)}"
+print "hypot(3, 4) = ${math.hypot(3, 4)}"
+
+# Randomness comes from the run's own source, so this file prints the same
+# numbers every time it runs, and a failure can be replayed.
+const rolls = range(5).map(fn (i) => math.randomInt(1, 6))
+print "five rolls: ${rolls}"
+
+# What a number already answers stays a member. There is one spelling of each.
+print "${(-3).abs}, ${2.sqrt}, ${3.7.round(0)}, ${120.clamp(0, 100)}"

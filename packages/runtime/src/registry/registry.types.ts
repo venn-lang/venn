@@ -1,4 +1,9 @@
-import type { ActionDefinition, MatcherDefinition, PluginDefinition } from "@venn-lang/sdk";
+import type {
+  ActionDefinition,
+  MatcherDefinition,
+  PluginDefinition,
+  ValueDefinition,
+} from "@venn-lang/sdk";
 
 /** An action together with the plugin that owns it. */
 export interface ResolvedAction {
@@ -23,4 +28,6 @@ export interface Registry {
   plugin(pkg: string): PluginDefinition | undefined;
   /** Every action, for binding namespaces as values in the evaluator scope. */
   actions(): readonly { namespace: string; name: string; action: ActionDefinition }[];
+  /** Every constant a namespace publishes, bound beside its verbs. */
+  values(): readonly { namespace: string; value: ValueDefinition }[];
 }

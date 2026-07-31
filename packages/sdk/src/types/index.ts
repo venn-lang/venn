@@ -9,3 +9,4 @@ export type {
 export type { MatcherDefinition, MatcherDetail } from "./matcher.types.js";
 export type { PluginDefinition } from "./plugin.types.js";
 export type { ResourceDefinition, ResourceScope } from "./resource.types.js";
+export type { ValueDefinition } from "./value.types.js";

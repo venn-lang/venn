@@ -1,3 +1,4 @@
+import { ClockPort, FileSystemPort, type Host, RandomPort } from "@venn-lang/contracts";
 import {
   type Document,
   expand,
@@ -8,7 +9,7 @@ import {
 import { createActionContext } from "../context/index.js";
 import { createDecoratorSource } from "../decorators/index.js";
 import { createEmitter, newRunId } from "../emit/index.js";
-import { createPortResolver } from "../ports/index.js";
+import { createPortResolver, type PortBinding } from "../ports/index.js";
 import { buildRegistry } from "../registry/index.js";
 import {
   absorbExit,
@@ -30,9 +31,27 @@ import type { Runner, RunnerArgs, RunOnceInput, RunResult } from "./runner.types
  * @returns A runner exposing test mode (`run`) and script mode (`script`).
  * @throws VennError `VN2010` when a plugin requires a capability the host lacks.
  */
+/**
+ * The host's capabilities, as the ports a plugin reaches them by.
+ *
+ * Listed first, so anything the caller binds by hand wins: a test that wants its
+ * own clock says so and is not argued with.
+ */
+function hostPorts(host: Host): PortBinding[] {
+  return [
+    { port: ClockPort, impl: host.clock },
+    { port: RandomPort, impl: host.random },
+    { port: FileSystemPort, impl: host.fs },
+  ];
+}
+
 export function createRunner(args: RunnerArgs): Runner {
   const registry = buildRegistry({ plugins: args.plugins, caps: args.host.caps });
-  const resolver = createPortResolver({ bindings: args.ports ?? [], caps: args.host.caps });
+  // The host's own capabilities are ports too, and binding them here is what
+  // lets a plugin ask for the run's clock or its random rather than reaching for
+  // the global one and taking repeatability away from every test.
+  const bindings = [...hostPorts(args.host), ...(args.ports ?? [])];
+  const resolver = createPortResolver({ bindings, caps: args.host.caps });
   const decorators = createDecoratorSource(args.plugins);
   const drive = (walk: Walk) => (document: Document) => {
     // Decorators run first, on every path: what the scheduler walks is the tree

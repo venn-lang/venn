@@ -60,6 +60,7 @@
     "@venn-lang/json": "workspace:*",
     "@venn-lang/load": "workspace:*",
     "@venn-lang/mail": "workspace:*",
+    "@venn-lang/math": "workspace:*",
     "@venn-lang/mock": "workspace:*",
     "@venn-lang/mqtt": "workspace:*",
     "@venn-lang/notify": "workspace:*",

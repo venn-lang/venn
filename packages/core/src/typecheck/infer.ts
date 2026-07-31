@@ -208,6 +208,10 @@ function contain(child: Expr, parent: StringLit): Expr {
 }
 
 function inferMember(expr: Member, env: TypeEnv, infer: Infer): Type {
+  // A constant a namespace publishes is read by its whole name, before the
+  // receiver is asked about: `math` is a bag of names, not a value with fields.
+  const published = publishedValue(expr, env, infer);
+  if (published) return published;
   const receiver = prune(inferExpr(expr.receiver, env, infer));
   if (receiver.kind === "dynamic") return DYNAMIC;
   const built = memberType(receiver, expr.member, infer.ctx);
@@ -215,6 +219,14 @@ function inferMember(expr: Member, env: TypeEnv, infer: Infer): Type {
   if (receiver.kind === "record") return recordField(receiver, expr, infer);
   if (receiver.kind === "union") return unionField(receiver, expr, infer);
   return unknownMember(receiver, expr, infer);
+}
+
+/** `math.pi`, when a plugin published it and nothing local shadows the name. */
+function publishedValue(expr: Member, env: TypeEnv, infer: Infer): Type | undefined {
+  const path = dottedPath(expr);
+  if (!path || !infer.catalog?.valueOf) return undefined;
+  const head = path.slice(0, path.indexOf("."));
+  return env.lookup(head) ? undefined : infer.catalog.valueOf(path);
 }
 
 /**

@@ -13,4 +13,6 @@ export interface TypeCatalog {
   typeOf(name: string): Type | undefined;
   /** A verb's signature: `http.serve`, `http.on`. */
   signatureOf(target: string): FnType | undefined;
+  /** A constant a namespace publishes: `math.pi`. Not everything has one. */
+  valueOf?(target: string): Type | undefined;
 }

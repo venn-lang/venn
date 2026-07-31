@@ -7,6 +7,7 @@ export { clockConformance } from "./ports/clock/clock.suite.js";
 export { fileSystemConformance } from "./ports/file-system/file-system.suite.js";
 export { lockProviderConformance } from "./ports/lock-provider/lock-provider.suite.js";
 export { manifestProviderConformance } from "./ports/manifest-provider/manifest.suite.js";
+export { type PathsSpec, pathsConformance } from "./ports/paths/paths.suite.js";
 export { processProviderConformance } from "./ports/process-provider/process-provider.suite.js";
 export { randomConformance } from "./ports/random/random.suite.js";
 export { secretProviderConformance } from "./ports/secret-provider/secret-provider.suite.js";

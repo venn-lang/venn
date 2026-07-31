@@ -3,6 +3,7 @@ export * from "./console/index.js";
 export * from "./file-system/index.js";
 export * from "./lock-provider/index.js";
 export * from "./manifest-provider/index.js";
+export * from "./paths/index.js";
 export * from "./process-provider/index.js";
 export * from "./random/index.js";
 export * from "./secret-provider/index.js";

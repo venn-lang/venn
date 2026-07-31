@@ -65,6 +65,7 @@
     "@venn-lang/mock": "workspace:*",
     "@venn-lang/mqtt": "workspace:*",
     "@venn-lang/notify": "workspace:*",
+    "@venn-lang/path": "workspace:*",
     "@venn-lang/runtime": "workspace:*",
     "@venn-lang/sdk": "workspace:*",
     "@venn-lang/types": "workspace:*",

@@ -3,6 +3,7 @@ import { createConsoleLogger } from "../logger/index.js";
 import { createSystemClock } from "../ports/clock/index.js";
 import { createNodeFs } from "../ports/file-system/node-fs.js";
 import { createInProcessLock } from "../ports/lock-provider/index.js";
+import { createPosixPaths, createWindowsPaths, type Paths } from "../ports/paths/index.js";
 import { createNodeSpawn } from "../ports/process-provider/node-spawn.js";
 import { createSeededRandom } from "../ports/random/index.js";
 import { createEnvSecrets } from "../ports/secret-provider/index.js";
@@ -18,6 +19,7 @@ import type { Host } from "./host.types.js";
 export function createNodeHost(args: { root?: string } = {}): Host {
   return {
     fs: createNodeFs({ root: args.root }),
+    paths: hostPaths(args.root ?? process.cwd()),
     proc: createNodeSpawn(),
     clock: createSystemClock(),
     random: createSeededRandom({ seed: 1 }),
@@ -26,4 +28,12 @@ export function createNodeHost(args: { root?: string } = {}): Host {
     lock: createInProcessLock(),
     caps: ALL_CAPABILITIES,
   };
+}
+
+/**
+ * The spelling this machine uses, which is the one thing about a path a program
+ * must never decide for itself.
+ */
+function hostPaths(cwd: string): Paths {
+  return process.platform === "win32" ? createWindowsPaths({ cwd }) : createPosixPaths({ cwd });
 }

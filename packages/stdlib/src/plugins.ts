@@ -4,6 +4,7 @@ import { authPlugin } from "@venn-lang/auth";
 import { browserPlugin } from "@venn-lang/browser";
 import { cryptoPlugin } from "@venn-lang/crypto";
 import { dataPlugin } from "@venn-lang/data";
+import { datePlugin } from "@venn-lang/date";
 import { dbPlugin } from "@venn-lang/db";
 import { envPlugin } from "@venn-lang/env";
 import { fmtPlugin } from "@venn-lang/fmt";
@@ -34,6 +35,7 @@ export const allPlugins: PluginDefinition[] = [
   dataPlugin,
   cryptoPlugin,
   envPlugin,
+  datePlugin,
   fmtPlugin,
   jsonPlugin,
   mathPlugin,

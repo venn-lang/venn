@@ -13,7 +13,7 @@ async function offeredAt(whole: string): Promise<string[]> {
     .map((each) => each.label);
 }
 
-const USE = 'use "venn/http"\n\n';
+const USE = 'import { http } from "venn/http"\n\n';
 
 /**
  * The first line of the first `type` anyone writes is `id: string`, so `string`

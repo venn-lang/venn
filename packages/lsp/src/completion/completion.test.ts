@@ -46,9 +46,9 @@ describe("completion", () => {
     const first = items[0];
 
     expect(first?.textEdit).toBeDefined();
-    // The edit starts at the opening quote + 1: the whole `@venn-lang/…`, not a word.
+    // The edit starts just inside the quote: the whole `venn/…`, not a word.
     const edit = first?.textEdit as { range: { start: { character: number } } } | undefined;
-    expect(edit?.range.start.character).toBe(5);
+    expect(edit?.range.start.character).toBe('import { assert } from "'.length);
     expect(first?.filterText).toBe(first?.label);
   });
 });
@@ -99,7 +99,7 @@ describe("member completion", () => {
   });
 
   it("still offers a plugin's verbs when the head is a namespace", async () => {
-    const labels = (await membersAfter('use "venn/http"\nhttp.', "http.")).map(
+    const labels = (await membersAfter('import { http } from "venn/http"\nhttp.', "http.")).map(
       (entry) => entry.label,
     );
 

@@ -98,7 +98,6 @@ export type VennKeywordNames =
     | "true"
     | "try"
     | "type"
-    | "use"
     | "while"
     | "{"
     | "|"
@@ -637,7 +636,7 @@ export function isIfStmt(item: unknown): item is IfStmt {
     return reflection.isInstance(item, IfStmt.$type);
 }
 
-export type ImportDecl = UseDecl | ValueImport;
+export type ImportDecl = ValueImport;
 
 export const ImportDecl = {
     $type: 'ImportDecl'
@@ -1448,23 +1447,6 @@ export function isUnary(item: unknown): item is Unary {
     return reflection.isInstance(item, Unary.$type);
 }
 
-export interface UseDecl extends langium.AstNode {
-    readonly $container: Document;
-    readonly $type: 'UseDecl';
-    alias?: string;
-    pkg: string;
-}
-
-export const UseDecl = {
-    $type: 'UseDecl',
-    alias: 'alias',
-    pkg: 'pkg'
-} as const;
-
-export function isUseDecl(item: unknown): item is UseDecl {
-    return reflection.isInstance(item, UseDecl.$type);
-}
-
 export interface ValueImport extends langium.AstNode {
     readonly $container: Document;
     readonly $type: 'ValueImport';
@@ -1488,10 +1470,10 @@ export function isValueImport(item: unknown): item is ValueImport {
     return reflection.isInstance(item, ValueImport.$type);
 }
 
-export type Word = 'afterEach' | 'all' | 'as' | 'beforeEach' | 'break' | 'capture' | 'catch' | 'config' | 'const' | 'continue' | 'dataset' | 'deco' | 'defer' | 'else' | 'expect' | 'factory' | 'finally' | 'flow' | 'fn' | 'forEach' | 'fragment' | 'from' | 'group' | 'if' | 'import' | 'in' | 'let' | 'match' | 'matrix' | 'module' | 'not' | 'on' | 'parallel' | 'pub' | 'race' | 'repeat' | 'report' | 'return' | 'run' | 'setup' | 'soft' | 'step' | 'teardown' | 'try' | 'type' | 'use' | 'while' | string;
+export type Word = 'afterEach' | 'all' | 'as' | 'beforeEach' | 'break' | 'capture' | 'catch' | 'config' | 'const' | 'continue' | 'dataset' | 'deco' | 'defer' | 'else' | 'expect' | 'factory' | 'finally' | 'flow' | 'fn' | 'forEach' | 'fragment' | 'from' | 'group' | 'if' | 'import' | 'in' | 'let' | 'match' | 'matrix' | 'module' | 'not' | 'on' | 'parallel' | 'pub' | 'race' | 'repeat' | 'report' | 'return' | 'run' | 'setup' | 'soft' | 'step' | 'teardown' | 'try' | 'type' | 'while' | string;
 
 export function isWord(item: unknown): item is Word {
-    return item === 'module' || item === 'use' || item === 'as' || item === 'pub' || item === 'import' || item === 'from' || item === 'flow' || item === 'fragment' || item === 'fn' || item === 'deco' || item === 'return' || item === 'const' || item === 'let' || item === 'config' || item === 'matrix' || item === 'report' || item === 'type' || item === 'factory' || item === 'dataset' || item === 'setup' || item === 'teardown' || item === 'beforeEach' || item === 'afterEach' || item === 'defer' || item === 'on' || item === 'step' || item === 'group' || item === 'if' || item === 'else' || item === 'forEach' || item === 'in' || item === 'repeat' || item === 'while' || item === 'parallel' || item === 'race' || item === 'try' || item === 'catch' || item === 'finally' || item === 'capture' || item === 'run' || item === 'break' || item === 'continue' || item === 'expect' || item === 'all' || item === 'soft' || item === 'not' || item === 'match' || (typeof item === 'string' && (/[_a-zA-Z]\w*/.test(item)));
+    return item === 'module' || item === 'as' || item === 'pub' || item === 'import' || item === 'from' || item === 'flow' || item === 'fragment' || item === 'fn' || item === 'deco' || item === 'return' || item === 'const' || item === 'let' || item === 'config' || item === 'matrix' || item === 'report' || item === 'type' || item === 'factory' || item === 'dataset' || item === 'setup' || item === 'teardown' || item === 'beforeEach' || item === 'afterEach' || item === 'defer' || item === 'on' || item === 'step' || item === 'group' || item === 'if' || item === 'else' || item === 'forEach' || item === 'in' || item === 'repeat' || item === 'while' || item === 'parallel' || item === 'race' || item === 'try' || item === 'catch' || item === 'finally' || item === 'capture' || item === 'run' || item === 'break' || item === 'continue' || item === 'expect' || item === 'all' || item === 'soft' || item === 'not' || item === 'match' || (typeof item === 'string' && (/[_a-zA-Z]\w*/.test(item)));
 }
 
 export type VennAstType = {
@@ -1573,7 +1555,6 @@ export type VennAstType = {
     TypeDecl: TypeDecl
     TypeRef: TypeRef
     Unary: Unary
-    UseDecl: UseDecl
     ValueImport: ValueImport
 }
 
@@ -2798,19 +2779,6 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Expr.$type]
-        },
-        UseDecl: {
-            name: UseDecl.$type,
-            properties: {
-                alias: {
-                    name: UseDecl.alias,
-                    optional: true
-                },
-                pkg: {
-                    name: UseDecl.pkg
-                }
-            },
-            superTypes: [ImportDecl.$type]
         },
         ValueImport: {
             name: ValueImport.$type,

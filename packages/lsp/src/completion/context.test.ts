@@ -9,8 +9,11 @@ function at(prefix: string, line = prefix, before = prefix): CompletionContext {
 
 describe("completion context", () => {
   it("recognises a half-typed package name, not only a complete one", () => {
-    expect(at('use "@mant')).toEqual({ kind: "package", from: 5 });
-    expect(at('use "')).toEqual({ kind: "package", from: 5 });
+    const half = 'import { http } from "@mant';
+    const empty = 'import { http } from "';
+
+    expect(at(half)).toEqual({ kind: "package", from: half.length - "@mant".length });
+    expect(at(empty)).toEqual({ kind: "package", from: empty.length });
   });
 
   it("reads the module path a named import comes from", () => {

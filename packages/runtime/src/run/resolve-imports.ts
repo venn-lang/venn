@@ -5,7 +5,6 @@ import {
   isDecoDecl,
   isFragmentDecl,
   isPackageSpecifier,
-  isUseDecl,
   isValueImport,
   parse,
 } from "@venn-lang/core";
@@ -76,7 +75,7 @@ export async function resolveImports(args: {
   const packages = new Set<string>();
   const modules = new Map<string, Document>();
   const npm = new Map<string, Record<string, unknown>>();
-  collectUses(args.document, packages);
+  collectPackages(args.document, packages);
   await loadInto({
     document: args.document,
     uri: args.uri,
@@ -92,19 +91,15 @@ export async function resolveImports(args: {
 }
 
 /**
- * Add the packages a file declares with `use` to `into`. Collected across the
- * whole graph: a fragment imported from elsewhere calls the verbs *its* file
- * asked for.
+ * Add the packages a file imports to `into`. Collected across the whole graph: a
+ * fragment imported from elsewhere calls the verbs *its* file asked for.
  *
- * @param document The file to read `use` declarations from.
+ * @param document The file to read imports from.
  * @param into The accumulating set of package specifiers, mutated in place.
  */
-export function collectUses(document: Document, into: Set<string>): void {
+export function collectPackages(document: Document, into: Set<string>): void {
   for (const decl of document.imports) {
-    if (isUseDecl(decl)) into.add(decl.pkg);
-    // An import of a package is a package this run needs, the same as a `use`
-    // was: which of the two it turns out to be is the registry's business.
-    else if (isValueImport(decl) && isPackageSpecifier(decl.path)) into.add(decl.path);
+    if (isValueImport(decl) && isPackageSpecifier(decl.path)) into.add(decl.path);
   }
 }
 
@@ -156,7 +151,7 @@ async function loadModule(state: LoadState, spec: string): Promise<void> {
   const { ast } = parse(source, { uri: target });
   state.modules.set(target, ast);
   collectExports({ document: ast, uri: target, found: state.found });
-  collectUses(ast, state.packages);
+  collectPackages(ast, state.packages);
   await loadInto({ ...state, document: ast, uri: target });
 }
 

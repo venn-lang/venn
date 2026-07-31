@@ -1,7 +1,11 @@
 import type { CompletionContext, CursorText } from "./completion.types.js";
 
-const PACKAGE = /\buse\s+"([^"]*)$/;
-const MODULE_PATH = /\bfrom\s+"([^"]*)$/;
+/**
+ * What follows `from` is a path to a file when it starts with a dot or an alias,
+ * and a package otherwise. One keyword brings in both, so one place decides.
+ */
+const MODULE_PATH = /\bfrom\s+"([.#][^"]*)$/;
+const PACKAGE = /\bfrom\s+"([^".#][^"]*|)$/;
 const IMPORT_NAME = /\bimport\s*\{([^}]*)$/;
 /**
  * The whole dotted receiver, so `cfg.server.` offers what `cfg.server` holds.
@@ -122,10 +126,10 @@ function innermostOpenBrace(before: string): number {
 }
 
 function stringContext(prefix: string, line: string): CompletionContext | undefined {
-  const pkg = PACKAGE.exec(prefix);
-  if (pkg) return { kind: "package", from: back(prefix, pkg[1]) };
   const path = MODULE_PATH.exec(prefix);
   if (path) return { kind: "modulePath", from: back(prefix, path[1]), partial: path[1] ?? "" };
+  const pkg = PACKAGE.exec(prefix);
+  if (pkg) return { kind: "package", from: back(prefix, pkg[1]) };
   const named = IMPORT_NAME.exec(prefix);
   if (named)
     return { kind: "importName", from: back(prefix, lastName(named[1])), path: pathOf(line) };

@@ -12,9 +12,9 @@ entry Document:
     (imports+=ImportDecl NL*)*
     (decls+=Declaration NL*)*;
 
-ImportDecl: UseDecl | ValueImport;
-
-UseDecl: 'use' pkg=STRING ('as' alias=ID)?;
+// One way in. Everything a file reaches that did not come with the language is
+// named here, by the name the file gives it.
+ImportDecl: ValueImport;
 
 // Everything a file reaches by name arrives here, whether it was written in
 // another `.vn` or published by a package: `import { http } from "venn/http"`
@@ -379,7 +379,7 @@ RefName returns string: ID | 'matrix' | 'flow' | 'step';
 // A name in member / map-key / qualified-tail position: ID or ANY keyword.
 // Safe because none of these positions can start a statement.
 Word returns string:
-    ID | 'module' | 'use' | 'as' | 'pub' | 'import' | 'from' | 'flow'
+    ID | 'module' | 'as' | 'pub' | 'import' | 'from' | 'flow'
   | 'fragment' | 'fn' | 'deco' | 'return' | 'const' | 'let' | 'config'
   | 'matrix' | 'report' | 'type' | 'factory' | 'dataset' | 'setup' | 'teardown'
   | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'

@@ -113,7 +113,7 @@ print "survived \${frame}"`;
    * value has to survive the crossing.
    */
   it("carries a value across a suspension", async () => {
-    const source = `use "@t/slow"
+    const source = `import { slow } from "@t/slow"
 
 loop total = 0 {
   if total >= 3 { break }
@@ -125,7 +125,7 @@ print "reached \${total}"`;
   });
 
   it("waits on a condition that suspends", async () => {
-    const source = `use "@t/slow"
+    const source = `import { slow } from "@t/slow"
 
 loop count = 0 {
   if count >= 2 { break }
@@ -138,7 +138,7 @@ loop count = 0 {
   });
 
   it("breaks out of a pass that had suspended", async () => {
-    const source = `use "@t/slow"
+    const source = `import { slow } from "@t/slow"
 
 loop at = 0 {
   const n = slow.next(at)
@@ -152,7 +152,7 @@ loop at = 0 {
 
   /** The double the three tests above depend on: it really does suspend. */
   it("reads a value back from an action that suspends", async () => {
-    const printed = await run('use "@t/slow"\n\nconst n = slow.next(41)\nprint n');
+    const printed = await run('import { slow } from "@t/slow"\n\nconst n = slow.next(41)\nprint n');
 
     expect(printed).toEqual(["42"]);
   });

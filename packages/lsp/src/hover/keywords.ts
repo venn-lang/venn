@@ -81,7 +81,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     summary:
       "Configuration for this run, read from the `[env.*]` tables of `venn.toml`. `--env <name>` picks which table; `env.name` is the one that was picked.",
     example:
-      'use "venn/env"\n\nconst token = http.post "${env.BASE_URL}/token" {\n  body: { user: env.USERNAME, pass: env.PASSWORD },\n  encode: "form"\n}',
+      'import { env } from "venn/env"\n\nconst token = http.post "${env.BASE_URL}/token" {\n  body: { user: env.USERNAME, pass: env.PASSWORD },\n  encode: "form"\n}',
   },
   resource: {
     summary:

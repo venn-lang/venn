@@ -1,27 +1,21 @@
-import { type Document, type ImportDecl, isUseDecl, isValueImport } from "@venn-lang/core";
+import { type Document, type ImportDecl, isValueImport } from "@venn-lang/core";
 import type { LangiumDocument } from "langium";
 import type { Position, TextEdit } from "vscode-languageserver";
 
-/**
- * Which header group a new line joins.
- *
- * One group, now that everything a file brings in is an `import`. The kind is
- * kept because a file may still hold a `use` on its way out, and a new line goes
- * after whatever is there rather than in front of it.
- */
-export type HeaderKind = "use" | "import";
+/** One group, since everything a file brings in is an `import`. */
+export type HeaderKind = "import";
 
 /** Insert a header line after the last one already written. */
-export function headerEdit(document: LangiumDocument, line: string, kind: HeaderKind): TextEdit {
-  const position = anchor(document, kind);
+export function headerEdit(document: LangiumDocument, line: string): TextEdit {
+  const position = anchor(document);
   return { range: { start: position, end: position }, newText: `${line}\n` };
 }
 
-function anchor(document: LangiumDocument, _kind: HeaderKind): Position {
+function anchor(document: LangiumDocument): Position {
   const root = document.parseResult?.value as Document | undefined;
   const imports = root?.imports ?? [];
   const preferred = last(imports, isValueImport);
-  const end = endOf(preferred ?? last(imports, isUseDecl)) ?? moduleEnd(root);
+  const end = endOf(preferred) ?? moduleEnd(root);
   if (end === undefined) return { line: 0, character: 0 };
   return { line: document.textDocument.positionAt(end).line + 1, character: 0 };
 }

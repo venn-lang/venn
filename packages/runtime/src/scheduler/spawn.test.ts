@@ -53,7 +53,7 @@ describe("spawn", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         'let job = spawn(fn () => t.slow("a"))',
         't.show "carried on"',
         "let got = job.wait",
@@ -70,7 +70,7 @@ describe("spawn", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         'let job = spawn(fn () => t.slow("b"))',
         "t.show job.done",
         "let got = job.wait",
@@ -86,7 +86,7 @@ describe("spawn", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         'let one = spawn(fn () => t.slow("1"))',
         'let two = spawn(fn () => t.slow("2"))',
         "let a = one.wait",
@@ -108,7 +108,11 @@ describe("spawn", () => {
   it("is not mistaken for the value it will produce", async () => {
     const t = harness();
     await run(
-      lines('use "@t/m"', 'let job = spawn(fn () => t.slow("c"))', "t.show typeOf(job)"),
+      lines(
+        'import { t } from "@t/m"',
+        'let job = spawn(fn () => t.slow("c"))',
+        "t.show typeOf(job)",
+      ),
       t.plugin,
     );
 

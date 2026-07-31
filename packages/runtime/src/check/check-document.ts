@@ -27,8 +27,8 @@ import { checkEnv } from "./check-env.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
+import { checkRemovedUse } from "./check-removed-use.js";
 import { checkUncalledAction } from "./check-uncalled.js";
-import { checkUse } from "./check-use.js";
 
 /**
  * Statically resolve every action, matcher and fragment reference in a parsed
@@ -59,10 +59,11 @@ export function checkDocument(args: CheckArgs): Problem[] {
 }
 
 function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
+  const removed = checkRemovedUse(node, ctx);
+  if (removed.length > 0) return removed;
   return [
     ...checkNode(node, ctx),
     ...checkNamespaceUse(node, ctx),
-    ...checkUse(node, ctx),
     ...checkEnv(node, ctx),
     ...checkInterpolation(node, ctx),
     ...one(checkUncalledAction(node, ctx)),

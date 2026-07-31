@@ -5,8 +5,6 @@ import {
   isMatcherClause,
   isRunStmt,
   isStringLit,
-  isUseDecl,
-  type UseDecl,
 } from "@venn-lang/core";
 import { CstUtils, type LangiumDocument } from "langium";
 import type { CodeActionProvider } from "langium/lsp";
@@ -54,7 +52,7 @@ export class VennCodeActionProvider implements CodeActionProvider {
   private fixes(diagnostic: Diagnostic, document: LangiumDocument): CodeAction[] {
     if (diagnostic.code === "VN2007") return this.addUse(diagnostic, document);
     if (diagnostic.code === "VN2005") return this.addImport(diagnostic, document);
-    if (diagnostic.code === "VN5001") return this.removed(diagnostic, document);
+    if (diagnostic.code === "VN5001") return this.useLet(diagnostic, document);
     return [];
   }
 
@@ -66,7 +64,7 @@ export class VennCodeActionProvider implements CodeActionProvider {
     return this.sources(node).map((pkg, index) =>
       fix({
         title: `Add import { ${name} } from "${pkg}"`,
-        edit: headerEdit(document, `import { ${name} } from "${pkg}"`, "use"),
+        edit: headerEdit(document, `import { ${name} } from "${pkg}"`),
         document,
         diagnostic,
         preferred: index === 0,
@@ -98,34 +96,6 @@ export class VennCodeActionProvider implements CodeActionProvider {
     return [];
   }
 
-  /** A keyword that is gone, and the line that says what it used to. */
-  private removed(diagnostic: Diagnostic, document: LangiumDocument): CodeAction[] {
-    const node = nodeAt(document, diagnostic);
-    if (isUseDecl(node)) return this.writeImport(diagnostic, document, node);
-    return this.useLet(diagnostic, document);
-  }
-
-  /** `use "venn/http"` is `import { http } from "venn/http"`, alias and all. */
-  private writeImport(
-    diagnostic: Diagnostic,
-    document: LangiumDocument,
-    node: UseDecl,
-  ): CodeAction[] {
-    const namespace = this.catalog.namespaceOfPackage(node.pkg);
-    if (!namespace) return [];
-    const named = node.alias ? `${namespace} as ${node.alias}` : namespace;
-    const edit = { range: diagnostic.range, newText: `import { ${named} } from "${node.pkg}"` };
-    return [
-      fix({
-        title: `Replace with import { ${named} }`,
-        edit,
-        document,
-        diagnostic,
-        preferred: true,
-      }),
-    ];
-  }
-
   /** `capture` is spelled `let`, so the fix is exactly one word wide. */
   private useLet(diagnostic: Diagnostic, document: LangiumDocument): CodeAction[] {
     const { start } = diagnostic.range;
@@ -146,7 +116,7 @@ export class VennCodeActionProvider implements CodeActionProvider {
       .map((module, index) =>
         fix({
           title: `Import ${name} from "${module.specifier}"`,
-          edit: headerEdit(document, `import { ${name} } from "${module.specifier}"`, "import"),
+          edit: headerEdit(document, `import { ${name} } from "${module.specifier}"`),
           document,
           diagnostic,
           preferred: index === 0,

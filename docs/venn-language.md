@@ -2062,9 +2062,7 @@ entry Document:
   imports+=ImportDecl*
   decls+=Declaration*;
 
-ImportDecl: UseDecl | ValueImport;
-// `use` saiu: continua sendo lido para o editor dizer o que escrever no lugar.
-UseDecl:      'use' pkg=STRING ('as' alias=ID)?;
+ImportDecl: ValueImport;
 ValueImport: export?='pub'? 'import'
   ( '{' names+=ImportName (',' names+=ImportName)* '}'
   | '*' 'as' ns=ID

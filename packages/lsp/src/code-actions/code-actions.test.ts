@@ -70,31 +70,6 @@ flow "F" {
     expect(added).toBeGreaterThan(updated.indexOf('from "./shared/auth.vn"'));
   });
 
-  it("replaces a `use` with the import it means", async () => {
-    const { actions, document, uri } = await fixesFor(`use "venn/http"
-
-flow "F" {
-  step "s" { http.get "https://example.com" }
-}`);
-    const fix = actions.find((one) => one.title.includes("Replace with import"));
-    const edits = fix?.edit?.changes?.[uri] ?? [];
-
-    expect(fix?.title).toContain("import { http }");
-    expect(applyEdits(document, edits)).toContain('import { http } from "venn/http"');
-  });
-
-  it("keeps the name a `use` gave it", async () => {
-    const { actions } = await fixesFor(`use "venn/http" as h
-
-flow "F" {
-  step "s" { h.get "https://example.com" }
-}`);
-
-    expect(actions.find((one) => one.title.includes("Replace with import"))?.title).toContain(
-      "http as h",
-    );
-  });
-
   it("offers nothing for a file whose namespaces are all imported", async () => {
     const { actions, diagnostics } = await fixesFor(`import { http } from "venn/http"
 

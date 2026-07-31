@@ -55,7 +55,12 @@ describe("a statement waits for what it reads", () => {
   it("binds what a function that called a verb returned", async () => {
     const t = harness();
     await run(
-      lines('use "@t/m"', "fn wrap(x) => t.slow(x)", 'let got = wrap("a")', "t.show got"),
+      lines(
+        'import { t } from "@t/m"',
+        "fn wrap(x) => t.slow(x)",
+        'let got = wrap("a")',
+        "t.show got",
+      ),
       t.plugin,
     );
 
@@ -66,7 +71,7 @@ describe("a statement waits for what it reads", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         "fn inner(x) => t.slow(x)",
         "fn middle(x) => inner(x)",
         "fn outer(x) => middle(x)",
@@ -81,7 +86,10 @@ describe("a statement waits for what it reads", () => {
 
   it("waits before passing it to another verb", async () => {
     const t = harness();
-    await run(lines('use "@t/m"', "fn wrap(x) => t.slow(x)", 't.show wrap("arg")'), t.plugin);
+    await run(
+      lines('import { t } from "@t/m"', "fn wrap(x) => t.slow(x)", 't.show wrap("arg")'),
+      t.plugin,
+    );
 
     expect(t.seen).toEqual(["<arg>"]);
   });
@@ -90,7 +98,7 @@ describe("a statement waits for what it reads", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         "fn wrap(x) => t.slow(x)",
         'if wrap("x") {',
         '  t.show "took the branch"',
@@ -112,7 +120,12 @@ describe("a value still arriving travels up the expression", () => {
   it("is read from, once it has arrived", async () => {
     const t = harness();
     await run(
-      lines('use "@t/m"', 'fn wrap() => t.slow("abc")', "let n = wrap().len", "t.show n"),
+      lines(
+        'import { t } from "@t/m"',
+        'fn wrap() => t.slow("abc")',
+        "let n = wrap().len",
+        "t.show n",
+      ),
       t.plugin,
     );
 
@@ -122,7 +135,12 @@ describe("a value still arriving travels up the expression", () => {
   it("takes part in an operator", async () => {
     const t = harness();
     await run(
-      lines('use "@t/m"', 'fn wrap() => t.slow("a")', 'let same = wrap() == "<a>"', "t.show same"),
+      lines(
+        'import { t } from "@t/m"',
+        'fn wrap() => t.slow("a")',
+        'let same = wrap() == "<a>"',
+        "t.show same",
+      ),
       t.plugin,
     );
 
@@ -132,7 +150,12 @@ describe("a value still arriving travels up the expression", () => {
   it("is interpolated into a string", async () => {
     const t = harness();
     await run(
-      lines('use "@t/m"', 'fn wrap() => t.slow("x")', 'let line = "got ${wrap()}"', "t.show line"),
+      lines(
+        'import { t } from "@t/m"',
+        'fn wrap() => t.slow("x")',
+        'let line = "got ${wrap()}"',
+        "t.show line",
+      ),
       t.plugin,
     );
 
@@ -143,7 +166,7 @@ describe("a value still arriving travels up the expression", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         'fn wrap() => t.slow("y")',
         'let pick = wrap() != null ? "yes" : "no"',
         "t.show pick",
@@ -158,7 +181,7 @@ describe("a value still arriving travels up the expression", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         'fn wrap() => t.slow("z")',
         "let box = { one: wrap() }",
         "t.show box.one",
@@ -173,7 +196,7 @@ describe("a value still arriving travels up the expression", () => {
     const t = harness();
     await run(
       lines(
-        'use "@t/m"',
+        'import { t } from "@t/m"',
         'fn wrap() => t.slow("q")',
         "fn size(text) => text.len",
         "let n = size(wrap())",
@@ -190,7 +213,12 @@ describe("a value still arriving travels up the expression", () => {
   it("leaves a verb that answers immediately alone", async () => {
     const t = harness();
     await run(
-      lines('use "@t/m"', 'fn now() => t.fast("abc")', "let n = now().len", "t.show n"),
+      lines(
+        'import { t } from "@t/m"',
+        'fn now() => t.fast("abc")',
+        "let n = now().len",
+        "t.show n",
+      ),
       t.plugin,
     );
 

@@ -140,9 +140,11 @@ describe("what the checker refuses", () => {
   });
 
   it("says `use` is gone, and what to write", () => {
-    const said_ = said('use "@t/kit"\nflow "f" { step "s" { kit.shout "hi" } }');
+    const source = `use "@t/kit"
+flow "f" { step "s" { kit.shout "hi" } }`;
+    const found = said(source);
 
-    expect(said_[0]).toContain("VN5001 `use` was removed");
+    expect(found[0]).toContain("VN5001 `use` was removed");
   });
 
   it("leaves a name the file binds alone", () => {

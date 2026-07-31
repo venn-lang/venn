@@ -28,7 +28,6 @@ import {
   isStepDecl,
   isTryStmt,
   isTypeDecl,
-  isUseDecl,
   isValueImport,
 } from "@venn-lang/core";
 import type { SemanticTokenAcceptor } from "langium/lsp";
@@ -56,7 +55,6 @@ function keywordsOf(node: AstNode): string[] {
 
 function declarations(node: AstNode): string[] | undefined {
   if (isDocument(node)) return node.name ? ["module"] : [];
-  if (isUseDecl(node)) return node.alias ? ["use", "as"] : ["use"];
   if (isValueImport(node)) return ["import", "from"];
   if (isFlowDecl(node)) return ["flow"];
   if (isFragmentDecl(node)) return ["fragment"];

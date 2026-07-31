@@ -41,7 +41,8 @@ describe("starting a statement", () => {
   });
 
   it("offers them inside a step as well", async () => {
-    const source = 'use "venn/assert"\nfn local(x) => x\nflow "f" { step "s" { ▮ } }\n';
+    const source =
+      'import { assert } from "venn/assert"\nfn local(x) => x\nflow "f" { step "s" { ▮ } }\n';
 
     expect(await offeredAt(source)).toContain("local");
   });

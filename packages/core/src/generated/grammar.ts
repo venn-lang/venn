@@ -118,73 +118,11 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
       "$type": "ParserRule",
       "name": "ImportDecl",
       "definition": {
-        "$type": "Alternatives",
-        "elements": [
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@2"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@3"
-            },
-            "arguments": []
-          }
-        ]
-      },
-      "entry": false,
-      "fragment": false,
-      "parameters": []
-    },
-    {
-      "$type": "ParserRule",
-      "name": "UseDecl",
-      "definition": {
-        "$type": "Group",
-        "elements": [
-          {
-            "$type": "Keyword",
-            "value": "use"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "pkg",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@86"
-              },
-              "arguments": []
-            }
-          },
-          {
-            "$type": "Group",
-            "elements": [
-              {
-                "$type": "Keyword",
-                "value": "as"
-              },
-              {
-                "$type": "Assignment",
-                "feature": "alias",
-                "operator": "=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@88"
-                  },
-                  "arguments": []
-                }
-              }
-            ],
-            "cardinality": "?"
-          }
-        ]
+        "$type": "RuleCall",
+        "rule": {
+          "$ref": "#/rules@2"
+        },
+        "arguments": []
       },
       "entry": false,
       "fragment": false,
@@ -227,7 +165,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@88"
+                        "$ref": "#/rules@3"
                       },
                       "arguments": []
                     }
@@ -246,7 +184,7 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@88"
+                            "$ref": "#/rules@3"
                           },
                           "arguments": []
                         }
@@ -314,6 +252,52 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
               },
               "arguments": []
             }
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "ImportName",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@88"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "as"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "alias",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@88"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
           }
         ]
       },
@@ -6122,10 +6106,6 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
           {
             "$type": "Keyword",
             "value": "module"
-          },
-          {
-            "$type": "Keyword",
-            "value": "use"
           },
           {
             "$type": "Keyword",

@@ -27,8 +27,8 @@ platform-neutral, which is why the same compiler runs in a Web Worker for the ed
 # tests/hello.vn
 module demo.hello
 
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -263,8 +263,8 @@ import { createMemorySink } from "@venn-lang/runtime";
 import { runFile } from "@venn-lang/cli";
 
 const source = `module demo.hello
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 flow "Hello" {
   step "Ping" {

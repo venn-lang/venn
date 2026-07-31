@@ -12,7 +12,7 @@ its console. This plugin names the parts of it that need naming, on top of the `
 install. A file that uses it says so:
 
 ```ruby
-use "venn/io"
+import { io } from "venn/io"
 ```
 
 The plugin declares `requires: ["io"]`. A host that offers no console (the Web Worker host behind
@@ -23,7 +23,7 @@ the editor offers `fs`, `clock`, `random`, `secrets` and `log`) refuses it at lo
 
 ```ruby
 # greet.vn, run with `venn run greet.vn Ada`
-use "venn/io"
+import { io } from "venn/io"
 
 const argv = io.args
 io.print "arguments: ${argv}"

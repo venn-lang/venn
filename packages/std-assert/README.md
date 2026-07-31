@@ -13,7 +13,7 @@ contributes no verbs, declares no types and needs no host capability.
 nothing to install. A file that asserts brings the namespace in:
 
 ```ruby
-use "venn/assert"
+import { assert } from "venn/assert"
 ```
 
 A matcher used without that line is `VN2007`; a word no plugin registered is `VN2004`. Both are
@@ -24,7 +24,7 @@ reported by `venn check`, before anything runs.
 ```ruby
 module demo.matchers
 
-use "venn/assert"
+import { assert } from "venn/assert"
 
 flow "Bareword matchers" {
   step "checks" {

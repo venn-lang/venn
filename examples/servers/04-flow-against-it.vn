@@ -2,8 +2,7 @@
 # back with `defer`.
 # Run: venn test examples/servers/04-flow-against-it.vn
 
-use "venn/http"
-use "venn/assert"
+import { http, header } from "venn/http"
 
 # Top-level statements run once, before the flows, so the server is up by the
 # time the first step asks it anything. `defer` at this level runs on the way

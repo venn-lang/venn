@@ -14,7 +14,7 @@ server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plug
 namespace with one line.
 
 ```ruby
-use "venn/notify"
+import { notify } from "venn/notify"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "venn/notify"
 ```ruby
 module demo.checkout
 
-use "venn/notify"
-use "venn/assert"
+import { notify } from "venn/notify"
+import { assert } from "venn/assert"
 
 flow "Checkout" {
   step "place the order" {

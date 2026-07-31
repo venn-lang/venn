@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { fixture } from "../testing/lsp-fixture.js";
 
 async function typeOf(line: string): Promise<string> {
-  const source = `use "venn/http"\nuse "venn/fmt"\n\n${line}\n`;
+  const source = `import { http } from "venn/http"\nimport { fmt } from "venn/fmt"\n\n${line}\n`;
   const { services, document, uri } = await fixture(source);
   const hover = await services.lsp.HoverProvider?.getHoverContent(document, {
     textDocument: { uri },
@@ -49,7 +49,8 @@ describe("the type of what a verb returns", () => {
   });
 
   it("lets the editor offer what the answer carries", async () => {
-    const source = 'use "venn/http"\n\nconst response = http.get("https://x")\nprint response.\n';
+    const source =
+      'import { http } from "venn/http"\n\nconst response = http.get("https://x")\nprint response.\n';
     const labels = await membersOf(source, "print response.");
 
     // Its own fields first, then what any map answers to.

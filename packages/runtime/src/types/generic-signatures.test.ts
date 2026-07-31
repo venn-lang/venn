@@ -60,7 +60,7 @@ function titles(source: string): string[] {
   return checkTypes(ast, { catalog }).problems.map((problem) => problem.title);
 }
 
-const PRELUDE = `use "@t/g"
+const PRELUDE = `import { g } from "@t/g"
 fn takesString(s: string) -> string => s
 fn takesNumber(n: number) -> number => n
 `;

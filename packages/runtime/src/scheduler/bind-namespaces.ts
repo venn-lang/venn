@@ -16,6 +16,8 @@ export function bindNamespaces(args: {
   registry: Registry;
   ctx: ActionContext;
   scope: Scope;
+  /** What the file called each namespace. Absent means every one, by its own name. */
+  named?: ReadonlyMap<string, string>;
 }): void {
   const byNamespace = new Map<string, Record<string, unknown>>();
   for (const entry of args.registry.actions()) {
@@ -24,8 +26,24 @@ export function bindNamespaces(args: {
     byNamespace.set(entry.namespace, members);
   }
   for (const [namespace, members] of byNamespace) {
-    args.scope.set(namespace, namespaceValue(members));
+    for (const local of localNames(namespace, args.named)) {
+      args.scope.set(local, namespaceValue(members));
+    }
   }
+}
+
+/**
+ * The names this namespace answers to here: its own, plus whatever the file
+ * called it.
+ *
+ * Its own stays because this scope is not where the rule lives. Whether a file
+ * may write a namespace it never imported is the checker's answer, given before
+ * anything runs and with the line in hand; binding fewer names here would only
+ * turn that answer into `undefined is not a function` further along.
+ */
+function localNames(namespace: string, named: ReadonlyMap<string, string> | undefined): string[] {
+  const local = [...(named ?? [])].filter(([, real]) => real === namespace).map(([name]) => name);
+  return local.includes(namespace) ? local : [namespace, ...local];
 }
 
 /** `jwt.decode` nests: `{ jwt: { decode: fn } }`, so the dotted call reads naturally. */

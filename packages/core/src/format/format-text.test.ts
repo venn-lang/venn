@@ -4,9 +4,9 @@ import { formatText } from "./format-text.js";
 
 const MESSY = `module demo
 
-use "venn/assert"
+import { assert } from "venn/assert"
 import { login } from "#shared/auth.vn"
-use "venn/http"
+import { http } from "venn/http"
 
 flow "F" {
 step "s" {
@@ -15,11 +15,12 @@ expect true
 }`;
 
 describe("formatText", () => {
-  it("groups every `use` above every `import`", () => {
+  it("keeps the imports together at the top", () => {
     const formatted = formatText(MESSY);
+    const first = formatted.indexOf("import {");
 
-    expect(formatted).toContain('use "venn/assert"\nuse "venn/http"\n');
-    expect(formatted.indexOf('use "venn/http"')).toBeLessThan(formatted.indexOf("import {"));
+    expect(first).toBeGreaterThanOrEqual(0);
+    expect(formatted.slice(first).split("\n\n")[0]).toContain('from "venn/http"');
   });
 
   it("re-indents by bracket depth", () => {
@@ -44,13 +45,18 @@ describe("formatText", () => {
   it("leaves the header alone when organising is off", () => {
     const formatted = formatText(MESSY, { organizeHeader: false });
 
-    expect(formatted.indexOf("import {")).toBeLessThan(formatted.indexOf('use "venn/http"'));
+    expect(formatted.indexOf("import {")).toBeLessThan(
+      formatted.indexOf('import { http } from "venn/http"'),
+    );
   });
 
   it("sorts each group when asked", () => {
-    const formatted = formatText('use "venn/http"\nuse "venn/assert"\n\nflow "F" { }', {
-      sortHeader: true,
-    });
+    const formatted = formatText(
+      'import { http } from "venn/http"\nimport { assert } from "venn/assert"\n\nflow "F" { }',
+      {
+        sortHeader: true,
+      },
+    );
 
     expect(formatted.indexOf("assert")).toBeLessThan(formatted.indexOf("http"));
   });

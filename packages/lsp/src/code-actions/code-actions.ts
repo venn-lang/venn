@@ -21,6 +21,7 @@ import type { VennServices } from "../services/lsp.types.js";
 import type { ImportResolver } from "../workspace/index.js";
 import { alreadyImports, headerEdit } from "./anchor.js";
 import { modulesExporting } from "./exporting-modules.js";
+import { importedName } from "./imported-name.js";
 
 interface FixArgs {
   title: string;
@@ -55,12 +56,15 @@ export class VennCodeActionProvider implements CodeActionProvider {
     return [];
   }
 
+  /** The import that brings the name in, written at the top with the others. */
   private addUse(diagnostic: Diagnostic, document: LangiumDocument): CodeAction[] {
     const node = nodeAt(document, diagnostic);
+    const name = importedName(node);
+    if (!name) return [];
     return this.sources(node).map((pkg, index) =>
       fix({
-        title: `Add use "${pkg}"`,
-        edit: headerEdit(document, `use "${pkg}"`, "use"),
+        title: `Add import { ${name} } from "${pkg}"`,
+        edit: headerEdit(document, `import { ${name} } from "${pkg}"`),
         document,
         diagnostic,
         preferred: index === 0,
@@ -112,7 +116,7 @@ export class VennCodeActionProvider implements CodeActionProvider {
       .map((module, index) =>
         fix({
           title: `Import ${name} from "${module.specifier}"`,
-          edit: headerEdit(document, `import { ${name} } from "${module.specifier}"`, "import"),
+          edit: headerEdit(document, `import { ${name} } from "${module.specifier}"`),
           document,
           diagnostic,
           preferred: index === 0,

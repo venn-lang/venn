@@ -36,10 +36,10 @@ one of them resolves because the whole stdlib is loaded:
 ```ruby
 module demo.stdlib
 
-use "venn/data"
-use "venn/auth"
-use "venn/db"
-use "venn/assert"
+import { data } from "venn/data"
+import { auth } from "venn/auth"
+import { db } from "venn/db"
+import { assert } from "venn/assert"
 
 flow "Stdlib showcase" {
   step "auth builds a bearer header" {

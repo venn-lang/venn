@@ -1,5 +1,5 @@
 import type { TypeSpec } from "@venn-lang/types";
-import type { Document } from "../generated/ast.js";
+import type { Document, ImportName } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { isPackageSpecifier } from "../module/index.js";
 import type { TypeCatalog } from "./catalog.types.js";
@@ -71,14 +71,15 @@ function bindingsOf(args: { document: Document; uri: string; state: State }): Ma
       ? packageTypes(decl.path, args.state)
       : publishedBy(args.state.resolve(args.uri, decl.path), args.state);
     if (decl.wildcard) out.set(decl.wildcard, record(published));
-    else for (const name of decl.names) take(out, published, name);
+    else for (const one of decl.names) take(out, published, one);
   }
   return out;
 }
 
-function take(out: Map<string, Type>, published: ReadonlyMap<string, Type>, name: string): void {
-  const found = published.get(name);
-  if (found) out.set(name, found);
+/** `import { total as sum }` binds `sum` to what the other file calls `total`. */
+function take(out: Map<string, Type>, published: ReadonlyMap<string, Type>, one: ImportName): void {
+  const found = published.get(one.name);
+  if (found) out.set(one.alias ?? one.name, found);
 }
 
 /**

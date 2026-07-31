@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 import { runFile } from "./run-file.js";
 
 const HELLO = `module demo.hello
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 flow "Hello" {
   step "Ping" {
@@ -16,8 +16,8 @@ flow "Hello" {
 }`;
 
 const WITH_BASE = `module demo.base
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 config { baseUrl: "https://api.test" }
 

@@ -16,6 +16,7 @@ import {
   isFragmentDecl,
   isLetStmt,
   isMatchArm,
+  isPackageSpecifier,
   isRepeatStmt,
   isValueImport,
   loopBinding,
@@ -103,8 +104,10 @@ function declaredNames(node: AstNode): ScopedName[] {
 function importedInto(document: Document): ScopedName[] {
   const found: ScopedName[] = [];
   for (const decl of document.imports) {
-    if (!isValueImport(decl)) continue;
-    const names = decl.wildcard ? [decl.wildcard] : decl.names;
+    // A package's namespace is offered as a namespace, further down the list:
+    // it is a bag of verbs rather than a value an argument is likely to want.
+    if (!isValueImport(decl) || isPackageSpecifier(decl.path)) continue;
+    const names = decl.wildcard ? [decl.wildcard] : decl.names.map((one) => one.alias ?? one.name);
     for (const name of names) found.push(named(decl, name, "import"));
   }
   return found;

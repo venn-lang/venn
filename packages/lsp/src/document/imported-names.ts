@@ -9,7 +9,8 @@ export function importedNames(document: Document): string[] {
   return names;
 }
 
+/** The name this file knows it by, which is the alias when one was written. */
 function namesOf(decl: ValueImport): string[] {
-  if (decl.names.length > 0) return decl.names;
+  if (decl.names.length > 0) return decl.names.map((one) => one.alias ?? one.name);
   return decl.default ? [decl.default] : [];
 }

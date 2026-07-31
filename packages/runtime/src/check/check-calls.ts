@@ -81,11 +81,15 @@ function missingImport(
   namespace: string,
 ): Problem {
   if (!args.ctx.registry.hasNamespace(namespace)) {
-    const title = `Unknown action "${args.target}" — no loaded plugin provides it.`;
+    const title = `Unknown action "${args.target}": no loaded plugin provides it.`;
     return problem(args.node, args.ctx, CODES.VN2003_UNKNOWN_ACTION, title);
   }
-  const title = `"${namespace}" is not imported in this file — add a \`use\` for its package.`;
-  return problem(args.node, args.ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
+  const title = `"${namespace}" is not imported in this file.`;
+  const found = problem(args.node, args.ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
+  return {
+    ...found,
+    help: `Write \`import { ${namespace} } from "…"\` for the package it comes from.`,
+  };
 }
 
 function problem(

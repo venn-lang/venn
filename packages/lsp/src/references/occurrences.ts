@@ -61,7 +61,9 @@ function importNames(root: Document, name: string): Occurrence[] {
   for (const decl of root.imports) {
     if (!isValueImport(decl)) continue;
     decl.names.forEach((each, index) => {
-      if (each === name) found.push({ node: decl, property: "names", index, declaration: false });
+      if (each.name === name || each.alias === name) {
+        found.push({ node: decl, property: "names", index, declaration: false });
+      }
     });
   }
   return found;

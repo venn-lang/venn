@@ -13,7 +13,6 @@ import {
   isParam,
   isRepeatStmt,
   type ParamList,
-  type UseDecl,
 } from "@venn-lang/core";
 import { type LangiumDocument, UriUtils } from "langium";
 import type { SymbolCatalog } from "../catalog/index.js";
@@ -60,14 +59,13 @@ export function declarationHover(args: {
   return renderBinding({ ...args, binding: args.node, name });
 }
 
-/** Hover for `use "venn/http"`: what the package contributes. */
-export function useHover(decl: UseDecl, catalog: SymbolCatalog): string | undefined {
-  const namespace = catalog.namespaceOfPackage(decl.pkg);
-  if (!namespace) return rule([fence(`use "${decl.pkg}"`), "Package is not loaded."]);
+/** Hover for the specifier of an import: what that package contributes. */
+export function packageHover(spec: string, catalog: SymbolCatalog): string | undefined {
+  const namespace = catalog.namespaceOfPackage(spec);
+  if (!namespace) return rule([fence(`"${spec}"`), "Package is not loaded."]);
   const count = catalog.actionsIn(namespace).length;
-  const alias = decl.alias ? ` as ${decl.alias}` : "";
   const verbs = `Contributes ${count} action${count === 1 ? "" : "s"} under ${code(namespace)}.`;
-  return rule([fence(`use "${decl.pkg}"${alias}`), verbs]);
+  return rule([fence(`import { ${namespace} } from "${spec}"`), verbs]);
 }
 
 function renderBinding(args: {

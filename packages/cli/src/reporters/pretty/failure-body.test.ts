@@ -6,7 +6,7 @@ import type { Reporter } from "../reporter.types.js";
 import { createPrettyReporter } from "./pretty-reporter.js";
 
 const RECONCILE = `module demo.diff
-use "venn/assert"
+import { assert } from "venn/assert"
 
 flow "Reconcile" {
   step "Check the row" {
@@ -17,7 +17,7 @@ flow "Reconcile" {
 }`;
 
 const MEMBERSHIP = `module demo.diff
-use "venn/assert"
+import { assert } from "venn/assert"
 
 flow "Membership" {
   step "Look for the pair" {

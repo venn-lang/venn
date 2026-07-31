@@ -92,7 +92,7 @@ async function problemsIn(uri: string): Promise<Problem[]> {
   });
   return [
     ...found,
-    ...checkImports({ document: ast, uri, graph }),
+    ...checkImports({ document: ast, uri, graph, registry }),
     ...checkTypes(ast, { uri, catalog, decos, imports }).problems,
   ];
 }

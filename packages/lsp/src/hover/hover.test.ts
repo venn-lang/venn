@@ -4,8 +4,8 @@ import { fixture, positionOf } from "../testing/lsp-fixture.js";
 
 const SOURCE = `module demo.lsp
 
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 fragment login(user) {
   step "in" { expect true }
@@ -83,7 +83,7 @@ describe("hover", () => {
   });
 });
 
-const TYPED = `use "venn/io"
+const TYPED = `import { io } from "venn/io"
 
 fn double(x) => x * 2
 

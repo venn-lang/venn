@@ -7,12 +7,13 @@ import {
   isDecoDecl,
   isFnDecl,
   isFragmentDecl,
+  isImportName,
   isMatcherClause,
   isMember,
   isNamedType,
   isNullType,
+  isPackageSpecifier,
   isRunStmt,
-  isUseDecl,
   isValueImport,
   type ValueImport,
 } from "@venn-lang/core";
@@ -42,7 +43,7 @@ import type { TypeService } from "../types/index.js";
 import type { ImportResolver } from "../workspace/index.js";
 import { keywordHover } from "./keywords.js";
 import { actionHover, matcherHover } from "./render-action.js";
-import { declarationHover, fragmentHover, useHover } from "./render-decl.js";
+import { declarationHover, fragmentHover, packageHover } from "./render-decl.js";
 import { importedHover, importPathHover } from "./render-imported.js";
 import { memberHover } from "./render-symbol.js";
 import { typeNameHover } from "./render-type-name.js";
@@ -146,7 +147,14 @@ export class VennHoverProvider implements HoverProvider {
     if (isAnnotation(node)) return this.decorator(node.name, document);
     const env = envPath(node);
     if (env) return this.envVar(env, document);
-    if (isValueImport(node)) return this.imported(node, leaf, document);
+    // One name of the list is its own node now, and the list is what describes it.
+    const list = isImportName(node) ? node.$container : node;
+    // The specifier of a package says what that package brings; every other
+    // part of an import, and every path to a file, is the list's own business.
+    if (isValueImport(list) && onPackage(leaf, list)) {
+      return packageHover(list.path, this.catalog) ?? this.imported(list, leaf, document);
+    }
+    if (isValueImport(list)) return this.imported(list, leaf, document);
     const symbol = this.pathHover(node, document);
     if (symbol) return symbol;
     const member = this.member(node, leaf.text, document);
@@ -158,7 +166,6 @@ export class VennHoverProvider implements HoverProvider {
     if (isNullType(node)) return typeNameHover("null", this.catalog);
     if (isMatcherClause(node) && on(leaf, node, "name"))
       return matcherHover(node.name, this.catalog);
-    if (isUseDecl(node) && on(leaf, node, "pkg")) return useHover(node, this.catalog);
     return this.declared(leaf, node, document);
   }
 
@@ -268,8 +275,13 @@ export class VennHoverProvider implements HoverProvider {
  * are one node carrying plain strings, so the word under the cursor is the
  * only thing that says which was meant.
  */
+/** Whether the cursor is on the specifier of an import, and it names a package. */
+function onPackage(leaf: CstNode, node: ValueImport): boolean {
+  return isPackageSpecifier(node.path) && leaf.text.includes(node.path);
+}
+
 function importedName(node: ValueImport, text: string): string | undefined {
-  if (node.names.includes(text)) return text;
+  if (node.names.some((one) => one.name === text || one.alias === text)) return text;
   return node.default === text ? text : undefined;
 }
 

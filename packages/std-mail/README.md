@@ -9,7 +9,7 @@ Half of an end-to-end test lands in an email: a verification code, a password re
 Nothing to install: the plugin ships inside the CLI's stdlib. Declare it in the file that needs it, and the runner loads it.
 
 ```ruby
-use "venn/mail"
+import { mail } from "venn/mail"
 ```
 
 ## Usage
@@ -17,8 +17,8 @@ use "venn/mail"
 ```ruby
 module demo.signup
 
-use "venn/mail"
-use "venn/assert"
+import { mail } from "venn/mail"
+import { assert } from "venn/assert"
 
 flow "Signup sends a verification email" {
   step "wait for the message" {

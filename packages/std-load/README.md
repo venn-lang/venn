@@ -13,7 +13,7 @@ server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plug
 namespace with one line.
 
 ```ruby
-use "venn/load"
+import { load } from "venn/load"
 ```
 
 ## Usage
@@ -21,8 +21,8 @@ use "venn/load"
 ```ruby
 module demo.load
 
-use "venn/load"
-use "venn/assert"
+import { load } from "venn/load"
+import { assert } from "venn/assert"
 
 flow "Checkout under load" {
   step "ramp to 200 VUs" {

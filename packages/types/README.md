@@ -36,7 +36,7 @@ const request: TypeSpec = t.record({
 That is the whole mechanism behind an editor knowing what `req` is with nothing written down:
 
 ```ruby
-use "venn/http"
+import { http } from "venn/http"
 
 const api = http.serve { port: 0 }
 http.on(api, route)

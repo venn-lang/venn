@@ -58,7 +58,7 @@ function record(seen: unknown[], params: unknown): unknown {
   return params;
 }
 
-const source = (call: string): string => `use "@t/m"\n${call}\n`;
+const source = (call: string): string => `import { t } from "@t/m"\n${call}\n`;
 
 interface Attempt {
   /** The options each action was handed; empty when it never ran. */

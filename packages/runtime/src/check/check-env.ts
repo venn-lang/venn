@@ -42,7 +42,8 @@ function notImported(span: Span): Problem {
   return buildProblem({
     spec: CODES.VN2007_NAMESPACE_NOT_IMPORTED,
     span,
-    title: '"env" is not imported in this file — add `use "venn/env"`.',
+    title: '"env" is not imported in this file.',
+    help: 'Write `import { env } from "venn/env"`.',
   });
 }
 

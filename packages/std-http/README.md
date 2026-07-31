@@ -14,7 +14,7 @@ Nothing to install yet. The package is unpublished (version `0.0.0`) and ships i
 `@venn-lang/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
 
 ```ruby
-use "venn/http"
+import { http } from "venn/http"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "venn/http"
 ```ruby
 module demo.api
 
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 config { baseUrl: "https://api.test" }
 
@@ -95,7 +95,7 @@ A server is not a request-response verb: it stays, and the requests arrive after
 hands back a handle, and `http.on` says what to answer with.
 
 ```ruby
-use "venn/http"
+import { http } from "venn/http"
 
 const api = http.serve { port: 0 }
 defer { api.close() }

@@ -13,6 +13,7 @@ import {
   type RunStmt,
   walkAst,
 } from "@venn-lang/core";
+import { readImports } from "../imports/index.js";
 import {
   collectAliases,
   collectBoundNames,
@@ -25,6 +26,8 @@ import { checkInsideDeco } from "./check-deco-body.js";
 import { checkEnv } from "./check-env.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
+import { checkNamespaceUse } from "./check-namespace-use.js";
+import { checkRemovedUse } from "./check-removed-use.js";
 import { checkUncalledAction } from "./check-uncalled.js";
 
 /**
@@ -41,6 +44,7 @@ export function checkDocument(args: CheckArgs): Problem[] {
     fragments: args.fragments,
     aliases: collectAliases(args.document, args.registry),
     imported: collectNamespaces(args.document, args.registry),
+    matchers: new Set(readImports(args.document, args.registry).matchers.keys()),
     bound: collectBoundNames(args.document),
     env: args.env ? new Set(args.env) : undefined,
     uri: args.uri ?? "memory://inline.vn",
@@ -55,8 +59,11 @@ export function checkDocument(args: CheckArgs): Problem[] {
 }
 
 function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
+  const removed = checkRemovedUse(node, ctx);
+  if (removed.length > 0) return removed;
   return [
     ...checkNode(node, ctx),
+    ...checkNamespaceUse(node, ctx),
     ...checkEnv(node, ctx),
     ...checkInterpolation(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
@@ -78,17 +85,19 @@ function one(problem: Problem | undefined): Problem[] {
 }
 
 /**
- * A matcher comes from a plugin like any action, so the file has to bring that
- * plugin in. Resolving against the whole loaded stdlib would make `use` decorative.
+ * A matcher is brought in by its own name, like anything else a package
+ * publishes. Resolving against the whole loaded stdlib would make the import
+ * decorative, and a file would read as though `contains` came from nowhere.
  */
 function checkMatcher(clause: MatcherClause, ctx: CheckContext): Problem | undefined {
   const owner = ctx.registry.matcher(clause.name);
   if (!owner) {
     return problem(clause, ctx, CODES.VN2004_UNKNOWN_MATCHER, `Unknown matcher "${clause.name}".`);
   }
-  if (ctx.imported.has(owner.plugin.namespace)) return undefined;
-  const title = `"${clause.name}" comes from "${owner.plugin.namespace}", which is not imported in this file.`;
-  return problem(clause, ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
+  if (ctx.matchers.has(clause.name)) return undefined;
+  const title = `"${clause.name}" is not imported in this file.`;
+  const problems = problem(clause, ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
+  return { ...problems, help: `Write \`import { ${clause.name} } from "${owner.plugin.name}"\`.` };
 }
 
 function checkFragment(stmt: RunStmt, ctx: CheckContext): Problem | undefined {

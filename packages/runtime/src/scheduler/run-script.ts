@@ -18,7 +18,7 @@ import { registerEnding, runSetup } from "./script-lifecycle.js";
  * way out, because a program that serves outlives its last line.
  */
 export async function runScript(engine: Engine, doc: Document): Promise<void> {
-  const base = (): Scope => createBaseScope({ engine });
+  const base = (): Scope => createBaseScope({ engine, document: doc });
   const root = base();
   const graph = engine.imports;
   if (graph) bindImports({ document: doc, uri: engine.uri, scope: root, graph, base });

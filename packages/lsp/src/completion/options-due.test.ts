@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CompletionItem, SignatureHelp } from "vscode-languageserver";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const HEAD = 'use "venn/http"\n\nconst quem = "x"\n';
+const HEAD = 'import { http } from "venn/http"\n\nconst quem = "x"\n';
 
 /** Everything at the cursor, marked `▮`, in a document of its own. */
 async function at(body: string) {

@@ -1,4 +1,4 @@
-import { type AstNode, type Document, isUseDecl } from "@venn-lang/core";
+import { type AstNode, type Document, isValueImport } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments } from "langium";
 import type { CompletionProvider } from "langium/lsp";
 import type {
@@ -408,9 +408,10 @@ function lineAt(document: LangiumDocument, position: Position): string {
 function namespacesUsed(root: Document, catalog: SymbolCatalog): string[] {
   const names: string[] = [];
   for (const decl of root.imports) {
-    if (!isUseDecl(decl)) continue;
-    const namespace = decl.alias ?? catalog.namespaceOfPackage(decl.pkg);
-    if (namespace) names.push(namespace);
+    if (!isValueImport(decl)) continue;
+    const namespace = catalog.namespaceOfPackage(decl.path);
+    for (const one of decl.names) if (one.name === namespace) names.push(one.alias ?? one.name);
+    if (decl.wildcard && namespace) names.push(decl.wildcard);
   }
   return names;
 }

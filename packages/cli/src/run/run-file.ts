@@ -3,6 +3,7 @@ import { type Problem, parse } from "@venn-lang/core";
 import { type HttpClient, HttpClientPort, type HttpServer, HttpServerPort } from "@venn-lang/http";
 import { createNodeServer } from "@venn-lang/http/node";
 import {
+  buildRegistry,
   type CleanupSink,
   checkImports,
   createRunner,
@@ -72,7 +73,8 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
   // Refused before anything runs. An import that names something the other file
   // never published would otherwise surface halfway through, as a value that
   // was quietly `undefined` until something called it.
-  const bad = graph ? checkImports({ document: ast, uri: args.uri, graph }) : [];
+  const registry = buildRegistry({ plugins: allPlugins, caps: args.host.caps });
+  const bad = graph ? checkImports({ document: ast, uri: args.uri, graph, registry }) : [];
   if (bad.length > 0) return { problems: bad };
   const runner = createRunner({
     host: args.host,

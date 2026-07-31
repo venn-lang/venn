@@ -1,4 +1,4 @@
-import { isDocument, isUseDecl, isValueImport, type ValueImport } from "@venn-lang/core";
+import { isDocument, isValueImport, type ValueImport } from "@venn-lang/core";
 import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserver";
 import type { HighlightArgs } from "./highlight.types.js";
 
@@ -12,12 +12,6 @@ export function highlightModule(args: HighlightArgs): void {
   const { node, acceptor } = args;
   if (isDocument(node) && node.name) {
     acceptor({ node, property: "name", type: SemanticTokenTypes.namespace });
-  } else if (isUseDecl(node)) {
-    acceptor({ node, property: "pkg", type: SemanticTokenTypes.string });
-    if (node.alias) {
-      const type = SemanticTokenTypes.namespace;
-      acceptor({ node, property: "alias", type, modifier: DECLARATION });
-    }
   } else if (isValueImport(node)) {
     importedNames(node, args);
   }
@@ -26,9 +20,19 @@ export function highlightModule(args: HighlightArgs): void {
 function importedNames(node: ValueImport, args: HighlightArgs): void {
   const { acceptor } = args;
   acceptor({ node, property: "path", type: SemanticTokenTypes.string });
-  node.names.forEach((_name, index) => {
-    acceptor({ node, property: "names", index, type: SemanticTokenTypes.function });
-  });
+  for (const one of node.names) {
+    acceptor({ node: one, property: "name", type: SemanticTokenTypes.function });
+    // The name it is given here is what the rest of the file writes, and what
+    // it names is a bag of verbs, so it is coloured as one.
+    if (one.alias) {
+      acceptor({
+        node: one,
+        property: "alias",
+        type: SemanticTokenTypes.namespace,
+        modifier: DECLARATION,
+      });
+    }
+  }
   const bound = node.wildcard ?? node.default;
   if (!bound) return;
   const property = node.wildcard ? "wildcard" : "default";

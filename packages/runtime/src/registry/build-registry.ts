@@ -37,12 +37,17 @@ function indexPlugins(plugins: readonly PluginDefinition[]): Registry {
   const matchers = new Map<string, ResolvedMatcher>();
   const namespaces = new Set<string>();
   const packages = new Map<string, string>();
-  for (const plugin of plugins) addPlugin({ plugin, actions, matchers, namespaces, packages });
+  const byPackage = new Map<string, PluginDefinition>();
+  for (const plugin of plugins) {
+    addPlugin({ plugin, actions, matchers, namespaces, packages });
+    byPackage.set(plugin.name, plugin);
+  }
   return {
     action: ({ namespace, name }) => actions.get(`${namespace}.${name}`),
     matcher: (name) => matchers.get(name),
     hasNamespace: (namespace) => namespaces.has(namespace),
     namespaceOf: (pkg) => packages.get(pkg),
+    plugin: (pkg) => byPackage.get(pkg),
     actions: () => listActions(actions),
   };
 }

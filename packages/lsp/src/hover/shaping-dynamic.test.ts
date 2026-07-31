@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fixture } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "venn/http"
+const SOURCE = `import { http } from "venn/http"
 
 const response = http.get("https://x")
 print response.json

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fixture, positionOf } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "venn/assert"
+const SOURCE = `import { assert } from "venn/assert"
 
 fragment login(user) {
   step "in" { expect true }

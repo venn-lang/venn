@@ -21,7 +21,8 @@ export interface ImportedDecoScope {
 export function importedDecos(scope: ImportedDecoScope): Map<string, ImportedDeco> {
   const found = new Map<string, ImportedDeco>();
   for (const decl of scope.root.imports) {
-    if (isValueImport(decl)) collect({ scope, spec: decl.path, names: decl.names, found });
+    if (isValueImport(decl))
+      collect({ scope, spec: decl.path, names: decl.names.map((one) => one.name), found });
   }
   return found;
 }

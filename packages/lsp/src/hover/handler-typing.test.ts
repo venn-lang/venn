@@ -4,7 +4,7 @@ import { fixture } from "../testing/lsp-fixture.js";
 /** How `route`'s parameter is typed when the handler is passed this way. */
 async function paramOf(line: string): Promise<string> {
   const source = [
-    'use "venn/http"',
+    'import { http } from "venn/http"',
     "",
     "const api = http.serve { port: 0 }",
     line,

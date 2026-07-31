@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-use "venn/mock"
+import { mock } from "venn/mock"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ use "venn/mock"
 ```ruby
 module demo.checkout
 
-use "venn/mock"
+import { mock } from "venn/mock"
 
 setup {
   mock.start "payments" { from: "./mocks/stripe.yaml" }

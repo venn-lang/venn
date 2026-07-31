@@ -3,7 +3,7 @@
 # `matrix`, a plain map you read like any other.
 # Run it with:  venn test examples/testing/10-matrix.vn
 
-use "venn/assert"
+import { contains, oneOf } from "venn/assert"
 
 matrix {
   plan: ["free", "pro"]

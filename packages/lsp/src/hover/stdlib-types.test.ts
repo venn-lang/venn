@@ -17,7 +17,7 @@ describe("hover, with the stdlib's own types", () => {
   // parameter is: the same rule TypeScript calls contextual typing.
   it("types a handler's parameter from the verb it is passed to", async () => {
     const source = [
-      'use "venn/http"',
+      'import { http } from "venn/http"',
       "const api = http.serve { port: 0 }",
       "http.on api req => req",
     ].join("\n");
@@ -32,7 +32,7 @@ describe("hover, with the stdlib's own types", () => {
    */
   it("types an annotated parameter of a named fn through the catalog", async () => {
     const source = [
-      'use "venn/http"',
+      'import { http } from "venn/http"',
       "fn route(req: http.Request) => req.url",
       "const api = http.serve { port: 0 }",
       "http.on api r => route(r)",
@@ -44,7 +44,9 @@ describe("hover, with the stdlib's own types", () => {
   });
 
   it("types a binding by the verb that opened it", async () => {
-    const source = ['use "venn/http"', "const api = http.serve { port: 0 }"].join("\n");
+    const source = ['import { http } from "venn/http"', "const api = http.serve { port: 0 }"].join(
+      "\n",
+    );
 
     expect(await hoverOn(source, "api = http")).toContain("http.Server");
   });

@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { fixture, positionOf } from "../testing/lsp-fixture.js";
 
-const SOURCE = `use "venn/fmt"
+const SOURCE = `import { fmt } from "venn/fmt"
 
 const people = [{ name: "Ada", age: 36 }]
 const nums = [1, 2, 3]

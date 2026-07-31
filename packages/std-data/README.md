@@ -13,7 +13,7 @@ The package is part of the stdlib the `venn` CLI loads, so nothing to install. R
 flow with a `use` line:
 
 ```ruby
-use "venn/data"
+import { data } from "venn/data"
 ```
 
 ## Usage
@@ -21,8 +21,8 @@ use "venn/data"
 ```ruby
 module demo.signup
 
-use "venn/assert"
-use "venn/data"
+import { assert } from "venn/assert"
+import { data } from "venn/data"
 
 flow "A generated Brazilian signup" {
   const name = data.faker.name

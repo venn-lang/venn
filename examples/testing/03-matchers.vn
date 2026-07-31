@@ -3,7 +3,7 @@
 
 # `expect` is kernel syntax; the words after the subject are not. They arrive
 # with a plugin, which is why this line is here.
-use "venn/assert"
+import { closeTo, contains, equals, oneOf } from "venn/assert"
 
 flow "matchers read as sentences" {
   const receipt = {

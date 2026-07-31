@@ -1,17 +1,14 @@
+import { preludeVerbs } from "@venn-lang/prelude";
+
 /**
- * Prelude verbs, callable without `use` (§12). `print` writes to the console,
- * `log` records into the event stream (what a reporter and a test see), and the
- * rest steer the run. Pure prelude *values* (`len`, `range`, `pretty`…) are not
- * here: they live in the root scope, so they work in any expression.
+ * The prelude verbs, carried out here rather than read as values.
+ *
+ * The list comes from `@venn-lang/prelude`, which is the one place that says
+ * what the language brings with it. A verb has somewhere to write to and
+ * something to record; the prelude's *values* live in the root scope instead, so
+ * they work inside any expression.
  */
-export const PRELUDE: ReadonlySet<string> = new Set([
-  "print",
-  "log",
-  "wait",
-  "skip",
-  "fail",
-  "exit",
-]);
+export const PRELUDE: ReadonlySet<string> = new Set(preludeVerbs());
 
 /** Split an action target `namespace.action` into parts (no dot ⇒ namespace only). */
 export function splitTarget(target: string): { namespace: string; name: string } {

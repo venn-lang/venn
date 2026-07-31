@@ -12,6 +12,7 @@ import {
   type Type,
   type TypeVar,
   union,
+  variadic,
 } from "./type.types.js";
 import { prune } from "./unify.js";
 
@@ -91,7 +92,9 @@ export function listMember(element: Type, name: string, ctx: TypeContext): Type 
     sort: () => optional([fn([element, element], NUMBER)], list(element), 0),
     slice: () => optional([NUMBER, NUMBER], list(element), 1),
     concat: () => fn([list(element)], list(element)),
-    push: () => fn([element], list(element)),
+    // As many as you like, and every one of them an element: the run appends
+    // them all, and a signature of exactly one was refusing what it accepts.
+    push: () => variadic([element], list(element)),
   };
   return table[name]?.();
 }

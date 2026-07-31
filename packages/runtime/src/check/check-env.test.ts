@@ -69,7 +69,7 @@ describe("env checking", () => {
     const found = check(withEnv("expect env.BASE_UR"), DECLARED);
 
     expect(found[0]).toContain("VN2006");
-    expect(found[0]).toContain('did you mean "env.BASE_URL"');
+    expect(found[0]).toContain('Did you mean "env.BASE_URL"');
   });
 
   it("catches the typo inside an interpolated string, where env reads actually live", () => {
@@ -95,7 +95,7 @@ describe("option checking", () => {
     const found = check(call('{ bearrer: "t" }'));
 
     expect(found[0]).toContain("VN3001");
-    expect(found[0]).toContain('did you mean "bearer"');
+    expect(found[0]).toContain('Did you mean "bearer"');
   });
 
   it("lists what is accepted when nothing is close enough to suggest", () => {

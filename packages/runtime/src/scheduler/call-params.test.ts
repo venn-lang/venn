@@ -108,7 +108,7 @@ describe("an option key the schema never declared", () => {
   it("suggests the key that was meant", async () => {
     const { problem } = await attempt(typo);
 
-    expect(problem?.title).toContain('did you mean "algorithm"');
+    expect(problem?.title).toContain('Did you mean "algorithm"');
   });
 
   it("says exactly what the checker says about the same line", async () => {
@@ -200,7 +200,7 @@ describe("a matcher's options map", () => {
     const { problem } = await attempt(source("expect 1.0 closeTo 1.5 { withinn: 1 }"));
 
     expect(problem?.code).toBe("VN3001");
-    expect(problem?.title).toContain('did you mean "within"');
+    expect(problem?.title).toContain('Did you mean "within"');
   });
 
   it("reads a rejected value as one line, not a dump of issues", async () => {

@@ -22,8 +22,10 @@ export function unknownOptions(args: {
   const specs = paramSpecs(args.params as never);
   if (!args.opts || specs.length === 0 || welcomesMore(args.params)) return [];
   const known = new Set(specs.map((spec) => spec.name));
+  // An entry poured in with `...` brings keys nobody wrote here, so there is no
+  // written key to call unknown.
   return args.opts.entries
-    .filter((entry) => !known.has(entry.key))
+    .filter((entry) => entry.key !== undefined && !known.has(entry.key))
     .map((entry) => unknownOption({ entry, specs, uri: args.uri }));
 }
 
@@ -45,11 +47,11 @@ function unknownOption(args: {
   specs: readonly ParamSpec[];
   uri: string;
 }): Problem {
-  const { key } = args.entry;
+  const key = args.entry.key as string;
   const hint = nearest(key, args.specs);
   const accepted = args.specs.map((spec) => spec.name).join(", ");
   const title = hint
-    ? `"${key}" is not an option here — did you mean "${hint}"?`
+    ? `"${key}" is not an option here. Did you mean "${hint}"?`
     : `"${key}" is not an option here. Accepted: ${accepted}.`;
   return buildProblem({
     spec: CODES.VN3001_UNKNOWN_OPTION,

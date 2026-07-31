@@ -64,7 +64,7 @@ function declared(name: string, env: ReadonlySet<string>): boolean {
 export function envProblem(name: string, span: Span, ctx: CheckContext): Problem {
   const hint = nearest(name, [...(ctx.env ?? [])]);
   const title = hint
-    ? `"env.${name}" is not declared in venn.toml — did you mean "env.${hint}"?`
+    ? `"env.${name}" is not declared in venn.toml. Did you mean "env.${hint}"?`
     : `"env.${name}" is not declared in venn.toml.`;
   return buildProblem({ spec: CODES.VN2006_UNKNOWN_ENV, span, title });
 }

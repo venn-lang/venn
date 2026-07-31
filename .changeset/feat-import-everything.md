@@ -1,9 +1,9 @@
 ---
-"@venn-lang/cli": minor
-"@venn-lang/core": minor
-"@venn-lang/lsp": minor
-"@venn-lang/prelude": minor
-"@venn-lang/runtime": minor
+"@venn-lang/cli": major
+"@venn-lang/core": major
+"@venn-lang/lsp": major
+"@venn-lang/prelude": major
+"@venn-lang/runtime": major
 ---
 
-Bring everything in by the name that brings it.
+Remove `use`, and bring everything in by name.

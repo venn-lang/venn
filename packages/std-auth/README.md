@@ -14,7 +14,7 @@ server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plug
 namespace with one line.
 
 ```ruby
-use "venn/auth"
+import { auth } from "venn/auth"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "venn/auth"
 ```ruby
 module demo.auth
 
-use "venn/auth"
-use "venn/assert"
+import { auth } from "venn/auth"
+import { assert } from "venn/assert"
 
 flow "Signed in" {
   step "a bearer header carries the token" {

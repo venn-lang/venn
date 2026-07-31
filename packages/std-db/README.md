@@ -12,7 +12,7 @@ The package is part of the stdlib the `venn` CLI loads, so nothing to install. R
 flow with a `use` line:
 
 ```ruby
-use "venn/db"
+import { db } from "venn/db"
 ```
 
 The plugin declares the `net` capability. A host that does not offer it fails the load with a
@@ -23,8 +23,8 @@ readable diagnostic rather than a `TypeError` mid-run.
 ```ruby
 module demo.orders
 
-use "venn/assert"
-use "venn/db"
+import { assert } from "venn/assert"
+import { db } from "venn/db"
 
 flow "Orders survive a snapshot" {
   step "seed the tables" {

@@ -14,7 +14,7 @@ server both load [`@venn-lang/stdlib`](../stdlib), which lists every stdlib plug
 namespace with one line.
 
 ```ruby
-use "venn/artifacts"
+import { artifacts } from "venn/artifacts"
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ use "venn/artifacts"
 ```ruby
 module demo.checkout
 
-use "venn/artifacts"
-use "venn/assert"
+import { artifacts } from "venn/artifacts"
+import { assert } from "venn/assert"
 
 afterEach { artifacts.flush }
 

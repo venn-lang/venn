@@ -102,6 +102,9 @@ export async function resolveImports(args: {
 export function collectUses(document: Document, into: Set<string>): void {
   for (const decl of document.imports) {
     if (isUseDecl(decl)) into.add(decl.pkg);
+    // An import of a package is a package this run needs, the same as a `use`
+    // was: which of the two it turns out to be is the registry's business.
+    else if (isValueImport(decl) && isPackageSpecifier(decl.path)) into.add(decl.path);
   }
 }
 

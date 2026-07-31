@@ -1,0 +1,53 @@
+{
+  "name": "@venn-lang/prelude",
+  "version": "0.5.0",
+  "description": "What Venn brings with it: the names in scope before anything is imported.",
+  "keywords": [
+    "venn",
+    "testing",
+    "e2e",
+    "prelude",
+    "stdlib"
+  ],
+  "homepage": "https://github.com/venn-lang/venn/tree/main/packages/prelude#readme",
+  "bugs": "https://github.com/venn-lang/venn/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venn-lang/venn.git",
+    "directory": "packages/prelude"
+  },
+  "license": "MIT",
+  "author": "Vinicius Borges",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.suite.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@venn-lang/types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

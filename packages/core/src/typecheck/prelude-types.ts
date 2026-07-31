@@ -1,13 +1,17 @@
-import { REGEX_TYPE } from "./regex-type.js";
-import { DYNAMIC, list, NUMBER, STRING, type Type, variadic } from "./type.types.js";
+/**
+ * The prelude as the checker needs it: every name's signature, built once from
+ * what `@venn-lang/prelude` publishes.
+ *
+ * The list itself lives there, in the wire format a plugin uses, so what comes
+ * native is one thing anyone can read rather than a table inside the compiler.
+ * This is only the reading of it.
+ */
 
-/** One argument of a prelude verb, named so the editor can point at it. */
-export interface PreludeArg {
-  name: string;
-  type: string;
-  doc?: string;
-  optional?: boolean;
-}
+import { PRELUDE, type PreludeArg, type PreludeEntry } from "@venn-lang/prelude";
+import { specToType } from "./spec-to-type.js";
+import type { Type } from "./type.types.js";
+
+export type { PreludeArg };
 
 /** What the editor needs to describe a prelude name: its type, and what it is for. */
 export interface PreludeSpec {
@@ -23,149 +27,29 @@ export interface PreludeSpec {
   args?: readonly PreludeArg[];
 }
 
-/**
- * The prelude, described once: the checker reads the types, the editor reads
- * the prose. Two tables would drift; this one cannot.
- */
-export const PRELUDE_SPECS: Readonly<Record<string, PreludeSpec>> = {
-  regex: {
-    signature: "regex(pattern: string, flags?: string) -> regex",
-    doc: "Compile a pattern once, here, rather than on every comparison. Write the pattern as a raw string so every backslash survives, and read it back with `.test`, `.match`, `.source` and `.flags`.",
-    example:
-      'const order = regex(r"Order #(\\d+)")\nexpect (body ~= order)\nlet n = order.match(body)[1]',
-    // Variadic because the flags are optional: `regex(r"…")` is the common
-    // spelling and `regex(r"…", "g")` is the other one.
-    type: variadic([STRING], REGEX_TYPE),
-    args: [
-      { name: "pattern", type: "string", doc: 'The pattern. `r"…"` keeps its backslashes.' },
-      {
-        name: "flags",
-        type: "string",
-        doc: "Regular expression flags. `(?i:…)` inside the pattern is the other way, and works per group.",
-        optional: true,
-      },
-    ],
-  },
-  spawn: {
-    signature: "spawn(fn () -> T) -> task",
-    doc: "Start work without waiting for it. Everything else waits by itself, so this is how to carry on — ask for the value later with `.wait`.",
-    example: "let job = spawn(fn () => http.get(url))\nlet page = job.wait",
-    type: variadic([DYNAMIC], DYNAMIC),
-    args: [
-      {
-        name: "work",
-        type: "fn () -> T",
-        doc: "What to start. It runs on its own; ask for the answer later.",
-      },
-    ],
-  },
-  print: {
-    signature: "print(…) -> null",
-    doc: "Write to standard output, followed by a newline. A map or list shows as JSON.",
-    args: [
-      {
-        name: "values",
-        type: "…",
-        doc: "Anything, as many as you like. Spaced apart on one line.",
-      },
-    ],
-    example: 'print "hello" 42\nprint pretty(user)',
-    type: variadic([DYNAMIC], { kind: "prim", name: "null" }),
-  },
-  log: {
-    signature: "log(…) -> null",
-    doc: "Record a message in the event stream — what a reporter and a test see, not stdout.",
-    example: 'log "retrying" attempt',
-    args: [
-      {
-        name: "values",
-        type: "…",
-        doc: "Anything, as many as you like. Goes to the event stream, not stdout.",
-      },
-    ],
-    type: variadic([DYNAMIC], { kind: "prim", name: "null" }),
-  },
-  range: {
-    signature: "range(from?, to, step?) -> list<number>",
-    doc: "A list of numbers, counting up or down. The end is exclusive.",
-    example:
-      "range(3)        # [0, 1, 2]\nrange(1, 4)     # [1, 2, 3]\nrange(0, 10, 2) # [0, 2, 4, 6, 8]",
-    args: [
-      {
-        name: "from",
-        type: "number",
-        doc: "Where to start. Omit it and counting starts at 0.",
-        optional: true,
-      },
-      { name: "to", type: "number", doc: "Where to stop, exclusive." },
-      { name: "step", type: "number", doc: "How far apart. Negative counts down.", optional: true },
-    ],
-    type: variadic([NUMBER], list(NUMBER)),
-  },
-  str: {
-    signature: "str(…) -> string",
-    doc: "Every argument as text, spaced. Works on `null`, which has no methods of its own.",
-    example: 'str("total:", 42, true)  # "total: 42 true"',
-    args: [{ name: "values", type: "…", doc: "Anything, as many as you like." }],
-    type: variadic([DYNAMIC], STRING),
-  },
-  typeOf: {
-    signature: "typeOf(value) -> string",
-    doc: "The name of a value's type: `list`, `map`, `string`, `number`, `bool`, `fn`, `null`.",
-    example: 'typeOf([1, 2])  # "list"',
-    args: [{ name: "value", type: "dynamic", doc: "Whatever you want the name of." }],
-    type: variadic([DYNAMIC], STRING),
-  },
-  pretty: {
-    signature: "pretty(value) -> string",
-    doc: "Indented JSON — `fmt.json(x, 2)` without the import.",
-    args: [{ name: "value", type: "dynamic", doc: "What to render." }],
-    example: "print pretty(user)",
-    type: variadic([DYNAMIC], STRING),
-  },
-  wait: {
-    signature: "wait(duration) -> null",
-    doc: "Pause for a duration.",
-    args: [{ name: "duration", type: "duration", doc: "How long: `500ms`, `2s`, `1m`." }],
-    example: "wait 500ms",
-    type: variadic([DYNAMIC], { kind: "prim", name: "null" }),
-  },
-  skip: {
-    signature: "skip(reason) -> null",
-    doc: "Skip the rest of the current flow.",
-    args: [
-      {
-        name: "reason",
-        type: "string",
-        doc: "Why — it is reported alongside the skip.",
-        optional: true,
-      },
-    ],
-    type: variadic([DYNAMIC], { kind: "prim", name: "null" }),
-  },
-  fail: {
-    signature: "fail(message) -> never",
-    doc: "Fail the current step with a message.",
-    args: [{ name: "message", type: "string", doc: "What went wrong, in the reader's terms." }],
-    type: variadic([DYNAMIC], { kind: "prim", name: "null" }),
-  },
-  exit: {
-    signature: "exit(code) -> never",
-    doc: "End the program with an exit code.",
-    args: [
-      {
-        name: "code",
-        type: "number",
-        doc: "0 means success. Anything else does not.",
-        optional: true,
-      },
-    ],
-    example: "exit 1",
-    type: variadic([NUMBER], { kind: "prim", name: "null" }),
-  },
-};
+/** A prelude signature refers to no named type belonging to anyone else. */
+const ALONE = (): Type | undefined => undefined;
 
-/** Whether a bare name is part of the prelude: no `use` needed, always in scope. */
+/**
+ * The prelude, described once: the checker reads the types, the editor reads the
+ * prose. Two tables would drift; these come from the same entry, so they cannot.
+ */
+export const PRELUDE_SPECS: Readonly<Record<string, PreludeSpec>> = Object.fromEntries(
+  Object.entries(PRELUDE).map(([name, entry]) => [name, specOf(entry)]),
+);
+
+function specOf(entry: PreludeEntry): PreludeSpec {
+  const spec: PreludeSpec = {
+    signature: entry.signature,
+    doc: entry.doc,
+    type: specToType(entry.type, ALONE),
+  };
+  if (entry.example !== undefined) spec.example = entry.example;
+  if (entry.args !== undefined) spec.args = entry.args;
+  return spec;
+}
+
+/** Whether a bare name is part of the prelude: no import needed, always in scope. */
 export function isPrelude(name: string): boolean {
   return name in PRELUDE_SPECS;
 }

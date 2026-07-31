@@ -29,7 +29,7 @@ Small enough to read in an afternoon.
 <br>
 
 ```ruby
-use "venn/http"
+import { http } from "venn/http"
 
 flow "Checkout" {
   let cart = http.post "https://shop.test/cart" { body: { sku: "A-12" } }
@@ -319,8 +319,8 @@ A `flow` is a test. A `step` is a named piece of one, and it is what appears in
 the report and in the failure trace.
 
 ```ruby
-use "venn/http"
-use "venn/assert"
+import { http } from "venn/http"
+import { assert } from "venn/assert"
 
 flow "Sign-up" {
   let created = http.post "https://api.test/users" { body: { email: "a@b.c" } }

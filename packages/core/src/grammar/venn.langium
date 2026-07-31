@@ -16,12 +16,17 @@ ImportDecl: UseDecl | ValueImport;
 
 UseDecl: 'use' pkg=STRING ('as' alias=ID)?;
 
+// Everything a file reaches by name arrives here, whether it was written in
+// another `.vn` or published by a package: `import { http } from "venn/http"`
+// brings the namespace, and `as` names it something else where two would clash.
 ValueImport:
     (export?='pub')? 'import'
-    ( '{' names+=ID (',' names+=ID)* '}'
+    ( '{' names+=ImportName (',' names+=ImportName)* '}'
     | '*' 'as' wildcard=ID
     | default=ID )
     'from' path=STRING;
+
+ImportName: name=ID ('as' alias=ID)?;
 
 // The top level of a file. In test mode the runner picks out the `flow`s; in
 // script mode it executes the statements top to bottom, the file itself being

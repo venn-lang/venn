@@ -128,7 +128,8 @@ function rootScope(args: {
   doc: Document;
   variant: Record<string, unknown>;
 }): Scope {
-  const base = (): Scope => createBaseScope({ engine: args.engine, variant: args.variant });
+  const base = (): Scope =>
+    createBaseScope({ engine: args.engine, variant: args.variant, document: args.doc });
   const root = base();
   const graph = args.engine.imports;
   // Before the document's own globals, so a local name of the same spelling

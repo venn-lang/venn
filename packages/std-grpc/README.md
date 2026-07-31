@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-use "venn/grpc"
+import { grpc } from "venn/grpc"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ use "venn/grpc"
 ```ruby
 module demo.inventory
 
-use "venn/grpc"
+import { grpc } from "venn/grpc"
 
 flow "Inventory" {
   step "check the stock" {

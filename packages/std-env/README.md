@@ -12,7 +12,7 @@ request or an assertion. The reader should never have to know which names are ma
 to install. A file that reads configuration says so:
 
 ```ruby
-use "venn/env"
+import { env } from "venn/env"
 ```
 
 ## Usage
@@ -30,8 +30,8 @@ BASE = "https://staging.example.com"
 # config.vn
 module demo.config
 
-use "venn/assert"
-use "venn/env"
+import { assert } from "venn/assert"
+import { env } from "venn/env"
 
 flow "Config" {
   step "reads the selected environment" {
@@ -76,7 +76,7 @@ including reads written inside a `"${…}"` placeholder.
 
 | Code | When |
 | --- | --- |
-| `VN2007` | `env.*` is read in a file that never wrote `use "venn/env"`. |
+| `VN2007` | `env.*` is read in a file that never wrote `import { env } from "venn/env"`. |
 | `VN2006` | The name is not declared in `venn.toml`. The nearest declared name is offered: `"env.BAES" is not declared in venn.toml, did you mean "env.BASE"?` |
 
 Nothing is reported when the manifest could not be read at all: a wrong error about a variable that

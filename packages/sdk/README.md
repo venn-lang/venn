@@ -76,7 +76,7 @@ export default uptimePlugin;
 The namespace, the verb and the matcher are then ordinary Venn:
 
 ```ruby
-use "@acme/uptime"
+import { uptime } from "@acme/uptime"
 
 flow "the API answers" {
   step "probe the health endpoint" {
@@ -113,7 +113,7 @@ Types are exported alongside: `PluginDefinition`, `ActionDefinition`, `MatcherDe
 
 | Field | Meaning |
 | --- | --- |
-| `name`, `version` | The package identity. `name` is what a file writes in `use "…"`. |
+| `name`, `version` | The package identity. `name` is what a file writes in `import { … } from "…"`. |
 | `namespace` | The prefix every verb gets: `namespace` `uptime` plus action `probe` is `uptime.probe`. |
 | `requires` | Host capabilities: `fs`, `process`, `net`, `clock`, `random`, `secrets`, `log`, `io`. |
 | `actions`, `matchers`, `decorators`, `resources` | The contributions. All optional. |
@@ -125,7 +125,7 @@ requires `net` on a host that does not offer it fails with `VN2010` naming the p
 missing capability, never with a `TypeError` halfway through a test.
 
 A plugin with no verbs at all is legitimate. `@venn-lang/env` contributes only its namespace, so that a
-file reading configuration still has to declare `use "venn/env"`.
+file reading configuration still has to declare `import { env } from "venn/env"`.
 
 ## Actions
 

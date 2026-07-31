@@ -105,8 +105,8 @@ function takePackage(args: { decl: ValueImport; graph: ImportGraph; into: Scope 
   if (!module) return;
   if (args.decl.wildcard) return void args.into.set(args.decl.wildcard, { ...module });
   if (args.decl.default) return void args.into.set(args.decl.default, module.default);
-  for (const name of args.decl.names) {
-    if (name in module) args.into.set(name, module[name]);
+  for (const one of args.decl.names) {
+    if (one.name in module) args.into.set(one.alias ?? one.name, module[one.name]);
   }
 }
 
@@ -118,8 +118,8 @@ function take(args: { decl: ValueImport; module: Document; source: Scope; into: 
   }
   // Only what the module offered. Reaching a private name would work here and
   // then stop working the day that file rearranges its own insides.
-  for (const name of args.decl.names) {
-    if (exported.has(name)) args.into.set(name, args.source.lookup(name));
+  for (const one of args.decl.names) {
+    if (exported.has(one.name)) args.into.set(one.alias ?? one.name, args.source.lookup(one.name));
   }
 }
 

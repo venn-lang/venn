@@ -13,7 +13,7 @@ Nothing to install yet. The package is unpublished (version `0.0.0`) and ships i
 `@venn-lang/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
 
 ```ruby
-use "venn/mqtt"
+import { mqtt } from "venn/mqtt"
 ```
 
 ## Usage
@@ -21,8 +21,8 @@ use "venn/mqtt"
 ```ruby
 module demo.inventory
 
-use "venn/mqtt"
-use "venn/assert"
+import { mqtt } from "venn/mqtt"
+import { assert } from "venn/assert"
 
 flow "Inventory" {
   step "the broker relays the stock change" {

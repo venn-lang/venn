@@ -647,6 +647,23 @@ export function isImportDecl(item: unknown): item is ImportDecl {
     return reflection.isInstance(item, ImportDecl.$type);
 }
 
+export interface ImportName extends langium.AstNode {
+    readonly $container: ValueImport;
+    readonly $type: 'ImportName';
+    alias?: string;
+    name: string;
+}
+
+export const ImportName = {
+    $type: 'ImportName',
+    alias: 'alias',
+    name: 'name'
+} as const;
+
+export function isImportName(item: unknown): item is ImportName {
+    return reflection.isInstance(item, ImportName.$type);
+}
+
 export interface Index extends langium.AstNode {
     readonly $container: ActionCall | Arg | Binary | Call | CaptureStmt | ContinueStmt | DatasetDecl | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListItem | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReportDecl | ReturnStmt | Ternary | Unary;
     readonly $type: 'Index';
@@ -1453,7 +1470,7 @@ export interface ValueImport extends langium.AstNode {
     readonly $type: 'ValueImport';
     default?: string;
     export: boolean;
-    names: Array<string>;
+    names: Array<ImportName>;
     path: string;
     wildcard?: string;
 }
@@ -1509,6 +1526,7 @@ export type VennAstType = {
     GroupDecl: GroupDecl
     IfStmt: IfStmt
     ImportDecl: ImportDecl
+    ImportName: ImportName
     Index: Index
     InstantLit: InstantLit
     LetStmt: LetStmt
@@ -2090,6 +2108,19 @@ export class VennAstReflection extends langium.AbstractAstReflection {
         ImportDecl: {
             name: ImportDecl.$type,
             properties: {
+            },
+            superTypes: []
+        },
+        ImportName: {
+            name: ImportName.$type,
+            properties: {
+                alias: {
+                    name: ImportName.alias,
+                    optional: true
+                },
+                name: {
+                    name: ImportName.name
+                }
             },
             superTypes: []
         },

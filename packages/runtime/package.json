@@ -45,6 +45,7 @@
   "dependencies": {
     "@venn-lang/contracts": "workspace:*",
     "@venn-lang/core": "workspace:*",
+    "@venn-lang/prelude": "workspace:*",
     "@venn-lang/sdk": "workspace:*",
     "@venn-lang/types": "workspace:*"
   },

@@ -1,8 +1,8 @@
 # A JSON body in both directions: what the request sent, what the reply answered.
 # Run: venn run examples/servers/03-json-body.vn
 
-use "venn/http"
-use "venn/data"
+import { http } from "venn/http"
+import { data } from "venn/data"
 
 const api = http.serve { port: 0 }
 const base = "http://127.0.0.1:${api.port}"

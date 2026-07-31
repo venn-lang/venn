@@ -9,8 +9,8 @@ Venn's grammar knows nothing about browsers. This package adds the vocabulary: `
 Nothing to install: the plugin ships inside the CLI's stdlib. Declare it in the file that needs it, and the runner loads it.
 
 ```ruby
-use "venn/browser"
-use "venn/browser" as web   # or under an alias
+import { browser } from "venn/browser"
+import { browser as web } from "venn/browser"   # or under an alias
 ```
 
 ## Usage
@@ -18,8 +18,8 @@ use "venn/browser" as web   # or under an alias
 ```ruby
 module demo.signin
 
-use "venn/browser"
-use "venn/assert"
+import { browser } from "venn/browser"
+import { assert } from "venn/assert"
 
 flow "Sign in" {
   step "open the app" {

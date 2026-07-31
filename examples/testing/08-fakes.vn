@@ -2,8 +2,8 @@
 # a clock you control. Everything here is in memory, so nothing opens a socket.
 # Run it with:  venn test examples/testing/08-fakes.vn
 
-use "venn/assert"
-use "venn/mock"
+import { equals } from "venn/assert"
+import { mock } from "venn/mock"
 
 # A fake is state, and state between tests is how a suite starts lying. Clear it
 # on both sides of the run.

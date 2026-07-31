@@ -11,6 +11,8 @@ import {
   type Problem,
   type ValueImport,
 } from "@venn-lang/core";
+import { readImports } from "../imports/index.js";
+import type { Registry } from "../registry/index.js";
 import type { ImportGraph } from "../scheduler/index.js";
 import { nodeSpan } from "../scheduler/index.js";
 
@@ -26,6 +28,8 @@ export function checkImports(args: {
   document: Document;
   uri: string;
   graph: ImportGraph;
+  /** Absent where no plugin was loaded, and then a package publishes nothing. */
+  registry?: Registry;
 }): Problem[] {
   const problems: Problem[] = [];
   for (const decl of args.document.imports) {
@@ -35,7 +39,26 @@ export function checkImports(args: {
     // A path that reads nothing is already reported by whoever tried to read it.
     if (module) problems.push(...missing({ decl, module, uri: args.uri, path: decl.path }));
   }
-  return problems;
+  return [...problems, ...fromPackages(args)];
+}
+
+/**
+ * A name asked of a package that does not publish it.
+ *
+ * The everyday one is a verb: `import { get } from "venn/http"` reads as though
+ * a verb were a value, and it is not. The note says what to write instead, since
+ * the answer is one line away and nobody should have to guess it.
+ */
+function fromPackages(args: { document: Document; uri: string; registry?: Registry }): Problem[] {
+  if (!args.registry) return [];
+  return readImports(args.document, args.registry).unknown.map((one) =>
+    buildProblem({
+      spec: CODES.VN2009_NOT_EXPORTED,
+      span: nodeSpan(args.document, args.uri),
+      title: `"${one.pkg}" does not publish ${one.name}.`,
+      ...(one.note ? { note: one.note } : {}),
+    }),
+  );
 }
 
 function missing(args: {
@@ -46,13 +69,13 @@ function missing(args: {
 }): Problem[] {
   const published = exported(args.module);
   return args.decl.names
-    .filter((name) => !published.has(name))
-    .map((name) =>
+    .filter((one) => !published.has(one.name))
+    .map((one) =>
       buildProblem({
         spec: CODES.VN2009_NOT_EXPORTED,
         span: nodeSpan(args.decl, args.uri),
-        title: `"${args.path}" does not publish ${name}.`,
-        note: hint(name, args.module),
+        title: `"${args.path}" does not publish ${one.name}.`,
+        note: hint(one.name, args.module),
       }),
     );
 }

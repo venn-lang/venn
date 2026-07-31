@@ -12,14 +12,14 @@ ever reaches a terminal. The plugin is pure: it needs no host capability and tou
 to install. A file that formats says so:
 
 ```ruby
-use "venn/fmt"
+import { fmt } from "venn/fmt"
 ```
 
 ## Usage
 
 ```ruby
 # report.vn, run with `venn run report.vn`
-use "venn/fmt"
+import { fmt } from "venn/fmt"
 
 const people = [
   { name: "Ada",   age: 36 },

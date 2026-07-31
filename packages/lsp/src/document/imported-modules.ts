@@ -79,8 +79,8 @@ export function importedFragments(args: {
     if (!isValueImport(decl)) continue;
     const module = args.graph.modules.get(args.graph.resolve(args.uri, decl.path));
     if (!module) continue;
-    for (const name of decl.names) {
-      if (declaresFragment(module, name)) found.add(name);
+    for (const one of decl.names) {
+      if (declaresFragment(module, one.name)) found.add(one.alias ?? one.name);
     }
   }
   return found;

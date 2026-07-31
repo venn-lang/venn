@@ -7,6 +7,7 @@ import {
   isDecoDecl,
   isFnDecl,
   isFragmentDecl,
+  isImportName,
   isMatcherClause,
   isMember,
   isNamedType,
@@ -146,7 +147,9 @@ export class VennHoverProvider implements HoverProvider {
     if (isAnnotation(node)) return this.decorator(node.name, document);
     const env = envPath(node);
     if (env) return this.envVar(env, document);
-    if (isValueImport(node)) return this.imported(node, leaf, document);
+    // One name of the list is its own node now, and the list is what describes it.
+    const list = isImportName(node) ? node.$container : node;
+    if (isValueImport(list)) return this.imported(list, leaf, document);
     const symbol = this.pathHover(node, document);
     if (symbol) return symbol;
     const member = this.member(node, leaf.text, document);
@@ -269,7 +272,7 @@ export class VennHoverProvider implements HoverProvider {
  * only thing that says which was meant.
  */
 function importedName(node: ValueImport, text: string): string | undefined {
-  if (node.names.includes(text)) return text;
+  if (node.names.some((one) => one.name === text || one.alias === text)) return text;
   return node.default === text ? text : undefined;
 }
 

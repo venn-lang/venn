@@ -13,7 +13,7 @@ Nothing to install yet. The package is unpublished (version `0.0.0`) and ships i
 `@venn-lang/stdlib`, which the `venn` CLI and the language server both load. A `.vn` file declares it:
 
 ```ruby
-use "venn/ws"
+import { ws } from "venn/ws"
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ use "venn/ws"
 ```ruby
 module demo.stream
 
-use "venn/ws"
+import { ws } from "venn/ws"
 
 flow "Stock stream" {
   step "the socket accepts the subscription" {

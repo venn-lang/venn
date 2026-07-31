@@ -23,11 +23,15 @@ export function checkUncalledAction(node: AstNode, ctx: CheckContext): Problem |
   if (!isMember(node) || !readsAsValue(node)) return undefined;
   const target = actionTarget(node);
   if (target === undefined) return undefined;
+  // A name the file binds is not a namespace, however much it reads like one:
+  // `const { kit } = …` then `kit.shout` is a field, and the registry's opinion
+  // about a verb of the same spelling is not about this.
+  if (ctx.bound.has(target.slice(0, target.indexOf(".")))) return undefined;
   if (!ctx.registry.action(resolveTarget(target, ctx.aliases))) return undefined;
   return buildProblem({
     spec: CODES.VN2008_UNCALLED_ACTION,
     span: nodeSpan(node, ctx.uri),
-    title: `\`${target}\` is a verb, not a value — write \`${target}()\` to call it.`,
+    title: `\`${target}\` is a verb, not a value: write \`${target}()\` to call it.`,
   });
 }
 

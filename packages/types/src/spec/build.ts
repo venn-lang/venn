@@ -38,6 +38,8 @@ export interface TypeBuilder {
   fn(params: readonly TypeSpec[], result: TypeSpec): FnSpec;
   /** A function passed as an argument, which may take fewer params than it is handed. */
   callback(params: readonly TypeSpec[], result: TypeSpec, takes: number): FnSpec;
+  /** Any number of arguments, each of what `params` describes: `print`, `str`. */
+  variadic(params: readonly TypeSpec[], result: TypeSpec): FnSpec;
   union(...members: readonly TypeSpec[]): UnionSpec;
   /** A named handle. `members` is what it publishes; without them, a bare name. */
   opaque(name: string, members?: Readonly<Record<string, TypeSpec>>): OpaqueSpec;
@@ -80,6 +82,7 @@ export const t: TypeBuilder = {
   record: (fields, options) => ({ kind: "record", fields, ...options }),
   fn: (params, result) => ({ kind: "fn", params, result }),
   callback: (params, result, takes) => ({ kind: "fn", params, result, takes }),
+  variadic: (params, result) => ({ kind: "fn", params, result, variadic: true }),
   union: (...members) => ({ kind: "union", members }),
   opaque: (name, members) =>
     members ? { kind: "opaque", name, members } : { kind: "opaque", name },

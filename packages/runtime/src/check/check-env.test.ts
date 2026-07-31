@@ -44,7 +44,7 @@ const DECLARED = ["BASE_URL", "TOKEN"];
 
 /** Every read of `env` needs the import, so the fixtures carry it. */
 function withEnv(body: string): string {
-  return `use "venn/env"\nflow "f" { step "s" { ${body} } }`;
+  return `import { env } from "venn/env"\nflow "f" { step "s" { ${body} } }`;
 }
 
 describe("env checking", () => {
@@ -52,11 +52,11 @@ describe("env checking", () => {
     expect(check(withEnv("expect env.BASE_URL"), DECLARED)).toEqual([]);
   });
 
-  it('refuses to read env without `use "venn/env"`', () => {
+  it('refuses to read env without `import { env } from "venn/env"`', () => {
     const found = check('flow "f" { step "s" { expect env.BASE_URL } }', DECLARED);
 
     expect(found[0]).toContain("VN2007");
-    expect(found[0]).toContain('add `use "venn/env"`');
+    expect(found[0]).toContain("not imported in this file");
   });
 
   it("asks for the import even when the read hides inside a string", () => {
@@ -85,7 +85,7 @@ describe("env checking", () => {
 
 describe("option checking", () => {
   const call = (opts: string) =>
-    `use "@t/http"\nflow "f" { step "s" { const r = http.get "/x" ${opts} } }`;
+    `import { http } from "@t/http"\nflow "f" { step "s" { const r = http.get "/x" ${opts} } }`;
 
   it("accepts the keys the schema declares", () => {
     expect(check(call('{ bearer: "t", query: { page: "1" } }'))).toEqual([]);

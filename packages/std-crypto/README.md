@@ -13,7 +13,7 @@ The package is part of the stdlib the `venn` CLI loads, so nothing to install. R
 flow with a `use` line:
 
 ```ruby
-use "venn/crypto"
+import { crypto } from "venn/crypto"
 ```
 
 The plugin requires no host capability: cryptography here is computation, not I/O.
@@ -23,8 +23,8 @@ The plugin requires no host capability: cryptography here is computation, not I/
 ```ruby
 module demo.session
 
-use "venn/assert"
-use "venn/crypto"
+import { assert } from "venn/assert"
+import { crypto } from "venn/crypto"
 
 flow "A session token round-trips" {
   const secret = "s3cret"

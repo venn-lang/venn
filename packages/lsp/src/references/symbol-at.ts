@@ -86,7 +86,9 @@ function used(leaf: CstNode): FoundSymbol | undefined {
   if (isRunStmt(node) && node.target === name) return { kind: "fragment", name };
   if (isAnnotation(node) && node.name === name) return { kind: "deco", name };
   if (isNamedType(node) && node.name === name) return { kind: "type", name };
-  if (isValueImport(node) && node.names.includes(name)) return { kind: "external", name };
+  if (isValueImport(node) && node.names.some((one) => one.name === name || one.alias === name)) {
+    return { kind: "external", name };
+  }
   return isRef(node) && node.name === name ? boundSymbol(node, name) : undefined;
 }
 
@@ -110,5 +112,7 @@ function boundSymbol(node: AstNode, name: string): FoundSymbol {
 
 function isImported(from: AstNode, name: string): boolean {
   const root = AstUtils.getContainerOfType(from, isDocument);
-  return (root?.imports ?? []).some((decl) => isValueImport(decl) && decl.names.includes(name));
+  return (root?.imports ?? []).some(
+    (decl) => isValueImport(decl) && decl.names.some((one) => (one.alias ?? one.name) === name),
+  );
 }

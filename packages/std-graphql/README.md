@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-use "venn/graphql"
+import { graphql } from "venn/graphql"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ use "venn/graphql"
 ```ruby
 module demo.profile
 
-use "venn/graphql"
+import { graphql } from "venn/graphql"
 
 flow "Profile" {
   step "read the profile" {

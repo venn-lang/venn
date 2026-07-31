@@ -11,6 +11,7 @@ import {
   record,
   type Type,
   union,
+  variadic,
 } from "./type.types.js";
 
 /** How a `ref` finds what it points at. Returning undefined is fine: the
@@ -108,6 +109,7 @@ function opaqueMembers(
 function fnType(spec: FnSpec, resolve: ResolveRef, scope?: ParamScope): Type {
   const params = spec.params.map((param) => specToType(param, resolve, scope));
   const result = specToType(spec.result, resolve, scope);
+  if (spec.variadic) return variadic(params, result);
   return spec.takes === undefined
     ? fn(params, result)
     : { kind: "fn", params, result, ignorableFrom: spec.takes };

@@ -8,7 +8,7 @@ import { buildRegistry } from "../registry/index.js";
 import { createRunner } from "../run/create-runner.js";
 import { collectFragments } from "./collect.js";
 
-const SOURCE = `use "@t/m" as h
+const SOURCE = `import { t as h } from "@t/m"
 
 flow "F" {
   step "s" {

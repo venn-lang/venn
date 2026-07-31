@@ -104,7 +104,7 @@ function importedInto(document: Document): ScopedName[] {
   const found: ScopedName[] = [];
   for (const decl of document.imports) {
     if (!isValueImport(decl)) continue;
-    const names = decl.wildcard ? [decl.wildcard] : decl.names;
+    const names = decl.wildcard ? [decl.wildcard] : decl.names.map((one) => one.alias ?? one.name);
     for (const name of names) found.push(named(decl, name, "import"));
   }
   return found;

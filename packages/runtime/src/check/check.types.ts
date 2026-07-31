@@ -22,6 +22,8 @@ export interface CheckContext {
   aliases: ReadonlyMap<string, string>;
   /** Namespaces this file actually brought in with `use`. */
   imported: ReadonlySet<string>;
+  /** The matchers this file brought in by name, which is how one arrives. */
+  matchers: ReadonlySet<string>;
   /** Names this file binds: callable, but their methods cannot be verified. */
   bound: ReadonlySet<string>;
   /** Declared `env` variables, or undefined when the manifest could not be read. */

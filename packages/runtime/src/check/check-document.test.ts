@@ -26,7 +26,7 @@ const codes = (source: string) => check(source).map((problem) => problem.code);
 
 describe("checkDocument", () => {
   it("passes when every action, matcher, fragment and prelude call resolves", () => {
-    const problems = check(`use "@t/m"
+    const problems = check(`import { t, known } from "@t/m"
 
 fragment helper() {
   expect true
@@ -44,7 +44,7 @@ flow "F" {
   });
 
   it("flags an unknown action, matcher, and fragment with their codes", () => {
-    const found = codes(`use "@t/m"
+    const found = codes(`import { t } from "@t/m"
 
 flow "F" {
   step "s" {
@@ -67,11 +67,13 @@ flow "F" {
   });
 
   it("accepts a namespace reached through a `use … as` alias", () => {
-    expect(codes(`use "@t/m" as tools\n\nflow "F" { step "s" { tools.noop } }`)).toEqual([]);
+    expect(
+      codes(`import { t as tools } from "@t/m"\n\nflow "F" { step "s" { tools.noop } }`),
+    ).toEqual([]);
   });
 
   it("accepts calling a const declared in the file", () => {
-    const source = `use "@t/m"
+    const source = `import { t } from "@t/m"
 
 const page = t.noop
 
@@ -95,16 +97,16 @@ flow "F" {
  */
 describe("a verb named but never called", () => {
   it("is reported where it reads as a value", () => {
-    const problems = check('use "@t/m"\nfn id() => t.noop\nprint id()\n');
+    const problems = check('import { t } from "@t/m"\nfn id() => t.noop\nprint id()\n');
 
     expect(problems.map((problem) => problem.code)).toContain("VN2008");
   });
 
   it("says nothing when it is called", () => {
-    expect(check('use "@t/m"\nfn id() => t.noop()\nprint id()\n')).toEqual([]);
+    expect(check('import { t } from "@t/m"\nfn id() => t.noop()\nprint id()\n')).toEqual([]);
   });
 
   it("says nothing in statement position, which the runtime already calls", () => {
-    expect(check('use "@t/m"\nlet id = t.noop\nprint id\n')).toEqual([]);
+    expect(check('import { t } from "@t/m"\nlet id = t.noop\nprint id\n')).toEqual([]);
   });
 });

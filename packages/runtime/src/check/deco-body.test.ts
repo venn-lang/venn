@@ -44,7 +44,9 @@ describe("a deco body's calls", () => {
   });
 
   it("refuses a plugin verb, and says why", () => {
-    const found = check(['use "@t/m"', "deco boom(target: Fn) {", "  t.noop", "}"].join("\n"));
+    const found = check(
+      ['import { t } from "@t/m"', "deco boom(target: Fn) {", "  t.noop", "}"].join("\n"),
+    );
 
     expect(found).toHaveLength(1);
     expect(found[0]?.code).toBe("VN2016");
@@ -54,9 +56,12 @@ describe("a deco body's calls", () => {
   });
 
   it("refuses one bound into a `let` just the same", () => {
-    const source = ['use "@t/m"', "deco boom(target: Fn) {", '  const r = t.noop "x"', "}"].join(
-      "\n",
-    );
+    const source = [
+      'import { t } from "@t/m"',
+      "deco boom(target: Fn) {",
+      '  const r = t.noop "x"',
+      "}",
+    ].join("\n");
 
     expect(codes(source)).toEqual(["VN2016"]);
   });
@@ -67,7 +72,7 @@ describe("a deco body's calls", () => {
 
   it("still resolves the same verb outside the decorator", () => {
     const source = [
-      'use "@t/m"',
+      'import { t } from "@t/m"',
       "deco tag(target: Flow) {",
       '  target.meta "tagged" true',
       "}",

@@ -1,3 +1,5 @@
+import type { Document } from "@venn-lang/core";
+import { namespacesInFile } from "../imports/index.js";
 import { createScope, type Scope } from "../scope/index.js";
 import { bindNamespaces } from "./bind-namespaces.js";
 import { bindPrelude } from "./bind-prelude.js";
@@ -15,10 +17,13 @@ export function createBaseScope(args: {
   engine: Engine;
   /** The `matrix` variant, for a test run. A program has none. */
   variant?: Record<string, unknown>;
+  /** The file being run, so a namespace answers to the name it imported it as. */
+  document?: Document;
 }): Scope {
   const scope = createScope();
   bindPrelude(scope);
-  bindNamespaces({ registry: args.engine.registry, ctx: args.engine.ctx, scope });
+  const named = args.document ? namespacesInFile(args.document, args.engine.registry) : undefined;
+  bindNamespaces({ registry: args.engine.registry, ctx: args.engine.ctx, scope, named });
   scope.set("env", args.engine.env);
   if (args.variant) scope.set("matrix", args.variant);
   return scope;

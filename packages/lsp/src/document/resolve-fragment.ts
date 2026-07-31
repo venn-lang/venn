@@ -25,7 +25,10 @@ export async function resolveFragment(
   if (!root) return undefined;
   const local = findFragment(root, args.name);
   if (local) return { uri: args.document.uri, decl: local, document: args.document };
-  const decl = root.imports.find((node) => isValueImport(node) && node.names.includes(args.name));
+  const decl = root.imports.find(
+    (node) =>
+      isValueImport(node) && node.names.some((one) => (one.alias ?? one.name) === args.name),
+  );
   return isValueImport(decl) ? fromImport(decl.path, args) : undefined;
 }
 

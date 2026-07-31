@@ -101,7 +101,7 @@ Each is registered by `createVennLspServices`; export them for direct use or for
 | --- | --- |
 | **Diagnostics** | Syntax errors (`VN1xxx`), then the same static check `venn check` runs: `VN2003` unknown action, `VN2004` unknown matcher, `VN2005` unknown fragment, `VN2006` an `env` var no `venn.toml` declares, `VN2007` a namespace used without a `use`, `VN2008` a verb read as a value, `VN2009` a name the imported module does not publish, plus type errors (`VN3xxx`) and lint (`VN5xxx`). |
 | **Hover** | Action signature, docs, options and owning package; matchers; fragment signatures; what a `let` or a parameter binds; what a package contributes; what an annotation means; what an `env` variable holds. Inside `"${…}"` the name hovers as code, not as text. |
-| **Completion** | Verbs and published types after `namespace.`, members after any other dot, matchers once `expect` has a subject, fragments after `run`, decorators after `@`, packages inside `use "…"`, module paths after `from "`, published names inside `import { … }`, option keys inside a call's `{ … }`, type names after a `:`, and the names in scope anywhere else. |
+| **Completion** | Verbs and published types after `namespace.`, members after any other dot, matchers once `expect` has a subject, fragments after `run`, decorators after `@`, packages inside `import { … } from "…"`, module paths after `from "`, published names inside `import { … }`, option keys inside a call's `{ … }`, type names after a `:`, and the names in scope anywhere else. |
 | **Go to definition** | `run <fragment>` lands on the declaration, following an `import` into another file; a name lands on the statement that binds it; a `@deco` lands on the `deco` that declares it; an import specifier opens the file. |
 | **References and highlight** | Both read one occurrence walk, so they agree with rename. A `fragment`, `fn` or `deco` is searched across the workspace; a `binding` or a `type` stays in its file, because a `const` of the same name next door is a different name. Highlight marks the declaration as a write and each use as a read. |
 | **Rename** | Rewrites exactly what "find all references" reports, including the names inside `import { … }`. A built-in decorator has no source to rewrite, so rename declines it. |
@@ -109,7 +109,7 @@ Each is registered by `createVennLspServices`; export them for direct use or for
 | **Semantic tokens** | The namespace of `http.get` is coloured apart from the verb, a matcher is a `method`, an annotation is a `decorator`, a `run` target is a `macro`, and anything the catalog knows carries the `defaultLibrary` modifier. |
 | **Outline** | Flows with their nested steps and groups, plus fragments and `deco` declarations. |
 | **Formatting** | Runs through `formatText` in `@venn-lang/core`, so the editor and `venn fmt` produce byte-identical output. `[format]` in `venn.toml` wins; the editor's indent settings fill in the rest. On-type formatting triggers on `}` and newline. |
-| **Quick fixes** | `VN2007` offers `Add use "<pkg>"` for every package providing the namespace, inserted above the imports. `VN2005` offers `Import <name> from "…"` for every module that publishes it. `VN5001` replaces `capture` with `let`. |
+| **Quick fixes** | `VN2007` offers `Add import { <pkg> } from "<pkg>"` for every package providing the namespace, inserted above the imports. `VN2005` offers `Import <name> from "…"` for every module that publishes it. `VN5001` replaces `capture` with `let`. |
 
 ## Documenting a declaration
 

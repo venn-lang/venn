@@ -81,6 +81,12 @@ export interface FnSpec {
    * that is also offered the server.
    */
   readonly takes?: number;
+  /**
+   * Takes any number of arguments, all of the kind its params describe: `print`
+   * and `str` are written this way. The params are what each one has to be, not
+   * a count to enforce.
+   */
+  readonly variadic?: boolean;
 }
 
 /** A value that is any one of the members. */

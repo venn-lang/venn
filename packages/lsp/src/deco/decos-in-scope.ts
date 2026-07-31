@@ -48,7 +48,7 @@ async function fromModule(decl: ValueImport, scope: DecoScope): Promise<DecoInfo
   const root = document && rootOf(document);
   if (!document || !root) return [];
   return localDecos(root, document).filter(
-    (info) => info.decl?.export && decl.names.includes(info.name),
+    (info) => info.decl?.export && decl.names.some((one) => one.name === info.name),
   );
 }
 

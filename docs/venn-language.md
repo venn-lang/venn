@@ -15,7 +15,7 @@ _[diagrama: Pilha de camadas da Venn]_
 
 **Por que travar o kernel** — Gramática fixa significa parser gerado uma vez, highlight estável, e node graph que nunca quebra. Um plugin novo não invalida arquivos existentes.
 
-**Por que stdlib não é built-in** — Se `browser` fosse embutido, todo arquivo carregaria Playwright. Com `use` explícito o runner sabe exatamente quais recursos subir — e o teste de API roda em milissegundos.
+**Por que stdlib não é built-in** — Se `browser` fosse embutido, todo arquivo carregaria Playwright. Com o import explícito o runner sabe exatamente quais recursos subir, e o teste de API roda em milissegundos.
 
 
 ---
@@ -390,7 +390,7 @@ let attempts = 0
 Um plugin publica assinatura polimórfica, e o editor infere através dela:
 
 ```venn
-use "venn/data"
+import { data } from "venn/data"
 
 const escolhido = data.oneOf("a", "b")     # string, não `dynamic`
 const baralho = data.shuffle([1, 2, 3])    # list<number>, ainda
@@ -696,7 +696,7 @@ capture token = sessao.token
 
 ## 07 · Asserções
 
-`expect` é kernel. Os **matchers** não são — vêm do registry, exatamente como as ações. Por isso `noViolations` e `matchesBaseline` só existem depois de `use "venn/assert"`.
+`expect` é kernel. Os **matchers** não são — vêm do registry, exatamente como as ações. Por isso `noViolations` e `matchesBaseline` só existem depois de `import { assert } from "venn/assert"`.
 
 ****formas de asserção****
 
@@ -791,24 +791,38 @@ O runner recusa executar se um valor de escopo de suíte for mutado dentro de um
 
 ## 10 · Módulos e imports
 
-Duas palavras, dois significados que nunca se confundem:
+Uma palavra só. Tudo que um arquivo alcança e não veio no prelúdio chega por um
+nome que **ele** escreveu, e o topo do arquivo é a resposta para "de onde veio
+isto".
 
-**use — capacidades** — Traz **verbos** para o arquivo. Registra namespaces de ações, matchers, recursos e tipos de nó. Só aceita pacotes.
+O que muda é a **forma**, não a palavra:
 
-**import — valores** — Traz **símbolos**: fragments, funções, tipos, factories, datasets, constantes. Aceita pacotes e caminhos relativos.
+| escrito | traz |
+| --- | --- |
+| `import { http } from "venn/http"` | o namespace, com os verbos pendurados nele |
+| `import { http as h } from "venn/http"` | o mesmo, sob outro nome |
+| `import { contains } from "venn/assert"` | um matcher, por nome |
+| `import { Request } from "venn/http"` | um tipo, para anotar |
+| `import { retry } from "venn/http"` | um decorator, para `@retry` |
+| `import { User } from "./models.vn"` | valores de outro arquivo |
+
+Verbo não se importa sozinho: ele pende do namespace, então
+`import { get } from "venn/http"` é recusado dizendo o que escrever no lugar. É a
+mesma razão pela qual verbo não é valor: ele emite evento, participa de timeout e
+de escopo de recurso, e nada disso cabe numa função solta.
 
 ****cabeçalho de um arquivo .vn****
 
 ```venn
 module acme.checkout
 
-# capacidades — o que o arquivo pode fazer
-use "venn/http"
-use "venn/browser" as web
-use "venn/mqtt"
-use "@acme/stripe"
+# o que o arquivo pode fazer
+import { http } from "venn/http"
+import { browser as web } from "venn/browser"
+import { mqtt } from "venn/mqtt"
+import { stripe } from "@acme/stripe"
 
-# valores — o que o arquivo conhece
+# o que o arquivo conhece
 import { User, Cart }        from "./models.vn"
 import { loginViaApi }       from "./lib/auth.vn"
 import { checkoutRapido }    from "@acme/fluxos-comuns"
@@ -836,8 +850,8 @@ pub import { loginViaApi }
 ```venn
 module acme.lib.auth
 
-use "venn/http"
-use "venn/auth"
+import { http } from "venn/http"
+import { auth } from "venn/auth"
 
 # público: quem importar este módulo pode nomear esta forma
 pub type Sessao { token: string, refresh: string, expira: instant }
@@ -880,7 +894,7 @@ uma forma errada é recusada onde ela é escrita, do outro lado da fronteira. Um
 `pub const` é calculado no arquivo onde está, então um módulo que lê a constante
 de outro é preenchido depois dele.
 
-> **Regras duras.** Ciclos entre módulos são erro de compilação. Um arquivo tem exatamente um `module`. Colisão de namespace no `use` exige `as` — nada de resolução implícita por ordem.
+> **Regras duras.** Ciclos entre módulos são erro de compilação. Um arquivo tem exatamente um `module`. Colisão de namespace no import exige `as`, nada de resolução implícita por ordem.
 
 ### fn versus fragment
 
@@ -1009,7 +1023,7 @@ reporters = ["junit", "html", "trace"]
 
 ## 12 · Prelude
 
-Disponível sem `use`. Deliberadamente minúsculo — tudo aqui é independente de protocolo.
+Disponível sem importar nada. Deliberadamente minúsculo: tudo aqui é independente de protocolo, e a lista inteira vive em `@venn-lang/prelude`.
 
 | Símbolo | Assinatura | Uso |
 | --- | --- | --- |
@@ -1133,7 +1147,7 @@ export default definePlugin({
 ****e o uso no .vn fica indistinguível da stdlib****
 
 ```venn
-use "@acme/stripe"
+import { stripe } from "@acme/stripe"
 
 step "Cobrar" {
   stripe.charge { amount: 9900, currency: "brl", card: data.faker.creditCard }
@@ -1351,7 +1365,7 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
 `src/checkout.vn:142:5`
 
 ```
-    3 │ use "venn/http"
+    3 │ import { http } from "venn/http"
       │ --- aqui você importou capacidades, mas não a de browser
     ⋮
   141 │   step "Adicionar ao carrinho" {
@@ -1363,7 +1377,7 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
 - **ajuda** — O pacote `@venn-lang/browser` registra o namespace `browser`. Você usou o apelido `web`, então importe com `as web`.
 - **similar** — `http` · `ws` — disponíveis neste arquivo
 
-- ⌘. adicionar use "venn/browser" as web
+- ⌘. adicionar import { browser as web } from "venn/browser"
 - ⌘. trocar por http
 
 > Namespaces nunca são globais: o runner só sobe o Playwright se algum arquivo declarar que precisa dele.
@@ -1611,7 +1625,7 @@ const edits = applyGraphEdit(ir, { kind: "moveStep", node: "step-cart", after: "
 
 ### O que é instalado, e quando
 
-Um plugin não tem instalador próprio: **é um pacote npm que implementa `CapabilityProvider`**. O `use` declara, não baixa. Resolução é `node_modules` mais `venn.lock`; pacote ausente vira diagnóstico `VN2001` com correção rápida.
+Um plugin não tem instalador próprio: **é um pacote npm que implementa `CapabilityProvider`**. O import declara, não baixa. Resolução é `node_modules` mais `venn.lock`; pacote ausente vira diagnóstico `VN2001` com correção rápida.
 
 | Camada | Contém | Peso | Quando chega |
 | --- | --- | --- | --- |
@@ -1619,7 +1633,7 @@ Um plugin não tem instalador próprio: **é um pacote npm que implementa `Capab
 | @venn-lang/browser | `playwright-core`, sem binários | poucos MB | Se algum `.vn` declarar |
 | Binários de motor | Chromium, Firefox, WebKit | centenas de MB | Sob demanda, com barra de progresso |
 
-> **Nem o CLI nem o app empacotam Chromium.** `venn run api-tests.vn` numa máquina sem browser algum roda e não baixa nada. O instalador do estúdio sai pequeno; na primeira execução de um flow com browser, aparece um download guiado. É a mesma coerência do `use` explícito na linguagem: o manifesto declara, o runner busca só o declarado, nada é baixado por especulação.
+> **Nem o CLI nem o app empacotam Chromium.** `venn run api-tests.vn` numa máquina sem browser algum roda e não baixa nada. O instalador do estúdio sai pequeno; na primeira execução de um flow com browser, aparece um download guiado. É a mesma coerência do import explícito na linguagem: o manifesto declara, o runner busca só o declarado, nada é baixado por especulação.
 
 
 ---
@@ -1796,22 +1810,22 @@ Um arquivo que exercita toda a linguagem: módulos, tipos, dados, recursos escop
 module acme.checkout
 
 # ---------- capacidades ----------
-use "venn/http"
-use "venn/browser" as web
-use "venn/graphql" as gql
-use "venn/grpc"
-use "venn/ws"
-use "venn/mqtt"
-use "venn/mail"
-use "venn/db"
-use "venn/mock"
-use "venn/auth"
-use "venn/data"
-use "venn/assert"
-use "venn/load"
-use "venn/artifacts"
-use "venn/notify"
-use "@acme/stripe"
+import { http } from "venn/http"
+import { browser as web } from "venn/browser"
+import { graphql as gql } from "venn/graphql"
+import { grpc } from "venn/grpc"
+import { ws } from "venn/ws"
+import { mqtt } from "venn/mqtt"
+import { mail } from "venn/mail"
+import { db } from "venn/db"
+import { mock } from "venn/mock"
+import { auth } from "venn/auth"
+import { data } from "venn/data"
+import { assert } from "venn/assert"
+import { load } from "venn/load"
+import { artifacts } from "venn/artifacts"
+import { notify } from "venn/notify"
+import { stripe } from "@acme/stripe"
 
 # ---------- valores ----------
 import { User, Cart }  from "#shared/models.vn"
@@ -2049,11 +2063,13 @@ entry Document:
   decls+=Declaration*;
 
 ImportDecl: UseDecl | ValueImport;
+// `use` saiu: continua sendo lido para o editor dizer o que escrever no lugar.
 UseDecl:      'use' pkg=STRING ('as' alias=ID)?;
 ValueImport: export?='pub'? 'import'
-  ( '{' names+=ID (',' names+=ID)* '}'
+  ( '{' names+=ImportName (',' names+=ImportName)* '}'
   | '*' 'as' ns=ID
   | default=ID ) 'from' path=STRING;
+ImportName: name=ID ('as' alias=ID)?;
 
 Declaration:
   annotations+=Annotation*

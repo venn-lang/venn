@@ -5,7 +5,7 @@ module examples.language.fragments
 
 # `use` for the `contains` matcher, `import` for the fragments. Capabilities and
 # values arrive by different words and never get confused for one another.
-use "venn/assert"
+import { contains } from "venn/assert"
 
 import { checkout, receiptMatches } from "#shared/steps.vn"
 

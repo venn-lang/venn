@@ -11,6 +11,7 @@ import { gqlPlugin } from "@venn-lang/graphql";
 import { grpcPlugin } from "@venn-lang/grpc";
 import { httpPlugin } from "@venn-lang/http";
 import { ioPlugin } from "@venn-lang/io";
+import { jsonPlugin } from "@venn-lang/json";
 import { loadPlugin } from "@venn-lang/load";
 import { mailPlugin } from "@venn-lang/mail";
 import { mockPlugin } from "@venn-lang/mock";
@@ -33,6 +34,7 @@ export const allPlugins: PluginDefinition[] = [
   cryptoPlugin,
   envPlugin,
   fmtPlugin,
+  jsonPlugin,
   ioPlugin,
   mockPlugin,
   authPlugin,

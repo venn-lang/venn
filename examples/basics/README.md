@@ -15,6 +15,7 @@ each one assumes the one before it.
 | [`07-maps.vn`](07-maps.vn) | map literals, `keys`, `get`, `merge`, `mapValues`, `entries`, and taking one apart with `{ … }` |
 | [`08-units.vn`](08-units.vn) | `300ms`, `2mb`, `99.9%`, and how arithmetic keeps the unit |
 | [`09-terminal.vn`](09-terminal.vn) | reading a line and a key, asking what the terminal is, moving the cursor, and the same program through a pipe |
+| [`10-json.vn`](10-json.vn) | reading text into a value with a shape, the text nobody promised was JSON, and writing it back out |
 
 Run them with:
 

@@ -34,5 +34,4 @@ export const CODES = {
   VN6001_ASSERTION_FAILED: { code: "VN6001", severity: "error" },
   VN7001_ACTION_FAILED: { code: "VN7001", severity: "error" },
   VN7004_HOOK_FAILED: { code: "VN7004", severity: "error" },
-  VN8002_LOOP_LIMIT: { code: "VN8002", severity: "error" },
 } as const satisfies Record<string, CodeSpec>;

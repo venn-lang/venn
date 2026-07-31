@@ -4,11 +4,9 @@ import {
   isCaptureStmt,
   isConfigDecl,
   isContinueStmt,
-  isDatasetDecl,
   isDecoDecl,
   isDocument,
   isExpectStmt,
-  isFactoryDecl,
   isFlowDecl,
   isFnDecl,
   isForEachStmt,
@@ -22,7 +20,6 @@ import {
   isParallelStmt,
   isRaceStmt,
   isRepeatStmt,
-  isReportDecl,
   isReturnStmt,
   isRunStmt,
   isStepDecl,
@@ -61,15 +58,12 @@ function declarations(node: AstNode): string[] | undefined {
   if (isFnDecl(node)) return ["fn", "return"];
   if (isDecoDecl(node)) return ["deco"];
   if (isTypeDecl(node)) return ["type"];
-  if (isFactoryDecl(node)) return ["factory"];
-  if (isDatasetDecl(node)) return ["dataset"];
   return undefined;
 }
 
 function bindings(node: AstNode): string[] | undefined {
   if (isConfigDecl(node)) return ["config"];
   if (isMatrixDecl(node)) return ["matrix"];
-  if (isReportDecl(node)) return ["report"];
   if (isLetStmt(node)) return [node.kind];
   if (isCaptureStmt(node)) return node.opts ? ["capture"] : ["capture"];
   if (isRunStmt(node)) return node.bind ? ["run", "as"] : ["run"];

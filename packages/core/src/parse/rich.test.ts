@@ -13,9 +13,6 @@ matrix { browser: ["chromium", "webkit"], locale: ["pt-BR"] }
 type Plan = "free" | "pro"
 type User { email: string, name: string, credits?: int }
 
-factory User { email: data.faker.email, plan: data.oneOf("free", "pro") }
-dataset clientes: User = data.csv("#fixtures/users.csv")
-
 const BASE = 30s
 
 @scope(suite)
@@ -74,9 +71,7 @@ flow "Checkout" {
 
   on failure { web.screenshot "falha" }
   defer { db.exec "cleanup" }
-}
-
-report junit("./out"), html("./out")`;
+}`;
 
 describe("parse · rich constructs", () => {
   it("parses fragments, bindings, matrix, control flow, parallel/race/try, instant", () => {

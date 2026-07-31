@@ -5,7 +5,6 @@ import {
   type FragmentDecl,
   isBlock,
   isCaptureStmt,
-  isDatasetDecl,
   isDecoDecl,
   isDocument,
   isFnBody,
@@ -72,7 +71,7 @@ function documentBinding(document: Document, name: string): AstNode | undefined 
  * file that declares one has bound that name.
  */
 function declares(decl: AstNode, name: string): boolean {
-  if (isLetStmt(decl) || isDatasetDecl(decl)) return decl.name === name;
+  if (isLetStmt(decl)) return decl.name === name;
   if (isFnDecl(decl) || isDecoDecl(decl)) return decl.name === name;
   return isFragmentDecl(decl) && decl.name === name;
 }

@@ -1,7 +1,6 @@
 import {
   type AstNode,
   DYNAMIC,
-  isDatasetDecl,
   isFnDecl,
   isFnExpr,
   isFragmentDecl,
@@ -56,6 +55,6 @@ export function declaredShape(args: DeclaredShapeArgs): CallShape | undefined {
 function paramsOf(binding: AstNode): ParamList | undefined {
   if (isFnDecl(binding) || isFragmentDecl(binding) || isFnExpr(binding)) return binding.params;
   // `const op = (a, b) => a + b`: the parameters belong to the lambda it holds.
-  const value = (isLetStmt(binding) || isDatasetDecl(binding)) && binding.value;
+  const value = isLetStmt(binding) && binding.value;
   return value && isFnExpr(value) ? value.params : undefined;
 }

@@ -197,7 +197,7 @@ Estas são todas as palavras reservadas. Nada além disto entra na gramática, n
 | Grupo | Palavras | Papel |
 | --- | --- | --- |
 | Módulo | module use import from as pub | Identidade e fronteiras do arquivo |
-| Declaração | const let type factory dataset fn fragment deco | Valores, formas e helpers |
+| Declaração | const let type fn fragment deco | Valores, formas e helpers |
 | Configuração | config env matrix report | Ambiente e saída da suíte |
 | Estrutura | flow step group | Unidades executáveis |
 | Ciclo de vida | setup teardown beforeEach afterEach on defer | Ganchos determinísticos |
@@ -339,7 +339,7 @@ deixa separar em silêncio, como qualquer outro acesso a campo.
 
 Declarar tipo não é burocracia: é o que dá autocomplete em `user.` dentro do editor e o que gera o formulário de propriedades do nó no grafo.
 
-****type, factory, dataset****
+****type****
 
 ```venn
 type Plan = "free" | "pro" | "enterprise"
@@ -365,17 +365,7 @@ serve onde se espera `{ city: string }`, e o contrário também. Nomear vale qua
 a forma se repete ou merece um nome; escrever inline vale quando ela é usada uma
 vez só.
 
-factory User {
-  email: data.faker.email
-  name:  data.faker.name
-  plan:  data.oneOf("free", "pro")
-}
-
-dataset users: User = data.csv("./data/users.csv")
-dataset carts: Cart = data.json("./fixtures/carts.json")
-
 const BASE_TIMEOUT = 30s
-let attempts = 0
 ```
 
 | Tipo | Origem | Notas |
@@ -543,7 +533,7 @@ if user.plan == "pro" {
   fail "plano desconhecido: ${user.plan}"
 }
 
-# iteração sobre dataset, com grau de paralelismo explícito
+# iteração sobre uma lista, com grau de paralelismo explícito
 forEach user in users { concurrency: 4 } {
   run checkoutCompleto(user)
 }
@@ -1847,13 +1837,7 @@ matrix {
 # ---------- dados ----------
 type Plan = "free" | "pro"
 
-factory User {
-  email: data.faker.email
-  name:  data.faker.name
-  plan:  data.oneOf("free", "pro")
-}
-
-dataset clientes: User = data.csv("#fixtures/users.csv")
+const clientes = data.csv("#fixtures/users.csv")
 
 # ---------- recursos ----------
 const banco = db.connect env.DATABASE_URL
@@ -2041,7 +2025,6 @@ flow "Carga do checkout" {
 }
 
 # ---------- saída ----------
-report junit("./out/junit.xml"), html("./out/report"), trace
 on failure { notify.slack "#qa" { mention: "@oncall" } }
 ```
 
@@ -2156,7 +2139,7 @@ Estes são os `semanticTokenTypes` que o LSP deve emitir. As cores abaixo são a
 | Token | Cor | Aplica em |
 | --- | --- | --- |
 | keyword | #9A8CF0 | controle de fluxo, estrutura, ciclo de vida |
-| keyword.declaration | #E28AB8 | module, use, import, fn, fragment, type |
+| keyword.declaration | #E28AB8 | module, import, fn, fragment, type |
 | namespace | #E0A33E | segmento inicial resolvido no registry |
 | function.action | #5FA8E8 | ação após o namespace |
 | function.matcher | #84C654 | matcher após expect |

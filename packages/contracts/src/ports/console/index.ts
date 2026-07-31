@@ -1,3 +1,7 @@
 export { ConsolePort } from "./console.port.js";
-export type { Console } from "./console.types.js";
-export { createMemoryConsole, type MemoryConsole } from "./memory-console.js";
+export type { Console, Key, ScreenOp, Stream, TerminalSize } from "./console.types.js";
+export {
+  createMemoryConsole,
+  type MemoryConsole,
+  type MemoryConsoleArgs,
+} from "./memory-console.js";

@@ -1,21 +1,23 @@
 import { type FnSpec, t } from "@venn-lang/types";
 import { describe, expect, it } from "vitest";
-import { consoleActions } from "./actions/console-actions.js";
 import { ioPlugin } from "./plugin.js";
 
+/** Every verb the plugin publishes, which is where a name is looked up. */
+const actions = ioPlugin.actions ?? [];
+
 function signatureOf(name: string): FnSpec {
-  const found = consoleActions.find((candidate) => candidate.name === name);
+  const found = actions.find((candidate) => candidate.name === name);
   if (!found?.signature) throw new Error(`io.${name} has no signature`);
   return found.signature;
 }
 
 function returnsOf(name: string): unknown {
-  return consoleActions.find((candidate) => candidate.name === name)?.signature?.result;
+  return actions.find((candidate) => candidate.name === name)?.signature?.result;
 }
 
 describe("io signatures", () => {
   it("types every verb — a namespace types all of itself or none of it", () => {
-    const untyped = consoleActions.filter((action) => !action.signature);
+    const untyped = actions.filter((action) => !action.signature);
 
     expect(untyped.map((action) => action.name)).toEqual([]);
   });

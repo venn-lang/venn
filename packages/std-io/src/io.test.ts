@@ -1,11 +1,15 @@
 import { createMemoryConsole, type MemoryConsole } from "@venn-lang/contracts";
 import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
-import { consoleActions } from "./actions/console-actions.js";
+import { ioPlugin } from "./plugin.js";
+
+/** Every verb the plugin publishes, which is where a name is looked up. */
+const actions = ioPlugin.actions ?? [];
+
 import { ConsolePort } from "./port/index.js";
 
 function action(name: string): ActionDefinition {
-  const found = consoleActions.find((candidate) => candidate.name === name);
+  const found = actions.find((candidate) => candidate.name === name);
   if (!found) throw new Error(`no io.${name}`);
   return found;
 }

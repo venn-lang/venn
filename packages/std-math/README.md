@@ -29,7 +29,13 @@ const roll = math.randomInt(1, 6)
 
 ## What it has
 
-**Constants**, read as values rather than called: `math.pi`, `math.tau`, `math.e`, `math.epsilon`.
+**Constants**, read as values rather than called: `math.pi`, `math.tau`, `math.e`, `math.epsilon`,
+`math.infinity`, `math.nan`. Each can be imported on its own, since a constant is a value like any
+other:
+
+```ruby
+import { pi, tau } from "venn/math"
+```
 
 **Trigonometry**: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, and `atan2(y, x)`, which is the one
 `atan` cannot do alone. `degrees` and `radians` convert between the two ways of saying an angle.
@@ -37,6 +43,18 @@ const roll = math.randomInt(1, 6)
 **Logarithms**: `log` (natural), `log2`, `log10`, and `exp`.
 
 **Two numbers**: `hypot(a, b)` without the overflow of squaring first, `gcd(a, b)`, `lcm(a, b)`.
+
+**The rest of the arithmetic**: `trunc` (toward zero, unlike `floor`), `cbrt`, `factorial`,
+`min(a, b)` and `max(a, b)` for two numbers, since a list already answers `.min` about itself, and
+`sinh`, `cosh`, `tanh`.
+
+**Questions a number cannot answer about itself**: `isNaN`, `isFinite`, and `isClose(a, b, within)`.
+`nan` is the reason the first one has to be a verb: it equals nothing, itself included, so
+`x == math.nan` is false however wrong the sum went.
+
+`isClose` scales its tolerance with the numbers unless one is given, because a fixed difference is
+wrong at both ends: everything is within `0.001` of a billion, and nothing is within it of a
+millionth.
 
 **Randomness**: `random()` for a number from 0 up to 1, and `randomInt(from, to)` with both ends
 included.

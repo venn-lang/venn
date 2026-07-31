@@ -19,6 +19,16 @@ export const constants: ValueDefinition[] = [
   constant("tau", Math.PI * 2, "Twice pi, which is the one turn a circle actually makes."),
   constant("e", Math.E, "The base of the natural logarithm."),
   constant(
+    "infinity",
+    Number.POSITIVE_INFINITY,
+    "Larger than every number. What dividing by zero gives.",
+  ),
+  constant(
+    "nan",
+    Number.NaN,
+    "Not a number: what an impossible sum answers with, and never equals itself.",
+  ),
+  constant(
     "epsilon",
     Number.EPSILON,
     "The smallest difference between 1 and the next number after it. What `closeTo` is for.",

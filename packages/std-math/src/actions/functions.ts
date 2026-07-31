@@ -61,11 +61,37 @@ export const functions: ActionDefinition[] = [
     ["a", "b"],
     Math.hypot,
   ),
+  unary(
+    "trunc",
+    "The whole part, thrown toward zero. Unlike `floor`, which goes down.",
+    Math.trunc,
+  ),
+  unary("cbrt", "The cube root.", Math.cbrt),
+  unary("sinh", "The hyperbolic sine.", Math.sinh),
+  unary("cosh", "The hyperbolic cosine.", Math.cosh),
+  unary("tanh", "The hyperbolic tangent.", Math.tanh),
+  unary("factorial", "The product of every whole number up to this one.", factorial),
+  binary(
+    "min",
+    "The smaller of two. A list already answers `.min` about itself.",
+    ["a", "b"],
+    Math.min,
+  ),
+  binary("max", "The larger of two.", ["a", "b"], Math.max),
   binary("gcd", "The greatest common divisor.", ["a", "b"], gcd),
   binary("lcm", "The least common multiple.", ["a", "b"], (a, b) =>
     a && b ? Math.abs(a * b) / gcd(a, b) : 0,
   ),
 ];
+
+/** Whole numbers only, and nothing at all below zero, where it has no meaning. */
+function factorial(value: number): number {
+  const whole = Math.trunc(value);
+  if (whole < 0) return Number.NaN;
+  let total = 1;
+  for (let at = 2; at <= whole; at += 1) total *= at;
+  return total;
+}
 
 /** Euclid's, which is the whole of it. */
 function gcd(a: number, b: number): number {

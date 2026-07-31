@@ -89,6 +89,62 @@ describe("randomness", () => {
   });
 });
 
+describe("the questions a number cannot answer about itself", () => {
+  /** It equals nothing, itself included, so asking has to be a verb. */
+  it("finds the not-a-number that no comparison can find", () => {
+    expect(run("isNaN", Number.NaN)).toBe(true);
+    expect(run("isNaN", 1)).toBe(false);
+  });
+
+  it("says whether a number is a real one", () => {
+    expect(run("isFinite", 1)).toBe(true);
+    expect(run("isFinite", Number.POSITIVE_INFINITY)).toBe(false);
+    expect(run("isFinite", Number.NaN)).toBe(false);
+  });
+
+  it("compares floats by how near they are, which is the only fair question", () => {
+    expect(run("isClose", 0.1 + 0.2, 0.3)).toBe(true);
+    expect(run("isClose", 1, 2)).toBe(false);
+  });
+
+  /** A fixed tolerance is wrong at both ends, so it scales unless one is given. */
+  it("takes a tolerance when the caller has one in mind", () => {
+    expect(run("isClose", 100, 101, 5)).toBe(true);
+    expect(run("isClose", 100, 101, 0.5)).toBe(false);
+  });
+
+  /**
+   * Which is what scaling buys: one apart is below what a float can even hold at
+   * ten quadrillion, and is the whole difference between one and two.
+   */
+  it("takes a gap as close where the numbers are too large to tell apart", () => {
+    expect(run("isClose", 1e16, 1e16 + 1)).toBe(true);
+    expect(run("isClose", 1, 2)).toBe(false);
+  });
+});
+
+describe("the rest of the arithmetic", () => {
+  it("throws the whole part toward zero, unlike floor", () => {
+    expect(run("trunc", -2.7)).toBe(-2);
+    expect(run("cbrt", 27)).toBeCloseTo(3);
+  });
+
+  it("multiplies every whole number up to one", () => {
+    expect(run("factorial", 5)).toBe(120);
+    expect(run("factorial", 0)).toBe(1);
+  });
+
+  /** Below zero it has no meaning, and answering 1 would be a lie. */
+  it("answers with the not-a-number below zero", () => {
+    expect(Number.isNaN(run("factorial", -1) as number)).toBe(true);
+  });
+
+  it("picks between two, which a list already does for many", () => {
+    expect(run("min", 3, 7)).toBe(3);
+    expect(run("max", 3, 7)).toBe(7);
+  });
+});
+
 describe("what the namespace does not have", () => {
   /** A number answers these about itself, and one spelling is enough. */
   it("leaves what a number already has a member for alone", () => {

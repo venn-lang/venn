@@ -1,4 +1,5 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
+import { checks } from "./actions/checks.js";
 import { constants } from "./actions/constants.js";
 import { functions } from "./actions/functions.js";
 import { randomActions } from "./actions/random-actions.js";
@@ -14,6 +15,6 @@ export const mathPlugin: PluginDefinition = definePlugin({
   name: "venn/math",
   version: "0.0.0",
   namespace: "math",
-  actions: [...functions, ...randomActions],
+  actions: [...functions, ...checks, ...randomActions],
   values: constants,
 });

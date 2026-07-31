@@ -2,6 +2,8 @@
 # Run: venn run examples/basics/11-math.vn
 
 import { math } from "venn/math"
+# A constant is a value like any other, so it can be brought in on its own.
+import { pi } from "venn/math"
 
 ## A constant is read as the value it is, with no brackets: it is data, not
 ## something to call.
@@ -24,6 +26,13 @@ print "hypot(3, 4) = ${math.hypot(3, 4)}"
 # numbers every time it runs, and a failure can be replayed.
 const rolls = range(5).map(fn (i) => math.randomInt(1, 6))
 print "five rolls: ${rolls}"
+
+# Imported by name, it reads as itself.
+print "pi on its own: ${pi}"
+
+# What a float comparison should always have been.
+print "0.1 + 0.2 is 0.3: ${math.isClose(0.1 + 0.2, 0.3)}"
+print "and by ==: ${0.1 + 0.2 == 0.3}"
 
 # What a number already answers stays a member. There is one spelling of each.
 print "${(-3).abs}, ${2.sqrt}, ${3.7.round(0)}, ${120.clamp(0, 100)}"

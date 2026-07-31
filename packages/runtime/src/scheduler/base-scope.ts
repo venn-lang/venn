@@ -1,5 +1,6 @@
 import type { Document } from "@venn-lang/core";
-import { namespacesInFile } from "../imports/index.js";
+import { namespacesInFile, readImports } from "../imports/index.js";
+import type { Registry } from "../registry/index.js";
 import { createScope, type Scope } from "../scope/index.js";
 import { bindNamespaces } from "./bind-namespaces.js";
 import { bindPrelude } from "./bind-prelude.js";
@@ -13,6 +14,21 @@ import type { Engine } from "./engine.types.js";
  * cannot drift apart. Every scope a module is read in starts here too, which is
  * what makes an imported function see the same world its own file did.
  */
+/**
+ * The constants this file imported by name, under the name it wrote.
+ *
+ * `import { pi } from "venn/math"` puts `pi` in scope; `math.pi` still works for
+ * whoever imported the namespace instead, and both read the same value.
+ */
+function bindImportedValues(document: Document, registry: Registry, scope: Scope): void {
+  const published = new Map(
+    registry.values().map((one) => [`${one.namespace}.${one.value.name}`, one.value.value]),
+  );
+  for (const [local, qualified] of readImports(document, registry).values) {
+    if (published.has(qualified)) scope.set(local, published.get(qualified));
+  }
+}
+
 export function createBaseScope(args: {
   engine: Engine;
   /** The `matrix` variant, for a test run. A program has none. */
@@ -24,6 +40,7 @@ export function createBaseScope(args: {
   bindPrelude(scope);
   const named = args.document ? namespacesInFile(args.document, args.engine.registry) : undefined;
   bindNamespaces({ registry: args.engine.registry, ctx: args.engine.ctx, scope, named });
+  if (args.document) bindImportedValues(args.document, args.engine.registry, scope);
   scope.set("env", args.engine.env);
   if (args.variant) scope.set("matrix", args.variant);
   return scope;

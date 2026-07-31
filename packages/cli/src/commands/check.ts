@@ -17,6 +17,7 @@ import {
   checkImports,
   collectFragments,
   createTypeCatalog,
+  publishedValueTypes,
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
@@ -88,7 +89,7 @@ async function problemsIn(uri: string): Promise<Problem[]> {
     document: ast,
     uri,
     catalog,
-    packages: await packageTypesFor({ document: ast, root: project?.dir }),
+    packages: await importedFrom({ document: ast, root: project?.dir }),
   });
   return [
     ...found,
@@ -114,6 +115,19 @@ async function packageTypesFor(args: {
     .map((decl) => decl.path)
     .filter(isPackageSpecifier);
   return wanted.length > 0 ? loadDerivedTypes({ root: args.root, packages: wanted }) : new Map();
+}
+
+/**
+ * What the imported packages publish: the plugins' own values, and whatever an
+ * install derived from a `.d.ts`. The derived ones are listed last, so a package
+ * that is both keeps what was read from its types.
+ */
+async function importedFrom(args: {
+  document: Document;
+  root?: string;
+}): Promise<Map<string, Record<string, TypeSpec>>> {
+  const derived = await packageTypesFor(args);
+  return new Map([...publishedValueTypes(allPlugins), ...derived]);
 }
 
 /**

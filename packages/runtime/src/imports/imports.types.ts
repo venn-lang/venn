@@ -10,6 +10,8 @@ export interface Imported {
   readonly matchers: ReadonlyMap<string, string>;
   /** Local type name to the qualified one the catalog holds. */
   readonly types: ReadonlyMap<string, string>;
+  /** Local name to the qualified constant it stands for: `pi` to `math.pi`. */
+  readonly values: ReadonlyMap<string, string>;
   /** The `@name`s it brought in. */
   readonly decos: ReadonlyMap<string, string>;
   /** A name the package does not publish, kept to be reported where it is written. */

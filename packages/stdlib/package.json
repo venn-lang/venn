@@ -57,6 +57,7 @@
     "@venn-lang/grpc": "workspace:*",
     "@venn-lang/http": "workspace:*",
     "@venn-lang/io": "workspace:*",
+    "@venn-lang/json": "workspace:*",
     "@venn-lang/load": "workspace:*",
     "@venn-lang/mail": "workspace:*",
     "@venn-lang/mock": "workspace:*",

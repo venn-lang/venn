@@ -1,0 +1,37 @@
+# Text into a value, and back out again.
+# Run: venn run examples/basics/10-json.vn
+
+import { json } from "venn/json"
+import { fmt } from "venn/fmt"
+
+## The shape the text is expected to have. Without it what comes back is
+## `dynamic`, and `order.totl` would be a surprise at run time instead of a
+## compile error here.
+type Order {
+  id: number
+  total: number
+  items: list<string>
+}
+
+const body = '{ "id": 7, "total": 42, "items": ["book", "pen"] }'
+const order: Order = json.parse(body)
+
+print "order ${order.id}: ${order.total} for ${order.items.len} items"
+print order.items.join(", ")
+
+# `tryParse` is for text nobody promised was JSON: a line off a pipe, a file that
+# might be empty, a response from something having a bad day.
+forEach line in ['{ "ok": true }', "not json at all", "[1, 2, 3]"] {
+  const value = json.tryParse(line)
+  if value == null {
+    print "skipped: ${line}"
+  } else {
+    print "read: ${fmt.json(value, 0)}"
+  }
+}
+
+# And the question on its own, when the answer is all that matters.
+print json.isValid("{}")
+
+# The other direction lives in `fmt`, so one namespace reads and the other writes.
+print fmt.json(order, 2)

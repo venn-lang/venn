@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/toolchain",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Which version of the language a directory is asking for, and where the versions on a machine live.",
   "keywords": [
     "venn",

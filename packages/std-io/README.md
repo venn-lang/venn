@@ -1,6 +1,6 @@
 # @venn-lang/io
 
-> The `io` namespace: standard output, standard error, standard input and the process arguments.
+> The `io` namespace: the standard streams, the terminal behind them, and the process arguments.
 
 A Venn file is a program as often as it is a suite, and a program talks to the outside world through
 its console. This plugin names the parts of it that need naming, on top of the `Console` port. Plain
@@ -40,13 +40,42 @@ io.print "hello, ${name}"
 
 ## Verbs
 
+**Writing**
+
 | Verb | Signature | What it does |
 | --- | --- | --- |
 | `io.print` | `(...dynamic) -> void` | Writes to standard output with a newline. The same as the prelude's `print`. |
 | `io.write` | `(dynamic) -> void` | Writes to standard output with nothing added after it. |
 | `io.eprint` | `(dynamic) -> void` | Writes to standard error, followed by a newline. |
+
+**Reading**
+
+| Verb | Signature | What it does |
+| --- | --- | --- |
 | `io.readLine` | `() -> string \| null` | The next line of standard input, or `null` at end of input. |
+| `io.readAll` | `() -> string` | Everything left on standard input, which is how a pipe hands over. |
+| `io.readKey` | `() -> Key \| null` | The next keypress, as it is pressed rather than when a line ends. |
+| `io.ask` | `(string) -> string \| null` | Writes a question and reads the answer, which is the two of them at once. |
+
+**The terminal**
+
+| Verb | Signature | What it does |
+| --- | --- | --- |
+| `io.size` | `() -> { columns, rows } \| null` | How big it is, or `null` when the output is not a terminal. |
+| `io.isTerminal` | `(string) -> bool` | Whether `"in"`, `"out"` or `"err"` is one. Decides colour, redrawing and whether to ask. |
+| `io.cursor.to` | `(number, number) -> void` | Put the cursor at a column and row, both counting from 1. |
+| `io.cursor.move` | `(number, number) -> void` | Move it from where it is. Negative goes left and up. |
+| `io.cursor.hide` / `io.cursor.show` | `() -> void` | Hide the caret while redrawing, and put it back. |
+| `io.clearLine` | `() -> void` | Clear the line the cursor is on, and put the cursor at its start. |
+| `io.clear` | `() -> void` | Clear the screen and go to the top left. |
 | `io.args` | `() -> list<string>` | The command-line arguments passed to the script. |
+
+A keypress arrives as `{ name, text, ctrl, alt, shift }`. `name` is the key spelled out, so
+`up`, `enter` and `escape` are readable without a table of escape codes, and `text` is what the key
+would have typed, empty for the ones that type nothing.
+
+Every screen operation is **quietly ignored where there is no terminal**, and `size` answers `null`
+there, so one program run interactively and through a pipe is the same program.
 
 `io.print` takes as many values as you like and joins them with a space. Strings are written as
 they are; anything else is rendered as JSON, so a map never prints as `[object Object]`.
@@ -68,12 +97,13 @@ clock, not something this plugin owns.
 | Id | `venn.port.console` |
 | Version | `1` |
 | Requires | `io` |
-| Methods | `write`, `writeError`, `readLine`, `args` |
+| Methods | `write`, `writeError`, `readLine`, `readAll`, `readKey`, `args`, `size`, `isTerminal`, `screen`, `onResize` |
 
 Two implementations ship with it, and both pass the same conformance suite: `createNodeConsole` from
-`@venn-lang/contracts/node`, which writes to Node's real streams and opens stdin lazily on the first
-`readLine`, and `createMemoryConsole`, which records instead of printing and reads from a scripted
-input. `venn run` binds the real one, with the command line's arguments; a test binds the recorder
+`@venn-lang/contracts/node`, which writes to Node's real streams and opens stdin on the first
+read, and `createMemoryConsole`, which records instead of printing and reads from a scripted input.
+The fake records **screen operations rather than escape codes**, so a test says "the cursor went to
+3, 5" instead of matching bytes, and `resize` arranges the one thing a test otherwise cannot. `venn run` binds the real one, with the command line's arguments; a test binds the recorder
 and reads back exactly what the program wrote:
 
 ```ts
@@ -88,12 +118,25 @@ await console.readLine(); // null
 console.args(); // ["--name", "ada"]
 ```
 
+A fake terminal is a fake console that says it is one:
+
+```ts
+const console = createMemoryConsole({ size: { columns: 80, rows: 24 }, terminal: ["out"] });
+
+console.size(); // { columns: 80, rows: 24 }
+console.screen({ kind: "clearLine" });
+console.ops; // [{ kind: "clearLine" }]
+console.resize({ columns: 100, rows: 30 }); // every listener hears it
+```
+
 ## API
 
 | Export | What it is |
 | --- | --- |
-| `ioPlugin` (also the default export) | The `PluginDefinition`: namespace `io`, requires the `io` capability, five actions, no types. |
-| `consoleActions` | The five `ActionDefinition`s, in the order listed above. |
+| `ioPlugin` (also the default export) | The `PluginDefinition`: namespace `io`, requires the `io` capability. |
+| `consoleActions` | Writing: `print`, `write`, `eprint`. |
+| `inputActions` | Reading: `readLine`, `readAll`, `readKey`, `ask`. |
+| `screenActions` | The terminal: its size, whether it is one, the cursor and clearing. |
 | `ConsolePort` | The port descriptor, re-exported from `@venn-lang/contracts`. |
 | `Console` | The port's interface (type only). |
 | `createMemoryConsole` | The recording implementation, for tests. |

@@ -1,0 +1,40 @@
+# Talking to whoever is sitting in front of the program.
+# Run: venn run examples/basics/09-terminal.vn
+#      echo "ada" | venn run examples/basics/09-terminal.vn
+
+import { io } from "venn/io"
+
+## What the program is attached to. A pipe is not a terminal, and the difference
+## decides whether there is anyone to ask and anything to draw on.
+const screen = io.size()
+const interactive = io.isTerminal("in") && io.isTerminal("out")
+
+if screen != null {
+  print "terminal: ${screen.columns} by ${screen.rows}"
+} else {
+  print "not a terminal: writing lines and nothing else"
+}
+
+# `ask` writes the question and reads the answer, which is the two of them at
+# once. Through a pipe it reads the line that was piped, and answers null when
+# there is nothing left, so the same program works both ways.
+const name = io.ask("your name: ")
+print "hello, ${name ?? 'nobody'}"
+
+# The screen operations are ignored where there is no screen, so this is safe to
+# write without asking first. Here it is asked anyway, to have something to show.
+if interactive {
+  io.cursor.hide()
+  repeat 3 as at {
+    io.clearLine()
+    const bar = '#'.repeat(at * 6)
+    io.write("drawing ${bar}")
+    wait 120ms
+  }
+  io.clearLine()
+  io.cursor.show()
+  print "done"
+}
+
+# Standard error is its own stream: a pipe reading the output never sees this.
+io.eprint("finished")

@@ -9,5 +9,16 @@ export const ConsolePort: Port<Console> = {
   id: "venn.port.console",
   version: 1,
   requires: ["io"],
-  methods: ["write", "writeError", "readLine", "args"],
+  methods: [
+    "write",
+    "writeError",
+    "readLine",
+    "readAll",
+    "readKey",
+    "args",
+    "size",
+    "isTerminal",
+    "screen",
+    "onResize",
+  ],
 };

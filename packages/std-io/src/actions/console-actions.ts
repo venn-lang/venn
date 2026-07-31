@@ -48,12 +48,6 @@ export const consoleActions: ActionDefinition[] = [
     run: (ctx, input) => ctx.port(ConsolePort).writeError(`${line(input.args)}\n`),
   }),
   defineAction({
-    name: "readLine",
-    doc: "Read the next line from standard input, or null at end of input.",
-    result: t.union(t.string, t.null),
-    run: (ctx) => ctx.port(ConsolePort).readLine(),
-  }),
-  defineAction({
     name: "args",
     doc: "The command-line arguments passed to the script.",
     result: t.list(t.string),

@@ -3,7 +3,11 @@ import { consoleConformance } from "./console.suite.js";
 import { createMemoryConsole } from "./memory-console.js";
 import { createNodeConsole } from "./node-console.js";
 
-consoleConformance({ name: "memory", factory: (input) => createMemoryConsole({ input }) });
+consoleConformance({
+  name: "memory",
+  factory: (input) => createMemoryConsole({ input }),
+  terminal: (size) => createMemoryConsole({ size, terminal: ["in", "out", "err"] }),
+});
 
 /**
  * The same suite against the real node console, with its streams injected: a
@@ -22,6 +26,19 @@ consoleConformance({
     const stdin = Readable.from(input ? input.map((line) => `${line}\n`) : []);
     const console = createNodeConsole({ stdout, stderr: stdout, stdin });
     // A getter, not `Object.assign`: assigning would snapshot the empty string.
+    return Object.defineProperty(console, "out", { get: () => captured.text });
+  },
+  terminal: (size) => {
+    const captured = { text: "" };
+    const stdout = {
+      write: (text: string) => {
+        captured.text += text;
+      },
+      isTTY: true,
+      columns: size.columns,
+      rows: size.rows,
+    };
+    const console = createNodeConsole({ stdout, stderr: stdout, stdin: Readable.from([]) });
     return Object.defineProperty(console, "out", { get: () => captured.text });
   },
 });

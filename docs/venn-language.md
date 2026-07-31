@@ -293,6 +293,21 @@ fn rotulo({ nome, idade }) => "${nome}/${idade}"
 fragment mostra({ total }: Pedido) { … }
 ```
 
+Do outro lado do sinal de igual, `...` despeja em vez de guardar:
+
+```venn
+const ys = [0, ...xs, 5]              # lista dentro de lista
+const c = { ...padroes, timeout: 5s } # mapa dentro de mapa, o último ganha
+```
+
+O tipo acompanha: lista continua homogênea, e o mapa fica com os campos dos dois,
+com o que veio depois ganhando de quem veio antes. Despejar algo cuja forma
+ninguém sabe deixa o literal inteiro desconhecido, porque qualquer campo pode ter
+sido o sobrescrito.
+
+`a.merge(b)` responde a mesma pergunta que `{ ...a, ...b }`, e agora responde com
+o mesmo tipo; `a.mergeDeep(b)` desce nos mapas aninhados em vez de trocar o galho.
+
 `...nome` no fim leva o que o padrão não nomeou: os outros campos como um mapa,
 ou os itens depois do último, como lista.
 

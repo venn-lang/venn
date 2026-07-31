@@ -67,3 +67,9 @@ print pretty(people.groupBy(p => p.age > 40 ? 'senior' : 'junior'))
 print "${[[1, 2], [3, 4]]}"
 print pretty([[1, 2], [3, 4]])
 print "${[[1, 2], [3, 4]].flatten}"
+
+# A list can be poured into another where it is written, which is `concat` said
+# in place, and reads better when there are three parts instead of two.
+const front = [0]
+const back = [9, 10]
+print "${[...front, ...numbers, ...back]}"

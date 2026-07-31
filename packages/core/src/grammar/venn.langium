@@ -80,7 +80,7 @@ DatasetDecl: 'dataset' name=ID (':' declaredType=TypeRef)? '=' value=Expr;
 ParamList: params+=Param (',' params+=Param)*;
 // A parameter carries decorators too. No `NL*` here: a parameter list lives
 // inside `( )`, where the lexer already dropped the newlines.
-Param: (annotations+=Annotation)* (name=ID | pattern=Pattern) (':' paramType=TypeRef)?;
+Param: (annotations+=Annotation)* (name=ID | pattern=ShapePattern) (':' paramType=TypeRef)?;
 
 TypeRef: members+=SingleType ('|' members+=SingleType)*;
 SingleType:
@@ -108,7 +108,7 @@ GroupDecl: 'group' title=STRING body=Block;
 IfStmt: 'if' cond=Expr then=Block ('else' otherwise=ElseBranch)?;
 ElseBranch: IfStmt | Block;
 
-ForEachStmt: 'forEach' (item=ID | pattern=Pattern) 'in' source=Expr (opts=MapLit)? body=Block;
+ForEachStmt: 'forEach' (item=ID | pattern=ShapePattern) 'in' source=Expr (opts=MapLit)? body=Block;
 RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=Block;
 // The open loop: one word, three shapes.
 //
@@ -155,21 +155,28 @@ LifecycleDecl:
 // is refused by the checker, not by the grammar: the message it can give names
 // the file and the line, and a parse error at that point would name a token.
 LetStmt:
-    (export?='pub')? kind=('let' | 'const') (name=ID | pattern=Pattern) (':' declaredType=TypeRef)? '='
+    (export?='pub')? kind=('let' | 'const') (name=ID | pattern=ShapePattern) (':' declaredType=TypeRef)? '='
     value=Expr (args+=ActionArg)* (opts=MapLit)?;
 
 // A pattern takes a value apart where a name would have taken all of it. Each
 // shape mirrors the literal it reads: `{ … }` a map, `[ … ]` a list, and a bare
 // name the whole thing, which is what makes the three nest in each other.
+// A pattern is a name, a value to compare against, or a shape to go into. The
+// shapes are their own rule because that is what a binding takes: `let x = …`
+// binds a name, so reading `x` as a pattern that happens to be a name would be
+// two ways to parse one line.
 Pattern:
-    {infer NamePattern} name=ID
+    ShapePattern
+  | {infer NamePattern} name=ID
   // A name binds what is there, a literal asks whether that is what is there.
   // One rule, and it is what lets a pattern both test and take apart at once.
-  | {infer LiteralPattern} value=LiteralValue
+  | {infer LiteralPattern} value=LiteralValue;
+
+ShapePattern:
   // `...rest` takes whatever the pattern did not name: the other fields as a map,
   // or the items after the last one, as a list. It comes last, because what is
   // left is only known once the rest of the pattern has had its say.
-  | {infer MapPattern} '{' NL*
+    {infer MapPattern} '{' NL*
       ( fields+=FieldPattern ((',' | NL)+ fields+=FieldPattern)* ((',' | NL)+ '...' rest=ID)?
       | '...' rest=ID )?
       (',' | NL)* '}'
@@ -335,15 +342,21 @@ BareParamName infers Param: name=ID;
 ArrowBody infers FnBody:
     result=Expr;
 
+// `...` in a literal is the other side of `...` in a pattern: there it keeps
+// what was left, here it pours what is there into what is being written.
 ListLit infers ListLit:
-    '[' (items+=Expr (',' items+=Expr)* ','?)? ']';
+    '[' (items+=ListItem (',' items+=ListItem)* ','?)? ']';
+
+ListItem: (spread?='...')? value=Expr;
 
 MapLit infers MapLit:
     '{' (',' | NL)*
     (entries+=MapEntry ((',' | NL)+ entries+=MapEntry)* (',' | NL)*)?
     '}';
 
-MapEntry: key=MapKey ':' value=Expr;
+// A key and its value, or a map poured in whole. Later wins over earlier, which
+// is what makes `{ ...defaults, timeout: 5s }` read the way it looks.
+MapEntry: key=MapKey ':' value=Expr | spread?='...' value=Expr;
 MapKey returns string: Word | STRING;
 
 ArgList: args+=Arg (',' args+=Arg)*;

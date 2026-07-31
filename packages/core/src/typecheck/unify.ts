@@ -116,12 +116,26 @@ function occurs(variable: TypeVar, type: Type): boolean {
 }
 
 function unifyFn(a: FnType, b: FnType): boolean {
-  // A variadic function accepts any argument list; only its result must agree.
-  if (a.variadic || b.variadic) return unify(a.result, b.result);
+  if (a.variadic || b.variadic) return unifyVariadic(a, b);
   const shared = sharedArity(a, b);
   if (shared === undefined) return false;
   for (let at = 0; at < shared; at += 1) {
     if (!unify(a.params[at] as Type, b.params[at] as Type)) return false;
+  }
+  return unify(a.result, b.result);
+}
+
+/**
+ * A variadic function takes any number of arguments, so only its result has to
+ * agree. What each of them is, though, it may still have said: one declared
+ * parameter is what every argument has to be, which is how `range("a")` is wrong
+ * for the same reason `range(1, "a")` is.
+ */
+function unifyVariadic(a: FnType, b: FnType): boolean {
+  const [open, called] = a.variadic ? [a, b] : [b, a];
+  const each = open.params.length === 1 ? open.params[0] : undefined;
+  if (each && !called.variadic) {
+    for (const param of called.params) if (!unify(each, param)) return false;
   }
   return unify(a.result, b.result);
 }

@@ -9,6 +9,7 @@ import type {
   FnBody,
   Index,
   ListLit,
+  MapEntry,
   MapLit,
   Member,
   Param,
@@ -28,9 +29,11 @@ import type { TypeCatalog } from "./catalog.types.js";
 import { checkMatch } from "./check-match.js";
 import { badPatternIn } from "./check-pattern.js";
 import type { TypeContext } from "./context.js";
+import { mergedCall } from "./merged-call.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
+import { emptyPour, pour, shapeOf } from "./poured-into.js";
 import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
@@ -42,7 +45,6 @@ import {
   list,
   NULL,
   NUMBER,
-  record,
   STRING,
   type Type,
   type UnionType,
@@ -322,6 +324,9 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
   const callee = prune(inferExpr(expr.callee, env, infer));
   const args = (expr.args?.args ?? []).map((arg) => inferExpr(arg.value, env, infer));
   if (callee.kind === "dynamic") return DYNAMIC;
+  // Worked out from what it was handed, which no signature could have said.
+  const merged = mergedCall({ expr, args, infer });
+  if (merged) return merged;
   const result = infer.ctx.fresh();
   const sentence = callingAValue({ expr, callee });
   if (sentence) {
@@ -420,16 +425,49 @@ function inferTernary(expr: Ternary, env: TypeEnv, infer: Infer): Type {
   return unify(then, otherwise) ? then : DYNAMIC;
 }
 
+/**
+ * A list literal. Every item is the same type, and a `...` pours in a list of
+ * that same type, which is the only thing it could pour in.
+ */
 function inferList(expr: ListLit, env: TypeEnv, infer: Infer): Type {
   const element = infer.ctx.fresh() as Type;
-  for (const item of expr.items) expect(infer, item, inferExpr(item, env, infer), element);
+  for (const item of expr.items) {
+    const type = inferExpr(item.value, env, infer);
+    expect(infer, item.value, type, item.spread ? list(element) : element);
+  }
   return list(element);
 }
 
+/**
+ * A map literal, field by field, with a `...` pouring another map's fields in
+ * where it is written. Later wins, so a key after a spread is the one that
+ * counts, and a spread of something whose shape nobody knows leaves the whole
+ * literal unknown: any field could be the one it overwrote.
+ */
 function inferMap(expr: MapLit, env: TypeEnv, infer: Infer): Type {
-  const fields = new Map<string, Type>();
-  for (const entry of expr.entries) fields.set(entry.key, inferExpr(entry.value, env, infer));
-  return record(fields);
+  const into = emptyPour();
+  for (const entry of expr.entries) {
+    const type = inferExpr(entry.value, env, infer);
+    if (!entry.spread) {
+      into.fields.set(entry.key as string, type);
+    } else if (!pour(into, type)) {
+      return notAMap(entry, type, infer);
+    }
+  }
+  return shapeOf(into);
+}
+
+/** A `...` of something that is not a map, said where it can still be helped. */
+function notAMap(entry: MapEntry, type: Type, infer: Infer): Type {
+  const held = prune(type);
+  if (held.kind === "dynamic" || held.kind === "var") return DYNAMIC;
+  infer.ctx.mismatches.push({
+    node: entry,
+    expected: held,
+    actual: DYNAMIC,
+    note: "is not a map, so it cannot be poured into one",
+  });
+  return DYNAMIC;
 }
 
 /**

@@ -111,7 +111,6 @@ const KEYWORDS: Record<string, KeywordDoc> = {
   match: {
     summary:
       "Decide between the shapes a value can have, covering every one of them. `=>` gives a value back, `{ … }` runs steps.",
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: Venn's own interpolation, quoted for a reader.
     example:
       'match msg {\n  { kind: "ping", at } => "ping at ${at}"\n  { kind: "text", body } => body\n  _ => "something else"\n}',
   },

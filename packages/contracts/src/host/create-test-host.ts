@@ -3,6 +3,7 @@ import { createMemoryLogger } from "../logger/index.js";
 import { createVirtualClock } from "../ports/clock/index.js";
 import { createMemoryFs } from "../ports/file-system/index.js";
 import { createInProcessLock } from "../ports/lock-provider/index.js";
+import { createPosixPaths } from "../ports/paths/index.js";
 import { createFakeProcess } from "../ports/process-provider/index.js";
 import { createSeededRandom } from "../ports/random/index.js";
 import { createMemorySecrets } from "../ports/secret-provider/index.js";
@@ -16,6 +17,7 @@ import type { Host } from "./host.types.js";
 export function createTestHost(overrides: Partial<Host> = {}): Host {
   return {
     fs: createMemoryFs(),
+    paths: createPosixPaths(),
     proc: createFakeProcess(),
     clock: createVirtualClock(),
     random: createSeededRandom({ seed: 1 }),

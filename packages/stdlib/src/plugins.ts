@@ -19,6 +19,7 @@ import { mathPlugin } from "@venn-lang/math";
 import { mockPlugin } from "@venn-lang/mock";
 import { mqttPlugin } from "@venn-lang/mqtt";
 import { notifyPlugin } from "@venn-lang/notify";
+import { pathPlugin } from "@venn-lang/path";
 import type { PluginDefinition } from "@venn-lang/sdk";
 import { wsPlugin } from "@venn-lang/ws";
 
@@ -38,6 +39,7 @@ export const allPlugins: PluginDefinition[] = [
   datePlugin,
   fmtPlugin,
   jsonPlugin,
+  pathPlugin,
   mathPlugin,
   ioPlugin,
   mockPlugin,

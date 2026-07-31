@@ -1,4 +1,4 @@
-import { ClockPort, FileSystemPort, type Host, RandomPort } from "@venn-lang/contracts";
+import { ClockPort, FileSystemPort, type Host, PathsPort, RandomPort } from "@venn-lang/contracts";
 import {
   type Document,
   expand,
@@ -42,6 +42,7 @@ function hostPorts(host: Host): PortBinding[] {
     { port: ClockPort, impl: host.clock },
     { port: RandomPort, impl: host.random },
     { port: FileSystemPort, impl: host.fs },
+    { port: PathsPort, impl: host.paths },
   ];
 }
 

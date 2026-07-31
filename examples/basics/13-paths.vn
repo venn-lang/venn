@@ -1,0 +1,41 @@
+# Building a path, taking one apart, and checking one that came from outside.
+# Run: venn run examples/basics/13-paths.vn
+
+import { path } from "venn/path"
+
+## Making one. Nothing here says which separator this machine writes, which is
+## the whole point: the same file runs on a machine that writes the other one.
+const reports = path.join("out", "reports")
+print path.join(reports, "run.json")
+
+# Empty parts are skipped and `..` is worked out, so a path built from pieces
+# that came from three places is still one path.
+print path.join("out", "", "reports", "..", "logs")
+
+## Taking one apart. All of it is reading the path, never touching a disk.
+const file = path.join(reports, "cart.tar.gz")
+
+print "directory: ${path.dirname(file)}"
+print "name:      ${path.basename(file)}"
+print "stem:      ${path.stem(file)}"
+print "extension: ${path.extension(file)}"
+
+# Naming an output after its input, which is what most of this is for.
+print path.withExtension(file, "csv")
+
+## A name that came from somewhere else. Checking it is a question with an
+## answer, asked before the path is used rather than after something is gone.
+const asked = ["cart.json", "nested/cart.json", "../etc/passwd", "/etc/passwd"]
+
+forEach name in asked {
+  const full = path.join("uploads", name)
+  if path.isInside("uploads", full) {
+    print "ok      ${full}"
+  } else {
+    print "refused ${name}"
+  }
+}
+
+## Where the program is, and the walk from one place to another.
+print "running in ${path.cwd()}"
+print path.relative(path.join("src", "lib"), path.join("src", "test", "x.vn"))

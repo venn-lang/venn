@@ -2,6 +2,7 @@ import { createMemoryLogger } from "../logger/index.js";
 import { createSystemClock } from "../ports/clock/index.js";
 import { createMemoryFs } from "../ports/file-system/index.js";
 import { createInProcessLock } from "../ports/lock-provider/index.js";
+import { createPosixPaths } from "../ports/paths/index.js";
 import type { ProcessProvider } from "../ports/process-provider/index.js";
 import { ProcessProviderPort } from "../ports/process-provider/index.js";
 import { createSeededRandom } from "../ports/random/index.js";
@@ -18,6 +19,7 @@ import { unavailable } from "./unavailable.js";
 export function createWorkerHost(): Host {
   return {
     fs: createMemoryFs(),
+    paths: createPosixPaths(),
     proc: unavailable<ProcessProvider>({
       capability: "process",
       methods: ProcessProviderPort.methods,

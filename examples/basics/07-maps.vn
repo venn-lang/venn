@@ -69,6 +69,11 @@ print "${name} lives in ${city}"
 const { credits, ...whoever } = user
 print "${credits} credits, and ${whoever.len} other fields"
 
+# And the same three dots on the other side of the `=` pour it back in. The last
+# writer of a key wins, so this is how a default is overridden.
+const defaults = { plan: "free", credits: 0 }
+print pretty({ ...defaults, ...user })
+
 fn line({ sku, qty }) => "${qty} of ${sku}"
 print rows.map(line).join(", ")
 print "${scores.entries.sortBy(e => e[1]).map(e => e[0])}"

@@ -20,6 +20,7 @@ export const CODES = {
   VN2016_DECO_IMPURE: { code: "VN2016", severity: "error" },
   VN2017_DECO_VERB: { code: "VN2017", severity: "error" },
   VN2018_UNBOUND_NAME: { code: "VN2018", severity: "error" },
+  VN2019_UNREADABLE_IMPORT: { code: "VN2019", severity: "error" },
   VN3001_UNKNOWN_OPTION: { code: "VN3001", severity: "error" },
   VN3010_TYPE_MISMATCH: { code: "VN3010", severity: "error" },
   VN3012_UNIT_MISMATCH: { code: "VN3012", severity: "error" },

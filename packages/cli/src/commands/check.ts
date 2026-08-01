@@ -72,7 +72,16 @@ async function problemsIn(uri: string): Promise<Problem[]> {
     paths: manifest?.paths ?? {},
     rootDir: project?.dir ?? dirname(uri),
   });
-  const { fragments: imported, decos, modules } = await resolveImports({ document: ast, uri, io });
+  const {
+    fragments: imported,
+    decos,
+    modules,
+    unreadable,
+  } = await resolveImports({
+    document: ast,
+    uri,
+    io,
+  });
   const registry = buildRegistry({ plugins: allPlugins, caps: createNodeHost().caps });
   const found = checkDocument({
     document: ast,
@@ -96,7 +105,7 @@ async function problemsIn(uri: string): Promise<Problem[]> {
   });
   return [
     ...found,
-    ...checkImports({ document: ast, uri, graph, registry }),
+    ...checkImports({ document: ast, uri, graph, registry, unreadable }),
     ...checkTypes(ast, { uri, catalog, decos, imports }).problems,
   ];
 }

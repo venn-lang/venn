@@ -94,3 +94,27 @@ describe("a shape another file published", () => {
 });
 
 const IMPORT = 'import { User, LIMIT } from "./lib.vn"\n';
+
+/**
+ * A module nobody could read publishes nothing *known*, which is not the same as
+ * publishing nothing.
+ *
+ * Typed as an empty shape, every use of the namespace drew a second error
+ * blaming the field for a mistake in the path. The import says what is wrong;
+ * nothing after it should say it again, differently and wrongly.
+ */
+describe("a namespace whose module was never reached", () => {
+  it("is unknown rather than empty, so nothing off it is a field error", () => {
+    const source = 'import * as gone from "./gone.vn"\nprint gone.whatever';
+    const document = parse(source, { uri: "/app/main.vn" }).ast;
+
+    const imports = importedTypes({
+      document,
+      uri: "/app/main.vn",
+      modules: new Map(),
+      resolve: (_from, spec) => spec,
+    });
+
+    expect(imports.get("gone")).toEqual({ kind: "dynamic" });
+  });
+});

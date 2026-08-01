@@ -27,6 +27,22 @@ export interface NpmModules {
   load(spec: string): Promise<Record<string, unknown> | undefined>;
 }
 
+/**
+ * A specifier that named a file, and a file that was not there.
+ *
+ * The path tried is carried because it is the whole of what a reader needs: the
+ * specifier is what they wrote, and the resolved path is where it led, and the
+ * gap between the two is the mistake.
+ */
+export interface UnreadableImport {
+  /** As written in the file. */
+  spec: string;
+  /** The file that wrote it. */
+  from: string;
+  /** Where it resolved to, and where nothing was. */
+  tried: string;
+}
+
 /** What a run needs from the files it reaches: their fragments, decos and plugins. */
 export interface ResolvedImports {
   fragments: Map<string, FragmentDecl>;
@@ -51,18 +67,27 @@ export interface ResolvedImports {
    * fails on its first line.
    */
   modules: Map<string, Document>;
+  /**
+   * Every import that named a file nothing could be read from.
+   *
+   * Only this walk knows: it resolved the path and asked for it. Whoever holds
+   * the graph afterwards sees an absent module and cannot tell "not there" from
+   * "not looked at", which is why this is carried rather than re-derived.
+   */
+  unreadable: readonly UnreadableImport[];
 }
 
 /**
  * Walk the import graph from one document, parsing every `.vn` file it reaches
  * and loading every package it names. A file already seen is skipped, so a cycle
- * ends rather than loops. A file that cannot be read is skipped in silence:
- * whoever tried to read it reports the failure.
+ * ends rather than loops. A file that cannot be read is recorded rather than
+ * skipped, since only this walk knows a path was tried and answered nothing.
  *
  * @param args The entry document, its URI, the source reader and the optional
  * package loader.
  * @returns The exported fragments and decos, the packages, the loaded npm
- * modules and every parsed document, keyed by resolved URI.
+ * modules, every parsed document keyed by resolved URI, and every specifier
+ * that named a file nothing could be read from.
  */
 export async function resolveImports(args: {
   document: Document;
@@ -75,6 +100,7 @@ export async function resolveImports(args: {
   const packages = new Set<string>();
   const modules = new Map<string, Document>();
   const npm = new Map<string, Record<string, unknown>>();
+  const unreadable: UnreadableImport[] = [];
   collectPackages(args.document, packages);
   await loadInto({
     document: args.document,
@@ -85,9 +111,10 @@ export async function resolveImports(args: {
     packages,
     modules,
     npm,
+    unreadable,
     seen: new Set([args.uri]),
   });
-  return { ...found, packages, modules, npm };
+  return { ...found, packages, modules, npm, unreadable };
 }
 
 /**
@@ -118,6 +145,7 @@ interface LoadState {
   packages: Set<string>;
   modules: Map<string, Document>;
   npm: Map<string, Record<string, unknown>>;
+  unreadable: UnreadableImport[];
   seen: Set<string>;
 }
 
@@ -147,7 +175,12 @@ async function loadModule(state: LoadState, spec: string): Promise<void> {
   if (state.seen.has(target)) return;
   state.seen.add(target);
   const source = await state.io.read(target).catch(() => undefined);
-  if (source === undefined) return;
+  // Recorded, not raised: one unreadable import is not a reason to stop reading
+  // the rest, and a file with three bad paths should hear about all three.
+  if (source === undefined) {
+    state.unreadable.push({ spec, from: state.uri, tried: target });
+    return;
+  }
   const { ast } = parse(source, { uri: target });
   state.modules.set(target, ast);
   collectExports({ document: ast, uri: target, found: state.found });

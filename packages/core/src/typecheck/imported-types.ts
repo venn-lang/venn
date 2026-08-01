@@ -7,7 +7,7 @@ import { checkTypes } from "./check-types.js";
 import { createContext } from "./context.js";
 import { collectNamedTypes } from "./named-types.js";
 import { type ResolveRef, specToType } from "./spec-to-type.js";
-import { record, type Type } from "./type.types.js";
+import { DYNAMIC, record, type Type } from "./type.types.js";
 
 /** What the names a file imported turned out to be, ready to bind in its env. */
 export type ImportedTypes = ReadonlyMap<string, Type>;
@@ -70,10 +70,20 @@ function bindingsOf(args: { document: Document; uri: string; state: State }): Ma
     const published = isPackageSpecifier(decl.path)
       ? packageTypes(decl.path, args.state)
       : publishedBy(args.state.resolve(args.uri, decl.path), args.state);
-    if (decl.wildcard) out.set(decl.wildcard, record(published));
-    else for (const one of decl.names) take(out, published, one);
+    // A module nobody could read publishes nothing *known*, which is not the
+    // same as publishing nothing. Typing it as an empty shape puts a second
+    // error on every use of it, blaming the field for the path.
+    if (decl.wildcard) {
+      out.set(decl.wildcard, reached(decl.path, args) ? record(published) : DYNAMIC);
+    } else for (const one of decl.names) take(out, published, one);
   }
   return out;
+}
+
+/** Whether the file behind this specifier was reached at all. */
+function reached(spec: string, args: { uri: string; state: State }): boolean {
+  if (isPackageSpecifier(spec)) return true;
+  return args.state.modules.has(args.state.resolve(args.uri, spec));
 }
 
 /** `import { total as sum }` binds `sum` to what the other file calls `total`. */

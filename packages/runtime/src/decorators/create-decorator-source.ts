@@ -21,5 +21,5 @@ export function createDecoratorSource(plugins: readonly PluginDefinition[]): Dec
       byName.set(decorator.name, decorator as DecoratorDefinition);
     }
   }
-  return { get: (name) => byName.get(name) };
+  return { get: (name) => byName.get(name), names: () => [...byName.keys()] };
 }

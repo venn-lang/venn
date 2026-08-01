@@ -14,7 +14,8 @@ const URI = "memory://inline.vn";
 function expandOwn(source: string): Problem[] {
   const { ast, problems: syntax } = parse(source);
   expect(syntax).toEqual([]);
-  return expand({ document: ast, decorators: { get: () => undefined }, uri: URI }).problems;
+  return expand({ document: ast, decorators: { get: () => undefined, names: () => [] }, uri: URI })
+    .problems;
 }
 
 const MEMOIZE = 'deco memoize(target: Fn) { target.meta "memoized" true }';
@@ -83,7 +84,11 @@ describe("a plugin's node names never reach the message", () => {
     const { ast, problems } = parse(source);
     expect(problems).toEqual([]);
     const steppy = { name: "steppy", targets, expand: () => {} };
-    return expand({ document: ast, decorators: { get: () => steppy }, uri: URI }).problems[0];
+    return expand({
+      document: ast,
+      decorators: { get: () => steppy, names: () => [steppy.name] },
+      uri: URI,
+    }).problems[0];
   }
 
   it("says what the author wrote, not what the tree calls it", () => {

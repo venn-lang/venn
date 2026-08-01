@@ -109,7 +109,7 @@ describe("a verb the kind does not have", () => {
 
     expect(() => handle.addParam).toThrow(ProblemError);
     expect(() => handle.addParam).toThrow(
-      "A Flow has no `addParam` — it has name, meta, remove, title, before, after.",
+      "A Flow has no `addParam`. It has name, meta, remove, title, before, after.",
     );
   });
 
@@ -119,7 +119,7 @@ describe("a verb the kind does not have", () => {
 
     expect(() => binding.wrap).toThrow("A Binding has no `wrap`");
     expect(() => flow.setValue).toThrow(
-      "A Flow has no `setValue` — it has name, meta, remove, title, before, after.",
+      "A Flow has no `setValue`. It has name, meta, remove, title, before, after.",
     );
   });
 

@@ -70,6 +70,14 @@ export interface DecoratorDefinition {
 /** Where expansion looks a decorator up. The kernel does not know what plugins are. */
 export interface DecoratorSource {
   get(name: string): DecoratorDefinition | undefined;
+  /**
+   * Every name this source answers to.
+   *
+   * A source that can say whether it has one can say which it has, and both
+   * questions have the same asker: a check that refuses `@retryy` wants to
+   * offer `@retry`, and completion after `@` wants the same list.
+   */
+  names(): readonly string[];
 }
 
 /** What expansion reports. The tree itself is rewritten in place. */

@@ -5,6 +5,7 @@ import {
   checkDocument,
   checkImports,
   collectFragments,
+  createDecoratorSource,
   type Registry,
 } from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
@@ -15,6 +16,7 @@ import {
   type ValidationAcceptor,
 } from "langium";
 import type { Range } from "vscode-languageserver";
+import { importedDecos } from "../deco/index.js";
 import { importedFragments, importedModules, type ModuleGraph } from "../document/index.js";
 import { envNames } from "../env/index.js";
 import type { VennServices } from "../services/lsp.types.js";
@@ -53,6 +55,8 @@ function report(args: {
   const problems = checkDocument({
     document: args.document,
     registry: args.registry,
+    decorators: createDecoratorSource(allPlugins),
+    importedDecos: decoNames(args, langiumDocument),
     fragments,
     env: declaredEnv(args.imports, langiumDocument),
     uri: langiumDocument.uri.toString(),
@@ -62,6 +66,20 @@ function report(args: {
   const typed = args.types.of(langiumDocument).problems;
   const imported = checkImports({ document: args.document, uri, graph });
   for (const problem of [...problems, ...typed, ...imported]) emit(problem, args, langiumDocument);
+}
+
+/** The `pub deco`s this file imports, so one declared next door still resolves. */
+function decoNames(
+  args: { document: Document; imports: ImportResolver; documents: LangiumDocuments },
+  langiumDocument: LangiumDocument,
+): string[] {
+  const scope = {
+    root: args.document,
+    uri: langiumDocument.uri,
+    documents: args.documents,
+    imports: args.imports,
+  };
+  return [...importedDecos(scope).keys()];
 }
 
 /**

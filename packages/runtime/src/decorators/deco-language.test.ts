@@ -144,7 +144,7 @@ describe("what a decorator body may not do", () => {
 
     expect(codes(problems)).toContain("VN2017");
     expect(problems[0]?.title).toBe(
-      "A Flow has no `addParam` — it has name, meta, remove, title, before, after.",
+      "A Flow has no `addParam`. It has name, meta, remove, title, before, after.",
     );
   });
 

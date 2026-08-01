@@ -29,8 +29,18 @@ const EXTENSION = ".vn";
  */
 export function moduleFileOf(spec: string): string {
   if (isPackageSpecifier(spec) || spec.endsWith(EXTENSION)) return spec;
-  return `${spec.replace(TRAILING, "")}/${MODULE_FILE}`;
+  return `${withoutTrailing(spec)}/${MODULE_FILE}`;
 }
 
-/** A folder written with a slash after it names the same folder. */
-const TRAILING = /[/\\]+$/;
+/**
+ * A folder written with a separator after it names the same folder.
+ *
+ * Walked rather than matched with an anchored `+`, which backtracks: that
+ * pattern is quadratic on a specifier made only of separators, and this is
+ * linear on any of them.
+ */
+function withoutTrailing(spec: string): string {
+  let end = spec.length;
+  while (end > 0 && (spec[end - 1] === "/" || spec[end - 1] === "\\")) end -= 1;
+  return spec.slice(0, end);
+}

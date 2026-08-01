@@ -26,7 +26,7 @@ describe("diagnostics", () => {
 
 flow "F" {
   step "s" {
-    http.get "https://example.com"
+    const res = http.get "https://example.com"
     expect res.status == 200
   }
 }`);

@@ -28,7 +28,9 @@ import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
 import { checkRemovedUse } from "./check-removed-use.js";
+import { checkUnbound } from "./check-unbound.js";
 import { checkUncalledAction } from "./check-uncalled.js";
+import { everyBoundName } from "./every-bound-name.js";
 
 /**
  * Statically resolve every action, matcher and fragment reference in a parsed
@@ -46,6 +48,7 @@ export function checkDocument(args: CheckArgs): Problem[] {
     imported: collectNamespaces(args.document, args.registry),
     matchers: new Set(readImports(args.document, args.registry).matchers.keys()),
     bound: collectBoundNames(args.document),
+    declared: everyBoundName(args.document),
     env: args.env ? new Set(args.env) : undefined,
     uri: args.uri ?? "memory://inline.vn",
   };
@@ -66,6 +69,7 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkNamespaceUse(node, ctx),
     ...checkEnv(node, ctx),
     ...checkInterpolation(node, ctx),
+    ...checkUnbound(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];
 }

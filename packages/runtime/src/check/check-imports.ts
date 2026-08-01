@@ -10,6 +10,7 @@ import {
   isTypeDecl,
   isValueImport,
   type Problem,
+  publishedNames,
   type RelatedInfo,
   type ValueImport,
 } from "@venn-lang/core";
@@ -111,19 +112,11 @@ function hint(name: string, module: Document): string {
 }
 
 /**
- * What a file marked `pub`.
- *
- * Everything that has a name and can be used from elsewhere: a function, a
- * fragment, a decorator, a type, and a binding. A type and a binding are what
- * make a shared vocabulary possible, which is the whole reason a file boundary
- * exists rather than a convention about copying declarations.
+ * What a file offers: everything it marked `pub`, and everything it handed on
+ * with `pub import`.
  */
 function exported(document: Document): Set<string> {
-  const names = new Set<string>();
-  for (const decl of document.decls) {
-    if (publishable(decl) && decl.export) names.add(decl.name);
-  }
-  return names;
+  return publishedNames(document);
 }
 
 /** The declarations `pub` means something on. */

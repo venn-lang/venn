@@ -118,3 +118,32 @@ describe("a namespace whose module was never reached", () => {
     expect(imports.get("gone")).toEqual({ kind: "dynamic" });
   });
 });
+
+/**
+ * A type handed on with `pub import`.
+ *
+ * The name arrives one file further than it was declared, and has to keep the
+ * shape it had: a barrel that loses the type publishes a name the checker
+ * cannot say anything about.
+ */
+describe("a type handed on by a barrel", () => {
+  it("keeps its shape a file further on", () => {
+    const found = titles({
+      "models.vn": "pub type User = { name: string }",
+      "mod.vn": 'pub import { User } from "./models.vn"',
+      "main.vn": 'import { User } from "./mod.vn"\nconst u: User = { name: 1 }\nprint u',
+    });
+
+    expect(found).toEqual(["Type mismatch: expected { name: string }, found { name: number }."]);
+  });
+
+  it("says nothing when the value fits", () => {
+    const found = titles({
+      "models.vn": "pub type User = { name: string }",
+      "mod.vn": 'pub import { User } from "./models.vn"',
+      "main.vn": 'import { User } from "./mod.vn"\nconst u: User = { name: "a" }\nprint u',
+    });
+
+    expect(found).toEqual([]);
+  });
+});

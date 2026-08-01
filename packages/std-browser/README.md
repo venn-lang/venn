@@ -83,7 +83,6 @@ The plugin publishes five names under `browser.`:
 
 Two matchers apply to an `Element` subject: `visible` passes when the element model says it is visible, and `text` passes when the element's text equals or contains the argument.
 
-The plugin also declares two resources, `Browser` (worker scope) and `Page` (flow scope). The runtime does not execute `resource` declarations yet, so they describe the surface rather than open anything.
 
 ## Ports
 
@@ -125,7 +124,7 @@ The fake records `url`, `history`, `clicks`, `fills`, `frame` and `cookiesCleare
 
 | Export | What it is |
 | --- | --- |
-| `browserPlugin` (also the default export) | The `PluginDefinition`: namespace `browser`, requires `net`, carrying the actions, matchers, resources and types. |
+| `browserPlugin` (also the default export) | The `PluginDefinition`: namespace `browser`, requires `net`, carrying the actions, matchers and types. |
 | `BrowserDriverPort`, `BrowserDriver` | The port descriptor and its interface. |
 | `PreviewProviderPort`, `PreviewProvider` | The frame-stream port descriptor and its interface. |
 | `createFakeBrowserDriver`, `createRealBrowserDriver` | The two driver implementations. |

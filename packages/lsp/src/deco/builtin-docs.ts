@@ -14,7 +14,6 @@ const DOCS: Record<string, string> = {
   only: "Focus: run only the annotated flows.",
   serial: "Forbid concurrent execution with sibling flows.",
   lock: 'Named mutex held across workers, e.g. `@lock("orders")`.',
-  scope: "Resource lifetime: `suite`, `worker`, `flow` or `step`.",
   flaky: "Declared flakiness tolerance, e.g. `@flaky(ratio: 0.05)`.",
   tags: "Tags matched by the runner's `--tags` filter.",
   load: "Run the flow as a load test (from `@venn-lang/load`).",

@@ -11,7 +11,7 @@ import { ExitSignal, isControlSignal } from "./signals.js";
  * The caller passes the scope the hooks belong to (the suite root for
  * setup/teardown, the flow's own scope for beforeEach/afterEach) and each body
  * runs in a child of it, the way the `on` handlers below do. In a parentless
- * scope `env`, the prelude, the top-level bindings and the open resources would
+ * scope `env`, the prelude and the top-level bindings would
  * all read as undefined and the hook would run anyway: a teardown written as
  * `db.exec "DELETE FROM orders WHERE run = '${env.RUN_ID}'"` deletes the table
  * it was meant to tidy.

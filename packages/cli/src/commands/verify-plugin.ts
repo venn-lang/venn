@@ -17,7 +17,6 @@ export async function verifyPluginCommand(args: { path: string }): Promise<numbe
   out.write(`Plugin: ${plugin.name} (namespace "${plugin.namespace}")\n`);
   out.write(`  actions:   ${plugin.actions?.length ?? 0}\n`);
   out.write(`  matchers:  ${plugin.matchers?.length ?? 0}\n`);
-  out.write(`  resources: ${plugin.resources?.length ?? 0}\n`);
   const ok = Boolean(plugin.name && plugin.namespace);
   out.write(ok ? "\n✓ plugin shape is valid\n" : "\n✗ plugin shape is invalid\n");
   return ok ? 0 : 1;

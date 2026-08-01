@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { isKeyword, keywordHover } from "./keywords.js";
 
-// Every word the fixed grammar defines. If the kernel grows a keyword, this list
-// fails until it is documented: the table is the language's own reference.
+// Every word the fixed grammar defines, plus the two it removed and still
+// explains: somebody reading an old file hovers `use` and `capture` and should
+// be told what to write instead. If the kernel grows a keyword, this list fails
+// until it is documented, and a word the grammar drops leaves both.
 const KERNEL = [
   "module",
   "use",
@@ -24,13 +26,9 @@ const KERNEL = [
   "let",
   "const",
   "capture",
-  "resource",
   "config",
   "matrix",
-  "dataset",
-  "factory",
   "type",
-  "report",
   "if",
   "else",
   "forEach",

@@ -90,7 +90,7 @@ plugin can shadow another.
 | [`@venn-lang/grpc`](../std-grpc) | `grpc` | `net` | Call, stream and reflect. |
 | [`@venn-lang/mail`](../std-mail) | `mail` | `net` | Inbox verbs over the MailClient port. |
 | [`@venn-lang/db`](../std-db) | `db` | `net` | Table verbs over the DbClient port. |
-| [`@venn-lang/browser`](../std-browser) | `browser` | `net` | Actions, matchers and a browser resource. |
+| [`@venn-lang/browser`](../std-browser) | `browser` | `net` | Actions, matchers and the browser types. |
 | [`@venn-lang/load`](../std-load) | `load` | `net` | Load-profile builders and a runner that yields metrics. |
 | [`@venn-lang/artifacts`](../std-artifacts) | `artifacts` | `fs` | Store references to traces, videos, HARs and screenshots. |
 

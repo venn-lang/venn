@@ -1,5 +1,6 @@
 import type {
   ActionCall,
+  AssignStmt,
   CaptureStmt,
   ContinueStmt,
   ExpectStmt,
@@ -23,6 +24,7 @@ import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
 import { runActionStatement } from "./run-action.js";
+import { runAssign } from "./run-assign.js";
 import { runCapture, runLet, runReturn } from "./run-bindings.js";
 import { runExpect } from "./run-expect.js";
 import { runForEach } from "./run-foreach.js";
@@ -76,6 +78,8 @@ export function runStatement(engine: Engine, stmt: Statement, scope: Scope): Pen
       return runGroup(engine, stmt as GroupDecl, scope);
     case "MatchExpr":
       return runMatch(engine, stmt as unknown as MatchExpr, scope);
+    case "AssignStmt":
+      return runAssign(engine, stmt as unknown as AssignStmt, scope);
     default:
       return control(engine, stmt, scope);
   }

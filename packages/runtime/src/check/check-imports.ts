@@ -13,6 +13,7 @@ import {
 } from "@venn-lang/core";
 import { readImports } from "../imports/index.js";
 import type { Registry } from "../registry/index.js";
+import type { UnreadableImport } from "../run/index.js";
 import type { ImportGraph } from "../scheduler/index.js";
 import { nodeSpan } from "../scheduler/index.js";
 
@@ -21,8 +22,10 @@ import { nodeSpan } from "../scheduler/index.js";
  * Otherwise a misspelt import stays quietly `undefined` until something calls
  * it, and the run blames the call site rather than the import.
  *
- * @param args The importing document, its URI, and the resolved import graph.
- * @returns One `VN2009` problem per name the target does not publish.
+ * @param args The importing document, its URI, the resolved import graph, and
+ * the imports whose path answered nothing.
+ * @returns One `VN2009` per name the target does not publish, and one `VN2019`
+ * per path that led nowhere.
  */
 export function checkImports(args: {
   document: Document;
@@ -30,6 +33,14 @@ export function checkImports(args: {
   graph: ImportGraph;
   /** Absent where no plugin was loaded, and then a package publishes nothing. */
   registry?: Registry;
+  /**
+   * Imports whose path was tried and answered nothing.
+   *
+   * Passed in rather than derived: an absent module in the graph means "not
+   * there" to one caller and "not indexed yet" to another, and the editor must
+   * not draw an error over a neighbour the workspace is still loading.
+   */
+  unreadable?: readonly UnreadableImport[];
 }): Problem[] {
   const problems: Problem[] = [];
   for (const decl of args.document.imports) {
@@ -39,7 +50,7 @@ export function checkImports(args: {
     // A path that reads nothing is already reported by whoever tried to read it.
     if (module) problems.push(...missing({ decl, module, uri: args.uri, path: decl.path }));
   }
-  return [...problems, ...fromPackages(args)];
+  return [...problems, ...fromPackages(args), ...wentNowhere(args)];
 }
 
 /**
@@ -119,4 +130,36 @@ function publishable(decl: unknown): decl is { name: string; export?: boolean } 
     isTypeDecl(decl) ||
     isLetStmt(decl)
   );
+}
+
+/**
+ * A path that led nowhere, said at the import that wrote it.
+ *
+ * Until this, the module simply was not there: the namespace read as an empty
+ * one, every name off it was `null`, and the failure surfaced at whatever used
+ * it. The specifier and the resolved path are both shown, because the gap
+ * between what was written and where it led is the mistake.
+ */
+function wentNowhere(args: {
+  document: Document;
+  uri: string;
+  unreadable?: readonly UnreadableImport[];
+}): Problem[] {
+  const here = (args.unreadable ?? []).filter((one) => one.from === args.uri);
+  return here.flatMap((one) => at(one, args.document, args.uri));
+}
+
+function at(one: UnreadableImport, document: Document, uri: string): Problem[] {
+  const decl = document.imports.find((node) => isValueImport(node) && node.path === one.spec);
+  if (!decl) return [];
+  return [
+    {
+      ...buildProblem({
+        spec: CODES.VN2019_UNREADABLE_IMPORT,
+        span: nodeSpan(decl, uri),
+        title: `Nothing to import from "${one.spec}".`,
+      }),
+      help: `Nothing was read at ${one.tried}.`,
+    },
+  ];
 }

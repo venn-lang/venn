@@ -74,7 +74,7 @@ function calledTarget(node: AstNode): string | undefined {
 
 /**
  * Why this call cannot be made from here, if it cannot. Only a head the file can
- * already account for is refused: an imported namespace, a resource, a namespace
+ * already account for is refused: an imported namespace, a bound name, a namespace
  * some loaded plugin owns. Anything else is a name only expansion resolves, and
  * guessing at it would put an error on every well-written decorator.
  */

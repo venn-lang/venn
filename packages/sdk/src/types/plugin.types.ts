@@ -4,7 +4,6 @@ import type { ZodType } from "zod";
 import type { ActionDefinition } from "./action.types.js";
 import type { DecoratorDefinition } from "./decorator.types.js";
 import type { MatcherDefinition } from "./matcher.types.js";
-import type { ResourceDefinition } from "./resource.types.js";
 import type { ValueDefinition } from "./value.types.js";
 
 /** Everything a plugin contributes. The registry ingests this shape. */
@@ -28,7 +27,6 @@ export interface PluginDefinition {
   matchers?: readonly MatcherDefinition[];
   /** The `@name`s this plugin contributes, run over the tree before anything reads it. */
   decorators?: readonly DecoratorDefinition[];
-  resources?: readonly ResourceDefinition[];
   /** Nominal data types as Zod schemas, for a plugin that validates its own values. */
   types?: Readonly<Record<string, ZodType>>;
   /**

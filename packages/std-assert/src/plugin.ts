@@ -6,7 +6,7 @@ import { assertMatchers } from "./matchers/index.js";
  *
  * `expect` is kernel syntax; the words that follow it are not. This plugin
  * contributes those words and nothing else, so it declares no verbs, no
- * resources, no types and no host capabilities.
+ * no types and no host capabilities.
  */
 export const assertPlugin: PluginDefinition = definePlugin({
   name: "venn/assert",

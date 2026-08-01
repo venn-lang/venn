@@ -2,7 +2,6 @@ import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { browserActions } from "./actions/index.js";
 import { browserMatchers } from "./matchers/index.js";
 import { browserTypes } from "./plugin.types.js";
-import { browserResources } from "./resources/index.js";
 import { browserTypeDefs } from "./types.js";
 
 /**
@@ -17,7 +16,6 @@ export const browserPlugin: PluginDefinition = definePlugin({
   requires: ["net"],
   actions: browserActions,
   matchers: browserMatchers,
-  resources: browserResources,
   types: browserTypes,
   typeDefs: browserTypeDefs,
 });

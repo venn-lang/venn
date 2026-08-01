@@ -31,18 +31,6 @@ export interface MatcherContext {
   log(message: string): void;
 }
 
-/** What a resource's `open` receives. */
-export interface ResourceContext {
-  /**
-   * Resolve a port to the implementation the host bound to it.
-   *
-   * @throws VennError when nothing is bound for that port, or when the host
-   * lacks a capability the port requires.
-   */
-  port<T>(port: Port<T>): T;
-  secrets: SecretProvider;
-}
-
 /** The evaluated inputs handed to an action: positional args + validated opts. */
 export interface ActionInput<P> {
   args: readonly unknown[];

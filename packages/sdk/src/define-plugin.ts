@@ -1,7 +1,7 @@
 import type { PluginDefinition } from "./types/plugin.types.js";
 
 /**
- * Define a plugin: a namespace plus the actions, matchers, decorators, resources
+ * Define a plugin: a namespace plus the actions, matchers, decorators
  * and types it contributes.
  *
  * @param def The whole contribution, including the host capabilities it requires.

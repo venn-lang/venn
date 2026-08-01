@@ -87,7 +87,7 @@ flow "the API answers" {
 ```
 
 `venn verify-plugin <path>` loads a built module (its default export, or the first export that
-looks like a plugin) and prints the namespace with the counts of actions, matchers and resources.
+looks like a plugin) and prints the namespace with the counts of actions and matchers.
 
 ## API
 
@@ -97,7 +97,6 @@ looks like a plugin) and prints the namespace with the counts of actions, matche
 | `defineAction(def)` | One verb. Derives `signature` from `args` and `result` when you do not write one. |
 | `defineMatcher(def)` | One word usable after `expect`, with its own failure message and diff. |
 | `defineDecorator(def)` | One `@name`, applied to the program's tree before anything reads it. |
-| `defineResource(def)` | A handle with a runner-managed lifecycle. |
 | `Duration` | A `ZodType<number>`: reads `"30s"`, `"2m"`, `1500`, yields milliseconds. |
 | `arg`, `optionalArg`, `restArg` | Build an `ArgSpec`, one named positional argument. |
 | `signatureOf(args, result)` | The `FnSpec` those arguments describe. `defineAction` calls it for you. |
@@ -105,7 +104,7 @@ looks like a plugin) and prints the namespace with the counts of actions, matche
 | `z`, `ZodType` | Zod 4, re-exported so a plugin depends on `@venn-lang/sdk` alone. |
 
 Types are exported alongside: `PluginDefinition`, `ActionDefinition`, `MatcherDefinition`,
-`MatcherDetail`, `ResourceDefinition`, `ResourceScope`, `DecoratorDefinition`, `DecoratedNode`,
+`MatcherDetail`, `DecoratorDefinition`, `DecoratedNode`,
 `ExpandContext`, `ActionContext`, `ActionInput`, `MatcherArgs`, `MatcherContext`, `ArgSpec`,
 `ParamSpec`.
 
@@ -116,7 +115,7 @@ Types are exported alongside: `PluginDefinition`, `ActionDefinition`, `MatcherDe
 | `name`, `version` | The package identity. `name` is what a file writes in `import { … } from "…"`. |
 | `namespace` | The prefix every verb gets: `namespace` `uptime` plus action `probe` is `uptime.probe`. |
 | `requires` | Host capabilities: `fs`, `process`, `net`, `clock`, `random`, `secrets`, `log`, `io`. |
-| `actions`, `matchers`, `decorators`, `resources` | The contributions. All optional. |
+| `actions`, `matchers`, `decorators` | The contributions. All optional. |
 | `types` | Zod schemas for the nominal data shapes the plugin publishes. |
 | `typeDefs` | The same shapes as `TypeSpec` data, by short name. `Probe` is reachable from a flow as `uptime.Probe`. |
 
@@ -207,23 +206,6 @@ const drop = defineDecorator({ name: "drop", expand: (ctx) => ctx.remove() });
 The built-ins (`@skip`, `@only`, `@serial`, `@tags`, `@timeout`, `@retry`, `@lock`, `@flaky`) have
 this exact shape, and a plugin decorator of the same name replaces one. A project is entitled to its
 own `@retry`.
-
-## Resources
-
-`defineResource` declares a handle the runner opens and closes for you: `name`, a `scope` of
-`"suite"`, `"worker"`, `"flow"` or `"step"`, an `open(ctx)` and an optional `close(instance)`.
-
-```ts
-export const browserResource: ResourceDefinition = defineResource({
-  name: "Browser",
-  scope: "worker",
-  open: () => ({ id: "browser-1", engine: "chromium" }),
-  close: () => undefined,
-});
-```
-
-The grammar has no `resource` declaration yet, so nothing in a `.vn` file opens one today. The
-definition shape is settled and `@venn-lang/browser` already declares against it.
 
 ## Durations
 

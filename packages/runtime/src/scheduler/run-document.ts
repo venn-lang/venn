@@ -24,7 +24,7 @@ import { runPrologue, runTeardowns } from "./run-prologue.js";
 
 /**
  * Walk a document: setup once, then for each `matrix` variant bind `env`/`matrix`
- * globals, open resources, run flows (with before/afterEach), close resources.
+ * globals, then run every flow, with `beforeEach` and `afterEach` around each.
  */
 export async function runDocument(engine: Engine, doc: Document): Promise<void> {
   const flows = selectFlows(engine, doc.decls.filter(isFlowDecl));

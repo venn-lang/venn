@@ -54,7 +54,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
   },
   deco: {
     summary:
-      "Declare a decorator. The first parameter is the target, and the type written on it is what `@name` may sit on — `Fn`, `Flow`, `Step`, `Binding`, `Type`, `Resource`, or `Node` for anything. The parameters after it are the decorator's own arguments. The body runs before the program exists, so it is pure: no plugin verbs.",
+      "Declare a decorator. The first parameter is the target, and the type written on it is what `@name` may sit on — `Fn`, `Flow`, `Step`, `Binding`, `Type`, or `Node` for anything. The parameters after it are the decorator's own arguments. The body runs before the program exists, so it is pure: no plugin verbs.",
     example:
       'deco memoize(target: Fn) {\n  const cache = {}\n  target.wrap(fn (call, args) => cache.get(str(args)) ?? call(args))\n}\n\npub deco retry(target: Flow, times: number) {\n  target.meta "retry" times\n}',
   },
@@ -83,11 +83,6 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     example:
       'import { env } from "venn/env"\n\nconst token = http.post "${env.BASE_URL}/token" {\n  body: { user: env.USERNAME, pass: env.PASSWORD },\n  encode: "form"\n}',
   },
-  resource: {
-    summary:
-      "Open something with a lifecycle, closed automatically. `@scope` sets how long it lives.",
-    example: "@scope(flow)\nresource page = browser.newContext",
-  },
   config: {
     summary: "Project settings visible to plugins, such as `baseUrl`.",
     example: "config { baseUrl: env.BASE_URL }",
@@ -96,13 +91,10 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     summary: "Run every flow once per combination of these values.",
     example: 'matrix { browser: ["chromium", "webkit"] }',
   },
-  dataset: { summary: "A named collection of test data." },
-  factory: { summary: "A named builder for objects, usually backed by `@venn-lang/data`." },
   type: {
-    summary: "A named shape, used to type parameters and datasets.",
+    summary: "A named shape, used to type parameters, fields and bindings.",
     example: "type User { email: string }",
   },
-  report: { summary: "Where results go.", example: 'report junit("./out")' },
   if: {
     summary: "Branch on a condition.",
     example: 'if health.status == 200 {\n  step "ok" { … }\n} else {\n  step "retry" { … }\n}',

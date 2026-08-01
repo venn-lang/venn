@@ -56,7 +56,7 @@ export function checkCapture(stmt: CaptureStmt, ctx: CheckContext): Problem {
 
 /**
  * A namespace is only usable when this file brought it in with `use` (or it is
- * a resource). Loading the whole stdlib must not make `use` optional.
+ * Loading the whole stdlib must not make the import optional.
  */
 function checkTarget(args: {
   node: AstNode;

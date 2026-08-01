@@ -1109,23 +1109,13 @@ Um plugin é um módulo TypeScript que exporta uma definição. Ele pode contrib
 ****plugins/stripe/index.ts**TypeScript**
 
 ```ts
-import { definePlugin, defineAction, defineMatcher, defineResource, z, Duration } from "@venn-lang/sdk";
+import { definePlugin, defineAction, defineMatcher, z, Duration } from "@venn-lang/sdk";
 
 export default definePlugin({
   name: "@acme/stripe",
   version: "1.2.0",
   namespace: "stripe",
   requires: ["@venn-lang/http"],
-
-  // 3 · recurso com ciclo de vida gerenciado pelo runner
-  resources: [
-    defineResource({
-      name: "client",
-      scope: "worker",
-      open:  async (ctx) => new Stripe(ctx.secrets.STRIPE_KEY),
-      close: async (c) => c.dispose(),
-    }),
-  ],
 
   // 1 · ações — uma definição alimenta runtime, LSP e node graph
   actions: [
@@ -1140,7 +1130,7 @@ export default definePlugin({
       }),
       returns: "Charge",
       node: { category: "payment", color: "violet", icon: "credit-card", ports: { in: 1, out: 1 } },
-      run: async (ctx, p) => ctx.res(await ctx.resource("client").charges.create(p)),
+      run: async (ctx, p) => ctx.res(await ctx.port(StripePort).charges.create(p)),
     }),
   ],
 
@@ -1227,7 +1217,6 @@ type Envelope = {
 | capture.set | nome, tipo, valor redigido | Inspetor de variáveis do step |
 | log | nível, mensagem, origem | Console lateral |
 | artifact.ready | tipo, caminho, tamanho, miniatura | Aba de artefatos, preview de screenshot |
-| resource.opened / closed | nome, worker | Painel de recursos — mostra o que está de pé |
 | browser.frame | JPEG base64, ~8fps | O preview ao vivo do navegador |
 | load.sample | janela de 1s: vus, rps, p50/p95/p99, erros | Gráficos de carga |
 | runner.heartbeat | vivo, uso de memória, workers ativos | Status `runner: executing` no rodapé |
@@ -2091,7 +2080,7 @@ ImportName: name=ID ('as' alias=ID)?;
 Declaration:
   annotations+=Annotation*
   ( FlowDecl | FragmentDecl | FnDecl | TypeDecl | FactoryDecl
-  | DatasetDecl | ResourceDecl | ConstDecl | ConfigDecl
+  | ConfigDecl
   | MatrixDecl | LifecycleDecl | ReportDecl | ActionCall );
 
 Annotation: '@' name=ID ('(' args=ArgList ')')?;

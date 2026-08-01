@@ -11,7 +11,6 @@ const DECORATES: Readonly<Record<string, string>> = {
   Step: "a `step` — its title, and what happens around its body",
   Binding: "a `let` or `const` — the value it holds",
   Type: "a `type` — the fields it declares",
-  Resource: "a `resource` — its name and its metadata",
   Node: "any declaration at all, by name",
 };
 

@@ -168,7 +168,7 @@ venn verify-plugin ./dist/index.mjs
 ```
 
 Imports the module, takes its default export (or the first export that looks like a plugin) and
-prints the name, the namespace and how many actions, matchers and resources it declares. Exits 1
+prints the name, the namespace and how many actions and matchers it declares. Exits 1
 when the shape is wrong.
 
 ### upgrade

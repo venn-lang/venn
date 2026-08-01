@@ -34,6 +34,7 @@ import { badPatternIn } from "./check-pattern.js";
 import { checkStatement } from "./check-stmts.js";
 import type { TypeContext } from "./context.js";
 import type { ImportedType } from "./imported-types.js";
+import { either, logicalType } from "./logical-type.js";
 import { mergedCall } from "./merged-call.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
@@ -372,9 +373,7 @@ function inferTry(expr: ast.TryExpr, env: TypeEnv, infer: Infer): Type {
   // A fallback that reads the failure has no type until the failure does, and
   // an expression half of which is unknown is unknown.
   if (attempted.kind === "dynamic" || instead.kind === "dynamic") return DYNAMIC;
-  // Two sides that agree are one type, not a union of a thing with itself,
-  // which is what every message about them would otherwise read as.
-  return unify(attempted, instead) ? attempted : union([attempted, instead]);
+  return either(attempted, instead);
 }
 
 /** What a plugin verb gives back, when the callee names one. */
@@ -400,8 +399,7 @@ function inferBinary(expr: Binary, env: TypeEnv, infer: Infer): Type {
   const left = inferExpr(expr.left, env, infer);
   const right = inferExpr(expr.right, env, infer);
   if (ARITHMETIC.has(op) || COMPARISON.has(op)) return arithmetic({ infer, expr, op, left, right });
-  if (op === "&&" || op === "||") return BOOL;
-  if (op === "??") return unify(left, right) ? left : DYNAMIC;
+  if (op === "&&" || op === "||" || op === "??") return logicalType(op, left, right);
   return BOOL;
 }
 

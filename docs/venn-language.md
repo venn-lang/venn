@@ -478,6 +478,35 @@ Isso importa porque a igualdade é estrita e não converte nada: se a ausência
 tivesse duas formas, `== null` responderia sobre uma e não sobre a outra, e a
 guarda mais comum que existe pegaria o ramo errado sem avisar.
 
+### `??`, `||` e `&&` devolvem um operando
+
+Nenhum dos três devolve um veredito. `??` devolve o da esquerda quando ele é
+alguma coisa, e o da direita quando não é; `||` e `&&` devolvem um dos dois
+conforme o da esquerda for verdadeiro. O tipo acompanha:
+
+```venn
+const nome: string = user.nome ?? "anônimo"
+const porta: number | string = config.porta ?? "auto"
+```
+
+`??` e `||` **tiram o nada**: o caso em que devolvem o lado direito é
+exatamente o caso em que o esquerdo era nada, então `string | null ?? string` é
+`string`. `&&` é ao contrário, porque o lado esquerdo falso é o que ele
+devolve, e nada é um dos falsos.
+
+A diferença entre `??` e `||` é o que cada um chama de vazio: `""` e `0` são
+falsos mas não são nada, então `texto ?? "padrão"` mantém a string vazia e
+`texto || "padrão"` troca-a.
+
+Misturar `??` com `||` ou `&&` sem parênteses é recusado (`VN1003`). `a || b ?? c`
+e `a ?? b || c` dão respostas diferentes e nada na linha diz qual é qual, então a
+ordem escreve-se:
+
+```venn
+const x = (a || b) ?? c
+const y = a || (b ?? c)
+```
+
 ### Tipos nominais
 
 Declarar tipo não é burocracia: é o que dá autocomplete em `user.` dentro do editor e o que gera o formulário de propriedades do nó no grafo.
@@ -592,7 +621,7 @@ Mini-linguagem completa, com precedência definida. É a parte que todo projeto 
 | 6 | == != ~= (regex match) | esquerda |
 | 7 | && | esquerda |
 | 8 | \|\| | esquerda |
-| 9 | ?? (coalescência) | direita |
+| 9 | ?? (coalescência) | esquerda |
 | 10 | cond ? a : b | direita |
 
 ****expressões em uso****

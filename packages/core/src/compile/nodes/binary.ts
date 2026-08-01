@@ -18,22 +18,50 @@ export function compileBinary(expr: Binary, compile: Compile): Thunk {
   return (env) => applyBinary(op, left(env), right(env));
 }
 
+/**
+ * `&&`, `||` and `??`, each deciding on the left side alone.
+ *
+ * The left side is evaluated once and kept: an action can sit in expression
+ * position, and running it twice would be a second request.
+ *
+ * A left side that has not arrived is waited for. Deciding against the promise
+ * itself would answer for the wrong value every time, since a promise is
+ * neither nothing nor false: `slow() ?? 8080` handed back the promise, and
+ * `slow() && f()` ran `f` however the left side turned out.
+ */
 function compileLogical(op: string, expr: Binary, compile: Compile): Thunk {
   const left = compile(expr.left);
   const right = compile(expr.right);
-  // The left side is evaluated once and kept: an action can sit in expression
-  // position, and running it twice would be a second request.
-  if (op === "&&")
-    return (env) => {
-      const a = left(env);
-      return truthy(a) ? right(env) : a;
-    };
-  if (op === "||")
-    return (env) => {
-      const a = left(env);
-      return truthy(a) ? a : right(env);
-    };
-  return (env) => left(env) ?? right(env);
+  if (op === "&&") return andThunk(left, right);
+  return op === "||" ? orThunk(left, right) : coalesceThunk(left, right);
+}
+
+// One thunk per operator rather than one that asks which it is. The question
+// has an answer at compile time, and a call per evaluation is what these three
+// exist to avoid.
+
+function andThunk(left: Thunk, right: Thunk): Thunk {
+  return (env) => {
+    const a = left(env);
+    if (!isWaiting(a)) return truthy(a) ? right(env) : a;
+    return a.then((ready) => (truthy(ready) ? right(env) : ready));
+  };
+}
+
+function orThunk(left: Thunk, right: Thunk): Thunk {
+  return (env) => {
+    const a = left(env);
+    if (!isWaiting(a)) return truthy(a) ? a : right(env);
+    return a.then((ready) => (truthy(ready) ? ready : right(env)));
+  };
+}
+
+function coalesceThunk(left: Thunk, right: Thunk): Thunk {
+  return (env) => {
+    const a = left(env);
+    if (!isWaiting(a)) return a ?? right(env);
+    return a.then((ready) => ready ?? right(env));
+  };
 }
 
 /** `!x` and `-x`, taking the settled value straight through when it is one. */

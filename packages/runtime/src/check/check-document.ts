@@ -28,6 +28,7 @@ import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
 import { checkEnv } from "./check-env.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
+import { checkMixedOperators } from "./check-mixed-operators.js";
 import { checkNameTaken } from "./check-name-taken.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
 import { checkRemovedUse } from "./check-removed-use.js";
@@ -82,6 +83,7 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
     ...checkVerbCall(node, ctx),
+    ...checkMixedOperators(node, ctx),
     ...checkDecoratorName(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];

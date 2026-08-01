@@ -1,10 +1,8 @@
 import {
-  boundNames,
   type Document,
-  isFnDecl,
-  isLetStmt,
   isPackageSpecifier,
   isValueImport,
+  publishedNames,
   type ValueImport,
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
@@ -131,17 +129,13 @@ function gathered(names: ReadonlySet<string>, source: Scope): Record<string, unk
 }
 
 /**
- * The names a module made `pub` that are values a caller can hold.
+ * The names a module offers, as far as the binder is concerned.
  *
- * A function and a binding. A `pub type` is published too, but it is a name the
- * checker resolves rather than a value anything holds at run time, so there is
- * nothing here to bind for it.
+ * A `pub type` is published too, and there is nothing to bind for it: a type is
+ * a name the checker resolves, and reading one here finds nothing, which is
+ * what a type is at run time. The same goes for a `pub import` of one, which
+ * cannot be told from a `pub import` of a value without following it.
  */
 function exportedValues(document: Document): Set<string> {
-  const names = new Set<string>();
-  for (const decl of document.decls) {
-    if (isFnDecl(decl) && decl.export) names.add(decl.name);
-    if (isLetStmt(decl) && decl.export) for (const name of boundNames(decl)) names.add(name);
-  }
-  return names;
+  return publishedNames(document);
 }

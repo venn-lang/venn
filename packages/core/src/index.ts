@@ -43,7 +43,9 @@ export * from "./graph/index.js";
 export * from "./interpolation/index.js";
 export { createVennServices, VennLexer, vennServices } from "./lang/index.js";
 export {
+  handedOn,
   isPackageSpecifier,
+  publishedNames,
   type SpecifierKind,
   specifierKind,
 } from "./module/index.js";

@@ -1,7 +1,7 @@
 import type { TypeSpec } from "@venn-lang/types";
 import type { Document, ImportName } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
-import { isPackageSpecifier } from "../module/index.js";
+import { handedOn, isPackageSpecifier } from "../module/index.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import { checkTypes } from "./check-types.js";
 import { createContext } from "./context.js";
@@ -144,6 +144,15 @@ function exportedTypes(module: Document, uri: string, state: State): Map<string,
     if (!published(decl)) continue;
     const found = ast.isTypeDecl(decl) ? named.get(decl.name) : checked.types.get(decl);
     if (found) out.set(decl.name, found);
+  }
+  // A `pub import` hands on what this file's own import bound, so its type is
+  // one already worked out above rather than one to derive again.
+  for (const decl of module.imports) {
+    if (!ast.isValueImport(decl) || !decl.export) continue;
+    for (const name of handedOn(decl)) {
+      const found = imports.get(name);
+      if (found) out.set(name, found);
+    }
   }
   return out;
 }

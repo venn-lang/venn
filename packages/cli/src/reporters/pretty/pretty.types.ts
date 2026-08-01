@@ -1,4 +1,4 @@
-import type { Diff } from "@venn-lang/core";
+import type { Diff, Problem } from "@venn-lang/core";
 
 /** One thing that went wrong, kept for the summary printed after the tree. */
 export interface Failure {
@@ -9,6 +9,8 @@ export interface Failure {
   location?: string;
   /** The two sides compared, shown as the failure's body. */
   diff?: Diff;
+  /** The problem whole, so the block can say what it knows beneath the title. */
+  problem?: Problem;
 }
 
 /** What the reporter tracks while events stream in. */

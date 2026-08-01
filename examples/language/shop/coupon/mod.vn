@@ -1,0 +1,7 @@
+# A folder inside a folder, reached as `shop.coupon`.
+# Nothing here is imported by anyone directly: `shop/mod.vn` hands it on.
+
+pub const rates = { black: 0.3, friday: 0.5 }
+
+## What is left of a total once a code is applied. An unknown code takes nothing.
+pub fn apply(total, code) => total * (1 - (rates[code] ?? 0))

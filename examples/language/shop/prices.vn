@@ -1,0 +1,6 @@
+# One of the folder's insides. A caller never names this file.
+
+pub const vat = 0.2
+
+## The total with tax, rounded to the cent.
+pub fn withTax(net) => (net * (1 + vat)).round(2)

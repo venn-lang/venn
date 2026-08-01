@@ -6,6 +6,7 @@ import {
   resolveAlias,
   tomlDocs,
 } from "@venn-lang/contracts";
+import { moduleFileOf } from "@venn-lang/core";
 import type { TypeSpec } from "@venn-lang/types";
 import { type URI, UriUtils } from "langium";
 
@@ -52,12 +53,15 @@ const MAX_DEPTH = 12;
 export function createImportResolver(): ImportResolver {
   const cache = new Map<string, Manifested | undefined>();
   return {
+    // An extension names a file and no extension names a folder, by the
+    // kernel's rule, so the editor resolves what the runner resolves.
     resolve(spec, base) {
       const from = UriUtils.dirname(base);
-      if (spec.startsWith(".")) return UriUtils.resolvePath(from, spec);
+      const written = moduleFileOf(spec);
+      if (spec.startsWith(".")) return UriUtils.resolvePath(from, written);
       const found = findManifest(from, cache);
-      const alias = found && resolveAlias({ spec, paths: found.paths });
-      if (!found || !alias) return UriUtils.resolvePath(from, spec);
+      const alias = found && resolveAlias({ spec: written, paths: found.paths });
+      if (!found || !alias) return UriUtils.resolvePath(from, written);
       return UriUtils.resolvePath(found.root, alias.dir, alias.rest);
     },
     aliases(base) {

@@ -39,28 +39,33 @@ function compileLogical(op: string, expr: Binary, compile: Compile): Thunk {
 // One thunk per operator rather than one that asks which it is. The question
 // has an answer at compile time, and a call per evaluation is what these three
 // exist to avoid.
+//
+// Each asks its own question first, because a promise is truthy and is not
+// nothing: a left side the operator already decided against on those grounds
+// cannot be one, so the branch that is taken most is the branch that pays
+// nothing for the possibility.
 
 function andThunk(left: Thunk, right: Thunk): Thunk {
   return (env) => {
     const a = left(env);
-    if (!isWaiting(a)) return truthy(a) ? right(env) : a;
-    return a.then((ready) => (truthy(ready) ? right(env) : ready));
+    if (!truthy(a)) return a;
+    return isWaiting(a) ? a.then((ready) => (truthy(ready) ? right(env) : ready)) : right(env);
   };
 }
 
 function orThunk(left: Thunk, right: Thunk): Thunk {
   return (env) => {
     const a = left(env);
-    if (!isWaiting(a)) return truthy(a) ? a : right(env);
-    return a.then((ready) => (truthy(ready) ? ready : right(env)));
+    if (!truthy(a)) return right(env);
+    return isWaiting(a) ? a.then((ready) => (truthy(ready) ? ready : right(env))) : a;
   };
 }
 
 function coalesceThunk(left: Thunk, right: Thunk): Thunk {
   return (env) => {
     const a = left(env);
-    if (!isWaiting(a)) return a ?? right(env);
-    return a.then((ready) => ready ?? right(env));
+    if (a == null) return right(env);
+    return isWaiting(a) ? a.then((ready) => ready ?? right(env)) : a;
   };
 }
 

@@ -37,6 +37,23 @@ print "outside: ${attempt}"
 const nickname = null
 print "nickname: ${nickname ?? 'none given'}"
 
+# It asks about nothing, not about truth. `""` and `0` are false and are not
+# nothing, so `??` keeps them where `||` would replace them.
+const note = ""
+print "note: '${note ?? 'missing'}' vs '${note || 'missing'}'"
+
+# None of the three gives back a yes or a no: they give back one of the two
+# sides, so this is a string, not a boolean.
+const shown: string = nickname ?? 'none given'
+print "shown: ${shown.upper}"
+
+# Mixing `??` with `||` or `&&` needs brackets, because `a || b ?? c` and
+# `a ?? b || c` are different questions and the line does not say which:
+#
+#   const x = a || b ?? c    # VN1003
+#   const x = (a || b) ?? c  # this one
+#   const x = a || (b ?? c)  # or this one
+
 # Comparison, then the boolean operators, then the ternary.
 print "${answer > 40} ${answer == 42} ${name != 'Grace'}"
 print "${ready && answer > 40} ${!ready || answer == 42}"

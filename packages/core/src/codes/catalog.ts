@@ -7,6 +7,7 @@ import type { CodeSpec } from "./code.types.js";
 export const CODES = {
   VN1001_LEX: { code: "VN1001", severity: "error" },
   VN1002_PARSE: { code: "VN1002", severity: "error" },
+  VN1003_MIXED_OPERATORS: { code: "VN1003", severity: "error" },
   VN2003_UNKNOWN_ACTION: { code: "VN2003", severity: "error" },
   VN2004_UNKNOWN_MATCHER: { code: "VN2004", severity: "error" },
   VN2005_UNKNOWN_FRAGMENT: { code: "VN2005", severity: "error" },

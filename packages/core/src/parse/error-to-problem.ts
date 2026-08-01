@@ -1,6 +1,7 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import type { Problem, Span } from "../problem/index.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
+import { bracketTheTry } from "./bracket-the-try.js";
 
 /** Structural view of a Chevrotain lexer error (avoids importing chevrotain). */
 interface LexerError {
@@ -64,13 +65,11 @@ function at(value: number | undefined, fallback: number): number {
 
 /** The parser's own words, unless this is an error the language can explain. */
 function titleFor(args: { error: RecognitionError; text?: string }): string {
+  const text = args.text;
+  if (text === undefined) return args.error.message;
+  const offset = args.error.token.startOffset;
   const explained =
-    args.text === undefined
-      ? undefined
-      : bracketTheArgument({
-          operator: args.error.token.image,
-          text: args.text,
-          offset: args.error.token.startOffset,
-        });
+    bracketTheArgument({ operator: args.error.token.image, text, offset }) ??
+    bracketTheTry({ text, offset });
   return explained ?? args.error.message;
 }

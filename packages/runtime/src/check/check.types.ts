@@ -26,6 +26,14 @@ export interface CheckContext {
   matchers: ReadonlySet<string>;
   /** Names this file binds: callable, but their methods cannot be verified. */
   bound: ReadonlySet<string>;
+  /**
+   * Every name the file binds anywhere, flat and over-collected.
+   *
+   * `bound` answers "is this callable"; this answers "does this name exist at
+   * all", which is the only question a typo needs and the only one that can be
+   * asked without tracking scope.
+   */
+  declared: ReadonlySet<string>;
   /** Declared `env` variables, or undefined when the manifest could not be read. */
   env?: ReadonlySet<string>;
   uri: string;

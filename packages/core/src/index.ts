@@ -45,6 +45,8 @@ export { createVennServices, VennLexer, vennServices } from "./lang/index.js";
 export {
   handedOn,
   isPackageSpecifier,
+  MODULE_FILE,
+  moduleFileOf,
   publishedNames,
   type SpecifierKind,
   specifierKind,

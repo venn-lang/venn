@@ -1,0 +1,10 @@
+# The folder's face: what `import … from "./shop"` reaches.
+#
+# A file named `mod.vn` is what makes a folder a module. Everything it hands on
+# with `pub import` is the folder's interface; everything it does not is the
+# folder's business, and can be moved without a caller noticing.
+
+pub import { withTax } from "./prices.vn"
+pub import * as coupon from "./coupon"
+
+pub type Order = { total: number, code: string }

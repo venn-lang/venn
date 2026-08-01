@@ -335,6 +335,38 @@ const { totl } = pedido    # VN3010: Pedido não tem campo "totl"
 Sem anotação nenhuma o checker não inventa: um valor cuja forma ninguém sabe se
 deixa separar em silêncio, como qualquer outro acesso a campo.
 
+### Uma pasta é um módulo quando tem cara
+
+**Extensão nomeia arquivo. Sem extensão nomeia pasta.**
+
+| Escrito | Lido |
+| --- | --- |
+| `"./cart.vn"` | esse arquivo |
+| `"./cart"` | `./cart/mod.vn` |
+| `"#lib/cart"` | `<paths.lib>/cart/mod.vn` |
+
+Sem cascata: nunca "tenta `.vn`, depois `/mod.vn`". Quem lê o import sabe pela
+string qual dos dois ele quis, e não há ordem de resolução para aprender nem
+para errar.
+
+O `mod.vn` é a cara da pasta. O que ele repassa com `pub import` é a interface;
+o que ele não repassa é assunto interno, e pode mudar de lugar sem nenhum
+chamador perceber:
+
+```venn
+# shop/mod.vn
+pub import { withTax } from "./prices.vn"
+pub import * as coupon from "./coupon"
+```
+```venn
+import * as shop from "./shop"
+shop.withTax(100)
+shop.coupon.apply(100, "black")
+```
+
+Pasta sem `mod.vn` não é módulo, e o import que nomeou uma diz qual arquivo
+procurou.
+
 ### Arquivos não podem se importar em círculo
 
 Dois arquivos que se importam são recusados, com o caminho da volta nomeado:

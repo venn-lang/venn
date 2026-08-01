@@ -1,0 +1,27 @@
+# A folder as a module: the caller names the folder, and nothing inside it.
+# Run: venn run examples/language/07-folders.vn
+
+module examples.language.folders
+
+## An extension names a file. No extension names a folder, and what is read is
+## its `mod.vn`. There is no cascade between the two, so the import says which
+## of them it meant.
+import * as shop from "./shop"
+import { withTax } from "./shop"
+
+const order: shop.Order = { total: 100, code: "black" }
+
+## `withTax` is written in `shop/prices.vn`, and reaches here because `mod.vn`
+## handed it on. Move that file and this line does not change.
+print "with tax:  ${withTax(order.total)}"
+
+## A folder inside the folder arrives as a namespace, by the same `pub import`.
+print "discounted: ${shop.coupon.apply(order.total, order.code)}"
+const plain = shop.coupon.apply(order.total, 'nope')
+print "an unknown code takes nothing: ${plain}"
+
+## What the face did not hand on stays the folder's own. `shop/prices.vn`
+## publishes `vat`, and `mod.vn` did not hand it on, so reading `shop.vat` here
+## is refused: the folder's interface is what its face says it is, and nothing
+## else.
+print "the face is the whole of what a folder offers"

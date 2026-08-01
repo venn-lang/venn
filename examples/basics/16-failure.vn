@@ -1,0 +1,48 @@
+# Trying something that can fail, and what to use when it does.
+# Run: venn run examples/basics/16-failure.vn
+
+import { json } from "venn/json"
+
+## `try` as an expression: the attempt, or the value after `else`.
+const settings = try json.parse("{ oops") else { port: 8080 }
+print "port: ${settings.port}"
+
+## When it works, the attempt is the value and the `else` never runs.
+const good = try json.parse('{ "port": 3000 }') else { port: 8080 }
+print "port: ${good.port}"
+
+## `catch` gives the failure a name. It has a `message` and a `code`, and the
+## code is `VN7000` until the verb that failed carries one of its own.
+const why = try json.parse("{ oops") catch e => e.message
+print "why: ${why}"
+
+## Which is what lets a function answer for an input it cannot read, without a
+## `try` block around every call.
+fn portOf(text) => try json.parse(text).port else 8080
+
+const written = '{ "port": 443 }'
+print "portOf a number: ${portOf(written)}"
+print "portOf nonsense: ${portOf('nonsense')}"
+
+## Nothing is caught but a failure. A `return` inside the attempt is the
+## function leaving, not the attempt failing:
+fn firstEven(xs) {
+  forEach x in xs {
+    if x % 2 == 0 {
+      return x
+    }
+  }
+  return null
+}
+const found = try firstEven([1, 3, 6]) else -1
+print "first even: ${found}"
+
+## The block form is still there, for where steps run rather than a value:
+##
+##   try {
+##     step "Payment" { http.post "/api/pay" }
+##   } catch e {
+##     log "failed: ${e.message}"
+##   } finally {
+##     mock.reset
+##   }

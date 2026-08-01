@@ -7,3 +7,4 @@ export { closureIn, compileFnExpr } from "./fn.js";
 export { compileInstant, compileNumber, compileString, constant } from "./literal.js";
 export { compileMatch } from "./match.js";
 export { compileIndex, compileMember } from "./member.js";
+export { compileTry } from "./try-expr.js";

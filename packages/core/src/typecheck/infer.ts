@@ -121,6 +121,8 @@ function inferKind(expr: Expr, env: TypeEnv, infer: Infer): Type {
       return inferBinary(expr, env, infer);
     case "Unary":
       return inferUnary(expr, env, infer);
+    case "TryExpr":
+      return inferTry(expr as ast.TryExpr, env, infer);
     case "Ternary":
       return inferTernary(expr, env, infer);
     case "ListLit":
@@ -352,6 +354,27 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
   }
   expect(infer, expr, callee, fn(args, result));
   return result;
+}
+
+/**
+ * `try expr else fallback`: either the attempt or the fallback, so the type is
+ * both.
+ *
+ * Neither side is asked to agree with the other. A fallback is what stands in
+ * when the attempt did not happen, and requiring it to be the same type would
+ * refuse `try json.parse(t) else null`, which is the everyday one.
+ */
+function inferTry(expr: ast.TryExpr, env: TypeEnv, infer: Infer): Type {
+  const attempted = inferExpr(expr.attempt, env, infer);
+  // What `catch` binds is a failure, whose shape §16 settles rather than this.
+  const inner = expr.error ? env.with(expr.error, mono(DYNAMIC)) : env;
+  const instead = inferExpr(expr.fallback, inner, infer);
+  // A fallback that reads the failure has no type until the failure does, and
+  // an expression half of which is unknown is unknown.
+  if (attempted.kind === "dynamic" || instead.kind === "dynamic") return DYNAMIC;
+  // Two sides that agree are one type, not a union of a thing with itself,
+  // which is what every message about them would otherwise read as.
+  return unify(attempted, instead) ? attempted : union([attempted, instead]);
 }
 
 /** What a plugin verb gives back, when the callee names one. */

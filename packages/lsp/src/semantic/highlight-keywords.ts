@@ -23,6 +23,7 @@ import {
   isReturnStmt,
   isRunStmt,
   isStepDecl,
+  isTryExpr,
   isTryStmt,
   isTypeDecl,
   isValueImport,
@@ -81,6 +82,7 @@ function control(node: AstNode): string[] | undefined {
   if (isParallelStmt(node)) return ["parallel"];
   if (isRaceStmt(node)) return ["race"];
   if (isTryStmt(node)) return tryWords(node.handler, node.finalizer);
+  if (isTryExpr(node)) return ["try", node.error ? "catch" : "else"];
   if (isLifecycleDecl(node)) return [node.hook ?? "on"];
   return loops(node);
 }

@@ -284,7 +284,20 @@ ArgValue infers Expr:
       | {infer Call.callee=current} '(' (args=ArgList)? ')'
     )*;
 
-Expr: Ternary;
+Expr: TryExpr;
+
+// `try` where a value is wanted: what to do when the attempt fails.
+//
+// The statement form runs steps and gives nothing back; this gives a value and
+// runs no steps, which is the same split `fn` and `match` already make between
+// `{ … }` and `=>`. One word, one meaning, told apart by where it stands.
+//
+// It binds looser than everything, so `try a.b() else c` needs no brackets and
+// `x + try f() else 0` is refused rather than guessed at.
+TryExpr infers Expr:
+    {infer TryExpr} 'try' attempt=Ternary
+      ('else' fallback=Ternary | 'catch' error=ID '=>' fallback=Ternary)
+  | Ternary;
 
 Ternary infers Expr:
     Coalesce ({infer Ternary.condition=current} '?' then=Expr ':' otherwise=Expr)?;

@@ -12,6 +12,7 @@ import {
   isParam,
   isRepeatStmt,
   isRunStmt,
+  isTryExpr,
   isTryStmt,
   isValueImport,
   loopBinding,
@@ -51,11 +52,11 @@ function namesOf(node: AstNode): readonly string[] {
   return other(node);
 }
 
-/** The three that carry an optional name, each in its own field. */
+/** The four that carry an optional name, each in its own field. */
 function other(node: AstNode): readonly string[] {
   if (isRepeatStmt(node)) return node.index ? [node.index] : [];
   if (isRunStmt(node)) return node.bind ? [node.bind] : [];
-  if (isTryStmt(node)) return node.error ? [node.error] : [];
+  if (isTryStmt(node) || isTryExpr(node)) return node.error ? [node.error] : [];
   return [];
 }
 

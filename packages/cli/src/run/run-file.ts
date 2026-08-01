@@ -74,7 +74,16 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
   // never published would otherwise surface halfway through, as a value that
   // was quietly `undefined` until something called it.
   const registry = buildRegistry({ plugins: allPlugins, caps: args.host.caps });
-  const bad = graph ? checkImports({ document: ast, uri: args.uri, graph, registry }) : [];
+  const bad = graph
+    ? checkImports({
+        document: ast,
+        uri: args.uri,
+        graph,
+        registry,
+        unreadable: resolved?.unreadable,
+        cycles: resolved?.cycles,
+      })
+    : [];
   if (bad.length > 0) return { problems: bad };
   const runner = createRunner({
     host: args.host,

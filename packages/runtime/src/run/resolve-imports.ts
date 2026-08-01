@@ -43,6 +43,22 @@ export interface UnreadableImport {
   tried: string;
 }
 
+/**
+ * Files that import each other, in the order they do it.
+ *
+ * The last name is the first again: `["a.vn", "b.vn", "a.vn"]` is a's import of
+ * b and b's import back. The import that closes it is the one worth pointing at,
+ * because it is the one that could be moved.
+ */
+export interface ImportCycle {
+  /** Every file on the way round, starting and ending at the same one. */
+  path: readonly string[];
+  /** The file whose import closes it, which is the last but one on the path. */
+  closedBy: string;
+  /** The specifier that closed it, as written. */
+  spec: string;
+}
+
 /** What a run needs from the files it reaches: their fragments, decos and plugins. */
 export interface ResolvedImports {
   fragments: Map<string, FragmentDecl>;
@@ -75,6 +91,15 @@ export interface ResolvedImports {
    * "not looked at", which is why this is carried rather than re-derived.
    */
   unreadable: readonly UnreadableImport[];
+  /**
+   * Every set of files that import each other.
+   *
+   * A `const` at the top of a file is evaluated when the file is, and a `pub fn`
+   * closes over the file it was written in, so there is no hoisting to hide
+   * behind: one side of a cycle reads bindings the other has not filled yet, and
+   * which side depends on which file the run happened to enter first.
+   */
+  cycles: readonly ImportCycle[];
 }
 
 /**
@@ -101,6 +126,7 @@ export async function resolveImports(args: {
   const modules = new Map<string, Document>();
   const npm = new Map<string, Record<string, unknown>>();
   const unreadable: UnreadableImport[] = [];
+  const cycles: ImportCycle[] = [];
   collectPackages(args.document, packages);
   await loadInto({
     document: args.document,
@@ -112,9 +138,11 @@ export async function resolveImports(args: {
     modules,
     npm,
     unreadable,
+    cycles,
+    open: [{ uri: args.uri }],
     seen: new Set([args.uri]),
   });
-  return { ...found, packages, modules, npm, unreadable };
+  return { ...found, packages, modules, npm, unreadable, cycles };
 }
 
 /**
@@ -130,10 +158,40 @@ export function collectPackages(document: Document, into: Set<string>): void {
   }
 }
 
+/**
+ * The cycle as one answer, whichever file the walk entered from.
+ *
+ * The same three files import each other whether the walk started at the first,
+ * the second or the third, and each entry finds the circle closing at a
+ * different door. Rotated to start at the same file every time, so `venn check`
+ * over a folder reports one mistake rather than one per file that leads into it.
+ *
+ * @param hops The way round, the last being the file the first also is.
+ */
+function circleOf(hops: readonly Hop[]): ImportCycle {
+  const round = hops.slice(0, -1);
+  const first = round.reduce((low, hop) => (hop.uri < low.uri ? hop : low), round[0] as Hop);
+  const from = round.indexOf(first);
+  const turned = [...round.slice(from), ...round.slice(0, from)];
+  const closing = turned[turned.length - 1] as Hop;
+  return {
+    path: [...turned.map((hop) => hop.uri), first.uri],
+    closedBy: closing.uri,
+    spec: hops.slice(1).find((hop) => hop.uri === first.uri)?.spec ?? (first.spec as string),
+  };
+}
+
 /** What `pub` has handed over so far, filled as the graph is walked. */
 interface Exports {
   fragments: Map<string, FragmentDecl>;
   decos: Map<string, ImportedDeco>;
+}
+
+/** One file on the way in, and the specifier that reached it. */
+interface Hop {
+  uri: string;
+  /** Absent for the file the walk started at, which nothing reached. */
+  spec?: string;
 }
 
 interface LoadState {
@@ -146,6 +204,12 @@ interface LoadState {
   modules: Map<string, Document>;
   npm: Map<string, Record<string, unknown>>;
   unreadable: UnreadableImport[];
+  cycles: ImportCycle[];
+  /**
+   * The files being loaded right now, outermost first, each with the specifier
+   * that led to it. The way back to here, and how each step was written.
+   */
+  open: Hop[];
   seen: Set<string>;
 }
 
@@ -172,6 +236,13 @@ async function loadPackage(state: LoadState, spec: string): Promise<void> {
 
 async function loadModule(state: LoadState, spec: string): Promise<void> {
   const target = state.io.resolve(state.uri, spec);
+  // On the way back to a file still being loaded, rather than merely to one
+  // already loaded: two files importing the same third is not a cycle.
+  const at = state.open.findIndex((hop) => hop.uri === target);
+  if (at !== -1) {
+    state.cycles.push(circleOf([...state.open.slice(at), { uri: target, spec }]));
+    return;
+  }
   if (state.seen.has(target)) return;
   state.seen.add(target);
   const source = await state.io.read(target).catch(() => undefined);
@@ -185,7 +256,12 @@ async function loadModule(state: LoadState, spec: string): Promise<void> {
   state.modules.set(target, ast);
   collectExports({ document: ast, uri: target, found: state.found });
   collectPackages(ast, state.packages);
-  await loadInto({ ...state, document: ast, uri: target });
+  await loadInto({
+    ...state,
+    document: ast,
+    uri: target,
+    open: [...state.open, { uri: target, spec }],
+  });
 }
 
 /** Everything a file marked `pub`. A `deco` keeps its file: its faults are its own. */

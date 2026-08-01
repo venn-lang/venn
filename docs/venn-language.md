@@ -335,6 +335,24 @@ const { totl } = pedido    # VN3010: Pedido não tem campo "totl"
 Sem anotação nenhuma o checker não inventa: um valor cuja forma ninguém sabe se
 deixa separar em silêncio, como qualquer outro acesso a campo.
 
+### Arquivos não podem se importar em círculo
+
+Dois arquivos que se importam são recusados, com o caminho da volta nomeado:
+
+```
+VN2021 · Importing "./a.vn" here closes a circle.
+  see   a.vn:1:1  imports b.vn
+  see   b.vn:1:1  imports a.vn
+```
+
+Não é preciosismo. Um `const` no topo de um arquivo é avaliado quando o arquivo
+é, e um `pub fn` fecha sobre o arquivo onde foi escrito, então não há içamento
+onde se esconder: um dos lados lê o que o outro ainda não preencheu, e qual dos
+dois depende de por qual arquivo a execução entrou primeiro.
+
+A saída é sempre a mesma: o que os dois precisam vai para um terceiro arquivo,
+que os dois importam. Costuma ser o desenho que se queria desde o começo.
+
 ### Uma única ausência
 
 `null` é a ausência da linguagem, e é a única. Ler um membro que ninguém pôs,

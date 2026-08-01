@@ -47,6 +47,29 @@ export function instantiate(scheme: Scheme, ctx: TypeContext): Type {
   return substitute(scheme.type, fresh);
 }
 
+/**
+ * A scheme with its parameters filled by the types written at the use site.
+ *
+ * `instantiate` fills them with fresh variables, for inference to solve. This
+ * fills them with what an annotation said, which is what `Box<string>` means:
+ * the parameters are not to be solved, they were given.
+ *
+ * A parameter nobody gave becomes a fresh variable, so `Box` on its own is
+ * `Box<something>` rather than an error about arity.
+ *
+ * @param scheme The declared generic.
+ * @param args What the use site wrote, in order.
+ * @param ctx Where a fresh variable comes from, for a parameter left out.
+ * @returns The body, with each parameter replaced.
+ */
+export function applyTo(scheme: Scheme, args: readonly Type[], ctx: TypeContext): Type {
+  if (scheme.quantified.length === 0) return scheme.type;
+  const filled = new Map(
+    scheme.quantified.map((id, at) => [id, args[at] ?? (ctx.fresh() as Type)] as const),
+  );
+  return substitute(scheme.type, filled);
+}
+
 function substitute(type: Type, mapping: ReadonlyMap<number, Type>): Type {
   const t = prune(type);
   switch (t.kind) {

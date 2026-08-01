@@ -147,3 +147,30 @@ describe("a type handed on by a barrel", () => {
     expect(found).toEqual([]);
   });
 });
+
+/**
+ * A generic published by one file and used by another.
+ *
+ * It has to cross as a generic. Filling its parameters with fresh variables to
+ * make it a type would make `Box<string>` accept anything, which is the silence
+ * this milestone exists to remove.
+ */
+describe("a generic another file published", () => {
+  it("is filled by the use site, and refuses what does not fit", () => {
+    const found = titles({
+      "models.vn": "pub type Box<T> = { held: T }",
+      "main.vn": 'import { Box } from "./models.vn"\nconst b: Box<string> = { held: 1 }\nprint b',
+    });
+
+    expect(found).toEqual(["Type mismatch: expected { held: string }, found { held: number }."]);
+  });
+
+  it("says nothing when what was filled in fits", () => {
+    const found = titles({
+      "models.vn": "pub type Box<T> = { held: T }",
+      "main.vn": 'import { Box } from "./models.vn"\nconst b: Box<string> = { held: "x" }\nprint b',
+    });
+
+    expect(found).toEqual([]);
+  });
+});

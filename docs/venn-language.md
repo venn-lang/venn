@@ -353,6 +353,27 @@ dois depende de por qual arquivo a execução entrou primeiro.
 A saída é sempre a mesma: o que os dois precisam vai para um terceiro arquivo,
 que os dois importam. Costuma ser o desenho que se queria desde o começo.
 
+### Um tipo com parâmetros
+
+Um `type` pode receber parâmetros, que quem usa o nome preenche:
+
+```venn
+type Box<T> = { held: T }
+type Pair<A, B> = { left: A, right: B }
+
+const caixa: Box<string> = { held: "x" }
+const par: Pair<string, number> = { left: "a", right: 1 }
+```
+
+Um valor que não cabe no que foi preenchido é recusado nomeando os dois lados:
+`Box<string>` com `{ held: 1 }` diz *expected { held: string }, found
+{ held: number }*.
+
+Uma `fn` não recebe parâmetros de tipo, e não precisa: a inferência já
+generaliza uma. `fn first(xs) => xs[0]` é usada com lista de número e lista de
+texto sem nada escrito. Só o `type` nomeia parâmetros, porque só ele não tem
+corpo de onde inferir.
+
 ### Uma única ausência
 
 `null` é a ausência da linguagem, e é a única. Ler um membro que ninguém pôs,

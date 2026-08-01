@@ -6,9 +6,10 @@ import type { Problem } from "../../problem/index.js";
 import { expand } from "../expand.js";
 import type { DecoratorSource } from "../expand.types.js";
 import { readMeta } from "../node-meta.js";
+import { withDocumentDecos } from "./document-decos.js";
 import { readSignature } from "./read-signature.js";
 
-const NO_DECORATORS: DecoratorSource = { get: () => undefined };
+const NO_DECORATORS: DecoratorSource = { get: () => undefined, names: () => [] };
 
 function run(source: string, decorators: DecoratorSource = NO_DECORATORS) {
   const ast = parse(source).ast;
@@ -148,7 +149,7 @@ describe("running a decorator body", () => {
 
     expect(codes(problems)).toEqual(["VN2017"]);
     expect(problems[0]?.title).toBe(
-      "A Flow has no `wobble` — it has name, meta, remove, title, before, after.",
+      "A Flow has no `wobble`. It has name, meta, remove, title, before, after.",
     );
   });
 
@@ -176,6 +177,7 @@ describe("where a decorator comes from", () => {
     const fromPlugin: DecoratorSource = {
       get: (name) =>
         name === "mark" ? { name, expand: (ctx) => ctx.meta("from", "plugin") } : undefined,
+      names: () => ["mark"],
     };
     const source = [
       'deco mark(target: Flow) { target.meta "from" "language" }',
@@ -191,10 +193,33 @@ describe("where a decorator comes from", () => {
   it("still reaches the host's decorators for a name the document did not declare", () => {
     const fromPlugin: DecoratorSource = {
       get: (name) => ({ name, expand: (ctx) => ctx.meta("from", "plugin") }),
+      names: () => [],
     };
 
     const { at } = run('deco mine(target: Fn) { }\n@other\nflow "f" { }', fromPlugin);
 
     expect(readMeta(at("FlowDecl"), "from")).toBe("plugin");
+  });
+});
+
+/**
+ * What the source answers to, once a file's own `deco`s are folded in.
+ *
+ * The list is what a check offers when it refuses a name: "@retryy" is worth a
+ * "did you mean" only if the names in reach can be asked for.
+ */
+describe("every decorator in reach", () => {
+  it("names the file's own beside the ones the host loaded", () => {
+    const { ast } = parse('deco mine(target: Flow) {\n  target.meta "a" 1\n}\nflow "f" { }');
+    const host = { get: () => undefined, names: () => ["retry", "skip"] };
+
+    const source = withDocumentDecos({
+      document: ast,
+      decorators: host,
+      uri: "/main.vn",
+      problems: [],
+    });
+
+    expect([...source.names()].sort()).toEqual(["mine", "retry", "skip"]);
   });
 });

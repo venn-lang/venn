@@ -16,6 +16,7 @@ import {
   checkDocument,
   checkImports,
   collectFragments,
+  createDecoratorSource,
   createTypeCatalog,
   publishedValueTypes,
   resolveImports,
@@ -76,6 +77,8 @@ async function problemsIn(uri: string): Promise<Problem[]> {
   const found = checkDocument({
     document: ast,
     registry,
+    decorators: createDecoratorSource(allPlugins),
+    importedDecos: decos.keys(),
     fragments: names(ast, imported),
     env: declaredEnv(manifest),
     uri,

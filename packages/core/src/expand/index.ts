@@ -26,6 +26,7 @@ export {
   kindOf,
   makeHandle,
   TARGET_KINDS,
+  verbsOfKind,
 } from "./handles/index.js";
 export { metaOf, readMeta, writeMeta } from "./node-meta.js";
 export { spanOf } from "./node-span.js";

@@ -1,14 +1,18 @@
 import {
   type AstNode,
+  acceptedKinds,
   boundNames,
   buildProblem,
   CODES,
+  type CodeSpec,
   type DecoDecl,
   decoCannotCall,
+  decoTarget,
   isActionCall,
   isDecoDecl,
   isLetStmt,
   type Problem,
+  verbsOfKind,
 } from "@venn-lang/core";
 import { actionTarget, nodeSpan, PRELUDE, splitTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
@@ -27,8 +31,30 @@ export function checkInsideDeco(node: AstNode, ctx: CheckContext): Problem[] | u
   const deco = enclosingDeco(node);
   if (!deco) return undefined;
   const target = calledTarget(node);
-  const refused = target === undefined ? undefined : pluginVerb({ deco, target, ctx });
-  return refused ? [problem(node, ctx, refused)] : [];
+  if (target === undefined) return [];
+  const missing = handleVerb({ deco, target });
+  if (missing) return [problem(node, ctx, CODES.VN2017_DECO_VERB, missing)];
+  const refused = pluginVerb({ deco, target, ctx });
+  return refused ? [problem(node, ctx, CODES.VN2016_DECO_IMPURE, refused)] : [];
+}
+
+/**
+ * A verb the handle does not have, said where it is written.
+ *
+ * What each kind answers to is a table, known before anything runs, so this
+ * needs no body executed. Until now only the run found out, which meant `venn
+ * check` called a decorator fine and the run refused it.
+ */
+function handleVerb(args: { deco: DecoDecl; target: string }): string | undefined {
+  const { namespace, name } = splitTarget(args.target);
+  if (!name || namespace !== decoTarget(args.deco)?.name) return undefined;
+  const kinds = acceptedKinds(args.deco);
+  // A `deco` whose signature named no kind is its own problem, reported where
+  // the `deco` is declared. Guessing at the surface here would say it twice.
+  if (kinds.length === 0) return undefined;
+  const offered = [...new Set(kinds.flatMap(verbsOfKind))];
+  if (offered.includes(name)) return undefined;
+  return `A ${kinds.join(" or ")} has no \`${name}\`. It has ${offered.sort().join(", ")}.`;
 }
 
 /** The `deco` this node is written inside, if any. */
@@ -73,6 +99,6 @@ function paramNames(deco: DecoDecl): Set<string> {
   return new Set((deco.params?.params ?? []).flatMap(boundNames));
 }
 
-function problem(node: AstNode, ctx: CheckContext, title: string): Problem {
-  return buildProblem({ spec: CODES.VN2016_DECO_IMPURE, span: nodeSpan(node, ctx.uri), title });
+function problem(node: AstNode, ctx: CheckContext, spec: CodeSpec, title: string): Problem {
+  return buildProblem({ spec, span: nodeSpan(node, ctx.uri), title });
 }

@@ -29,7 +29,7 @@ export function applyShapeDecorators(args: {
   if (args.decos.size === 0) return;
   expand({
     document: args.document,
-    decorators: { get: () => undefined },
+    decorators: { get: () => undefined, names: () => [] },
     uri: args.uri,
     imported: imported(args),
     only: isTypeDecl,

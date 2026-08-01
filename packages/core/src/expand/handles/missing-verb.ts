@@ -18,7 +18,7 @@ export function missingVerb(args: {
   offered: Iterable<string>;
 }): ProblemError {
   const has = [...args.offered].join(", ");
-  return verbRefusal(`A ${args.kind} has no \`${args.verb}\` — it has ${has}.`);
+  return verbRefusal(`A ${args.kind} has no \`${args.verb}\`. It has ${has}.`);
 }
 
 /** A verb this target cannot honour, for a reason of its own. */

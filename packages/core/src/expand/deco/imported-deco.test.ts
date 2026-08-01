@@ -6,7 +6,7 @@ import { expand } from "../expand.js";
 import { readMeta } from "../node-meta.js";
 import type { ImportedDeco } from "./deco.types.js";
 
-const NOTHING = { get: () => undefined };
+const NOTHING = { get: () => undefined, names: () => [] };
 
 /** A `pub deco` written in another file, as expansion receives it. */
 function exported(source: string, uri = "/lib.vn"): Map<string, ImportedDeco> {
@@ -94,7 +94,7 @@ describe("a pub deco reaches the file that imports it", () => {
 
     expand({
       document: ast,
-      decorators: { get: (name) => ({ name, expand: () => seen.push(name) }) },
+      decorators: { get: (name) => ({ name, expand: () => seen.push(name) }), names: () => [] },
       uri: "/main.vn",
       imported: exported(SHOUT),
     });

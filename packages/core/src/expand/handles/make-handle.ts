@@ -24,6 +24,17 @@ const ALL_VERBS: readonly string[] = [
 ];
 
 /**
+ * What a kind answers to, without a node to build a handle over.
+ *
+ * The surface is a table, so it is known before anything runs. That is what
+ * lets `venn check` refuse `target.wobble` where it is written, rather than
+ * leaving it to the run that would have executed the body to find out.
+ */
+export function verbsOfKind(kind: TargetKind): readonly string[] {
+  return [...new Set((SURFACE[kind] ?? []).flatMap(namesOf))];
+}
+
+/**
  * The typed mutable handle a decorator holds: verbs over the real declaration.
  *
  * Built like the native members of a list or a string, as a table of names and a

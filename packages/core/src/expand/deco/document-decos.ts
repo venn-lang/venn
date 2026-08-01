@@ -28,7 +28,12 @@ export function withDocumentDecos(args: DocumentDecoArgs): DecoratorSource {
   const own = ownDecos(args);
   const shared = sharedDecos(args);
   if (own.size === 0 && !shared) return args.decorators;
-  return { get: (name) => own.get(name) ?? shared?.(name) ?? args.decorators.get(name) };
+  return {
+    get: (name) => own.get(name) ?? shared?.(name) ?? args.decorators.get(name),
+    names: () => [
+      ...new Set([...own.keys(), ...(args.imported?.keys() ?? []), ...args.decorators.names()]),
+    ],
+  };
 }
 
 /** Built up front: a signature that does not read is reported where it is written. */

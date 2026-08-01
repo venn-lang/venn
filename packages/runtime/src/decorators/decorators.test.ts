@@ -92,7 +92,10 @@ describe("a plugin's own decorator", () => {
     const { ast } = parse('@forbid\nflow "f" { }');
 
     const { problems } = expand({ document: ast, decorators: createDecoratorSource([]) });
-    const own = expand({ document: ast, decorators: { get: () => forbid } });
+    const own = expand({
+      document: ast,
+      decorators: { get: () => forbid, names: () => [forbid.name] },
+    });
 
     expect(problems[0]?.code).toBe("VN2013");
     expect(own.problems).toMatchObject([{ code: "VN9001", title: "This flow is forbidden." }]);
@@ -106,7 +109,10 @@ describe("a plugin's own decorator", () => {
     });
     const { ast } = parse('@steppy\nflow "f" { }');
 
-    const { problems } = expand({ document: ast, decorators: { get: () => onlyOnSteps } });
+    const { problems } = expand({
+      document: ast,
+      decorators: { get: () => onlyOnSteps, names: () => [onlyOnSteps.name] },
+    });
 
     expect(problems[0]?.code).toBe("VN2014");
     // A plugin says "StepDecl" because it is handed the raw node; the author

@@ -23,6 +23,7 @@ import {
 import type { CheckArgs, CheckContext } from "./check.types.js";
 import { checkAction, checkCapture, checkLet } from "./check-calls.js";
 import { checkInsideDeco } from "./check-deco-body.js";
+import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
 import { checkEnv } from "./check-env.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
@@ -50,6 +51,8 @@ export function checkDocument(args: CheckArgs): Problem[] {
     matchers: new Set(readImports(args.document, args.registry).matchers.keys()),
     bound: collectBoundNames(args.document),
     declared: everyBoundName(args.document),
+    decos: decosOf(args.document, args.importedDecos),
+    decorators: args.decorators,
     env: args.env ? new Set(args.env) : undefined,
     uri: args.uri ?? "memory://inline.vn",
   };
@@ -72,6 +75,7 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
     ...checkVerbCall(node, ctx),
+    ...checkDecoratorName(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];
 }

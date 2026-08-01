@@ -58,7 +58,24 @@ export async function checkProblems(
   const files = await everySourceUnder(paths);
   const problems: Problem[] = [];
   for (const file of files) problems.push(...(await problemsIn(file)));
-  return { files: files.length, problems };
+  return { files: files.length, problems: said(problems) };
+}
+
+/**
+ * Each problem once.
+ *
+ * A cycle is found from every file that leads into it, and it is one mistake
+ * however many found it. Two files reaching the same one produce the same
+ * problem, down to the span, so sameness is the whole test.
+ */
+function said(problems: readonly Problem[]): Problem[] {
+  const seen = new Set<string>();
+  return problems.filter((problem) => {
+    const key = `${problem.code}:${problem.span.uri}:${problem.span.offset}:${problem.title}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 async function problemsIn(uri: string): Promise<Problem[]> {
@@ -77,6 +94,7 @@ async function problemsIn(uri: string): Promise<Problem[]> {
     decos,
     modules,
     unreadable,
+    cycles,
   } = await resolveImports({
     document: ast,
     uri,
@@ -105,7 +123,7 @@ async function problemsIn(uri: string): Promise<Problem[]> {
   });
   return [
     ...found,
-    ...checkImports({ document: ast, uri, graph, registry, unreadable }),
+    ...checkImports({ document: ast, uri, graph, registry, unreadable, cycles }),
     ...checkTypes(ast, { uri, catalog, decos, imports }).problems,
   ];
 }

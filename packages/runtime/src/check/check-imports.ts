@@ -9,11 +9,12 @@ import {
   isTypeDecl,
   isValueImport,
   type Problem,
+  type RelatedInfo,
   type ValueImport,
 } from "@venn-lang/core";
 import { readImports } from "../imports/index.js";
 import type { Registry } from "../registry/index.js";
-import type { UnreadableImport } from "../run/index.js";
+import type { ImportCycle, UnreadableImport } from "../run/index.js";
 import type { ImportGraph } from "../scheduler/index.js";
 import { nodeSpan } from "../scheduler/index.js";
 
@@ -41,6 +42,8 @@ export function checkImports(args: {
    * not draw an error over a neighbour the workspace is still loading.
    */
   unreadable?: readonly UnreadableImport[];
+  /** Files that import each other, which is refused rather than half run. */
+  cycles?: readonly ImportCycle[];
 }): Problem[] {
   const problems: Problem[] = [];
   for (const decl of args.document.imports) {
@@ -50,7 +53,7 @@ export function checkImports(args: {
     // A path that reads nothing is already reported by whoever tried to read it.
     if (module) problems.push(...missing({ decl, module, uri: args.uri, path: decl.path }));
   }
-  return [...problems, ...fromPackages(args), ...wentNowhere(args)];
+  return [...problems, ...fromPackages(args), ...wentNowhere(args), ...wentInCircles(args)];
 }
 
 /**
@@ -163,3 +166,54 @@ function at(one: UnreadableImport, document: Document, uri: string): Problem[] {
     },
   ];
 }
+
+/**
+ * Files that import each other, refused rather than half run.
+ *
+ * A `const` at the top of a file is evaluated when the file is, and a `pub fn`
+ * closes over the file it was written in. There is no hoisting to hide behind:
+ * one side of a cycle reads what the other has not filled yet, and which side
+ * depends on which file the run happened to enter first. Go refuses these for
+ * the same reason, and the usual fix, moving what both need into a third file,
+ * is the design that was wanted anyway.
+ *
+ * Said at the import that closes the loop, because that is the one that can be
+ * moved, with the way round shown beneath it.
+ */
+function wentInCircles(args: { cycles?: readonly ImportCycle[] }): Problem[] {
+  return (args.cycles ?? []).map((cycle) => ({
+    ...buildProblem({
+      spec: CODES.VN2021_IMPORT_CYCLE,
+      span: whole(cycle.closedBy),
+      title: `Importing "${cycle.spec}" here closes a circle.`,
+      related: theWayRound(cycle),
+    }),
+    help: advice(cycle),
+  }));
+}
+
+/** What to do about it, counting the files rather than assuming two. */
+function advice(cycle: ImportCycle): string {
+  const many = cycle.path.length > 3 ? "these files" : "both files";
+  return `Move what ${many} need into another one, and import that from each.`;
+}
+
+/** Each file on the way round, and the one it reaches for. */
+function theWayRound(cycle: ImportCycle): RelatedInfo[] {
+  return cycle.path.slice(0, -1).map((uri, at) => ({
+    span: whole(uri),
+    label: `imports ${named(cycle.path[at + 1] as string)}`,
+  }));
+}
+
+/** The file, since a cycle belongs to files rather than to a line in one. */
+function whole(uri: string) {
+  return { uri, offset: 0, length: 0, line: 1, column: 1 };
+}
+
+/** Its last part: the span beside it already carries where it is. */
+function named(uri: string): string {
+  return uri.split(SEPARATOR).pop() ?? uri;
+}
+
+const SEPARATOR = /[/\\]/;

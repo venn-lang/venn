@@ -22,6 +22,7 @@ export const CODES = {
   VN2018_UNBOUND_NAME: { code: "VN2018", severity: "error" },
   VN2019_UNREADABLE_IMPORT: { code: "VN2019", severity: "error" },
   VN2020_NAME_TAKEN: { code: "VN2020", severity: "error" },
+  VN2021_IMPORT_CYCLE: { code: "VN2021", severity: "error" },
   VN3001_UNKNOWN_OPTION: { code: "VN3001", severity: "error" },
   VN3010_TYPE_MISMATCH: { code: "VN3010", severity: "error" },
   VN3012_UNIT_MISMATCH: { code: "VN3012", severity: "error" },

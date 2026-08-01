@@ -1,5 +1,6 @@
 export { createRunner } from "./create-runner.js";
 export type {
+  ImportCycle,
   ModuleIo,
   NpmModules,
   ResolvedImports,

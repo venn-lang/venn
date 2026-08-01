@@ -1,6 +1,7 @@
 import { type AstNode, CODES, isAnnotation, isRef, type Problem, type Ref } from "@venn-lang/core";
 import { isPrelude } from "@venn-lang/prelude";
 import type { CheckContext } from "./check.types.js";
+import { nearestName } from "./nearest-name.js";
 import { problemAt } from "./problem-at.js";
 
 /**
@@ -57,40 +58,7 @@ function known(name: string, ctx: CheckContext): boolean {
  * is the other reason this fires.
  */
 function help(node: Ref, ctx: CheckContext): string {
-  const near = nearest(node.name, ctx.declared);
+  const near = nearestName(node.name, ctx.declared);
   if (near) return `Did you mean \`${near}\`?`;
   return "Bind it with `const` or `let`, or bring it in with `import`.";
-}
-
-function nearest(name: string, names: ReadonlySet<string>): string | undefined {
-  let best: string | undefined;
-  let closest = Math.min(3, Math.floor(name.length / 2) + 1);
-  for (const candidate of names) {
-    const gap = distance(name, candidate);
-    if (gap < closest) [best, closest] = [candidate, gap];
-  }
-  return best;
-}
-
-/**
- * Levenshtein distance, over two names.
- *
- * One row rather than a matrix: names are short, this runs once per unbound
- * reference, and the whole point is that unbound references are rare.
- */
-function distance(left: string, right: string): number {
-  let row = Array.from({ length: right.length + 1 }, (_, at) => at);
-  for (let down = 1; down <= left.length; down += 1) {
-    const next = [down];
-    for (let across = 1; across <= right.length; across += 1) {
-      const same = left[down - 1] === right[across - 1];
-      next[across] = Math.min(
-        (next[across - 1] as number) + 1,
-        (row[across] as number) + 1,
-        (row[across - 1] as number) + (same ? 0 : 1),
-      );
-    }
-    row = next;
-  }
-  return row[right.length] as number;
 }

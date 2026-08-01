@@ -1,4 +1,5 @@
 export { buildDiff } from "./build-diff.js";
+export { type Caught, caughtValue, isFailure } from "./caught.js";
 export type { Diff, DiffEntry } from "./diff.types.js";
 export { formatValue } from "./format-value.js";
 export type { Problem } from "./problem.types.js";

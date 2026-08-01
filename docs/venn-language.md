@@ -817,10 +817,38 @@ try {
   mock.reset
 }
 
+# erro como valor: o que sai de `try` quando ele falha
+const porta = try json.parse(bruto).porta else 8080
+
 # invocar fragmento
 run loginViaApi(user) as sessao
 capture token = sessao.token
 ```
+
+### `try` como valor
+
+O `try` de bloco recupera onde há steps: ele corre um bloco, e se algo falhar
+corre outro. O que ele não faz é entregar um valor, e "tenta isto, e se falhar
+usa aquilo" é justamente a forma que mais aparece. Por isso `try` também é
+expressão:
+
+```venn
+const porta   = try json.parse(bruto).porta else 8080
+const motivo  = try http.get(url) catch e => e.message
+const usuario = try users.first(id) else null
+```
+
+`else` dá o valor de reserva; `catch e =>` dá o mesmo, com a falha ligada a um
+nome. O que ele liga tem `message` e `code`. As duas formas separam-se pelo
+mesmo critério do resto da linguagem: `{ … }` corre passos, `=>` dá um valor.
+
+Só falha é apanhada. Um `break`, um `return` ou um `exit` é o programa a ir onde
+mandaram, não uma tentativa falhada, e apanhá-los transformaria o `break` de um
+ciclo no valor de reserva.
+
+Não existe `try` sozinho, sem `else` nem `catch`. `try f() else null` diz o que
+faz, e uma tentativa cujo valor de reserva ninguém escreveu é uma falha que
+ninguém tratou.
 
 > **Correção sobre o protótipo.** Lá `parallel` tinha dois sentidos: `parallel=4` (grau de fan-out) e `parallel { }` (bloco concorrente). Aqui o primeiro virou `{ concurrency: 4 }` no `forEach` e o segundo continua `parallel`. Sobrecarga de palavra-chave é dívida que vence no dia em que você escreve o node graph.
 
@@ -2224,6 +2252,8 @@ ParallelStmt: 'parallel' opts=MapLit? body=Block;
 RaceStmt:     'race'     opts=MapLit? body=Block;
 TryStmt:      'try' body=Block ('catch' err=ID? handler=Block)?
                             ('finally' final=Block)?;
+TryExpr:      'try' attempt=Expr ('else' fallback=Expr
+                                | 'catch' err=ID '=>' fallback=Expr);
 
 LetStmt:     'let'     name=ID '=' value=Expr;
 CaptureStmt: 'capture' name=ID '=' value=Expr opts=MapLit?;

@@ -1,5 +1,4 @@
-import type { TryStmt } from "@venn-lang/core";
-import { RUN_CODES } from "../codes.js";
+import { caughtValue, type TryStmt } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
@@ -25,11 +24,6 @@ async function runCatch(args: {
 }): Promise<void> {
   if (!args.stmt.handler) return;
   const child = args.scope.child();
-  if (args.stmt.error) child.set(args.stmt.error, toErrorValue(args.error));
+  if (args.stmt.error) child.set(args.stmt.error, caughtValue(args.error));
   await runBlock(args.engine, args.stmt.handler, child);
-}
-
-function toErrorValue(error: unknown): { message: string; code: string } {
-  const e = error as { message?: string; code?: string };
-  return { message: e?.message ?? String(error), code: e?.code ?? RUN_CODES.VN7000_UNKNOWN };
 }

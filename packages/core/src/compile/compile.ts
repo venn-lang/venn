@@ -28,6 +28,7 @@ import {
   compileNumber,
   compileString,
   compileTernary,
+  compileTry,
   compileUnary,
   constant,
   constThunk,
@@ -98,6 +99,9 @@ function dispatch(expr: Expr, scope: LexScope): Thunk {
     // arm binds needs a slot, and slots belong to the scope.
     case "MatchExpr":
       return compileMatch(expr, scope, compileIn);
+    // Same reason: the name a `catch` gives the failure needs a slot.
+    case "TryExpr":
+      return compileTry(expr, scope, compileIn);
     default:
       return operation(expr, (inner) => compileIn(inner, scope));
   }

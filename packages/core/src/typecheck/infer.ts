@@ -121,6 +121,8 @@ function inferKind(expr: Expr, env: TypeEnv, infer: Infer): Type {
       return inferBinary(expr, env, infer);
     case "Unary":
       return inferUnary(expr, env, infer);
+    case "TryExpr":
+      return inferTry(expr as ast.TryExpr, env, infer);
     case "Ternary":
       return inferTernary(expr, env, infer);
     case "ListLit":
@@ -352,6 +354,22 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
   }
   expect(infer, expr, callee, fn(args, result));
   return result;
+}
+
+/**
+ * `try expr else fallback`: either the attempt or the fallback, so the type is
+ * both.
+ *
+ * Neither side is asked to agree with the other. A fallback is what stands in
+ * when the attempt did not happen, and requiring it to be the same type would
+ * refuse `try json.parse(t) else null`, which is the everyday one.
+ */
+function inferTry(expr: ast.TryExpr, env: TypeEnv, infer: Infer): Type {
+  const attempted = inferExpr(expr.attempt, env, infer);
+  // What `catch` binds is a failure, whose shape §16 settles rather than this.
+  const inner = expr.error ? env.with(expr.error, mono(DYNAMIC)) : env;
+  const instead = inferExpr(expr.fallback, inner, infer);
+  return union([attempted, instead]);
 }
 
 /** What a plugin verb gives back, when the callee names one. */

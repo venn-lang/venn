@@ -3,7 +3,7 @@ import type { Expr, FnBody, ParamList } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { boundNames, loopBinding } from "../pattern/index.js";
 import type { Thunk } from "./compile.types.js";
-import { matchNames } from "./match-names.js";
+import { innerNames } from "./inner-names.js";
 import { paramPatternNames, paramSlotName, wholeValueName } from "./unpack.js";
 
 /**
@@ -68,9 +68,10 @@ export function scopeOf(params: ParamList | undefined, body: FnBody): LexScope {
   // chain of them. Two of the same name in one body meet in one slot, which is
   // what `venn check` refuses before it can matter.
   for (const name of bodyNames(body)) if (!names.includes(name)) names.push(name);
-  // What a `match` arm binds is a local like any other: written before its body
-  // runs, and only one arm ever runs, so two arms may share a name and a slot.
-  for (const name of matchNames(body)) if (!names.includes(name)) names.push(name);
+  // What a `match` arm or a `catch` binds is a local like any other: written
+  // before it is read, and only where its own branch was taken, so two of them
+  // may share a name and a slot.
+  for (const name of innerNames(body)) if (!names.includes(name)) names.push(name);
   // Worth trying without a frame: one name, and nothing bound after it.
   const bare = names.length === 1 && body.stmts.length === 0;
   return { names, cache: new WeakMap(), free: [], bare };

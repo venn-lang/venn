@@ -6,6 +6,7 @@ import {
   isFnDecl,
   isFragmentDecl,
   isLetStmt,
+  isPackageSpecifier,
   isTypeDecl,
   isValueImport,
   type Problem,
@@ -52,6 +53,7 @@ export function checkImports(args: {
     const module = args.graph.modules.get(target);
     // A path that reads nothing is already reported by whoever tried to read it.
     if (module) problems.push(...missing({ decl, module, uri: args.uri, path: decl.path }));
+    problems.push(...noDefault({ decl, uri: args.uri, npm: args.graph.npm }));
   }
   return [...problems, ...fromPackages(args), ...wentNowhere(args), ...wentInCircles(args)];
 }
@@ -133,6 +135,51 @@ function publishable(decl: unknown): decl is { name: string; export?: boolean } 
     isTypeDecl(decl) ||
     isLetStmt(decl)
   );
+}
+
+/**
+ * `import cart from "./cart.vn"`, which binds nothing.
+ *
+ * The spelling is not dead: a package has a default export and `takePackage`
+ * binds it. A `.vn` module is the opposite case, publishing by name with `pub`
+ * and having no default at all, so the field is never read and the name is left
+ * holding nothing.
+ *
+ * One spelling, two meanings, and the meaningless one used to fail the way
+ * everything else did before this milestone: silently, three lines away.
+ */
+function noDefault(args: {
+  decl: ValueImport;
+  uri: string;
+  npm?: ReadonlyMap<string, Record<string, unknown>>;
+}): Problem[] {
+  const name = args.decl.default;
+  if (!name) return [];
+  const spec = args.decl.path;
+  if (!isPackageSpecifier(spec)) return [refuseDefault({ ...args, name, said: A_MODULE })];
+  // Nothing loaded means no packages at all, which is every run in a Worker and
+  // is not this import's fault.
+  const found = args.npm?.get(spec);
+  if (!found || "default" in found) return [];
+  return [refuseDefault({ ...args, name, said: `"${spec}" publishes no default.` })];
+}
+
+const A_MODULE = "A `.vn` module publishes by name, so it has no default.";
+
+function refuseDefault(args: {
+  decl: ValueImport;
+  uri: string;
+  name: string;
+  said: string;
+}): Problem {
+  return {
+    ...buildProblem({
+      spec: CODES.VN2009_NOT_EXPORTED,
+      span: nodeSpan(args.decl, args.uri),
+      title: args.said,
+    }),
+    help: `Write \`import { ${args.name} } from "${args.decl.path}"\`, or \`import * as ${args.name}\` for the whole of it.`,
+  };
 }
 
 /**

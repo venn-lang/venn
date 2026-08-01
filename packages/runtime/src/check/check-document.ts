@@ -27,6 +27,7 @@ import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
 import { checkEnv } from "./check-env.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
+import { checkNameTaken } from "./check-name-taken.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
 import { checkRemovedUse } from "./check-removed-use.js";
 import { checkUnbound } from "./check-unbound.js";
@@ -56,7 +57,9 @@ export function checkDocument(args: CheckArgs): Problem[] {
     env: args.env ? new Set(args.env) : undefined,
     uri: args.uri ?? "memory://inline.vn",
   };
-  const problems: Problem[] = [];
+  // Asked of the document rather than of each node: what this reports is two
+  // declarations meeting, and neither of them alone is the problem.
+  const problems: Problem[] = [...checkNameTaken(args.document, ctx)];
   for (const node of walkAst(args.document)) {
     const inDeco = checkInsideDeco(node, ctx);
     if (inDeco) problems.push(...inDeco);

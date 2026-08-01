@@ -19,6 +19,7 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isExpectStmt(node)) return expectStmt(node, env, infer);
   if (ast.isActionCall(node)) return actionArgs(node, env, infer);
   if (ast.isRunStmt(node)) return runArgs(node, env, infer);
+  if (ast.isAssignStmt(node)) return assign(node, env, infer);
   if (ast.isIfStmt(node)) return wholeChain(node, env, infer);
   // Standing on its own, so nothing is waiting for a value: an arm may run steps.
   if (ast.isMatchExpr(node)) return matchStmt(node, env, infer);
@@ -30,6 +31,20 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isStepDecl(node) || ast.isGroupDecl(node)) return nested(node.body, env, infer);
   if (ast.isParallelStmt(node) || ast.isRaceStmt(node)) return nested(node.body, env, infer);
   if (ast.isLifecycleDecl(node)) return nested(node.body, env, infer);
+  return env;
+}
+
+/**
+ * `total = total + 1`: what is written has to fit what the name already holds.
+ *
+ * The target is inferred rather than looked up, so a member or an index is
+ * checked by the same rule as a name: writing a string into a field of numbers
+ * is the same mistake wherever the field is.
+ */
+function assign(node: ast.AssignStmt, env: TypeEnv, infer: Infer): TypeEnv {
+  const place = inferExpr(node.target, env, infer);
+  const value = inferExpr(node.value, env, infer);
+  expect(infer, node.value, value, place);
   return env;
 }
 

@@ -39,7 +39,7 @@ Declaration:
     ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl
     | ConfigDecl | MatrixDecl | LifecycleDecl
     | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
-    | TryStmt | RunStmt | LetStmt | ExpectStmt | MatchExpr | ActionCall );
+    | TryStmt | RunStmt | LetStmt | AssignStmt | ExpectStmt | MatchExpr | ActionCall );
 
 Annotation: '@' name=ID ('(' (args=ArgList)? ')')?;
 
@@ -109,7 +109,8 @@ Statement:
     (annotations+=Annotation NL*)*
     ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
     | ParallelStmt | RaceStmt | TryStmt | LifecycleDecl | LetStmt | CaptureStmt
-    | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | MatchExpr | ActionCall );
+    | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | MatchExpr
+    | AssignStmt | ActionCall );
 
 StepDecl: 'step' title=STRING body=Block;
 GroupDecl: 'group' title=STRING body=Block;
@@ -209,6 +210,19 @@ FieldPattern: name=ID (':' value=Pattern)?;
 // Removed from the language: `capture` and `let` mean the same thing. Still
 // parsed so the editor can say so and offer the one-word fix, instead of
 // failing with a syntax error that explains nothing.
+// `total = total + 1`, `user.name = "a"`, `items[0] = x`.
+//
+// The target is a name and the way into it, never an arbitrary expression: what
+// can be written to is what has a place to write. Which of this and an action
+// call a line is only becomes clear at the `=`, which is why the parser looks
+// past the whole path before deciding.
+AssignStmt: target=AssignTarget '=' value=Expr;
+
+AssignTarget infers Expr:
+    {infer Ref} name=RefName
+    ( {infer Member.receiver=current} '.' member=Word
+    | {infer Index.receiver=current} '[' index=Expr ']' )*;
+
 CaptureStmt: 'capture' name=ID '=' value=Expr (opts=MapLit)?;
 RunStmt: 'run' target=QualifiedName '(' (args=ArgList)? ')' ('as' bind=ID)?;
 ReturnStmt: {infer ReturnStmt} 'return' (value=Expr)?;

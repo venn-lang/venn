@@ -406,6 +406,34 @@ generaliza uma. `fn first(xs) => xs[0]` é usada com lista de número e lista de
 texto sem nada escrito. Só o `type` nomeia parâmetros, porque só ele não tem
 corpo de onde inferir.
 
+### Um nome pode receber outro valor
+
+```venn
+let total = 0
+forEach preco in precos {
+  total = total + preco
+}
+```
+
+`let` nomeia o que muda; `const` nomeia o que não muda, e escrever num `const` é
+recusado onde está escrito. Até existir atribuição os dois não diferiam em nada.
+
+O que `const` fixa é o nome, não o valor. `const carrinho = { itens: 0 }` diz que
+`carrinho` nomeia um mapa para sempre, não que o mapa nunca muda:
+
+```venn
+carrinho.itens = 3      # permitido
+carrinho = outro        # recusado
+```
+
+Escrever num campo ou num índice alcança o valor em si, então todo mundo que
+segura aquele valor enxerga: um mapa é uma coisa só, nomeada em mais de um lugar.
+
+**Uma função captura o binding, não uma cópia dele.** O que ela lê é o que a
+última atribuição deixou, e não o que o nome tinha quando a função foi feita.
+
+Parâmetro é binding como qualquer outro, então também recebe.
+
 ### Uma única ausência
 
 `null` é a ausência da linguagem, e é a única. Ler um membro que ninguém pôs,

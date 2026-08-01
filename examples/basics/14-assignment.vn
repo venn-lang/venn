@@ -1,0 +1,58 @@
+# A name that can be given a new value, and what that changes about `const`.
+# Run: venn run examples/basics/14-assignment.vn
+
+## `let` names something that changes. `const` names something that does not,
+## and until now the two differed in nothing.
+let total = 0
+
+forEach price in [1200, 350, 90] {
+  total = total + price
+}
+print "total: ${total}"
+
+## The name on the right of itself is the value it holds now.
+let attempts = 1
+attempts = attempts * 2
+print "attempts: ${attempts}"
+
+## A block writes the binding it is standing in, not a new one beside it.
+let found = 0
+forEach n in [3, 9, 4] {
+  if n > found {
+    found = n
+  }
+}
+print "largest: ${found}"
+
+## A `const` keeps what it was given. Writing to one is refused where it is
+## written, with the word to use instead:
+##
+##   const limit = 10
+##   limit = 20
+##   VN2022 · "limit" was declared with `const`, so it keeps what it was given.
+const limit = 10
+print "limit: ${limit}"
+
+## What `const` fixes is the name, not the value. `cart` names one map for good,
+## and the map itself is written into like anything else.
+##
+## The type is written out because the field starts empty: without it the shape
+## is read off the value, `coupon` is the type of `null`, and putting a string
+## there later is refused. Saying what it holds is what makes it hold that.
+type Cart = { items: number, coupon: string | null }
+
+const cart: Cart = { items: 0, coupon: null }
+cart.items = 3
+cart.coupon = "black"
+print "cart: ${cart.items} items, coupon ${cart.coupon}"
+
+const seats = ["free", "free", "free"]
+seats[1] = "taken"
+print "seats: ${seats}"
+
+## A function reads the binding, not a copy of what it held: what it sees is
+## whatever the last assignment left.
+let rate = 0.1
+const withRate = (price) => price * (1 + rate)
+rate = 0.2
+print "with the rate as it is now: ${withRate(100)}"

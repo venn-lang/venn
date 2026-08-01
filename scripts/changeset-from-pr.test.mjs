@@ -31,6 +31,11 @@ async function pending(name, text) {
   await writeFile(join(cwd, ".changeset", name), text);
 }
 
+/** One changeset, written the way a person writes one. */
+function frontmatter(summary) {
+  return ["---", '"@venn-lang/toolchain": minor', "---", "", summary, ""].join("\n");
+}
+
 /** What the workflow does: the title, the branch, and the files it changed. */
 async function write(args) {
   const files = args.files ?? ["packages/toolchain/src/thing.ts"];
@@ -51,8 +56,8 @@ describe("writing the changeset a pull request did not bring", () => {
     const said = await write({ title: "feat(toolchain): ask the registry what exists" });
 
     expect(said).toContain("minor for @venn-lang/toolchain");
-    expect(await changesets()).toEqual(["feat-a-thing.md"]);
-    const written = await readFile(join(cwd, ".changeset", "feat-a-thing.md"), "utf8");
+    expect(await changesets()).toEqual(["generated-feat-a-thing.md"]);
+    const written = await readFile(join(cwd, ".changeset", "generated-feat-a-thing.md"), "utf8");
     expect(written).toBe(
       '---\n"@venn-lang/toolchain": minor\n---\n\nAsk the registry what exists.\n',
     );
@@ -69,7 +74,7 @@ describe("writing the changeset a pull request did not bring", () => {
     const said = await write({ title: "feat(toolchain): ask the registry what exists" });
 
     expect(said).toContain("minor for @venn-lang/toolchain");
-    expect(await changesets()).toEqual(["feat-a-thing.md", "feat-something-else.md"]);
+    expect(await changesets()).toEqual(["feat-something-else.md", "generated-feat-a-thing.md"]);
   });
 
   it("leaves alone the one this branch wrote by hand", async () => {
@@ -84,18 +89,35 @@ describe("writing the changeset a pull request did not bring", () => {
     expect(await changesets()).toEqual(["by-hand.md"]);
   });
 
+  /**
+   * The trap this used to be: the generated file was named after the branch, so
+   * the obvious name for a hand-written one was the reserved one, and five real
+   * changesets were replaced by a sentence from a pull request title.
+   */
+  it("leaves alone one named after the branch, which is the obvious name", async () => {
+    await pending("feat-a-thing.md", frontmatter("Written here."));
+
+    const said = await write({
+      title: "feat(toolchain): ask the registry what exists",
+      files: ["packages/toolchain/src/thing.ts", ".changeset/feat-a-thing.md"],
+    });
+
+    expect(said).toContain("leaving it alone");
+    expect(await changesets()).toEqual(["feat-a-thing.md"]);
+  });
+
   /** The title was edited, so what was generated from the old one is stale. */
   it("rewrites its own when the title changes", async () => {
     await write({ title: "feat(toolchain): first wording" });
 
     await write({
       title: "feat(toolchain): second wording",
-      files: ["packages/toolchain/src/thing.ts", ".changeset/feat-a-thing.md"],
+      files: ["packages/toolchain/src/thing.ts", ".changeset/generated-feat-a-thing.md"],
     });
 
-    const written = await readFile(join(cwd, ".changeset", "feat-a-thing.md"), "utf8");
+    const written = await readFile(join(cwd, ".changeset", "generated-feat-a-thing.md"), "utf8");
     expect(written).toContain("Second wording.");
-    expect(await changesets()).toEqual(["feat-a-thing.md"]);
+    expect(await changesets()).toEqual(["generated-feat-a-thing.md"]);
   });
 
   it("writes nothing for a change that releases nothing", async () => {

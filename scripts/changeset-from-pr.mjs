@@ -62,7 +62,11 @@ async function publishedNames(dirs) {
  * another branch, and reading it as this one's leaves every pull request
  * opened in the meantime out of the changelog.
  *
- * The generated file is excluded, so editing the title still rewrites it.
+ * Only this script's own output is excluded, and it is excluded by a name no
+ * author would reach for. Naming the generated file after the branch, as this
+ * once did, made the obvious hand-written name the reserved one: five of them
+ * were replaced by a sentence taken from a pull request title before anybody
+ * noticed.
  */
 function writtenByHand(args) {
   const mine = fileName(args.slug).replaceAll("\\", "/");
@@ -80,9 +84,18 @@ function body(args) {
   return `---\n${front}\n---\n\n${sentence}.\n`;
 }
 
-/** Named after the branch, so a second push to the same branch rewrites it. */
+/**
+ * Where this script writes.
+ *
+ * The branch is in the name, so a second push to the same branch rewrites the
+ * same file and two open branches never collide on the way to `main`. The
+ * prefix is what keeps it out of the way of whoever writes one by hand:
+ * `fix-unresolved-import.md` is a name somebody chooses, and
+ * `generated-fix-unresolved-import.md` is not.
+ */
 function fileName(slug) {
-  return join(CHANGESETS, `${slug.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`);
+  const branch = slug.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  return join(CHANGESETS, `generated-${branch}.md`);
 }
 
 function skip(reason) {

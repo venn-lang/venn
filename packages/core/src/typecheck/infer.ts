@@ -369,7 +369,12 @@ function inferTry(expr: ast.TryExpr, env: TypeEnv, infer: Infer): Type {
   // What `catch` binds is a failure, whose shape §16 settles rather than this.
   const inner = expr.error ? env.with(expr.error, mono(DYNAMIC)) : env;
   const instead = inferExpr(expr.fallback, inner, infer);
-  return union([attempted, instead]);
+  // A fallback that reads the failure has no type until the failure does, and
+  // an expression half of which is unknown is unknown.
+  if (attempted.kind === "dynamic" || instead.kind === "dynamic") return DYNAMIC;
+  // Two sides that agree are one type, not a union of a thing with itself,
+  // which is what every message about them would otherwise read as.
+  return unify(attempted, instead) ? attempted : union([attempted, instead]);
 }
 
 /** What a plugin verb gives back, when the callee names one. */

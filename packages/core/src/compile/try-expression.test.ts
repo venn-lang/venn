@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { buildProblem, CODES } from "../codes/index.js";
 import type { EvalEnv } from "../expr/eval-env.types.js";
 import { evaluate } from "../expr/evaluate.js";
+import { callClosure } from "../expr/invoke.js";
 import { nativeFn } from "../expr/native.types.js";
 import type { Document, FnDecl, LetStmt } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
-import { callClosure } from "../expr/invoke.js";
-import { closureOfDecl } from "./compile.js";
 import { ProblemError } from "../problem/index.js";
+import { closureOfDecl } from "./compile.js";
 
 const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 

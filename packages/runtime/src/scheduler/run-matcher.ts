@@ -1,6 +1,7 @@
 import { VennError } from "@venn-lang/contracts";
 import {
   buildDiff,
+  CODES,
   type Diff,
   type ExpectStmt,
   evaluate,
@@ -92,7 +93,7 @@ function matcherOptions(args: {
 
 function unknownMatcher(name: string): VennError {
   return new VennError({
-    code: "VN2004",
+    code: CODES.VN2004_UNKNOWN_MATCHER.code,
     message: `Unknown matcher "${name}".`,
     detail: { name },
   });

@@ -1,5 +1,6 @@
 import { VennError } from "@venn-lang/contracts";
 import type { Annotation } from "@venn-lang/core";
+import { RUN_CODES } from "../codes.js";
 import type { Scope } from "../scope/index.js";
 import { type RetrySpec, readRetry, readTimeout } from "./annotations.js";
 import type { Engine } from "./engine.types.js";
@@ -101,5 +102,5 @@ function backoff(retry: RetrySpec, attempt: number): number {
 }
 
 function timeoutError(ms: number): VennError {
-  return new VennError({ code: "VN8001", message: `Timed out after ${ms}ms.` });
+  return new VennError({ code: RUN_CODES.VN8001_TIMED_OUT, message: `Timed out after ${ms}ms.` });
 }

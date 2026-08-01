@@ -85,9 +85,11 @@ describe("a plugin's own decorator", () => {
   });
 
   it("refuses a program in its own words", () => {
+    // A plugin picks a code in the family that matches the failure, high in the
+    // range so it cannot meet a kernel one. There is no family of its own.
     const forbid = defineDecorator({
       name: "forbid",
-      expand: (ctx) => ctx.reject({ code: "VN9001", title: "This flow is forbidden." }),
+      expand: (ctx) => ctx.reject({ code: "VN7099", title: "This flow is forbidden." }),
     });
     const { ast } = parse('@forbid\nflow "f" { }');
 
@@ -98,7 +100,7 @@ describe("a plugin's own decorator", () => {
     });
 
     expect(problems[0]?.code).toBe("VN2013");
-    expect(own.problems).toMatchObject([{ code: "VN9001", title: "This flow is forbidden." }]);
+    expect(own.problems).toMatchObject([{ code: "VN7099", title: "This flow is forbidden." }]);
   });
 
   it("is refused where it said it does not belong", () => {

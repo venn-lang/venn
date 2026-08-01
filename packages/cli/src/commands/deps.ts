@@ -8,6 +8,7 @@ import {
   MANIFEST_FILE,
   managerCommand,
   type Package,
+  PROJECT_CODES,
   type Project,
   type ProxiedVerb,
   packageJsonFor,
@@ -41,7 +42,9 @@ export interface DepsArgs {
 export async function depsCommand(args: DepsArgs): Promise<number> {
   const selection = await selectPackages({ from: process.cwd(), packageName: args.packageName });
   if (!selection) {
-    process.stderr.write("VN2101 · no venn.toml here, or in any folder above it.\n");
+    process.stderr.write(
+      `${PROJECT_CODES.VN2101_NO_PROJECT} · no venn.toml here, or in any folder above it.\n`,
+    );
     return 1;
   }
   if (args.packageName && selection.packages.length === 0) {
@@ -50,12 +53,16 @@ export async function depsCommand(args: DepsArgs): Promise<number> {
   }
   const unsafe = args.packages.filter((spec) => !isSafeSpec(spec));
   if (unsafe.length > 0) {
-    process.stderr.write(`VN2105 · not a package name: ${unsafe.join(", ")}\n`);
+    process.stderr.write(
+      `${PROJECT_CODES.VN2105_NOT_A_PACKAGE_NAME} · not a package name: ${unsafe.join(", ")}\n`,
+    );
     return 1;
   }
   const target = selection.packages[0] ?? holder(selection.project);
   if (!target) {
-    process.stderr.write("VN2104 · no package here to add a dependency to.\n");
+    process.stderr.write(
+      `${PROJECT_CODES.VN2104_NOTHING_TO_ADD_TO} · no package here to add a dependency to.\n`,
+    );
     return 1;
   }
   await editManifest({ ...args, dir: target.dir });
@@ -108,13 +115,17 @@ async function checkAgainstLock(root: string): Promise<number> {
   const fs = createNodeFs();
   const lock = await readLockfile({ fs, root });
   if (!lock) {
-    process.stderr.write("VN2106 · --frozen, but there is no venn.lock to check against.\n");
+    process.stderr.write(
+      `${PROJECT_CODES.VN2106_NO_LOCK} · --frozen, but there is no venn.lock to check against.\n`,
+    );
     return 1;
   }
   const drift = await verifyLock({ fs, root, lock });
   if (drift.length === 0) return 0;
   const lines = describeDrift(drift);
-  process.stderr.write(`VN2107 · what is installed is not what the lock says.\n${lines}\n`);
+  process.stderr.write(
+    `${PROJECT_CODES.VN2107_LOCK_DISAGREES} · what is installed is not what the lock says.\n${lines}\n`,
+  );
   return 1;
 }
 

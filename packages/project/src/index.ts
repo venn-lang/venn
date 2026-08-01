@@ -1,3 +1,4 @@
+export { PROJECT_CODES } from "./codes.js";
 /**
  * What a project is: its root, its members, and where its build goes.
  *

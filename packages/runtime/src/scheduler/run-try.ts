@@ -1,4 +1,5 @@
 import type { TryStmt } from "@venn-lang/core";
+import { RUN_CODES } from "../codes.js";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
@@ -30,5 +31,5 @@ async function runCatch(args: {
 
 function toErrorValue(error: unknown): { message: string; code: string } {
   const e = error as { message?: string; code?: string };
-  return { message: e?.message ?? String(error), code: e?.code ?? "VN7000" };
+  return { message: e?.message ?? String(error), code: e?.code ?? RUN_CODES.VN7000_UNKNOWN };
 }

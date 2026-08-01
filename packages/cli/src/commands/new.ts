@@ -3,6 +3,7 @@ import { createNodeFs } from "@venn-lang/contracts/node";
 import {
   MANIFEST_FILE,
   normalise,
+  PROJECT_CODES,
   type ScaffoldFile,
   type ScaffoldKind,
   scaffold,
@@ -32,7 +33,9 @@ export async function newCommand(args: NewArgs): Promise<number> {
   const dir = normalise(resolve(args.dir));
   const fs = createNodeFs({ root: dir });
   if (await fs.exists(MANIFEST_FILE)) {
-    process.stderr.write(`VN2102 · there is already a ${MANIFEST_FILE} in ${dir}\n`);
+    process.stderr.write(
+      `${PROJECT_CODES.VN2102_ALREADY_A_PROJECT} · there is already a ${MANIFEST_FILE} in ${dir}\n`,
+    );
     return 1;
   }
   const files = scaffold({

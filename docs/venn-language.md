@@ -1339,6 +1339,12 @@ Todo erro bem formado responde sete perguntas, nesta ordem. Se faltar uma, a pes
 
 | Faixa | Família | Quando |
 | --- | --- | --- |
+Todo código que qualquer pacote levanta é declarado num catálogo, e um teste
+recusa um que apareça sem estar. São cinco: o do kernel, o do host e suas portas,
+o que os plugins compartilham, o do runtime e o do projeto. Um plugin não inventa
+família: usa a que corresponde ao tipo da falha, com número alto na faixa para
+não encontrar um do kernel.
+
 | VN1xxx | Léxico e sintático | Parse — o Langium reporta com recuperação de erro |
 | VN2xxx | Resolução de nomes | Namespace não importado, símbolo inexistente, ciclo de módulo |
 | VN3xxx | Tipos | Incompatibilidade, unidade errada, argumento faltando |

@@ -1,3 +1,4 @@
+import { PROJECT_CODES } from "@venn-lang/project";
 import { binTarget, sourcePaths, testPaths } from "./command-targets.js";
 import { selectPackages, unknownPackage } from "./select-packages.js";
 
@@ -35,7 +36,7 @@ export async function resolveTargets(args: {
 }
 
 const NO_PROJECT =
-  "VN2101 · no venn.toml here, or in any folder above it.\n" +
+  `${PROJECT_CODES.VN2101_NO_PROJECT} · no venn.toml here, or in any folder above it.\n` +
   "  give a path, or start a project with `venn init`\n";
 
 async function forKind(args: {

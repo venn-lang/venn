@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import { fromBase64Url, fromBytes } from "../bytes/index.js";
 import type { DecodedJwt } from "./jwt.types.js";
 
@@ -33,5 +34,5 @@ function section(part: string | undefined, what: string): Record<string, unknown
 }
 
 function malformed(detail: string): VennError {
-  return new VennError({ code: "VN7003", message: `Not a JWT — ${detail}.` });
+  return new VennError({ code: PLUGIN_CODES.VN7003_UNREADABLE, message: `Not a JWT — ${detail}.` });
 }

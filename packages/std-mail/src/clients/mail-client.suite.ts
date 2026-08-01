@@ -1,3 +1,4 @@
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import type { MailClient } from "../port/index.js";
 import type { Email } from "../types/index.js";
@@ -41,7 +42,7 @@ export function mailClientConformance(spec: {
       const client = spec.make([FIXTURE]);
       await client.clear();
       await expect(client.waitFor({ subject: "verification" })).rejects.toMatchObject({
-        code: "VN8091",
+        code: PLUGIN_CODES.VN8091_NOTHING_RECORDED,
       });
     });
   });

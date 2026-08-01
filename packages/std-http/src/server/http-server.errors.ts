@@ -1,9 +1,10 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 
 /** VN7020: the address the flow asked for is already taken by something else. */
 export function portInUse(args: { port: number; host: string }): VennError {
   return new VennError({
-    code: "VN7020",
+    code: PLUGIN_CODES.VN7020_PORT_TAKEN,
     message: `Port ${args.port} is already in use — stop whatever is listening on ${args.host}:${args.port}, or ask for "port: 0" to take any free one.`,
     detail: { port: args.port, host: args.host, cause: "EADDRINUSE" },
   });
@@ -12,7 +13,7 @@ export function portInUse(args: { port: number; host: string }): VennError {
 /** VN7021: the socket refused to bind for any other reason. */
 export function listenFailed(args: { port: number; host: string; cause: string }): VennError {
   return new VennError({
-    code: "VN7021",
+    code: PLUGIN_CODES.VN7021_CANNOT_BIND,
     message: `Could not listen on ${args.host}:${args.port} — ${args.cause}.`,
     detail: { port: args.port, host: args.host, cause: args.cause },
   });

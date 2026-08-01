@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { AuthClient } from "../port/index.js";
 
 /**
@@ -11,7 +12,7 @@ export function createRealAuthClient(): AuthClient {
   return {
     token: async () => {
       throw new VennError({
-        code: "VN8090",
+        code: PLUGIN_CODES.VN8090_NOT_BUILT,
         message: "OAuth2 real client not implemented in this build",
       });
     },

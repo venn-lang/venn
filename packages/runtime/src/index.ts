@@ -1,3 +1,4 @@
+export { RUN_CODES } from "./codes.js";
 // @venn-lang/runtime: the registry and the sequential runner. Depends only on core,
 // contracts and sdk (types); no concrete node impls, no `node:*`.
 

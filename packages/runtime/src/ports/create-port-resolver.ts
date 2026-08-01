@@ -1,4 +1,5 @@
 import { bindPort, type HostCapability, type Port, VennError } from "@venn-lang/contracts";
+import { RUN_CODES } from "../codes.js";
 import type { PortBinding, PortResolver } from "./port-resolver.types.js";
 
 /**
@@ -32,7 +33,7 @@ function resolveOne<T>(args: {
 
 function unbound(id: string): VennError {
   return new VennError({
-    code: "VN7002",
+    code: RUN_CODES.VN7002_UNBOUND_PORT,
     message: `No implementation bound for port "${id}".`,
     detail: { port: id },
   });

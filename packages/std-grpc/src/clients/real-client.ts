@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { GrpcClient } from "../port/index.js";
 
 /**
@@ -26,7 +27,7 @@ export function createRealClient(): GrpcClient {
 
 function unimplemented(): never {
   throw new VennError({
-    code: "VN8090",
+    code: PLUGIN_CODES.VN8090_NOT_BUILT,
     message: "gRPC real client not implemented in this build",
   });
 }

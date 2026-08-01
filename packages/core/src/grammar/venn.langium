@@ -73,7 +73,12 @@ DecoDecl:
 ConfigDecl: 'config' body=MapLit;
 MatrixDecl: 'matrix' body=MapLit;
 
-TypeDecl: (export?='pub')? 'type' name=ID ('=' alias=TypeRef | body=TypeBody);
+// `type Box<T> = { held: T }`: the parameters stand for types the user of the
+// name fills in. A `fn` needs none, because inference generalises one already:
+// `fn first(xs) => xs[0]` is used at two element types without saying so.
+TypeDecl:
+    (export?='pub')? 'type' name=ID ('<' params+=ID (',' params+=ID)* '>')?
+    ('=' alias=TypeRef | body=TypeBody);
 TypeBody: '{' (',' | NL)* fields+=FieldDecl ((',' | NL)+ fields+=FieldDecl)* (',' | NL)* '}';
 // A field carries decorators like anything else. The `NL*` is what lets the
 // annotation sit on its own line, which is where everyone writes it, and it

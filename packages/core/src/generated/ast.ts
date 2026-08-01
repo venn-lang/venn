@@ -1346,6 +1346,7 @@ export interface TypeDecl extends Declaration {
     body?: TypeBody;
     export: boolean;
     name: string;
+    params: Array<string>;
 }
 
 export const TypeDecl = {
@@ -1354,7 +1355,8 @@ export const TypeDecl = {
     annotations: 'annotations',
     body: 'body',
     export: 'export',
-    name: 'name'
+    name: 'name',
+    params: 'params'
 } as const;
 
 export function isTypeDecl(item: unknown): item is TypeDecl {
@@ -2644,6 +2646,11 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 },
                 name: {
                     name: TypeDecl.name
+                },
+                params: {
+                    name: TypeDecl.params,
+                    defaultValue: [],
+                    optional: true
                 }
             },
             superTypes: [Declaration.$type]

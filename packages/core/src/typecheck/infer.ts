@@ -29,6 +29,7 @@ import type { TypeCatalog } from "./catalog.types.js";
 import { checkMatch } from "./check-match.js";
 import { badPatternIn } from "./check-pattern.js";
 import type { TypeContext } from "./context.js";
+import type { ImportedType } from "./imported-types.js";
 import { mergedCall } from "./merged-call.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
@@ -72,7 +73,7 @@ export interface Infer {
   /** What the file's own top-level values hold, so a `fn` body can read them. */
   values?: ValueSeeds;
   /** The types of the names this file imported, from the files it named. */
-  imports?: ReadonlyMap<string, Type>;
+  imports?: ReadonlyMap<string, ImportedType>;
   /** True during that first pass: keep functions monomorphic so calls reach them. */
   seeding?: boolean;
   /** Every expression's inferred type, for hover. Omit it to save the work. */

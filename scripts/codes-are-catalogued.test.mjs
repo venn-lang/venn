@@ -47,11 +47,20 @@ function isCatalogue(path) {
 
 const SEPARATOR = /[/\\]/;
 
+/**
+ * Every code the catalogues declare.
+ *
+ * A catalogue that reads back empty is a read that lost a race with a write,
+ * not a catalogue with nothing in it, and letting that through would report
+ * forty stray codes instead of the one thing that went wrong.
+ */
 async function declared() {
   const found = new Set();
   for (const path of CATALOGUES) {
     const text = await readFile(join(ROOT, path), "utf8");
-    for (const code of text.match(CODE) ?? []) found.add(code);
+    const codes = text.match(CODE) ?? [];
+    if (codes.length === 0) throw new Error(`${path} read back with no codes in it`);
+    for (const code of codes) found.add(code);
   }
   return found;
 }

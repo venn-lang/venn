@@ -6,11 +6,27 @@ import type { TypeCatalog } from "./catalog.types.js";
 import { checkTypes } from "./check-types.js";
 import { createContext } from "./context.js";
 import { collectNamedTypes } from "./named-types.js";
+import type { Scheme } from "./scheme.js";
 import { type ResolveRef, specToType } from "./spec-to-type.js";
 import { DYNAMIC, record, type Type } from "./type.types.js";
 
 /** What the names a file imported turned out to be, ready to bind in its env. */
-export type ImportedTypes = ReadonlyMap<string, Type>;
+export type ImportedTypes = ReadonlyMap<string, ImportedType>;
+
+/**
+ * What a name imported from another file is.
+ *
+ * A type, or a generic still waiting for the arguments a use site writes. The
+ * second cannot be a `Type`: filling its parameters with fresh variables to fit
+ * would make `Box<string>` accept anything, which is what it did before this
+ * was told apart.
+ */
+export type ImportedType = Type | { readonly generic: Scheme };
+
+/** Whether this is a generic waiting for its arguments. */
+export function isGenericImport(one: ImportedType): one is { readonly generic: Scheme } {
+  return "generic" in one;
+}
 
 export interface ImportedTypesArgs {
   document: Document;
@@ -58,13 +74,17 @@ interface State {
   resolve: (from: string, spec: string) => string;
   catalog?: TypeCatalog;
   packages?: ReadonlyMap<string, Record<string, TypeSpec>>;
-  done: Map<string, Map<string, Type>>;
+  done: Map<string, Map<string, ImportedType>>;
   busy: Set<string>;
 }
 
 /** What each name a document imports binds to, following `import { … }` and `* as`. */
-function bindingsOf(args: { document: Document; uri: string; state: State }): Map<string, Type> {
-  const out = new Map<string, Type>();
+function bindingsOf(args: {
+  document: Document;
+  uri: string;
+  state: State;
+}): Map<string, ImportedType> {
+  const out = new Map<string, ImportedType>();
   for (const decl of args.document.imports) {
     if (!ast.isValueImport(decl)) continue;
     const published = isPackageSpecifier(decl.path)
@@ -74,7 +94,7 @@ function bindingsOf(args: { document: Document; uri: string; state: State }): Ma
     // same as publishing nothing. Typing it as an empty shape puts a second
     // error on every use of it, blaming the field for the path.
     if (decl.wildcard) {
-      out.set(decl.wildcard, reached(decl.path, args) ? record(published) : DYNAMIC);
+      out.set(decl.wildcard, reached(decl.path, args) ? record(shapes(published)) : DYNAMIC);
     } else for (const one of decl.names) take(out, published, one);
   }
   return out;
@@ -86,8 +106,24 @@ function reached(spec: string, args: { uri: string; state: State }): boolean {
   return args.state.modules.has(args.state.resolve(args.uri, spec));
 }
 
+/**
+ * The ones with a shape, for a namespace that gathers a whole module.
+ *
+ * A generic has none until a use site fills it, and `ns.Box` is not how one is
+ * written anyway: it is written `Box<string>`, after being imported by name.
+ */
+function shapes(published: ReadonlyMap<string, ImportedType>): Map<string, Type> {
+  const out = new Map<string, Type>();
+  for (const [name, one] of published) if (!isGenericImport(one)) out.set(name, one);
+  return out;
+}
+
 /** `import { total as sum }` binds `sum` to what the other file calls `total`. */
-function take(out: Map<string, Type>, published: ReadonlyMap<string, Type>, one: ImportName): void {
+function take(
+  out: Map<string, ImportedType>,
+  published: ReadonlyMap<string, ImportedType>,
+  one: ImportName,
+): void {
   const found = published.get(one.name);
   if (found) out.set(one.alias ?? one.name, found);
 }
@@ -98,7 +134,7 @@ function take(out: Map<string, Type>, published: ReadonlyMap<string, Type>, one:
  * Derived elsewhere, by whoever can read a `.d.ts`, and handed over already
  * converted, so the checker stays a checker and never learns what npm is.
  */
-function packageTypes(spec: string, state: State): ReadonlyMap<string, Type> {
+function packageTypes(spec: string, state: State): ReadonlyMap<string, ImportedType> {
   const found = state.packages?.get(spec);
   if (!found) return new Map();
   // A package's types name nothing of this language's, so a reference in one is
@@ -115,7 +151,7 @@ function packageTypes(spec: string, state: State): ReadonlyMap<string, Type> {
  * honest answer for the second is that its signature is not yet known. Whatever
  * it declared outright is still read on its own next time round.
  */
-function publishedBy(uri: string, state: State): ReadonlyMap<string, Type> {
+function publishedBy(uri: string, state: State): ReadonlyMap<string, ImportedType> {
   const cached = state.done.get(uri);
   if (cached) return cached;
   const module = state.modules.get(uri);
@@ -135,13 +171,18 @@ function publishedBy(uri: string, state: State): ReadonlyMap<string, Type> {
  * the checker resolves rather than a value: it goes in the same map, since a name
  * imported from a file is one thing whichever side of the language it is used on.
  */
-function exportedTypes(module: Document, uri: string, state: State): Map<string, Type> {
+function exportedTypes(module: Document, uri: string, state: State): Map<string, ImportedType> {
   const imports = bindingsOf({ document: module, uri, state });
   const checked = checkTypes(module, { uri, catalog: state.catalog, imports });
-  const out = new Map<string, Type>();
+  const out = new Map<string, ImportedType>();
   const named = collectNamedTypes(module, createContext(), state.catalog, imports);
   for (const decl of module.decls) {
     if (!published(decl)) continue;
+    const generic = ast.isTypeDecl(decl) ? named.generic?.(decl.name) : undefined;
+    if (generic) {
+      out.set(decl.name, { generic });
+      continue;
+    }
     const found = ast.isTypeDecl(decl) ? named.get(decl.name) : checked.types.get(decl);
     if (found) out.set(decl.name, found);
   }

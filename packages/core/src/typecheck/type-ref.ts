@@ -3,6 +3,7 @@ import { isNamedType, isNullType, isShapeType } from "../generated/ast.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
 import type { NamedTypes } from "./named-types.js";
+import { applyTo } from "./scheme.js";
 import {
   DYNAMIC,
   fn,
@@ -96,5 +97,7 @@ function genericType(
   // `map<string, User>` and `map<User>` mean the same thing: a key is a name
   // either way. A bare `map` is the loose map a JSON body arrives as.
   if (name === "map") return mapOf(params[params.length - 1] ?? DYNAMIC);
-  return undefined;
+  // A generic this file declared: `type Box<T>`, filled with what was written.
+  const declared = args.named.generic?.(name);
+  return declared ? applyTo(declared, params, args.ctx) : undefined;
 }

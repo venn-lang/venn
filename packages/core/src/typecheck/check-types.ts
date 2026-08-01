@@ -8,6 +8,7 @@ import type { TypeCatalog } from "./catalog.types.js";
 import { checkDecoBody, checkDecos, decosInReach } from "./check-deco.js";
 import { checkBlock, checkFragment, checkStatement } from "./check-stmts.js";
 import { createContext, type TypeContext, type TypeMismatch } from "./context.js";
+import { type ImportedType, isGenericImport } from "./imported-types.js";
 import { type Infer, inferFn, type Slot } from "./infer.js";
 import { collectNamedTypes } from "./named-types.js";
 import { PRELUDE_SPECS } from "./prelude-types.js";
@@ -39,7 +40,7 @@ export interface CheckTypesOptions {
    * `@name` is a name the checker knows nothing about, and says nothing about. */
   decos?: ReadonlyMap<string, ImportedDeco>;
   /** What the names this file imports turned out to be, from the files it names. */
-  imports?: ReadonlyMap<string, Type>;
+  imports?: ReadonlyMap<string, ImportedType>;
 }
 
 /**
@@ -138,7 +139,11 @@ function withSeededValues(env: TypeEnv, infer: Infer): TypeEnv {
  */
 function withImports(env: TypeEnv, infer: Infer): TypeEnv {
   let next = env;
-  for (const [name, type] of infer.imports ?? []) next = next.with(name, generalize(type, EMPTY));
+  // A generic is a type waiting for arguments, not a value's type, so it is
+  // not a name a binding can be checked against.
+  for (const [name, one] of infer.imports ?? []) {
+    if (!isGenericImport(one)) next = next.with(name, generalize(one, EMPTY));
+  }
   return next;
 }
 

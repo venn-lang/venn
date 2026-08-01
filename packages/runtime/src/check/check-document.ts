@@ -30,6 +30,7 @@ import { checkNamespaceUse } from "./check-namespace-use.js";
 import { checkRemovedUse } from "./check-removed-use.js";
 import { checkUnbound } from "./check-unbound.js";
 import { checkUncalledAction } from "./check-uncalled.js";
+import { checkVerbCall } from "./check-verb-call.js";
 import { everyBoundName } from "./every-bound-name.js";
 
 /**
@@ -70,6 +71,7 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkEnv(node, ctx),
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
+    ...checkVerbCall(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];
 }

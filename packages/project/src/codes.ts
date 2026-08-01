@@ -4,6 +4,10 @@
  * `VN21xx` is the workspace's own range inside the name-resolution family: what
  * is wrong is which project a path belongs to, which package a name means, or
  * whether what is installed matches what was locked.
+ *
+ * Most are printed by the CLI inside a sentence rather than raised as a value,
+ * and are declared here anyway: a code is worth having in one list whether it
+ * arrives as a `Problem` or as a line on stderr.
  */
 export const PROJECT_CODES = {
   VN2101_NO_PROJECT: "VN2101",

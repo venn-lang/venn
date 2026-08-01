@@ -1,11 +1,5 @@
 import { createNodeFs } from "@venn-lang/contracts/node";
-import {
-  findProject,
-  normalise,
-  type Package,
-  PROJECT_CODES,
-  type Project,
-} from "@venn-lang/project";
+import { findProject, normalise, type Package, type Project } from "@venn-lang/project";
 
 export interface Selection {
   project: Project;
@@ -39,5 +33,5 @@ export async function selectPackages(args: SelectArgs): Promise<Selection | unde
 export function unknownPackage(project: Project, name: string): string {
   const known = project.packages.map((one) => one.manifest.name).filter(Boolean);
   const list = known.length > 0 ? known.join(", ") : "none";
-  return `${PROJECT_CODES.VN2103_NO_SUCH_PACKAGE} · no package named ${name} in this workspace.\n  it holds: ${list}\n`;
+  return `VN2103 · no package named ${name} in this workspace.\n  it holds: ${list}\n`;
 }

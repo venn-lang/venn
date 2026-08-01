@@ -3,7 +3,6 @@ import {
   type BuiltTarget,
   join,
   type Package,
-  PROJECT_CODES,
   type ProfileName,
   type Project,
   relativeTo,
@@ -34,9 +33,7 @@ export interface BuildArgs {
 export async function buildCommand(args: BuildArgs): Promise<number> {
   const selection = await selectPackages({ from: process.cwd(), packageName: args.packageName });
   if (!selection) {
-    process.stderr.write(
-      `${PROJECT_CODES.VN2101_NO_PROJECT} · no venn.toml here, or in any folder above it.\n`,
-    );
+    process.stderr.write("VN2101 · no venn.toml here, or in any folder above it.\n");
     return 1;
   }
   if (args.packageName && selection.packages.length === 0) {

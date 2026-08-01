@@ -21,7 +21,7 @@ import type { LexScope } from "./lex-scope.js";
  * A parameter is positional, so its slot has to stay where the caller writes it:
  * the pattern's own names come after every parameter, never among them.
  */
-export function wholeValueName(kind: "param" | "let", at: number): string {
+export function wholeValueName(kind: "param" | "let" | "each", at: number): string {
   return `{${kind}${at}}`;
 }
 

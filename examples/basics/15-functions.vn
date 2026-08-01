@@ -1,0 +1,62 @@
+# A function with a body: decisions, loops, and leaving early.
+# Run: venn run examples/basics/15-functions.vn
+
+## One expression is still one expression, and `=>` is how it is written.
+fn twice(n: number) -> number => n * 2
+
+## A block holds statements. What it ends in is what it gives back, and `return`
+## gives it early.
+fn classify(n: number) -> string {
+  if n < 0 {
+    return "negative"
+  }
+  if n == 0 {
+    return "zero"
+  }
+  return "positive"
+}
+
+forEach n in [-4, 0, 7] {
+  print "${n} is ${classify(n)}"
+}
+
+## Binding, changing, and adding up as it goes. This is the shape that had to be
+## a `reduce` before, whether or not a fold was what anybody meant.
+fn total(prices: list<number>) -> number {
+  let sum = 0
+  forEach price in prices {
+    sum = sum + price
+  }
+  return sum
+}
+print "total: ${total([1200, 350, 90])}"
+
+## Out of the loop and out of the function, in one word.
+fn firstOver(xs: list<number>, limit: number) -> number | null {
+  forEach x in xs {
+    if x > limit {
+      return x
+    }
+  }
+  return null
+}
+print "first over 10: ${firstOver([3, 40, 5], 10)}"
+print "and when there is none: ${firstOver([1, 2], 10)}"
+
+## `break` leaves the loop and stays in the function.
+fn upTo(xs: list<number>, limit: number) -> number {
+  let sum = 0
+  forEach x in xs {
+    if x > limit {
+      break
+    }
+    sum = sum + x
+  }
+  return sum
+}
+print "adding until one is too big: ${upTo([1, 2, 90, 4], 10)}"
+
+## A function is pure: it decides, binds, loops and gives a value back. A step,
+## an `expect` or a plugin verb belongs in a `flow` or a `fragment`, and the
+## grammar of a body is where that is settled rather than a rule to remember.
+print "twice eleven is ${twice(11)}"

@@ -475,14 +475,14 @@ export function isFlowDecl(item: unknown): item is FlowDecl {
 export interface FnBody extends langium.AstNode {
     readonly $container: FnDecl | FnExpr;
     readonly $type: 'FnBody';
-    locals: Array<LetStmt>;
     result: Expr;
+    stmts: Array<Statement>;
 }
 
 export const FnBody = {
     $type: 'FnBody',
-    locals: 'locals',
-    result: 'result'
+    result: 'result',
+    stmts: 'stmts'
 } as const;
 
 export function isFnBody(item: unknown): item is FnBody {
@@ -674,7 +674,6 @@ export function isInstantLit(item: unknown): item is InstantLit {
 }
 
 export interface LetStmt extends Declaration, Statement {
-    readonly $container: FnBody;
     readonly $type: 'LetStmt';
     args: Array<Expr>;
     declaredType?: TypeRef;
@@ -1256,6 +1255,7 @@ export function isSingleType(item: unknown): item is SingleType {
     return reflection.isInstance(item, SingleType.$type);
 }
 
+/** What a pure function may do: bind, decide, loop, and give a value back. */
 export interface Statement extends langium.AstNode {
     readonly $type: 'ActionCall' | 'AssignStmt' | 'BreakStmt' | 'CaptureStmt' | 'ContinueStmt' | 'ExpectStmt' | 'ForEachStmt' | 'GroupDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'ReturnStmt' | 'RunStmt' | 'Statement' | 'StepDecl' | 'TryStmt';
     annotations: Array<Annotation>;
@@ -1874,13 +1874,13 @@ export class VennAstReflection extends langium.AbstractAstReflection {
         FnBody: {
             name: FnBody.$type,
             properties: {
-                locals: {
-                    name: FnBody.locals,
-                    defaultValue: [],
-                    optional: true
-                },
                 result: {
                     name: FnBody.result
+                },
+                stmts: {
+                    name: FnBody.stmts,
+                    defaultValue: [],
+                    optional: true
                 }
             },
             superTypes: []

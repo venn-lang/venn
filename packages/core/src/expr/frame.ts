@@ -27,6 +27,8 @@ export class Frame implements EvalEnv {
   rest: unknown[] | undefined;
   /** The cells this function's free names resolved to, in compile order. */
   readonly up: readonly { value: unknown }[] | undefined;
+  /** What a `return` left, for the caller to pick up. Untouched by a body with none. */
+  left: unknown;
 
   constructor(readonly closure: Closure) {
     const body = closure.body;
@@ -35,6 +37,7 @@ export class Frame implements EvalEnv {
     this.s2 = undefined;
     this.rest = body.extra === 0 ? undefined : new Array<unknown>(body.extra);
     this.up = closure.up;
+    this.left = undefined;
   }
 
   lookup(name: string): unknown {

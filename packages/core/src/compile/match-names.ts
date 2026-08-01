@@ -14,7 +14,7 @@ import { patternNames } from "../pattern/index.js";
  */
 export function matchNames(body: FnBody): string[] {
   const found: string[] = [];
-  for (const local of body.locals) if (local.value) walk(local.value, found);
+  for (const stmt of body.stmts) walk(stmt, found);
   if (body.result) walk(body.result, found);
   return found;
 }

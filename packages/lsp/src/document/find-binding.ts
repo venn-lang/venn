@@ -52,7 +52,7 @@ function bindingIn(node: AstNode, name: string): AstNode | undefined {
   // target is a fact about its type, not about how it comes into scope.
   if (isFragmentDecl(node) || isFnDecl(node) || isFnExpr(node) || isDecoDecl(node))
     return paramNamed(node.params, name);
-  if (isFnBody(node)) return node.locals.find((local) => local.name === name);
+  if (isFnBody(node)) return node.stmts.filter(isLetStmt).find((one) => one.name === name);
   if (isBlock(node)) return statementBinding(node, name);
   if (isDocument(node)) return documentBinding(node, name);
   return undefined;

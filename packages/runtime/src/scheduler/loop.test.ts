@@ -2,6 +2,9 @@ import { ConsolePort, createMemoryConsole, createTestHost } from "@venn-lang/con
 import { parse } from "@venn-lang/core";
 import { defineAction, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
+
+const NEWLINE = String.fromCharCode(10);
+
 import { createMemorySink } from "../eventsink/index.js";
 import { createRunner } from "../run/create-runner.js";
 
@@ -201,10 +204,13 @@ print state.seen`;
    * there. That is the existing shape of the language rather than a limit of
    * this loop: a `fragment` is where steps and control flow live.
    */
-  it("is a statement, so it does not go inside a fn", () => {
-    const { problems } = parse("fn f(xs) {\n  loop { break }\n  return 1\n}");
+  /** It used to be refused there, when a `fn` body was bindings and a value. */
+  it("goes inside a fn, now that a body can hold statements", () => {
+    const { problems } = parse(
+      "fn f(xs) {" + NEWLINE + "  loop { break }" + NEWLINE + "  return 1" + NEWLINE + "}",
+    );
 
-    expect(problems.length).toBeGreaterThan(0);
+    expect(problems).toEqual([]);
   });
 
   it("goes inside a fragment, where control flow belongs", async () => {

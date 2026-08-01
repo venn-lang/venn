@@ -1,4 +1,6 @@
 import { buildProblem, CODES } from "../codes/index.js";
+import type { CompiledBody, Thunk } from "../compile/compile.types.js";
+import { LEFT, runSteps } from "../compile/nodes/body-steps.js";
 import { ProblemError } from "../problem/index.js";
 import { isClosure } from "./closure.js";
 import type { Closure } from "./closure.types.js";
@@ -17,12 +19,12 @@ const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 export function invoke(callee: unknown, values: readonly unknown[]): unknown {
   if (isClosure(callee)) {
     const body = callee.body;
-    if (body.bare) return body.result(values[0] as never);
+    if (body.bare) return (body.result as Thunk)(values[0] as never);
     const frame = new Frame(callee);
     const arity = callee.params.length;
     for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
     fill(callee, frame);
-    return body.result(frame);
+    return finish(body, frame);
   }
   if (isNativeFn(callee)) return callee.call(values);
   throw notCallable(callee);
@@ -51,11 +53,11 @@ export const INVOKE: Invoke = Object.assign(invoke, {
 export function invoke1(callee: unknown, arg: unknown): unknown {
   if (isClosure(callee)) {
     const body = callee.body;
-    if (body.bare) return body.result(arg as never);
+    if (body.bare) return (body.result as Thunk)(arg as never);
     const frame = new Frame(callee);
     if (callee.params.length > 0) frame.s0 = arg;
     fill(callee, frame);
-    return body.result(frame);
+    return finish(body, frame);
   }
   if (isNativeFn(callee)) return callee.call([arg]);
   throw notCallable(callee);
@@ -89,35 +91,35 @@ export function invoke3(callee: unknown, a: unknown, b: unknown, c: unknown): un
  * something that has not arrived yet.
  */
 export function callClosure(closure: Closure, values: readonly unknown[]): unknown {
-  if (closure.body.bare) return closure.body.result(values[0] as never);
+  if (closure.body.bare) return (closure.body.result as Thunk)(values[0] as never);
   const frame = new Frame(closure);
   const arity = closure.params.length;
   for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
   fill(closure, frame);
-  return closure.body.result(frame);
+  return finish(closure.body, frame);
 }
 
 // A function declaring fewer parameters than it is handed ignores the rest:
 // `xs.map(fn (x) => x)` never asks for the index it is offered.
 function callClosure2(closure: Closure, a: unknown, b: unknown): unknown {
-  if (closure.body.bare) return closure.body.result(a as never);
+  if (closure.body.bare) return (closure.body.result as Thunk)(a as never);
   const frame = new Frame(closure);
   const arity = closure.params.length;
   if (arity > 0) frame.s0 = a;
   if (arity > 1) frame.s1 = b;
   fill(closure, frame);
-  return closure.body.result(frame);
+  return finish(closure.body, frame);
 }
 
 function callClosure3(closure: Closure, a: unknown, b: unknown, c: unknown): unknown {
-  if (closure.body.bare) return closure.body.result(a as never);
+  if (closure.body.bare) return (closure.body.result as Thunk)(a as never);
   const frame = new Frame(closure);
   const arity = closure.params.length;
   if (arity > 0) frame.s0 = a;
   if (arity > 1) frame.s1 = b;
   if (arity > 2) frame.s2 = c;
   fill(closure, frame);
-  return closure.body.result(frame);
+  return finish(closure.body, frame);
 }
 
 /**
@@ -134,6 +136,18 @@ function fill(closure: Closure, frame: Frame): void {
     const local = locals[at] as (typeof locals)[number];
     writeSlot(frame, local.slot, local.value(frame));
   }
+}
+
+/**
+ * Run what is left of a body: its statements, then the value it ends in.
+ *
+ * A body with no statements is every body written before one could hold them,
+ * and it pays for one comparison against `undefined` here rather than for a
+ * loop over an empty array.
+ */
+function finish(body: CompiledBody, frame: Frame): unknown {
+  if (body.steps && runSteps(body.steps, frame) === LEFT) return frame.left;
+  return body.result ? body.result(frame) : null;
 }
 
 function notCallable(value: unknown): ProblemError {

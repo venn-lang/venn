@@ -72,7 +72,7 @@ function bindingsIn(node: AstNode): ScopedName[] {
   if (isRepeatStmt(node)) return node.index ? [{ name: node.index, node, origin: "index" }] : [];
   if (isFragmentDecl(node) || isFnDecl(node) || isFnExpr(node) || isDecoDecl(node))
     return params(node.params);
-  if (isFnBody(node)) return node.locals.flatMap((local) => sites(local, local, "let"));
+  if (isFnBody(node)) return node.stmts.filter(isLetStmt).flatMap((one) => sites(one, one, "let"));
   if (isBlock(node)) return blockNames(node);
   if (isDocument(node)) return documentNames(node);
   return [];

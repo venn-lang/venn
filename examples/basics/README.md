@@ -20,6 +20,7 @@ each one assumes the one before it.
 | [`12-dates.vn`](12-dates.vn) | what a moment answers about itself, arithmetic with durations, and the same instant where people are |
 | [`13-paths.vn`](13-paths.vn) | building a path without naming a separator, taking one apart, and refusing a name that climbs out |
 | [`14-assignment.vn`](14-assignment.vn) | a name that changes, what `const` fixes and what it does not, and what a function sees afterwards |
+| [`15-functions.vn`](15-functions.vn) | a body with decisions and loops, leaving early, and what a pure function may hold |
 
 Run them with:
 

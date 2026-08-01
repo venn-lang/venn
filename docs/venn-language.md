@@ -406,6 +406,32 @@ generaliza uma. `fn first(xs) => xs[0]` é usada com lista de número e lista de
 texto sem nada escrito. Só o `type` nomeia parâmetros, porque só ele não tem
 corpo de onde inferir.
 
+### O corpo de uma função
+
+Uma expressão depois de `=>`, ou um bloco:
+
+```venn
+fn dobro(n) => n * 2
+
+fn classifica(n) {
+  if n < 0 {
+    return "negativo"
+  }
+  return "positivo"
+}
+```
+
+O bloco termina no valor que devolve, e `return` devolve antes. Dentro dele
+cabem `let`, atribuição, `if`, `forEach`, `repeat`, `loop`, `break` e `continue`.
+
+O que **não** cabe é um step, um `expect` ou um verbo de plugin, e isso está na
+gramática do corpo em vez de numa regra para lembrar: uma `fn` é pura, então ela
+decide, liga, itera e devolve. O que alcança o mundo mora num `flow` ou num
+`fragment`.
+
+Um corpo é um escopo só. Um `let` dentro de um `if` é um nome da função, porque
+uma chamada tem um frame e não uma corrente deles.
+
 ### Um nome pode receber outro valor
 
 ```venn

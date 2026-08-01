@@ -1,4 +1,5 @@
 import type { EvalEnv } from "../expr/eval-env.types.js";
+import type { Frame } from "../expr/frame.js";
 import type { Expr } from "../generated/ast.js";
 
 /**
@@ -15,6 +16,15 @@ export type Thunk = (env: EvalEnv) => unknown;
  */
 export type Compile = (expr: Expr) => Thunk;
 
+/**
+ * One statement of a body, compiled.
+ *
+ * Answers whether the body has left, and how: a number rather than a thrown
+ * signal, because a `break` in a loop of fifty thousand would otherwise build
+ * fifty thousand stack traces.
+ */
+export type Step = (frame: Frame) => number;
+
 /** A function body, compiled: its local bindings in order, then its result. */
 export interface CompiledBody {
   /** Every name that gets a slot: the parameters first, then the locals. */
@@ -29,7 +39,15 @@ export interface CompiledBody {
    */
   readonly bare: boolean;
   readonly locals: readonly CompiledLocal[];
-  readonly result: Thunk;
+  /**
+   * The statements after the leading run of bindings, when there are any.
+   *
+   * Absent for a body that is bindings and a value, which is every body written
+   * before a body could hold a statement, so those keep the path they had.
+   */
+  readonly steps?: readonly Step[];
+  /** Absent for a body whose statements all leave: `fn f() { return 1 }`. */
+  readonly result?: Thunk;
 }
 
 /** One of the body's `let` bindings, compiled. Filled in declaration order. */

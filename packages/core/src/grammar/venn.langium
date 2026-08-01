@@ -56,9 +56,22 @@ FnDecl:
     (export?='pub')? 'fn' name=ID '(' (params=ParamList)? ')'
     ('->' returns=TypeRef)? body=FnBody;
 
+// One expression after `=>`, or a block: statements, then the value.
+//
+// The statements are named rather than taken from `Statement`, and that is what
+// keeps "the last expression is the value" a rule. A bare expression is not one
+// of them, so the last line of a block can only be the value, whether or not a
+// newline follows it. It is also where a function's purity lives: a step, an
+// `expect` and a plugin verb are absent because a `fn` cannot reach the world,
+// and saying so here is shorter than saying it in a check.
 FnBody:
     '=>' result=Expr
-  | '{' NL* (locals+=LetStmt NL+)* 'return'? result=Expr NL* '}';
+  | '{' NL* (stmts+=FnStmt NL+)* ('return'? result=Expr NL*)? '}';
+
+/** What a pure function may do: bind, decide, loop, and give a value back. */
+FnStmt infers Statement:
+    LetStmt | AssignStmt | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
+  | ReturnStmt | BreakStmt | ContinueStmt;
 
 // A decorator written in the language itself. The first parameter *is* the
 // target, and the type on it (`Fn`, `Flow`, `Step`, `Binding`, `Type`,

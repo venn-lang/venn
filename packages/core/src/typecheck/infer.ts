@@ -15,11 +15,14 @@ import type {
   Param,
   ParamList,
   Pattern,
+  ReturnStmt,
+  Statement,
   StringLit,
   Ternary,
   TypeRef,
   Unary,
 } from "../generated/ast.js";
+import * as ast from "../generated/ast.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { callType } from "./action-signature.js";
@@ -28,6 +31,7 @@ import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import { checkMatch } from "./check-match.js";
 import { badPatternIn } from "./check-pattern.js";
+import { checkStatement } from "./check-stmts.js";
 import type { TypeContext } from "./context.js";
 import type { ImportedType } from "./imported-types.js";
 import { mergedCall } from "./merged-call.js";
@@ -538,20 +542,57 @@ function declaredResult(
 }
 
 /**
- * A body's locals, then the expression it ends with.
+ * A body's statements, then the expression it ends with.
  *
- * That last expression may be missing. A half-written `fn` is the normal state
- * of a file being edited, and it is exactly then that the editor asks what
- * things are, so missing means unknown rather than broken.
+ * That last expression may be missing, in two ways that look alike and are not:
+ * a half-written `fn` is the normal state of a file being edited, and a body
+ * that ends in `return` is finished. Both read as unknown here, and what a
+ * `return` gives back is settled by the check below rather than by guessing.
  */
 function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
   let scope = env;
-  for (const local of body.locals) {
-    if (!local.value) continue;
-    const type = inferExpr(local.value, scope, infer);
-    scope = local.name ? scope.with(local.name, mono(type)) : takenApart(local, type, scope, infer);
-  }
-  return body.result ? inferExpr(body.result, scope, infer) : DYNAMIC;
+  for (const stmt of body.stmts) scope = checkStatement(stmt, scope, infer);
+  const ending = body.result ? inferExpr(body.result, scope, infer) : undefined;
+  const left = returned(body, scope, infer);
+  if (!ending) return left ?? DYNAMIC;
+  if (left) expect(infer, body.result as Expr, ending, left);
+  return ending;
+}
+
+/**
+ * What every `return` in the body hands back, as one type.
+ *
+ * A function with two of them has to agree with itself, and one that also ends
+ * in an expression has to agree with that: three ways out of one function are
+ * still one type coming back.
+ */
+function returned(body: FnBody, env: TypeEnv, infer: Infer): Type | undefined {
+  const found = returnsIn(body.stmts).map((stmt) =>
+    stmt.value ? inferExpr(stmt.value, env, infer) : NULL,
+  );
+  const first = found[0];
+  if (!first) return undefined;
+  for (const one of found.slice(1)) expect(infer, body, one, first);
+  return first;
+}
+
+/** Every `return` the body holds, at any depth, in written order. */
+function returnsIn(stmts: readonly Statement[]): ReturnStmt[] {
+  const found: ReturnStmt[] = [];
+  for (const stmt of stmts) walkReturns(stmt, found);
+  return found;
+}
+
+function walkReturns(node: object, into: ReturnStmt[]): void {
+  if (ast.isReturnStmt(node)) into.push(node);
+  const held = node as {
+    body?: { stmts?: object[] };
+    then?: { stmts?: object[] };
+    otherwise?: { stmts?: object[] };
+  };
+  const blocks = [held.body?.stmts, held.then?.stmts, held.otherwise?.stmts];
+  for (const block of blocks) for (const child of block ?? []) walkReturns(child, into);
+  if (held.otherwise && !held.otherwise.stmts) walkReturns(held.otherwise, into);
 }
 
 /** A parameter in the body's scope: under its name, or taken apart. */

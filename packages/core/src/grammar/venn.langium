@@ -23,6 +23,9 @@ ValueImport:
     (export?='pub')? 'import'
     ( '{' names+=ImportName (',' names+=ImportName)* '}'
     | '*' 'as' wildcard=ID
+    // Only a package has one of these: a `.vn` module publishes by name with
+    // `pub` and has no default to bind. Written against a module, it is the
+    // diagnostic in #178, not a name that quietly holds nothing.
     | default=ID )
     'from' path=STRING;
 
@@ -33,8 +36,8 @@ ImportName: name=ID ('as' alias=ID)?;
 // the program. Declarations (flow/fn/type/…) only run when called.
 Declaration:
     (annotations+=Annotation NL*)*
-    ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl | FactoryDecl | DatasetDecl
-    | ConfigDecl | MatrixDecl | ReportDecl | LifecycleDecl
+    ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl
+    | ConfigDecl | MatrixDecl | LifecycleDecl
     | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
     | TryStmt | RunStmt | LetStmt | ExpectStmt | MatchExpr | ActionCall );
 
@@ -69,7 +72,6 @@ DecoDecl:
 
 ConfigDecl: 'config' body=MapLit;
 MatrixDecl: 'matrix' body=MapLit;
-ReportDecl: 'report' reporters+=Expr (',' reporters+=Expr)*;
 
 TypeDecl: (export?='pub')? 'type' name=ID ('=' alias=TypeRef | body=TypeBody);
 TypeBody: '{' (',' | NL)* fields+=FieldDecl ((',' | NL)+ fields+=FieldDecl)* (',' | NL)* '}';
@@ -78,9 +80,6 @@ TypeBody: '{' (',' | NL)* fields+=FieldDecl ((',' | NL)+ fields+=FieldDecl)* (',
 // cannot be mistaken for the separator between fields: a field starts with `@`
 // or a name, never with a newline.
 FieldDecl: (annotations+=Annotation NL*)* name=ID (optional?='?')? ':' fieldType=TypeRef;
-
-FactoryDecl: 'factory' name=ID body=MapLit;
-DatasetDecl: 'dataset' name=ID (':' declaredType=TypeRef)? '=' value=Expr;
 
 ParamList: params+=Param (',' params+=Param)*;
 // A parameter carries decorators too. No `NL*` here: a parameter list lives
@@ -381,7 +380,7 @@ RefName returns string: ID | 'matrix' | 'flow' | 'step';
 Word returns string:
     ID | 'module' | 'as' | 'pub' | 'import' | 'from' | 'flow'
   | 'fragment' | 'fn' | 'deco' | 'return' | 'const' | 'let' | 'config'
-  | 'matrix' | 'report' | 'type' | 'factory' | 'dataset' | 'setup' | 'teardown'
+  | 'matrix' | 'type' | 'setup' | 'teardown'
   | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'
   | 'else' | 'forEach' | 'in' | 'repeat' | 'while' | 'parallel' | 'race' | 'try'
   | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'

@@ -6,7 +6,6 @@ import {
   type Document,
   isBlock,
   isCaptureStmt,
-  isDatasetDecl,
   isDecoDecl,
   isDocument,
   isFnBody,
@@ -61,7 +60,7 @@ export function namesInScope(from: AstNode, at?: number): ScopedName[] {
  */
 function beingWritten(scoped: ScopedName, at: number | undefined): boolean {
   if (at === undefined) return false;
-  const value = (isLetStmt(scoped.node) || isDatasetDecl(scoped.node)) && scoped.node.value;
+  const value = isLetStmt(scoped.node) && scoped.node.value;
   const cst = value ? value.$cstNode : undefined;
   return Boolean(cst && at >= cst.offset && at <= cst.end);
 }
@@ -118,12 +117,11 @@ function importedInto(document: Document): ScopedName[] {
  * `http.on(api, route)` is written.
  */
 function declares(decl: AstNode): boolean {
-  return isLetStmt(decl) || isDatasetDecl(decl) || isFragmentDecl(decl) || isFnDecl(decl);
+  return isLetStmt(decl) || isFragmentDecl(decl) || isFnDecl(decl);
 }
 
 function kindOf(node: AstNode): string {
   if (isLetStmt(node)) return node.kind;
-  if (isDatasetDecl(node)) return "dataset";
   if (isFragmentDecl(node)) return "fragment";
   return isFnDecl(node) ? "fn" : "let";
 }

@@ -1,15 +1,12 @@
 import {
   type Declaration,
   isConfigDecl,
-  isDatasetDecl,
   isDecoDecl,
-  isFactoryDecl,
   isFlowDecl,
   isFnDecl,
   isFragmentDecl,
   isLifecycleDecl,
   isMatrixDecl,
-  isReportDecl,
   isTypeDecl,
   type Statement,
 } from "../generated/ast.js";
@@ -29,11 +26,8 @@ export function isRunnable(node: Declaration): node is Declaration & Statement {
     isFnDecl(node) ||
     isFragmentDecl(node) ||
     isTypeDecl(node) ||
-    isFactoryDecl(node) ||
-    isDatasetDecl(node) ||
     isConfigDecl(node) ||
     isMatrixDecl(node) ||
-    isReportDecl(node) ||
     isDecoDecl(node) ||
     isLifecycleDecl(node)
   );

@@ -2,7 +2,6 @@ import {
   type AstNode,
   isAnnotation,
   isCaptureStmt,
-  isDatasetDecl,
   isDecoDecl,
   isDocument,
   isFnDecl,
@@ -72,7 +71,6 @@ function binds(node: AstNode): boolean {
   return (
     isLetStmt(node) ||
     isCaptureStmt(node) ||
-    isDatasetDecl(node) ||
     isParam(node) ||
     isForEachStmt(node) ||
     isRepeatStmt(node)

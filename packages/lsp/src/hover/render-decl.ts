@@ -3,7 +3,6 @@ import {
   type FnDecl,
   type FragmentDecl,
   isCaptureStmt,
-  isDatasetDecl,
   isDecoDecl,
   isFnDecl,
   isFnExpr,
@@ -94,7 +93,6 @@ function waited(waits: boolean): string | undefined {
 function declaredName(node: AstNode): string | undefined {
   if (isLetStmt(node) || isCaptureStmt(node)) return node.name;
   if (isFnDecl(node)) return node.name;
-  if (isDatasetDecl(node)) return node.name;
   return isParam(node) ? node.name : undefined;
 }
 
@@ -107,7 +105,6 @@ function signatureOf(binding: AstNode, name: string, types: TypeService, waits =
     return `${binding.export ? "pub " : ""}fn ${written(binding, name)}${typed}`;
   if (isLetStmt(binding)) return `${binding.kind} ${name}${typed}`;
   if (isCaptureStmt(binding)) return `capture ${name}`;
-  if (isDatasetDecl(binding)) return `dataset ${name}`;
   if (isFragmentDecl(binding)) return `fragment ${written(binding, name)}`;
   if (isParam(binding)) return `${name}${typed || ": parameter"}`;
   return name;

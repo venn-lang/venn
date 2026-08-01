@@ -5,10 +5,9 @@
 ## in the editor's outline; nothing resolves through it.
 module examples.language.modules
 
-# Two words, and they never overlap.
-#
-#   use     brings capabilities: verbs, matchers, resources. Packages only.
-#   import  brings values: fn, fragment, deco, and whole namespaces.
+# One word in. A namespace, a verb, a matcher, a type or a value: whatever a
+# file reaches that did not come with the language arrives here, by the name
+# this file gives it.
 import { fmt } from "venn/fmt"
 
 import { slug, initials } from "./shared/text.vn"

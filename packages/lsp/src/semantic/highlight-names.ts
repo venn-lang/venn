@@ -1,8 +1,6 @@
 import {
   isCaptureStmt,
-  isDatasetDecl,
   isDecoDecl,
-  isFactoryDecl,
   isFieldDecl,
   isFlowDecl,
   isFnDecl,
@@ -53,13 +51,11 @@ function callableNames(args: HighlightArgs): void {
   const { node, acceptor } = args;
   if (isFragmentDecl(node)) acceptor({ node, property: "name", ...FRAGMENT });
   else if (isFnDecl(node)) acceptor({ node, property: "name", ...CALLABLE });
-  else if (isFactoryDecl(node)) acceptor({ node, property: "name", ...CALLABLE });
 }
 
 function valueNames(args: HighlightArgs): void {
   const { node, acceptor } = args;
   if (isCaptureStmt(node)) acceptor({ node, property: "name", ...VALUE });
-  else if (isDatasetDecl(node)) acceptor({ node, property: "name", ...VALUE });
   else if (isLetStmt(node)) acceptor({ node, property: "name", ...readonlyFor(node.kind) });
 }
 

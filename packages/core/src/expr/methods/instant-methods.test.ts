@@ -99,7 +99,7 @@ describe("what the checker knows about one", () => {
 
   /** It is held as a shape with an `epochMs` in it, and that is nobody's business. */
   it("does not answer for the shape holding it", () => {
-    expect(value("t.kind")).toBeUndefined();
+    expect(value("t.kind")).toBeNull();
     expect(said("print t.kind")[0]).toContain('has no member "kind"');
   });
 

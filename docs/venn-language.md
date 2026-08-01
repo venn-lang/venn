@@ -335,6 +335,24 @@ const { totl } = pedido    # VN3010: Pedido não tem campo "totl"
 Sem anotação nenhuma o checker não inventa: um valor cuja forma ninguém sabe se
 deixa separar em silêncio, como qualquer outro acesso a campo.
 
+### Uma única ausência
+
+`null` é a ausência da linguagem, e é a única. Ler um membro que ninguém pôs,
+passar do fim de uma lista, ou nomear o que nada ligou dá `null`, nunca outra
+coisa:
+
+```venn
+const dados = json.parse(texto)
+
+dados.faltando == null      # true
+lista[999] == null          # true
+dados.faltando ?? "padrão"  # "padrão"
+```
+
+Isso importa porque a igualdade é estrita e não converte nada: se a ausência
+tivesse duas formas, `== null` responderia sobre uma e não sobre a outra, e a
+guarda mais comum que existe pegaria o ramo errado sem avisar.
+
 ### Tipos nominais
 
 Declarar tipo não é burocracia: é o que dá autocomplete em `user.` dentro do editor e o que gera o formulário de propriedades do nó no grafo.

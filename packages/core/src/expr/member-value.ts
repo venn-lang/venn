@@ -13,8 +13,10 @@ import { isTask } from "./task.js";
  * reader: a decorator body reaches a handle's verbs by the same rule, and two
  * spellings of "what does `.x` mean" would drift apart.
  *
- * @returns The member's value, undefined when there is none, or a promise when
- * the receiver has not arrived yet.
+ * @returns The member's value, `null` when there is none, or a promise when the
+ * receiver has not arrived yet. Absent is `null` and never `undefined`: the
+ * language has one nothing, and a program that reads a member nobody set has to
+ * be able to compare it against that one.
  */
 export function memberValue(receiver: unknown, member: string): unknown {
   if (isWaiting(receiver)) return receiver.then((ready) => memberValue(ready, member));
@@ -26,7 +28,9 @@ export function memberValue(receiver: unknown, member: string): unknown {
   }
   const built = builtinMember(receiver, member, INVOKE);
   if (built !== NO_METHOD) return built;
-  return isOwned(receiver) ? undefined : own(receiver, member);
+  if (isOwned(receiver)) return null;
+  const held = own(receiver, member);
+  return held === undefined ? null : held;
 }
 
 /**

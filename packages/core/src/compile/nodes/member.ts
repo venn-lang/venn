@@ -13,8 +13,8 @@ export function compileMember(expr: Member, compile: Compile): Thunk {
 /**
  * `xs[i]`, reading straight through when neither side is still arriving.
  *
- * Indexing `null` gives undefined rather than throwing, so a missing path along
- * a chain reads as absent instead of stopping the flow.
+ * Indexing `null`, or reading past the end, gives `null` rather than throwing,
+ * so a missing path along a chain reads as absent instead of stopping the flow.
  */
 export function compileIndex(expr: Index, compile: Compile): Thunk {
   const receiver = compile(expr.receiver);
@@ -28,5 +28,7 @@ export function compileIndex(expr: Index, compile: Compile): Thunk {
 }
 
 function elementAt(target: unknown, at: unknown): unknown {
-  return target == null ? undefined : (target as Record<string, unknown>)[at as string];
+  if (target == null) return null;
+  const held = (target as Record<string, unknown>)[at as string];
+  return held === undefined ? null : held;
 }

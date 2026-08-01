@@ -151,11 +151,20 @@ function compileRef(name: string, scope: LexScope): Thunk {
   const own = scope.cellOf?.(name);
   if (own) return () => own.value;
   const up = freeSlot(scope, name);
-  if (up === undefined) return (env) => env.lookup(name);
+  // A slot is only ever made for a name the compiler resolved, so reading one
+  // needs no check. The fallback is the other case, where a name may not be
+  // bound at all, and an unbound name is the language's one nothing.
+  if (up === undefined) return (env) => named(env, name);
   return (env) => {
     const cells = (env as Frame).up;
-    return cells === undefined ? env.lookup(name) : (cells[up] as Cell).value;
+    return cells === undefined ? named(env, name) : (cells[up] as Cell).value;
   };
+}
+
+/** A name looked up by name, where absent and `null` are the same answer. */
+function named(env: EvalEnv, name: string): unknown {
+  const held = env.lookup(name);
+  return held === undefined ? null : held;
 }
 
 /**

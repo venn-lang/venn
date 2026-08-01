@@ -17,21 +17,24 @@ class Servidor {
  * there is in the language: no completion offers it, no hover explains it, the
  * checker has nothing to say, and it would stop working the day either value is
  * held differently.
+ *
+ * "Not there" is `null`, the one nothing the language has, so a program can ask
+ * about it with the comparison it already knows.
  */
 describe("what the host stores does not become a member", () => {
   it("does not hand out a list's host properties", () => {
-    expect(memberValue([1, 2, 3], "length")).toBeUndefined();
-    expect(memberValue([1, 2, 3], "splice")).toBeUndefined();
+    expect(memberValue([1, 2, 3], "length")).toBeNull();
+    expect(memberValue([1, 2, 3], "splice")).toBeNull();
   });
 
   it("does not hand out a string's host methods", () => {
-    expect(memberValue("abc", "toUpperCase")).toBeUndefined();
-    expect(memberValue("abc", "length")).toBeUndefined();
+    expect(memberValue("abc", "toUpperCase")).toBeNull();
+    expect(memberValue("abc", "length")).toBeNull();
   });
 
   it("does not hand out what every object inherits", () => {
-    expect(memberValue({ id: 1 }, "toString")).toBeUndefined();
-    expect(memberValue({ id: 1 }, "constructor")).toBeUndefined();
+    expect(memberValue({ id: 1 }, "toString")).toBeNull();
+    expect(memberValue({ id: 1 }, "constructor")).toBeNull();
   });
 
   it("still answers with the language's own members", () => {

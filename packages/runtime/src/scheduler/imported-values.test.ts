@@ -56,8 +56,8 @@ describe("a constant a plugin publishes", () => {
     expect(await ran(source)).toEqual(["true"]);
   });
 
-  /** The checker is what refuses this; here it is simply not there. */
+  /** The checker is what refuses this; here it reads as the one nothing. */
   it("is not in scope for a file that did not name it", async () => {
-    expect(await ran('import { kit } from "@t/kit"\nio.print(rate)')).toEqual(["undefined"]);
+    expect(await ran('import { kit } from "@t/kit"\nio.print(rate)')).toEqual(["null"]);
   });
 });

@@ -36,8 +36,8 @@ describe("reading a unit back as a number", () => {
   // A unit is not a map: reading it as one would expose how it is stored, and
   // `kind`, `ms` and `bytes` would shadow the conversions that share their name.
   it("does not expose the shape it is stored in", () => {
-    expect(run("300ms.kind")).toBeUndefined();
-    expect(run("300ms.whatever")).toBeUndefined();
+    expect(run("300ms.kind")).toBeNull();
+    expect(run("300ms.whatever")).toBeNull();
   });
 });
 

@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { FakeMqttClient, MqttPublishArgs } from "../port/index.js";
 import type { MqttMessage } from "../types/index.js";
 
@@ -60,7 +61,7 @@ function seedTopics(seed: Record<string, MqttMessage[]> = {}): Map<string, MqttM
 
 function noMessage(topic: string): VennError {
   return new VennError({
-    code: "VN8091",
+    code: PLUGIN_CODES.VN8091_NOTHING_RECORDED,
     message: `No message available on topic "${topic}".`,
     detail: { topic },
   });

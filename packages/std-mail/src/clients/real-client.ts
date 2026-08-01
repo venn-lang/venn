@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { MailClient } from "../port/index.js";
 
 /**
@@ -20,7 +21,7 @@ export function createRealMailClient(): MailClient {
 
 function notImplemented(): never {
   throw new VennError({
-    code: "VN8090",
+    code: PLUGIN_CODES.VN8090_NOT_BUILT,
     message: "Mail real client not implemented in this build",
   });
 }

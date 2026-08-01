@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { ArtifactStore } from "./artifact-store.types.js";
 
 /**
@@ -19,7 +20,7 @@ export function createRealArtifactStore(): ArtifactStore {
 
 function notImplemented(): never {
   throw new VennError({
-    code: "VN8090",
+    code: PLUGIN_CODES.VN8090_NOT_BUILT,
     message: "The artifact store is not implemented in this build.",
   });
 }

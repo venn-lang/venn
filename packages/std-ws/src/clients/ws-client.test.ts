@@ -48,3 +48,10 @@ it("real client throws VN8090", () => {
   expect(error).toBeInstanceOf(VennError);
   expect((error as VennError).code).toBe("VN8090");
 });
+
+/** A double asked for a message when nobody put one in it. */
+it("refuses to invent a message it was never given", async () => {
+  const client = createFakeWsClient({ incoming: [] });
+
+  await expect(client.expect({ type: "anything" })).rejects.toBeInstanceOf(VennError);
+});

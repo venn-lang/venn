@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { Notifier } from "../port/index.js";
 
 /**
@@ -12,7 +13,7 @@ export function createRealNotifier(): Notifier {
   return {
     send: async () => {
       throw new VennError({
-        code: "VN8090",
+        code: PLUGIN_CODES.VN8090_NOT_BUILT,
         message: "Notifier real client not implemented in this build",
       });
     },

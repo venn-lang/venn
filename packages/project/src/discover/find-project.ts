@@ -1,4 +1,5 @@
 import type { FileSystem, Manifest } from "@venn-lang/contracts";
+import { PROJECT_CODES } from "../codes.js";
 import type { FoundProject, Package } from "../model/project.types.js";
 import { ancestors, join, normalise } from "../paths/index.js";
 import { memberDirs } from "../workspace/index.js";
@@ -119,7 +120,7 @@ function defaults(all: readonly Package[], names: readonly string[], root: strin
 
 function noManifest(path: string): { code: string; title: string; path: string } {
   return {
-    code: "VN2101",
+    code: PROJECT_CODES.VN2101_NO_PROJECT,
     title: "No venn.toml here, or in any folder above it.",
     path: normalise(path),
   };

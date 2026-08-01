@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { LoadRunner } from "./load-runner.types.js";
 
 /**
@@ -16,7 +17,7 @@ export function createRealLoadRunner(): LoadRunner {
 
 function notImplemented(): never {
   throw new VennError({
-    code: "VN8090",
+    code: PLUGIN_CODES.VN8090_NOT_BUILT,
     message: "The load runner is not implemented in this build.",
   });
 }

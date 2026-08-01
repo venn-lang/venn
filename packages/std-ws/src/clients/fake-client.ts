@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { FakeWsClient, WsExpectQuery } from "../port/index.js";
 import type { Message } from "../types/index.js";
 
@@ -48,5 +49,8 @@ function equal(a: unknown, b: unknown): boolean {
 }
 
 function noMessage(): VennError {
-  return new VennError({ code: "VN8091", message: "No WebSocket message available to match." });
+  return new VennError({
+    code: PLUGIN_CODES.VN8091_NOTHING_RECORDED,
+    message: "No WebSocket message available to match.",
+  });
 }

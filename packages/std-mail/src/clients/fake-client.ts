@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { MailClient, MailQuery } from "../port/index.js";
 import type { Attachment, Email } from "../types/index.js";
 
@@ -66,7 +67,7 @@ function noMatchError(query: MailQuery): VennError {
   const to = query.to ? ` to=${query.to}` : "";
   const subject = query.subject ? ` subject~="${query.subject}"` : "";
   return new VennError({
-    code: "VN8091",
+    code: PLUGIN_CODES.VN8091_NOTHING_RECORDED,
     message: `No email arrived matching${to}${subject}.`,
     detail: { ...query },
   });
@@ -74,7 +75,7 @@ function noMatchError(query: MailQuery): VennError {
 
 function noCurrentError(): VennError {
   return new VennError({
-    code: "VN7090",
+    code: PLUGIN_CODES.VN7090_NOTHING_CHOSEN,
     message: "No email is selected; call mail.waitFor first.",
   });
 }

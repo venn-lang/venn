@@ -2,6 +2,7 @@ import { ConsolePort, VennError } from "@venn-lang/contracts";
 import {
   type ActionCall,
   type AstNode,
+  CODES,
   callArgs,
   display,
   evaluate,
@@ -9,6 +10,7 @@ import {
   splitCall,
 } from "@venn-lang/core";
 import type { ActionDefinition, ActionInput } from "@venn-lang/sdk";
+import { RUN_CODES } from "../codes.js";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";
 import { takes } from "./declared-arity.js";
@@ -103,7 +105,7 @@ function siteOf(call: Invocation): AstNode {
 
 function unknownAction(target: string): VennError {
   return new VennError({
-    code: "VN2003",
+    code: CODES.VN2003_UNKNOWN_ACTION.code,
     message: `Unknown action "${target}".`,
     detail: { target },
   });
@@ -159,5 +161,5 @@ function waitMs(value: unknown): number {
 }
 
 function failError(message: string): VennError {
-  return new VennError({ code: "VN6002", message: message || "fail" });
+  return new VennError({ code: RUN_CODES.VN6002_FAILED, message: message || "fail" });
 }

@@ -1,4 +1,9 @@
-import { type HostCapability, missingCapabilities, VennError } from "@venn-lang/contracts";
+import {
+  HOST_CODES,
+  type HostCapability,
+  missingCapabilities,
+  VennError,
+} from "@venn-lang/contracts";
 import type { ActionDefinition, PluginDefinition, ValueDefinition } from "@venn-lang/sdk";
 import type { Registry, ResolvedAction, ResolvedMatcher } from "./registry.types.js";
 
@@ -26,7 +31,7 @@ function assertPluginCaps(args: {
   if (missing.length === 0) return;
   const list = missing.map((cap) => `"${cap}"`).join(", ");
   throw new VennError({
-    code: "VN2010",
+    code: HOST_CODES.VN2010_MISSING_CAPABILITY,
     message: `Plugin "${args.plugin.name}" requires capability ${list}, absent from this host.`,
     detail: { plugin: args.plugin.name, missing },
   });

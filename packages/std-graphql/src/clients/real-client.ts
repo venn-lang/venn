@@ -1,4 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { GqlClient } from "../port/index.js";
 
 /**
@@ -22,7 +23,7 @@ export function createRealClient(): GqlClient {
 
 function unimplemented(): never {
   throw new VennError({
-    code: "VN8090",
+    code: PLUGIN_CODES.VN8090_NOT_BUILT,
     message: "GraphQL real client not implemented in this build",
   });
 }

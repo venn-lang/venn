@@ -1,5 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
-import { evaluate, type FragmentDecl, type ParamList, type RunStmt } from "@venn-lang/core";
+import { CODES, evaluate, type FragmentDecl, type ParamList, type RunStmt } from "@venn-lang/core";
 import { binderFor, createScope, type Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
@@ -34,7 +34,7 @@ function bindParams(scope: Scope, params: ParamList | undefined, args: readonly 
 
 function unknownFragment(name: string): VennError {
   return new VennError({
-    code: "VN2005",
+    code: CODES.VN2005_UNKNOWN_FRAGMENT.code,
     message: `Unknown fragment "${name}".`,
     detail: { fragment: name },
   });

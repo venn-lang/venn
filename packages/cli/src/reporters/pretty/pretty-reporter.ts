@@ -1,4 +1,4 @@
-import type { Envelope, Problem } from "@venn-lang/core";
+import { CODES, type Envelope, type Problem } from "@venn-lang/core";
 import type { Reporter, RunTotals } from "../reporter.types.js";
 import type { Failure, PrettyState } from "./pretty.types.js";
 import {
@@ -93,7 +93,12 @@ function endStep(state: PrettyState, envelope: Envelope, data: Record<string, un
 function logged(state: PrettyState, data: Record<string, unknown>): void {
   const message = String(data.message ?? "");
   if (data.level === "error") {
-    state.failures.push({ flow: state.flow, step: state.step, code: "VN7001", title: message });
+    state.failures.push({
+      flow: state.flow,
+      step: state.step,
+      code: CODES.VN7001_ACTION_FAILED.code,
+      title: message,
+    });
   } else {
     state.logs.push(message);
   }

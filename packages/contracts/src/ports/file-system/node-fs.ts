@@ -1,5 +1,6 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join } from "node:path";
+import { HOST_CODES } from "../../errors/host-codes.js";
 import { VennError } from "../../errors/index.js";
 import { fsNotFound } from "./file-system.errors.js";
 import type { DirEntry, FileSystem } from "./file-system.types.js";
@@ -86,7 +87,7 @@ async function removePath(file: string): Promise<void> {
 function mapMissing(err: unknown, file: string): VennError {
   if (isEnoent(err)) return fsNotFound({ path: file });
   const message = err instanceof Error ? err.message : String(err);
-  return new VennError({ code: "VN8019", message });
+  return new VennError({ code: HOST_CODES.VN8019_FILE_SYSTEM, message });
 }
 
 function isEnoent(err: unknown): boolean {

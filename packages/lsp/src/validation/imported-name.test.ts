@@ -6,10 +6,19 @@ pub fn publico(x: number) -> number => x
 pub fragment entrar(u) { step "s" { expect true } }
 `;
 
-/** The diagnostics the editor shows for this file. */
+/** The diagnostics the editor shows for this file, by their heading. */
 async function diagnostics(source: string): Promise<string[]> {
+  const NEWLINE = String.fromCharCode(10);
+  return (await published(source)).map((one) => `${one.code} ${one.message.split(NEWLINE)[0]}`);
+}
+
+/** The whole of each, help and note included. */
+async function published(source: string) {
   const { document } = await fixture(source, { "lib.vn": LIB });
-  return (document.diagnostics ?? []).map((one) => `${one.code} ${one.message}`);
+  return (document.diagnostics ?? []).map((one) => ({
+    code: String(one.code),
+    message: String(one.message),
+  }));
 }
 
 /**
@@ -29,6 +38,17 @@ describe("importing a name a file did not publish", () => {
     const found = await diagnostics('import { privado } from "./lib.vn"\n');
 
     expect(found).toContain('VN2009 "./lib.vn" does not publish privado.');
+  });
+
+  /**
+   * The help is the point of showing it here: the editor is where a fix is
+   * acted on, and a check that worked one out said it into a field the
+   * diagnostic used to drop.
+   */
+  it("carries what the check worked out, not only its title", async () => {
+    const [found] = await published('import { naoExiste } from "./lib.vn"');
+
+    expect(found?.message.split(String.fromCharCode(10)).length).toBeGreaterThan(1);
   });
 
   it("says nothing about a name that is published", async () => {

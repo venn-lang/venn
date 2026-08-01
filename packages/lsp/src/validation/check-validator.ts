@@ -81,11 +81,22 @@ function emit(
   args: { document: Document; accept: ValidationAcceptor },
   langiumDocument: LangiumDocument,
 ): void {
-  args.accept("error", problem.title, {
+  args.accept("error", said(problem), {
     node: args.document,
     range: rangeOf(problem, langiumDocument),
     code: problem.code,
   });
+}
+
+/**
+ * The title, and what the check worked out beneath it.
+ *
+ * A diagnostic is one string in the protocol, and the editor shows all of it on
+ * hover. Dropping the help means the fix a check already knows never reaches
+ * the one place it would be acted on.
+ */
+function said(problem: Problem): string {
+  return [problem.title, problem.help, problem.note].filter(Boolean).join("\n");
 }
 
 /**

@@ -1,6 +1,7 @@
 import { relative } from "node:path";
 import type { Problem } from "@venn-lang/core";
 import { bold, cyan, dim, green, inverse, red } from "../colors.js";
+import { problemDetail } from "../problem-detail.js";
 import { diffLines } from "./diff-lines.js";
 import type { Failure } from "./pretty.types.js";
 
@@ -70,6 +71,11 @@ function block(failure: Failure, index: number): string {
     `     ${red(failure.code)}  ${failure.title}`,
   ];
   if (failure.location) lines.push(`     ${dim(`at ${failure.location}`)}`);
+  // What the problem knows besides where it happened: the help a check worked
+  // out, the note explaining the rule, the places worth looking at.
+  if (failure.problem) {
+    lines.push(...problemDetail(failure.problem, { indent: "     ", where: false }));
+  }
   if (failure.diff) lines.push("", ...diffLines(failure.diff));
   return lines.join("\n");
 }

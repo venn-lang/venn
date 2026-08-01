@@ -114,6 +114,7 @@ function fromProblem(state: PrettyState, data: Record<string, unknown>): Failure
     title: problem.title,
     location: locationOf(problem),
     diff: problem.diff,
+    problem,
   };
 }
 

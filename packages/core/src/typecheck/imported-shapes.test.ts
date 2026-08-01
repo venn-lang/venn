@@ -174,3 +174,20 @@ describe("a generic another file published", () => {
     expect(found).toEqual([]);
   });
 });
+
+/**
+ * A namespace gathering a whole module leaves the generics out of its shape.
+ *
+ * One has no shape until a use site fills it, and `ns.Box` is not how one is
+ * written: it is written `Box<string>`, after being imported by name.
+ */
+describe("a module gathered whole, with a generic in it", () => {
+  it("still answers for the plain names beside it", () => {
+    const found = titles({
+      "models.vn": "pub type Box<T> = { held: T }\npub const rate = 2",
+      "main.vn": 'import * as models from "./models.vn"\nprint models.rate',
+    });
+
+    expect(found).toEqual([]);
+  });
+});

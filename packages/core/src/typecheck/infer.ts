@@ -7,6 +7,7 @@ import type {
   DecoDecl,
   Expr,
   FnBody,
+  FragmentDecl,
   Index,
   ListLit,
   MapEntry,
@@ -92,6 +93,8 @@ export interface Infer {
   parsed?: Map<AstNode, Slot[]>;
   /** The `deco`s reachable here, local and imported, by the name an `@` writes. */
   decos?: ReadonlyMap<string, DecoDecl>;
+  /** The fragments this file declares, so a `run` can be checked against one. */
+  fragments?: ReadonlyMap<string, FragmentDecl>;
 }
 
 /** Infer an expression's type, recording it for hover and reporting mismatches. */

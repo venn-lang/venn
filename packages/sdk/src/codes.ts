@@ -17,6 +17,8 @@ export const PLUGIN_CODES = {
   VN8091_NOTHING_RECORDED: "VN8091",
   /** A token or a payload this plugin could not read. */
   VN7003_UNREADABLE: "VN7003",
+  /** An argument a verb refuses: a name that is not one, a range that is not one. */
+  VN7005_BAD_ARGUMENT: "VN7005",
   /** A port a server could not take, because something else has it. */
   VN7020_PORT_TAKEN: "VN7020",
   /** A socket that refused to bind, for a reason of the machine's. */

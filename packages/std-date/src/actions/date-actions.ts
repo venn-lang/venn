@@ -1,5 +1,11 @@
-import { ClockPort } from "@venn-lang/contracts";
-import { type ActionDefinition, arg, defineAction, optionalArg } from "@venn-lang/sdk";
+import { ClockPort, VennError } from "@venn-lang/contracts";
+import {
+  type ActionDefinition,
+  arg,
+  defineAction,
+  optionalArg,
+  PLUGIN_CODES,
+} from "@venn-lang/sdk";
 import { type TypeSpec, t } from "@venn-lang/types";
 import { formatParts, partsIn } from "../format/format-instant.js";
 
@@ -75,8 +81,8 @@ export const dateActions: ActionDefinition[] = [
       arg("at", t.instant, "The moment."),
       arg("zone", t.string, "An IANA name, as `America/Sao_Paulo`."),
     ],
-    result: t.union(PARTS_TYPE, t.null),
-    run: (_ctx, input) => partsIn(epochOf(input.args[0]), String(input.args[1] ?? "")) ?? null,
+    result: PARTS_TYPE,
+    run: (_ctx, input) => somewhere(epochOf(input.args[0]), input.args[1]),
   }),
 ];
 
@@ -99,12 +105,38 @@ function parsed(text: string): unknown {
 }
 
 function written(args: readonly unknown[]): string {
-  const parts = partsIn(epochOf(args[0]), zoneOf(args[2]));
-  if (!parts) throw new Error(`This is not a timezone: ${String(args[2])}.`);
+  const zone = nameOf(args[2]);
+  // No zone at all is UTC, which always has parts, so a refusal here is always
+  // about a name somebody wrote.
+  const parts = partsIn(epochOf(args[0]), zone || undefined);
+  if (!parts) throw noSuchZone(zone);
   return formatParts(parts, String(args[1] ?? ""));
 }
 
-function zoneOf(value: unknown): string | undefined {
-  const name = value === undefined || value === null ? "" : String(value);
-  return name === "" ? undefined : name;
+/**
+ * The parts of a moment somewhere, or a refusal.
+ *
+ * A name that is not a timezone is a mistake in the program rather than
+ * something the world did, so the run ends at it. It answered `null` while
+ * `date.format` refused the same name, which is two verbs disagreeing about one
+ * thing.
+ */
+function somewhere(epochMs: number, zone: unknown): unknown {
+  const name = nameOf(zone);
+  const parts = partsIn(epochMs, name);
+  if (!parts) throw noSuchZone(name);
+  return parts;
+}
+
+function noSuchZone(zone: string): VennError {
+  return new VennError({
+    code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
+    message: `There is no timezone called ${zone}.`,
+    detail: { zone },
+  });
+}
+
+/** A zone as it was written, or `""` where none was. */
+function nameOf(value: unknown): string {
+  return value === undefined || value === null ? "" : String(value);
 }

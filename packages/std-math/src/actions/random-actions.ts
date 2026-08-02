@@ -1,5 +1,11 @@
-import { RandomPort } from "@venn-lang/contracts";
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { RandomPort, VennError } from "@venn-lang/contracts";
+import {
+  type ActionContext,
+  type ActionDefinition,
+  arg,
+  defineAction,
+  PLUGIN_CODES,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 
 /**
@@ -21,7 +27,25 @@ export const randomActions: ActionDefinition[] = [
     doc: "A whole number between two others, both ends included.",
     args: [arg("from", t.number, "The lowest it may be."), arg("to", t.number, "The highest.")],
     result: t.number,
-    run: (ctx, input) =>
-      ctx.port(RandomPort).int(Number(input.args[0] ?? 0), Number(input.args[1] ?? 0)),
+    run: (ctx, input) => whole(ctx, input.args),
   }),
 ];
+
+/**
+ * A whole number between two others, or a refusal.
+ *
+ * A range whose end is below its start is not a range, and the port answers one
+ * outside both ends rather than saying so. Refused here, where the verb is, so
+ * the program hears about it at the call it wrote.
+ */
+function whole(ctx: ActionContext, args: readonly unknown[]): number {
+  const from = Number(args[0] ?? 0);
+  const to = Number(args[1] ?? 0);
+  if (to < from) {
+    throw new VennError({
+      code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
+      message: `There is no range from ${from} to ${to}.`,
+    });
+  }
+  return ctx.port(RandomPort).int(from, to);
+}

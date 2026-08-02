@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { dataActions } from "../actions/index.js";
 import { resetRng } from "../rng/index.js";
 import { allFakerSpecs } from "./index.js";
+import { pick } from "./primitives.js";
 
 const ctx = {} as ActionContext;
 const fakerActions = dataActions.filter((action) => action.name.startsWith("faker."));
@@ -211,5 +212,16 @@ describe("faker check digits", () => {
     expect(String(run("br.plate"))).toMatch(/^[A-Z]{3}\d[A-Z]\d{2}$/);
     expect(String(run("br.cep"))).toMatch(/^\d{5}-\d{3}$/);
     expect(String(run("br.phone"))).toMatch(/^\(\d{2}\) 9\d{4}-\d{4}$/);
+  });
+});
+
+/**
+ * Its own guard, which nothing in this package can reach: every list it draws
+ * from is a constant with something in it. Kept because the day one is built
+ * from data it will be reachable, and refused with a code like everything else.
+ */
+describe("drawing from a list with nothing in it", () => {
+  it("refuses, rather than answering with nothing", () => {
+    expect(() => pick([], () => 0)).toThrow(/nothing to pick from/);
   });
 });

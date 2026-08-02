@@ -667,6 +667,9 @@ importers:
 
   packages/std-json:
     dependencies:
+      '@venn-lang/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk

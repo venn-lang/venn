@@ -236,6 +236,49 @@ implementation is bound at startup. That is what lets the same plugin run agains
 production and a fake one in tests. Every port ships with both, plus a conformance suite they both
 pass.
 
+## When a verb fails
+
+Three ways for a verb to end badly, and one rule for choosing between them. A person cannot learn
+a rule that was never written, so this is the rule: a verb that disagrees with it is a bug.
+
+**The world failed, so raise.** A refused connection, a socket that will not bind, a driver that is
+not there. Nothing the program wrote is wrong and nothing it can read would help, so the run ends
+where the world did. Raise a `VennError` with the code that matches: `VN7xxx` for an action or a
+protocol, `VN8xxx` for a resource or a timeout.
+
+```ts
+throw new VennError({ code: PLUGIN_CODES.VN7020_PORT_TAKEN, message: `Port ${port} is taken.` });
+```
+
+**The caller made a mistake, so raise.** A timezone that is not a timezone, a range whose end is
+below its start, a list to choose from with nothing in it. It is a bug in the program, and the run
+ending at the bug is the shortest way to the fix. `VN7005_BAD_ARGUMENT`.
+
+```ts
+throw new VennError({
+  code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
+  message: `There is no timezone called ${zone}.`,
+});
+```
+
+**The data was unreadable, so answer with nothing.** Text that came from a server, a header that
+may not be there, a field nobody set. Being unreadable is an ordinary thing for data to be, and a
+program that reads data is written to expect it, so `null` is the answer and not a failure.
+
+```ts
+run: (_ctx, input) => parsed(String(input.args[0] ?? "")) ?? null,
+```
+
+A `tryX` twin belongs only where **both** readings are common enough to want a name each, as with
+`json.parse` and `json.tryParse`: one for a payload that was promised to be JSON, where the promise
+being broken ends the run, and one for text nobody promised anything about. Never as the only
+spelling, and never for a verb where one of the two readings is rare.
+
+The failure a program catches carries the code, the message, where it happened and whatever was
+attached to it, so a caller can tell one failure from another. Give a code that says which kind of
+thing went wrong, and a message in the product's voice, in the user's domain: `There is no timezone
+called Nowhere/Fake.`, never `RangeError: invalid time zone`.
+
 ## Running a plugin
 
 `@venn-lang/runtime` takes the definitions and a host, and nothing else:

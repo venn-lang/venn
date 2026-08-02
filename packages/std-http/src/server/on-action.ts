@@ -1,4 +1,5 @@
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { VennError } from "@venn-lang/contracts";
+import { type ActionDefinition, arg, defineAction, PLUGIN_CODES } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import type { ServeHandle } from "./serve-action.js";
 
@@ -28,12 +29,17 @@ export function onAction(): ActionDefinition {
     run: (ctx, input) => {
       const server = asServer(input.args[0]);
       const handler = input.args[1];
-      if (!server) throw new Error("`http.on` needs a server, as `http.serve` returns.");
-      if (handler === undefined) throw new Error("`http.on` needs a function to answer with.");
+      if (!server) throw refuses("`http.on` needs a server, as `http.serve` gives back.");
+      if (handler === undefined) throw refuses("`http.on` needs a function to answer with.");
       server.onRequest((request) => ctx.invoke(handler, [request]));
       return undefined;
     },
   });
+}
+
+/** A caller mistake, which is a bug in the program rather than the world. */
+function refuses(message: string): VennError {
+  return new VennError({ code: PLUGIN_CODES.VN7005_BAD_ARGUMENT, message });
 }
 
 function asServer(value: unknown): ServeHandle | undefined {

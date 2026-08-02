@@ -161,13 +161,21 @@ function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: un
   };
 }
 
+/**
+ * `repeat n as i { … }`.
+ *
+ * `as` names the pass, and a pass is counted from one: the first time round is
+ * pass one, here and in the scheduler alike. Counting the passes rather than the
+ * offsets is also what makes a fractional count run the whole passes it asks for
+ * and no more, since the last one it could finish is the one at `n` rounded down.
+ */
 function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): Step {
   const count = compile(stmt.count, scope);
   const body = blockSteps(stmt.body, scope, compile);
   const slot = stmt.index ? scope.names.indexOf(stmt.index) : -1;
   return (frame) => {
     const times = Number(count(frame)) || 0;
-    for (let at = 0; at < times; at += 1) {
+    for (let at = 1; at <= times; at += 1) {
       if (slot !== -1) writeSlot(frame, slot, at);
       const stopped = runSteps(body, frame);
       if (stopped === LEFT) return LEFT;

@@ -128,6 +128,21 @@ describe("a function body with statements", () => {
     expect(run(source, "double(1)")).toBe(8);
   });
 
+  /** `as` names the pass, and the first pass is pass one, not pass zero. */
+  it("counts the passes of a repeat from one", () => {
+    const source = [
+      "fn passes(n) {",
+      "  let seen = []",
+      "  repeat n as i {",
+      "    seen = seen.push(i)",
+      "  }",
+      "  return seen",
+      "}",
+    ].join(NEWLINE);
+
+    expect(run(source, "passes(3)")).toEqual([1, 2, 3]);
+  });
+
   it("takes the open loop, and its state", () => {
     const source = [
       "fn countTo(limit) {",

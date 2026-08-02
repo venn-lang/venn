@@ -2,8 +2,8 @@
 
 Four programs rather than four demonstrations. Each one does a job somebody
 would otherwise do by hand, and each was written by writing it: the language was
-found wanting four times on the way, and every one of those is an open issue
-linked below rather than a paragraph explaining why the example is shaped oddly.
+found wanting four times on the way, and every one of those is an issue linked
+below rather than a paragraph explaining why the example is shaped oddly.
 
 | program | what it does | run it |
 | --- | --- | --- |
@@ -49,7 +49,8 @@ Four bugs, all of them things a person would hit on their first afternoon:
 - [#223](https://github.com/venn-lang/venn/issues/223): a block body cannot
   return a value or nothing, which is the ordinary answer of anything that looks
   something up.
-- [#224](https://github.com/venn-lang/venn/issues/224): `repeat n as i` counts
-  from 1 at the top of a file and from 0 inside a `fn`.
+- [#224](https://github.com/venn-lang/venn/issues/224): `repeat n as i` counted
+  from 1 at the top of a file and from 0 inside a `fn`. Fixed: it counts the
+  passes from one in both, so the rota no longer starts a week late.
 
 Where a program is shaped around one of these, the comment says which and why.

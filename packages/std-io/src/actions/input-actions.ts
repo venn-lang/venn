@@ -44,7 +44,10 @@ export const inputActions: ActionDefinition[] = [
     result: t.union(t.string, t.null),
     run: async (ctx, input) => {
       const console = ctx.port(ConsolePort);
-      console.write(String(input.args[0] ?? ""));
+      // Written with `show` like every other line this plugin writes: the
+      // signature says string, but a question built from a value is still a
+      // value and must not reach the terminal as `[object Object]`.
+      console.write(input.args[0] === undefined ? "" : ctx.show(input.args[0]));
       return console.readLine();
     },
   }),

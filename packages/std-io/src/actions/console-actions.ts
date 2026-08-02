@@ -1,20 +1,22 @@
-import { type ActionDefinition, arg, defineAction, restArg } from "@venn-lang/sdk";
+import {
+  type ActionContext,
+  type ActionDefinition,
+  arg,
+  defineAction,
+  restArg,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import { ConsolePort } from "../port/index.js";
 
-/** How a printed value becomes text: strings as-is, everything else as JSON. */
-function display(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value === null || typeof value !== "object") return String(value);
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}
-
-function line(args: readonly unknown[]): string {
-  return args.map(display).join(" ");
+/**
+ * The values as one line, each written the way the language writes it.
+ *
+ * The rendering is `ctx.show`, which is the same definition `print`, `str` and
+ * `"${…}"` use, because `io.print` claims to be `print` under its full name and
+ * a plugin holding a renderer of its own is what made that claim false.
+ */
+function line(ctx: ActionContext, args: readonly unknown[]): string {
+  return args.map((value) => ctx.show(value)).join(" ");
 }
 
 /**
@@ -31,21 +33,21 @@ export const consoleActions: ActionDefinition[] = [
     doc: "Write to standard output with a newline. Same as the prelude's `print`.",
     args: [restArg("values", t.dynamic, "Anything, as many as you like.")],
     result: t.void,
-    run: (ctx, input) => ctx.port(ConsolePort).write(`${line(input.args)}\n`),
+    run: (ctx, input) => ctx.port(ConsolePort).write(`${line(ctx, input.args)}\n`),
   }),
   defineAction({
     name: "write",
     doc: "Write to standard output with no trailing newline.",
     args: [arg("value", t.dynamic, "What to write. Nothing is added after it.")],
     result: t.void,
-    run: (ctx, input) => ctx.port(ConsolePort).write(line(input.args)),
+    run: (ctx, input) => ctx.port(ConsolePort).write(line(ctx, input.args)),
   }),
   defineAction({
     name: "eprint",
     doc: "Write to standard error, followed by a newline.",
     args: [arg("value", t.dynamic, "What to write to stderr.")],
     result: t.void,
-    run: (ctx, input) => ctx.port(ConsolePort).writeError(`${line(input.args)}\n`),
+    run: (ctx, input) => ctx.port(ConsolePort).writeError(`${line(ctx, input.args)}\n`),
   }),
   defineAction({
     name: "args",

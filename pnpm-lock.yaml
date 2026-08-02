@@ -655,6 +655,12 @@ importers:
       '@fast-check/vitest':
         specifier: 'catalog:'
         version: 0.4.1(vitest@4.1.10)
+      '@venn-lang/core':
+        specifier: workspace:*
+        version: link:../core
+      '@venn-lang/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)

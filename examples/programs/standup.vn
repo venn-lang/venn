@@ -1,0 +1,78 @@
+# Whose turn it is to run standup, and when it lands where each person is.
+# Run: venn run examples/programs/standup.vn
+#
+# A rota is trivial arithmetic until timezones are in it. The team is in three
+# of them, the meeting is at one instant, and every person needs the wall clock
+# they will actually read.
+
+import { date } from "venn/date"
+import { fmt } from "venn/fmt"
+
+## Where everyone is. An IANA name, because an offset is not a place: the offset
+## changes twice a year and the place does not.
+const TEAM = [
+  { who: "ana", zone: "Europe/Lisbon" },
+  { who: "bruno", zone: "America/Sao_Paulo" },
+  { who: "cleo", zone: "Asia/Tokyo" }
+]
+
+## The rota started here, and turns are a week apart.
+##
+## A week is `168h` because the units stop at the hour, and that is the right
+## place to stop: a day is not a fixed length where clocks change, so `7d` would
+## be a lie twice a year in two of the three zones below.
+const FIRST: instant = date.of({ year: 2026, month: 8, day: 3, hour: 9 })
+const WEEK = 168h
+
+## Whose turn the nth meeting is. The team list is the rota, so adding a person
+## changes the rota and nothing else.
+fn turnAt(index: number) => TEAM[index % TEAM.len]
+
+fn meetingAt(index: number) -> instant => FIRST.plus(WEEK * index)
+
+## The same instant, written where somebody stands.
+##
+## `date.in` refuses a name that is not a timezone rather than answering with
+## nothing, which is what it used to do while `date.format` refused: two verbs
+## disagreeing about one thing.
+fn localTime(at: instant, zone: string) -> string => date.format(at, "HH:mm", zone)
+
+## The tokens stop at numbers: there is no name of a month and no name of a
+## day, so a rota reads as `2026-08-03` rather than as `Mon 03 Aug`.
+fn localDay(at: instant, zone: string) -> string => date.format(at, "YYYY-MM-DD", zone)
+
+print "Standup rota"
+print ""
+
+## `repeat … as` counts the passes from one, so the first meeting is pass one
+## and the arithmetic below takes the pass minus one.
+let rows = []
+repeat 6 as pass {
+  const index = pass - 1
+  const at = meetingAt(index)
+  const host = turnAt(index)
+  let line = { when: localDay(at, "UTC"), host: host.who }
+  forEach person in TEAM {
+    line[person.who] = localTime(at, person.zone)
+  }
+  rows = rows.push(line)
+}
+
+print fmt.table(rows)
+
+## What a name nobody recognises does, which is end the run at the mistake
+## rather than three lines later with an empty cell.
+print ""
+const said = try localTime(FIRST, "Mars/Olympus") catch e => "${e.message} (${e.code})"
+print "a zone nobody has: ${said}"
+
+## The next turn after a given moment: the rota is a fold, not a search.
+const nowish: instant = date.of({ year: 2026, month: 8, day: 20 })
+let next = 0
+repeat 6 as pass {
+  if meetingAt(pass - 1).isBefore(nowish) {
+    next = pass
+  }
+}
+print ""
+print "after ${date.format(nowish, 'YYYY-MM-DD')}, next is ${turnAt(next).who} on ${localDay(meetingAt(next), 'UTC')}"

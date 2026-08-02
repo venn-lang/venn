@@ -1,0 +1,129 @@
+# A gradebook: marks in, grades and a class summary out.
+# Run: venn run examples/programs/gradebook.vn
+#
+# What it is really about is bad data. A term's marks arrive from four teachers
+# and one of them will have typed a mark of 110, left a component out, or filed
+# a student twice. A program that averages that silently is worse than one that
+# stops.
+
+import { fmt } from "venn/fmt"
+import { json } from "venn/json"
+import { math } from "venn/math"
+
+## What a term is worth, and it has to come to one.
+namespace scheme {
+  const weights = { homework: 0.2, midterm: 0.3, final: 0.5 }
+
+  pub fn weightOf(part: string) => weights[part]
+
+  pub fn parts() => weights.keys
+
+  ## What is wrong with a row, or nothing when it can be graded.
+  ##
+  ## A `fn` is pure: it decides, binds, loops and gives a value back, and it
+  ## does not reach the world. So the answer here is a value, and the program
+  ## below is what refuses. Everything this needs to say fits in one.
+  ## Written as a fold rather than as a block with two exits, because a block
+  ## cannot answer "a value or nothing": its `return`s are unified with each
+  ## other, so the second is measured against the type of the first (#223).
+  pub fn problemWith(row) => parts().reduce(
+    (found, part) => found ?? wrongWith(row.marks[part], part),
+    null
+  )
+
+  fn wrongWith(mark, part) => mark == null ? "no ${part}" : outOfRange(mark, part)
+
+  fn outOfRange(mark, part) => tooFar(mark) ? "${part} is ${mark}, not a percentage" : null
+
+  fn tooFar(mark) => mark < 0 || mark > 100
+
+  ## The weighted average of a row that `problemWith` had nothing to say about.
+  pub fn average(marks) -> number {
+    let sum = 0
+    forEach part in parts() {
+      sum = sum + marks[part] * weightOf(part)
+    }
+    return sum
+  }
+
+  ## A `match` arm is a pattern rather than a condition, so a ladder of ranges
+  ## is written as one: `match` is for telling shapes apart, `if` for deciding.
+  pub fn letter(average: number) -> string {
+    if average >= 90 {
+      return "A"
+    }
+    if average >= 80 {
+      return "B"
+    }
+    if average >= 70 {
+      return "C"
+    }
+    if average >= 60 {
+      return "D"
+    }
+    return "F"
+  }
+}
+
+## What the teachers filed, as it arrives: one file, four hands, and no promise
+## that every row has every component.
+const FILED = '[
+  { "who": "ada",     "marks": { "homework": 95, "midterm": 88,  "final": 92 } },
+  { "who": "grace",   "marks": { "homework": 78, "midterm": 91,  "final": 85 } },
+  { "who": "alan",    "marks": { "homework": 88, "midterm": 110, "final": 90 } },
+  { "who": "edsger",  "marks": { "homework": 70, "midterm": 65 } },
+  { "who": "barbara", "marks": { "homework": 99, "midterm": 97,  "final": 98 } }
+]'
+
+const TERM = try json.parse(FILED) else []
+
+fn scored(row) {
+  const wrong = scheme.problemWith(row)
+  if wrong == null {
+    const average = scheme.average(row.marks)
+    return { who: row.who, average: average, grade: scheme.letter(average), why: null }
+  }
+  return { who: row.who, average: null, grade: "-", why: wrong }
+}
+
+const scores = TERM.map(scored)
+const graded = scores.filter((one) => one.average != null)
+const refused = scores.filter((one) => one.average == null)
+
+print "Term report"
+print ""
+print fmt.table(graded.map((one) => {
+  student: one.who,
+  average: one.average.toFixed(1),
+  grade: one.grade
+}))
+
+if graded.len > 0 {
+  ## `math.max` is the larger of two, so the largest of many is a fold. The
+  ## first mark is the starting point rather than zero: a class where everyone
+  ## failed still has a best.
+  const averages = graded.map((one) => one.average)
+  let sum = 0
+  let best = averages[0]
+  forEach one in averages {
+    sum = sum + one
+    best = math.max(best, one)
+  }
+  print ""
+  print "class average ${(sum / graded.len).toFixed(1)}, best ${best.toFixed(1)}"
+}
+
+if refused.len > 0 {
+  print ""
+  print "not graded:"
+  ## Raised and caught, so the report shows what a caller of this gradebook
+  ## would receive rather than a sentence this file made up. A verb belongs at
+  ## this level: a `fn` is pure, and refusing is something the program does.
+  forEach one in refused {
+    try {
+      fail "${one.who}: ${one.why}" { code: "grade.refused", data: { who: one.who } }
+    } catch e {
+      print "  ${e.message} (${e.code})"
+    }
+  }
+}

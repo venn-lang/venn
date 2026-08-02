@@ -1,0 +1,35 @@
+## What the company will and will not pay for, and by how much.
+##
+## The table is private: a rate is looked up through `rateFor`, so a category
+## nobody wrote down answers the same way everywhere rather than differently in
+## each place somebody forgot to check.
+pub namespace policy {
+  const rates = {
+    travel: 1.0,
+    meals: 0.5,
+    hardware: 1.0,
+    entertainment: 0.0
+  }
+
+  const ceilings = { meals: 40.0, entertainment: 0.0 }
+
+  ## The share of a claim the company pays, or nothing when the category is not
+  ## one this policy has an opinion about.
+  pub fn rateFor(category) => rates[category]
+
+  ## What a claim is worth after the policy: the rate, then the ceiling. Nothing
+  ## when the policy has no opinion about the category.
+  ##
+  ## Written as expressions rather than as a block with three exits, because a
+  ## block cannot answer "a number or nothing": its `return`s are unified with
+  ## each other (#223).
+  pub fn allowed(claim) => paidFor(claim, rateFor(claim.category))
+
+  fn paidFor(claim, rate) => rate == null ? null : capped(claim.category, claim.amount * rate)
+
+  fn capped(category, paid) => over(paid, ceilings[category])
+
+  fn over(paid, ceiling) => (ceiling != null && paid > ceiling) ? ceiling : paid
+
+  pub fn covers(category) => rateFor(category) != null
+}

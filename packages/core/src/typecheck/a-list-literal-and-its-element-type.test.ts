@@ -80,6 +80,36 @@ describe("a list literal whose element type was declared", () => {
     expect(said(ROW, base, one)).toEqual([]);
   });
 
+  it("reads it off the result a `fn` declared, written as one expression", () => {
+    const head = 'fn rows() -> list<Row> => [{ who: "ada", marks: { homework: 95 } },';
+    const rest = '                           { who: "grace", marks: { homework: 78, final: 85 } }]';
+
+    expect(said(ROW, head, rest)).toEqual([]);
+  });
+
+  it("reads it off the result of a block body's return", () => {
+    const head = "fn rows() -> list<Row> {";
+    const one = '  return [{ who: "ada", marks: { homework: 95 } },';
+    const two = '          { who: "grace", marks: { homework: 78, final: 85 } }]';
+
+    expect(said(ROW, head, one, two, "}")).toEqual([]);
+  });
+
+  it("reads it off the result on the expression a block body ends with", () => {
+    const head = "fn rows() -> list<Row> {";
+    const one = '  [{ who: "ada", marks: { homework: 95 } },';
+    const two = '   { who: "grace", marks: { homework: 78, final: 85 } }]';
+
+    expect(said(ROW, head, one, two, "}")).toEqual([]);
+  });
+
+  /** And still refuses a row the declared result does not allow, at the row. */
+  it("refuses a row the declared result would not take", () => {
+    const decl = "fn rows() -> list<Row> => [{ who: 1, marks: {} }]";
+
+    expect(said(ROW, decl)).toHaveLength(1);
+  });
+
   it("pours a list of the same element in", () => {
     const rows = 'const rows: list<Row> = [{ who: "a", marks: { x: 1 } }]';
     const more = 'const more: list<Row> = [{ who: "b", marks: {} }, ...rows]';

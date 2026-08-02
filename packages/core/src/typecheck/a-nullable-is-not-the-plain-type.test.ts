@@ -103,6 +103,200 @@ describe("the ways out", () => {
   });
 });
 
+/**
+ * A branch nobody falls out of, and what stands after it.
+ *
+ * The guard clause deals with the nothing and leaves the rest of the body with a
+ * value, which is the flat way of writing a function every language spells the
+ * same. Refusing it while allowing the nested way made the shape of the code the
+ * thing that decided, and the help said to ask `if x != null` first, which is
+ * exactly what the program did.
+ */
+describe("a branch that ends the pass", () => {
+  it("narrows the statements written after it", () => {
+    const lines = [
+      "fn afterAGuard(status: number | null) -> string {",
+      "  if status == null {",
+      '    return "no"',
+      "  }",
+      "  if status >= 200 {",
+      '    return "ok"',
+      "  }",
+      '  return "low"',
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  it("narrows the expression the body ends with", () => {
+    const lines = [
+      "fn afterAGuard(status: number | null) -> string {",
+      "  if status == null {",
+      '    return "no"',
+      "  }",
+      '  status >= 200 ? "ok" : "low"',
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** `fail` ends the pass the same way, and belongs where verbs are allowed. */
+  it("narrows after a guard that fails instead of returning", () => {
+    const lines = [
+      "fragment checkStatus(status: number | null) {",
+      "  if status == null {",
+      '    fail "no status"',
+      "  }",
+      "  const held: number = status",
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  it("narrows the rest of a loop after a `continue`", () => {
+    const lines = [
+      "fn each(xs: list<number | null>) -> number {",
+      "  forEach x in xs {",
+      "    if x == null {",
+      "      continue",
+      "    }",
+      "    const held: number = x",
+      "  }",
+      "  return 0",
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  it("narrows the rest of a loop after a `break`", () => {
+    const lines = [
+      "fn each(xs: list<number | null>) -> number {",
+      "  forEach x in xs {",
+      "    if x == null {",
+      "      break",
+      "    }",
+      "    const held: number = x",
+      "  }",
+      "  return 0",
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  it("narrows on the other side when it is the `else` that ends the pass", () => {
+    const lines = [
+      "fn afterAGuard(status: number | null) -> string {",
+      "  if status != null {",
+      "    const held: number = status",
+      "  } else {",
+      '    return "no"',
+      "  }",
+      '  return status >= 200 ? "ok" : "low"',
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** A guard on the field narrows the record, and the record outlives the `if`. */
+  it("narrows a field the same way", () => {
+    const lines = [
+      "fn shout() -> string {",
+      "  if u.name == null {",
+      '    return "anon"',
+      "  }",
+      "  return u.name.upper",
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** An `if` both of whose sides come back says nothing about what follows. */
+  it("leaves the scope alone when the branch falls through", () => {
+    const lines = [
+      "fn afterAnIf(status: number | null) -> string {",
+      "  if status == null {",
+      "    const none = 0",
+      "  }",
+      '  return status >= 200 ? "ok" : "low"',
+      "}",
+    ];
+
+    expect(said(...lines)[0]).toContain("expected number, found number | null");
+  });
+});
+
+/**
+ * A `return` is a value like any other, and is read in the scope it stands in.
+ * Reading it again from the body's own scope lost every narrowing the branch
+ * around it had made, so the same condition worked as a statement and not as the
+ * thing being handed back.
+ */
+describe("the value a return hands back", () => {
+  it("is narrowed by the `if` it is written inside", () => {
+    const lines = [
+      "fn returnForm(status: number | null) -> string {",
+      "  if status != null {",
+      '    return status >= 200 ? "ok" : "low"',
+      "  }",
+      '  return "none"',
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** Which the statement form always allowed, and still does. */
+  it("agrees with the same thing written as statements", () => {
+    const lines = [
+      "fn statementForm(status: number | null) -> string {",
+      "  if status != null {",
+      "    if status >= 200 {",
+      '      return "ok"',
+      "    }",
+      "  }",
+      '  return "none"',
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  it("is narrowed for a name bound from a field", () => {
+    const lines = [
+      "fn shout() -> string {",
+      "  const held = u.name",
+      "  if held != null {",
+      "    return held.upper",
+      "  }",
+      '  return "anon"',
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** Nothing loosened: a `return` the annotation does not allow is still wrong. */
+  it("is still measured against what the fn declared", () => {
+    const lines = [
+      "fn returnForm(status: number | null) -> string {",
+      "  if status != null {",
+      "    return status",
+      "  }",
+      '  return "none"',
+      "}",
+    ];
+
+    expect(said(...lines)[0]).toContain("VN3010");
+  });
+});
+
 /** A guard that has nothing to teach leaves the scope as it found it. */
 describe("a guard that learns nothing", () => {
   it("says nothing about a field that was never nothing", () => {

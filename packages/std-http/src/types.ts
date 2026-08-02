@@ -36,6 +36,10 @@ export const httpTypeDefs: Readonly<Record<string, TypeSpec>> = {
    * is that text parsed, and is the one field nothing can know the shape of: it
    * is whatever the far end chose to send. Name a shape for it, as in
    * `const price: Price = res.json`, and everything after reads as that shape.
+   *
+   * `time` is the whole milliseconds the round trip took, measured by whichever
+   * client answered, so `expect res.time < 2s` is a question about the service
+   * and not about the double.
    */
   Response: t.record(
     {

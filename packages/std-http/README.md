@@ -48,15 +48,19 @@ Everything below is exported from the package barrel.
 | `httpPlugin` (also the default export) | The `PluginDefinition`: namespace `http`, `requires: ["net"]`. |
 | `HttpClientPort` | `Port<HttpClient>`, id `venn.port.http-client`, version 1, method `request`. |
 | `createFetchClient()` | The real client, backed by the global `fetch`. |
-| `createFakeClient({ responses })` | The double: canned responses keyed by URL, `okResponse()` for anything else. |
+| `createFakeClient({ responses, failures, latency })` | The double: canned responses keyed by URL, `okResponse()` for anything else. |
 | `okResponse(overrides?)` | A `200` response with body `{"ok":true}`, for seeding the fake. |
 | `HttpServerPort` | `Port<HttpServer>`, id `venn.port.http-server`, version 1, method `listen`. |
 | `createMemoryServer()` | The double: no socket, and `deliver(request)` to knock on its door. |
 | `serveAction()`, `onAction()` | The two `ActionDefinition`s behind `http.serve` and `http.on`. |
 | `portInUse`, `listenFailed`, `asListenError` | `VennError` producers for `VN7020` and `VN7021`. |
+| `connectionRefused`, `portNotAllowed`, `hostNotFound`, `requestTimedOut` | `VennError` producers for `VN7022`, `VN7023` and `VN7024`. |
+| `requestFailed({ attempt, failure })` | One of the three, whichever implementation raised it. |
+| `asRequestError({ attempt, error })` | Whatever `fetch` threw, as the error to raise. |
 
-Types: `HttpClient`, `HttpRequest`, `HttpResponse`, `HttpServer`, `RequestHandler`, `RunningServer`,
-`ServerRequest`, `ServerReply`, `ServeHandle`, `MemoryServer`, `MemoryHttpServer`.
+Types: `HttpClient`, `HttpRequest`, `HttpResponse`, `HttpFailure`, `Attempt`, `HttpServer`,
+`RequestHandler`, `RunningServer`, `ServerRequest`, `ServerReply`, `ServeHandle`, `MemoryServer`,
+`MemoryHttpServer`.
 
 The subpath `@venn-lang/http/node` carries the one file that imports `node:*`:
 
@@ -126,13 +130,44 @@ as raw text, `json` as that text parsed, `time`), `http.Request`, `http.Reply` a
 `json` is the one field nothing can know the shape of, so give it one by naming it:
 `const price: Price = res.json`.
 
+`time` is the whole milliseconds the round trip took, from the request going out to the body being
+in hand. Both implementations measure it, and neither reads it off a canned response, so
+`expect res.time < 2s` asks about the service and not about the double. To make the double slow,
+give it a `latency`, which it really waits.
+
+## When a request fails
+
+A request that never got an answer raises a `VennError` with a code, never the host runtime's
+`fetch failed`:
+
+| Code | When | What it says |
+| --- | --- | --- |
+| `VN7022` | Nothing accepted the connection | `Nothing is listening on 127.0.0.1:8080, so GET http://127.0.0.1:8080/health was refused.` |
+| `VN7022` | A port no client will open, such as `1` | `Port 1 is one no HTTP client will open, so GET http://127.0.0.1:1/health never went out.` |
+| `VN7023` | The name did not resolve | `The name api.invalid did not resolve, so GET http://api.invalid/health had nowhere to go.` |
+| `VN7024` | It went out and nothing came back | `GET http://10.255.255.1/health ran out of time after 11113ms without an answer.` |
+
+The translation lives at the producer, beside the client: `fetch` reports every network failure as
+`TypeError: fetch failed` and puts the reason on `cause`, and no caller should have to read an
+errno to learn that nothing was listening. A failure with no name of its own is handed on untouched
+rather than dressed in a code that says something specific and false, which is also what keeps a
+`race` cancelling a request from looking like a request that failed.
+
+The double raises the same three, so a flow's `catch` can be tested offline:
+
+```ts
+createFakeClient({ failures: { "https://api.test/health": "refused" } });
+```
+
 ## Ports and conformance
 
 Two ports, each with two implementations and a suite both must pass:
 
 - `HttpClient`: `createFetchClient` and `createFakeClient`, checked by
   `src/clients/http-client.suite.ts`. The test stubs the global `fetch` so the real client's mapping
-  runs the same suite offline.
+  runs the same suite offline: the response shape, `time` reporting a delay the client was made to
+  take, and each of the three failures with its own code. A second test fails a real loopback
+  connection, so the stubbed shapes cannot drift from what Node hands back.
 - `HttpServer`: `createNodeServer` and `createMemoryServer`, checked by
   `src/server/http-server.suite.ts`. The double keeps its own book of bound ports, so a flow that
   binds the same port twice fails there exactly as it would against a real socket.

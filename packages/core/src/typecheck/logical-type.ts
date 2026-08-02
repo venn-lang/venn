@@ -1,3 +1,4 @@
+import { isNothing, withoutNothing } from "./nothing.js";
 import type { Type } from "./type.types.js";
 import { DYNAMIC, union } from "./type.types.js";
 import { prune, unify } from "./unify.js";
@@ -30,17 +31,11 @@ export function logicalType(op: string, left: Type, right: Type): Type {
 
 /** `??` and `||`: the left without the nothing it may be, or the right. */
 function whenNothing(left: Type, right: Type): Type {
-  const members = left.kind === "union" ? left.members : [left];
-  const kept = members.filter((member) => !isNothing(member));
+  if (isNothing(left)) return right;
+  const kept = withoutNothing(left);
   // Nothing was taken away, so the left is the whole answer: the right is a
   // fallback for a case that cannot happen.
-  if (kept.length === members.length) return left;
-  return kept.length === 0 ? right : either(union(kept), right);
-}
-
-function isNothing(type: Type): boolean {
-  const t = prune(type);
-  return t.kind === "prim" && t.name === "null";
+  return kept ? either(kept, right) : left;
 }
 
 /**

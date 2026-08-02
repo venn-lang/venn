@@ -27,6 +27,7 @@ import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { callType } from "./action-signature.js";
 import { memberType } from "./builtins.js";
+import { argumentsFit } from "./call-arguments.js";
 import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import { checkMatch } from "./check-match.js";
@@ -34,6 +35,7 @@ import { badPatternIn } from "./check-pattern.js";
 import { checkStatement } from "./check-stmts.js";
 import type { TypeContext } from "./context.js";
 import { ERROR_TYPE } from "./error-type.js";
+import { fits } from "./fits.js";
 import type { ImportedType } from "./imported-types.js";
 import { either, logicalType } from "./logical-type.js";
 import { mergedCall } from "./merged-call.js";
@@ -354,7 +356,13 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
     infer.ctx.mismatches.push({ node: expr, expected: callee, actual: DYNAMIC, sentence });
     return DYNAMIC;
   }
-  expect(infer, expr, callee, fn(args, result));
+  // The whole signature only where an argument is not the problem, since two
+  // signatures side by side say less than the one argument that does not fit.
+  if (argumentsFit({ expr, callee, given: args, infer })) {
+    expect(infer, expr, callee, fn(args, result));
+  } else {
+    unify(callee, fn(args, result));
+  }
   return result;
 }
 
@@ -633,9 +641,18 @@ function takenApart(node: { pattern?: Pattern }, type: Type, env: TypeEnv, infer
   );
 }
 
-/** Unify `actual` with `expected`, recording a mismatch on the node if it fails. */
+/**
+ * Unify `actual` with `expected`, recording a mismatch on the node if it fails.
+ *
+ * Two questions, because they are two questions. `unify` solves the variables
+ * and answers whether the types can be made equal; `fits` answers whether every
+ * value the first describes is one the second allows, which is what assignment
+ * asks and what a union answers differently in each direction.
+ */
 export function expect(infer: Infer, node: AstNode, actual: Type, expected: Type): void {
-  if (!unify(actual, expected)) report(infer, node, expected, actual);
+  if (!unify(actual, expected) || !fits(actual, expected)) {
+    report(infer, node, expected, actual);
+  }
 }
 
 function report(infer: Infer, node: AstNode, expected: Type, actual: Type, _note?: string): void {

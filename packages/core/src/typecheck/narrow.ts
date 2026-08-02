@@ -12,6 +12,7 @@ import * as ast from "../generated/ast.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import type { Asked, Step } from "../pattern/index.js";
 import type { Infer } from "./infer.js";
+import { withoutNothing } from "./nothing.js";
 import { instantiate, mono } from "./scheme.js";
 import { type Type, union } from "./type.types.js";
 import type { TypeEnv } from "./type-env.js";
@@ -54,9 +55,38 @@ export function narrowed(cond: Expr, env: TypeEnv, infer: Infer): Branches {
   const found = discriminantOf(cond);
   const type = found && subject(found.name, env, infer);
   if (!found || !type) return both;
+  const field = fieldAgainstNothing({ found, type, env });
+  if (field) return field;
   const members = branchesOf(type);
   if (!decidable(members, found)) return both;
   return split({ found, members, env, infer, cond });
+}
+
+/**
+ * `if user.name != null`, which is the shape a nullable field is guarded by.
+ *
+ * A scope binds names, so there is nowhere to write down what was learned about
+ * `user.name`. What there is a place for is `user`, so that is what is written:
+ * the same record with the one field narrowed. Reading the field afterwards
+ * reads the narrowed record, which is the same answer by a route the scope
+ * already has.
+ */
+function fieldAgainstNothing(args: {
+  found: Discriminant;
+  type: Type;
+  env: TypeEnv;
+}): Branches | undefined {
+  const { found, type, env } = args;
+  if (found.value !== null || !found.field) return undefined;
+  const record = prune(type);
+  if (record.kind !== "record") return undefined;
+  const held = record.fields.get(found.field);
+  const kept = held && withoutNothing(held);
+  if (!kept) return undefined;
+  const fields = new Map(record.fields).set(found.field, kept);
+  const known = env.with(found.name, mono({ ...record, fields }));
+  // `==` learns on the false side, `!=` on the true one.
+  return found.equals ? { whenTrue: env, whenFalse: known } : { whenTrue: known, whenFalse: env };
 }
 
 /**

@@ -45,7 +45,7 @@ export const fmtActions: ActionDefinition[] = [
     // promises nothing. A lone record is tolerated, but this verb wants a list.
     args: [arg("rows", t.list(t.dynamic), "A list of records. Their keys become the columns.")],
     result: t.string,
-    run: (_ctx, input) => toTable(list(input.args[0])),
+    run: (ctx, input) => toTable(list(input.args[0]), ctx.show),
   }),
   defineAction({
     name: "yaml",

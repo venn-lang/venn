@@ -98,6 +98,11 @@ describe("reading one where somebody stands", () => {
   it("refuses a zone nobody has heard of, the way `format` does", () => {
     expect(() => run("in", moment(AT), "Nowhere/Fictional")).toThrow(/no timezone called/);
   });
+
+  /** There is no default: where somebody stands is the whole question it asks. */
+  it("refuses no zone at all", () => {
+    expect(() => run("in", moment(AT))).toThrow(/no timezone called/);
+  });
 });
 
 describe("what the namespace publishes", () => {

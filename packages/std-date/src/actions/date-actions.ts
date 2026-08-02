@@ -105,8 +105,10 @@ function parsed(text: string): unknown {
 }
 
 function written(args: readonly unknown[]): string {
-  const zone = zoneOf(args[2]);
-  const parts = partsIn(epochOf(args[0]), zone);
+  const zone = nameOf(args[2]);
+  // No zone at all is UTC, which always has parts, so a refusal here is always
+  // about a name somebody wrote.
+  const parts = partsIn(epochOf(args[0]), zone || undefined);
   if (!parts) throw noSuchZone(zone);
   return formatParts(parts, String(args[1] ?? ""));
 }
@@ -120,21 +122,21 @@ function written(args: readonly unknown[]): string {
  * thing.
  */
 function somewhere(epochMs: number, zone: unknown): unknown {
-  const name = String(zone ?? "");
+  const name = nameOf(zone);
   const parts = partsIn(epochMs, name);
   if (!parts) throw noSuchZone(name);
   return parts;
 }
 
-function noSuchZone(zone: string | undefined): VennError {
+function noSuchZone(zone: string): VennError {
   return new VennError({
     code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
-    message: `There is no timezone called ${zone ?? ""}.`,
-    detail: { zone: zone ?? "" },
+    message: `There is no timezone called ${zone}.`,
+    detail: { zone },
   });
 }
 
-function zoneOf(value: unknown): string | undefined {
-  const name = value === undefined || value === null ? "" : String(value);
-  return name === "" ? undefined : name;
+/** A zone as it was written, or `""` where none was. */
+function nameOf(value: unknown): string {
+  return value === undefined || value === null ? "" : String(value);
 }

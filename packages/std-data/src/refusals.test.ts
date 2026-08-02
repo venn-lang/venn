@@ -71,4 +71,9 @@ describe("text that is not the JSON it was said to be", () => {
   it("reads the JSON it was given", () => {
     expect(run("json", '{ "port": 443 }')).toEqual({ port: 443 });
   });
+
+  /** Nothing to read is nothing, which is what `null` is the JSON for. */
+  it("reads nothing as nothing", () => {
+    expect(run("json")).toBeNull();
+  });
 });

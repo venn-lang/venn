@@ -21,6 +21,17 @@ function thrown(...args: unknown[]): { code?: string; message?: string } {
  * the run. They said so with no code, which left a caller unable to tell them
  * from a socket that would not bind.
  */
+describe("http.on with what it needs", () => {
+  it("registers the handler on the server it was given", () => {
+    const registered: unknown[] = [];
+    const server = { kind: "http-server", onRequest: (fn: unknown) => registered.push(fn) };
+
+    onAction().run(ctx, { args: [server, () => "hello"], params: {} });
+
+    expect(registered).toHaveLength(1);
+  });
+});
+
 describe("http.on without what it needs", () => {
   it("refuses a first argument that is not a server", () => {
     expect(thrown("not a server", () => undefined)).toMatchObject({

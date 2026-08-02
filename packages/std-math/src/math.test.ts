@@ -99,6 +99,11 @@ describe("randomness", () => {
   it("takes a range of one, which is a range", () => {
     expect(run("randomInt", 4, 4)).toBe(4);
   });
+
+  /** Both ends default to zero, so a call with neither is the range [0, 0]. */
+  it("gives zero when it is given neither end", () => {
+    expect(run("randomInt")).toBe(0);
+  });
 });
 
 describe("the questions a number cannot answer about itself", () => {

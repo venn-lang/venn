@@ -638,6 +638,32 @@ let dentro   = res.time < 300ms && res.size < 2mb
 let membro   = user.plan in ["pro", "enterprise"]
 ```
 
+### Contas entre momentos
+
+Um instante menos outro é uma duração: é a única conta entre dois momentos que
+tem resposta sem que se pergunte mais nada. Somar ou subtrair uma duração de um
+instante devolve outro instante, e dois instantes se comparam entre si.
+
+```venn
+const inicio = date.now()
+const fim    = date.now()
+
+print (fim - inicio)      # duração: quanto tempo passou
+print (inicio + 2h)       # instante
+print (fim > inicio)      # true
+```
+
+Qualquer outra combinação, um instante vezes dois ou um instante mais um número
+sem unidade, é recusada com VN3012, nomeando os dois lados.
+
+### O que `${}` escreve
+
+Um valor interpolado é escrito como se escreve na linguagem: uma lista sai como
+`[1, 2]`, um mapa como `{ hits: 0, name: "ada" }`, um instante como o texto ISO
+dele, e uma duração mantém a unidade (`300ms`). Texto no primeiro nível sai como
+está; dentro de uma lista ou de um mapa sai entre aspas, para que `["a", "b"]`
+se leia como dois valores e não como um. `null` sozinho não escreve nada, porque
+`add ${nome}` sem nome lê melhor como `add ` do que como `add null`.
 
 ---
 

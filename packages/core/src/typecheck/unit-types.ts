@@ -1,4 +1,4 @@
-import { combine, isUnitValue, type Numeric, parseNumber } from "../units/index.js";
+import { combine, isInstant, isUnitValue, type Numeric, parseNumber } from "../units/index.js";
 import { BOOL, NUMBER, prim, type Type } from "./type.types.js";
 
 /** One value of each kind, to ask `combine` what an operator does with them. */
@@ -7,6 +7,7 @@ const SAMPLES: Record<string, Numeric> = {
   duration: { kind: "duration", ms: 1 },
   size: { kind: "size", bytes: 1 },
   percent: { kind: "percent", ratio: 1 },
+  instant: { kind: "instant", epochMs: 1, iso: "1970-01-01T00:00:00.001Z" },
 };
 
 /** The type a NUMBER lexeme has: `200` is a number, `300ms` a duration, `2mb` a size. */
@@ -44,6 +45,6 @@ function sampleOf(type: Type): Numeric | undefined {
 
 function typeOfValue(value: Numeric | boolean): Type {
   if (typeof value === "boolean") return BOOL;
-  if (isUnitValue(value)) return prim(value.kind);
+  if (isUnitValue(value) || isInstant(value)) return prim(value.kind);
   return NUMBER;
 }

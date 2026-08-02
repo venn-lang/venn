@@ -33,6 +33,7 @@ import { checkMatch } from "./check-match.js";
 import { badPatternIn } from "./check-pattern.js";
 import { checkStatement } from "./check-stmts.js";
 import type { TypeContext } from "./context.js";
+import { ERROR_TYPE } from "./error-type.js";
 import type { ImportedType } from "./imported-types.js";
 import { either, logicalType } from "./logical-type.js";
 import { mergedCall } from "./merged-call.js";
@@ -367,8 +368,8 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
  */
 function inferTry(expr: ast.TryExpr, env: TypeEnv, infer: Infer): Type {
   const attempted = inferExpr(expr.attempt, env, infer);
-  // What `catch` binds is a failure, whose shape §16 settles rather than this.
-  const inner = expr.error ? env.with(expr.error, mono(DYNAMIC)) : env;
+  // What `catch` binds is a failure, whose shape the prelude settles.
+  const inner = expr.error ? env.with(expr.error, mono(ERROR_TYPE)) : env;
   const instead = inferExpr(expr.fallback, inner, infer);
   // A fallback that reads the failure has no type until the failure does, and
   // an expression half of which is unknown is unknown.

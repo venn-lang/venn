@@ -26,6 +26,7 @@ import { checkAction, checkCapture, checkLet } from "./check-calls.js";
 import { checkInsideDeco } from "./check-deco-body.js";
 import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
 import { checkEnv } from "./check-env.js";
+import { checkFailCode } from "./check-fail-code.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
 import { checkMixedOperators } from "./check-mixed-operators.js";
@@ -84,6 +85,7 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkUnbound(node, ctx),
     ...checkVerbCall(node, ctx),
     ...checkMixedOperators(node, ctx),
+    ...checkFailCode(node, ctx),
     ...checkDecoratorName(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];

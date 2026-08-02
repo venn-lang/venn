@@ -37,7 +37,41 @@ fn firstEven(xs) {
 const found = try firstEven([1, 3, 6]) else -1
 print "first even: ${found}"
 
-## The block form is still there, for where steps run rather than a value:
+## A failure of your own, with a code a caller can recognise and a payload it
+## can act on. `fail` alone raises `VN6002`, which says only that something did.
+fragment charge(order) {
+  if order.amount > 100 {
+    fail "over the limit for this card" { code: "pay.limit", data: { over: order.amount - 100 } }
+  }
+  print "charged ${order.amount}"
+}
+
+## What `catch` binds is the `error` type. It is opaque, like `regex`: the
+## members below are the whole of it, and `e.nowhere` is refused by `venn check`
+## rather than found at three in the morning.
+try {
+  run charge({ id: 7, amount: 500 })
+} catch e {
+  print "code:    ${e.code}"
+  print "message: ${e.message}"
+  print "over by: ${e.data.over}"
+}
+
+## Which is what lets one catch tell two failures apart.
+try {
+  run charge({ id: 8, amount: 900 })
+} catch e {
+  const next = e.code == "pay.limit" ? "try a smaller amount" : "give up"
+  print "next:    ${next}"
+}
+
+## Codes beginning `VN` belong to the language, so this is refused where it is
+## written:
+##
+##   fail "no" { code: "VN7010" }
+##   VN3022 · "VN7010" begins with VN, and those codes belong to the language.
+
+## The block form is still where steps run rather than where a value is wanted:
 ##
 ##   try {
 ##     step "Payment" { http.post "/api/pay" }

@@ -1536,6 +1536,51 @@ não encontrar um do kernel.
 
 O usuário escreveu um `.vn`. Mostrar a ele um stack trace do Playwright com trinta quadros de `node_modules` é transferir o seu problema para ele. A pilha primária é sempre em termos da linguagem; a pilha do runtime subjacente existe, mas vem colapsada, e serve para quando o bug é do plugin.
 
+### O que um `catch` recebe
+
+`Problem` acima é o que o **renderizador** lê. O que o **programa** lê é o tipo
+`error`, que a linguagem traz consigo e que é uma parte dele:
+
+```venn
+try {
+  run charge(order)
+} catch e {
+  print e.code       # "pay.declined", ou "VN6002" quando ninguém deu um
+  print e.message    # a linha, na voz do produto
+  print e.where      # "pedidos.vn:12:5", ou null
+  print e.help       # o que fazer, ou null
+  print e.docs       # o link, ou null
+  print e.data       # o que o `fail` anexou, ou null
+}
+```
+
+É opaco, como `regex`: `e.nenhures` é recusado pelo verificador, não descoberto
+às duas da manhã.
+
+O que **não** está lá é a pilha de flow. Ela guarda spans de arquivos que o
+programa pode nunca ter aberto, e entregá-la a um `catch` transforma uma falha
+numa janela para a run inteira em vez de um relato do que correu mal. `related`,
+`diff` e `artifacts` ficam de fora pelo mesmo motivo: existem para ser
+renderizados, não para se decidir sobre eles.
+
+### Uma falha com identidade
+
+`fail` leva um código e uma carga, senão uma biblioteca não consegue levantar
+uma falha que quem chama saiba distinguir:
+
+```venn
+fail "o cartão foi recusado" { code: "pay.declined", data: { pedido: id } }
+```
+
+Os códigos que começam por `VN` pertencem à linguagem: são catalogados,
+documentados e pesquisáveis, e um programa que levante `VN7010` para dizer outra
+coisa é um programa cujas falhas não se distinguem das da linguagem. É recusado
+com `VN3022`, onde está escrito, ou onde é levantado quando o código foi
+calculado. O resto é livre: sem registo, sem faixa a reclamar. `pay.declined`,
+`cart.empty`, o nome do que aconteceu.
+
+Sem código, `fail` levanta `VN6002`, que é um programa a recusar-se a si mesmo.
+
 
 ---
 

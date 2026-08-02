@@ -196,7 +196,7 @@ Estas são todas as palavras reservadas. Nada além disto entra na gramática, n
 
 | Grupo | Palavras | Papel |
 | --- | --- | --- |
-| Módulo | module use import from as pub | Identidade e fronteiras do arquivo |
+| Módulo | module import from as pub namespace | Identidade e fronteiras do arquivo |
 | Declaração | const let type fn fragment deco | Valores, formas e helpers |
 | Configuração | config env matrix report | Ambiente e saída da suíte |
 | Estrutura | flow step group | Unidades executáveis |
@@ -995,6 +995,7 @@ O que muda é a **forma**, não a palavra:
 | `import { Request } from "venn/http"` | um tipo, para anotar |
 | `import { retry } from "venn/http"` | um decorator, para `@retry` |
 | `import { User } from "./models.vn"` | valores de outro arquivo |
+| `import * as cart from "./cart"` | uma pasta inteira, como namespace |
 
 Verbo não se importa sozinho: ele pende do namespace, então
 `import { get } from "venn/http"` é recusado dizendo o que escrever no lugar. É a
@@ -1016,22 +1017,52 @@ import { stripe } from "@acme/stripe"
 import { User, Cart }        from "./models.vn"
 import { loginViaApi }       from "./lib/auth.vn"
 import { checkoutRapido }    from "@acme/fluxos-comuns"
-import baseline              from "./fixtures/orders.json"
 import * as helpers          from "./lib/helpers.vn"
 
-# reexportar para quem importar este módulo
-pub import { loginViaApi }
+# reexportar: quem importar este arquivo recebe o nome como se fosse dele
+pub import { loginViaApi } from "./lib/auth.vn"
+```
+
+Não existe importe padrão. Um módulo publica **por nome**, então
+`import baseline from "./orders.json"` é recusado com `VN2009`, dizendo as duas
+formas que existem: `{ baseline }` para um nome, `* as baseline` para o todo.
+Uma forma só de trazer uma coisa é uma pergunta a menos em toda revisão de
+código.
+
+### O que é um módulo
+
+Duas coisas, e só duas: **um arquivo**, e **uma pasta que tem um `mod.vn`**.
+
+```venn
+import { total } from "./cart.vn"    # o arquivo
+import { total } from "./cart"       # a pasta, através do mod.vn dela
+```
+
+O `mod.vn` é a cara da pasta: ele importa o que há lá dentro e republica o que a
+pasta oferece, então quem chama nomeia a pasta e nada mais, e a pasta pode
+arrumar-se por dentro sem que ninguém reescreva um caminho.
+
+```venn
+# cart/mod.vn
+pub import { total } from "./total.vn"
+pub import { withTax } from "./prices.vn"
 ```
 
 ### Resolução
 
+**Extensão significa arquivo, ausência de extensão significa pasta.** Não há
+cascata entre as duas: `./cart` procura `cart/mod.vn` e não tenta `cart.vn`
+depois, e `./cart.vn` lê o arquivo mesmo que exista uma pasta `cart` ao lado.
+Uma regra que tenta duas coisas em ordem é uma regra em que ninguém consegue
+apontar de onde veio o que foi lido.
+
 | Especificador | Resolve para |
 | --- | --- |
-| "@venn-lang/http" | Stdlib, embutida no runtime. Nunca vai à rede. |
-| "@acme/stripe" | Registry → `~/.venn/pkgs/@acme/stripe@1.2.0/`, travado no `venn.lock` |
-| "./lib/auth.vn" | Relativo ao arquivo atual |
-| "#shared/auth.vn" | Alias de caminho definido no `venn.toml` |
-| "./fixtures/orders.json" | Dado estático; vira valor tipado se houver `.d.vn` ao lado |
+| `"venn/http"` | Stdlib, embutida no runtime. Nunca vai à rede. |
+| `"@acme/stripe"` | Registry, `~/.venn/pkgs/@acme/stripe@1.2.0/`, travado no `venn.lock` |
+| `"./lib/auth.vn"` | O arquivo, relativo a este |
+| `"./lib/auth"` | A pasta, pelo `mod.vn` dela |
+| `"#shared/auth.vn"` | Alias de caminho declarado no `venn.toml` |
 
 ### Visibilidade
 
@@ -1084,7 +1115,45 @@ uma forma errada é recusada onde ela é escrita, do outro lado da fronteira. Um
 `pub const` é calculado no arquivo onde está, então um módulo que lê a constante
 de outro é preenchido depois dele.
 
-> **Regras duras.** Ciclos entre módulos são erro de compilação. Um arquivo tem exatamente um `module`. Colisão de namespace no import exige `as`, nada de resolução implícita por ordem.
+Um `pub import` republica: o nome sai deste arquivo como se tivesse sido
+declarado aqui, que é o que faz um `mod.vn` funcionar. E não conta como uso, por
+isso não vira dica de import por usar: passar o nome adiante **é** o uso dele.
+
+### Um nome ligado duas vezes
+
+O segundo ganhava, em silêncio, e é assim que um `const kit = { … }` depois de
+`import { kit }` toma conta de todo `kit.alguma_coisa` abaixo dele. Agora é
+`VN2020`, apontando os dois lugares:
+
+```
+VN2020 · "kit" já é o nome de algo neste arquivo.
+  help  Renomeie um dos dois, ou traga o primeiro sob outro nome com `as`.
+  see   arquivo.vn:1:1  `kit` é ligado aqui
+```
+
+Vale para import contra import, import contra binding, e binding contra
+binding. Colisão de namespace no import exige `as`; não há resolução implícita
+por ordem.
+
+### Ciclos são recusados
+
+Dois arquivos que se importam um ao outro são `VN2021`, com o círculo escrito por
+inteiro e a partir do arquivo em que o programa entrou.
+
+```
+VN2021 · Importar "./cy1.vn" aqui fecha um círculo.
+  help  Mova o que os dois precisam para um terceiro arquivo, e importe esse dos dois.
+```
+
+A razão é a ordem de avaliação, não pureza de desenho. Um `pub const` é
+calculado onde está escrito, no momento em que o módulo é preenchido, então dois
+módulos em círculo não têm ordem em que os dois estejam prontos: um deles lê o
+outro pela metade. Linguagens que aceitam ciclo pagam isso com um valor não
+inicializado em runtime, que aparece longe da causa. Recusar é a resposta curta,
+e mover o que os dois precisam para um terceiro arquivo é a correção que sempre
+funciona.
+
+Um arquivo tem exatamente um `module`.
 
 ### Namespace
 

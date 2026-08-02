@@ -31,3 +31,27 @@ fn card(name: string) -> map => {
 }
 
 print fmt.table(people.map(one => card(one)))
+
+## There is no default import. A module publishes by name, so there are two
+## spellings and not three:
+##
+##   import text from "./shared/text.vn"
+##   VN2009 · A `.vn` module publishes by name, so it has no default.
+##     help  Write `import { text } from "…"`, or `import * as text` for the whole of it.
+
+## A name is bound once. The second one used to win in silence, which is how a
+## `const fmt = { … }` under an import of `fmt` takes over every `fmt.something`
+## below it:
+##
+##   const slug = "taken"
+##   VN2020 · "slug" is already the name of something in this file.
+##     see   04-modules.vn:13:1  `slug` is bound here
+
+## Two files that import each other are refused, with the circle written out:
+##
+##   VN2021 · Importing "./a.vn" here closes a circle.
+##     help  Move what both need into another file, and import that from each.
+##
+## The reason is the order of evaluation rather than tidiness. A `pub const` is
+## computed where it stands, so two files in a circle have no order in which
+## both are ready: one of them reads the other half-built.

@@ -490,11 +490,12 @@ concurrency.
 
 ## Status
 
-Venn is pre-1.0 and moving quickly. The syntax is settling but is not frozen, and
-[`docs/known-gaps.md`](docs/known-gaps.md) is an honest list of where the
-specification and the implementation still disagree.
+Venn is pre-1.0 and moving quickly. The syntax is settling but is not frozen.
+[`docs/known-gaps.md`](docs/known-gaps.md) is where the specification and the
+implementation are recorded as disagreeing; it is empty today, which is a
+statement about what has been found rather than a promise.
 
-The suite runs green: build, typecheck, lint, and 1292 tests across 213 files.
+The suite runs green: build, typecheck, lint, and 2452 tests across 308 files.
 
 If you are here early, the most useful thing you can do is try it and say where
 it got in your way.

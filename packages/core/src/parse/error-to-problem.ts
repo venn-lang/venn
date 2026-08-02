@@ -5,6 +5,9 @@ import { bracketTheTry } from "./bracket-the-try.js";
 import { type Explained, removedKeyword } from "./removed-keyword.js";
 import { verbInAFn } from "./verb-in-a-fn.js";
 
+/** The length, in characters, of the word a relocated span points at: `try`. */
+const RELOCATED_LENGTH = 3;
+
 /** Structural view of a Chevrotain lexer error (avoids importing chevrotain). */
 interface LexerError {
   offset: number;
@@ -44,16 +47,40 @@ export function parserErrorToProblem(args: {
   uri: string;
   text?: string;
 }): Problem {
-  const t = args.error.token;
-  const span: Span = {
-    uri: args.uri,
-    offset: at(t.startOffset, 0),
-    length: t.image?.length ?? 1,
-    line: at(t.startLine, 1),
-    column: at(t.startColumn, 1),
-  };
   const said = titleFor(args);
+  const span = spanFor({ error: args.error, uri: args.uri, text: args.text, offset: said.offset });
   return buildProblem({ spec: said.spec, span, title: said.title });
+}
+
+/**
+ * Where to point the problem: the word an explainer relocated it to, once that
+ * offset is turned into a line and column, or the token the parser stopped at.
+ */
+function spanFor(args: {
+  error: RecognitionError;
+  uri: string;
+  text?: string;
+  offset?: number;
+}): Span {
+  const t = args.error.token;
+  if (args.offset === undefined || args.text === undefined) {
+    return {
+      uri: args.uri,
+      offset: at(t.startOffset, 0),
+      length: t.image?.length ?? 1,
+      line: at(t.startLine, 1),
+      column: at(t.startColumn, 1),
+    };
+  }
+  const { line, column } = locate(args.text, args.offset);
+  return { uri: args.uri, offset: args.offset, length: RELOCATED_LENGTH, line, column };
+}
+
+/** The 1-based line and column of an offset, for a span an explainer relocated. */
+function locate(text: string, offset: number): { line: number; column: number } {
+  const before = text.slice(0, offset);
+  const line = (before.match(/\n/g)?.length ?? 0) + 1;
+  return { line, column: offset - before.lastIndexOf("\n") };
 }
 
 /**
@@ -83,9 +110,9 @@ function titleFor(args: { error: RecognitionError; text?: string }): Explained {
   const offset = args.error.token.startOffset;
   // The purity of a `fn` comes first: inside one there are no arguments to
   // bracket, so the other two would explain a mistake nobody made.
+  const verb = verbInAFn({ text, offset });
+  if (verb) return { title: verb.title, spec: parsed, offset: verb.offset };
   const explained =
-    verbInAFn({ text, offset }) ??
-    bracketTheArgument({ operator: token, text, offset }) ??
-    bracketTheTry({ text, offset });
+    bracketTheArgument({ operator: token, text, offset }) ?? bracketTheTry({ text, offset });
   return { title: explained ?? args.error.message, spec: parsed };
 }

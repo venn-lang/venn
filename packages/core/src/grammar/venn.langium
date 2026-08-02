@@ -2,7 +2,10 @@ grammar Venn
 
 // Statements and declarations are separated by `NL` (a newline or `;`).
 // `NL` is suppressed inside `( )` and `[ ]` by the lexer, so calls, arg lists
-// and list literals may still span multiple physical lines.
+// and list literals may still span multiple physical lines. A `{ }` opened in
+// there gives the newline back, because a block has no other separator: a
+// function body written as an argument would otherwise be able to hold nothing
+// but the expression it returns.
 // Newlines follow each item rather than preceding it, so there is a single
 // leading `NL*` and no two unbounded newline consumers meet at a decision
 // point, which Chevrotain reports as ambiguous.
@@ -371,9 +374,8 @@ Primary infers Expr:
 // `=>` gives a value back and `{ … }` runs steps, which is the split `fn` and
 // `flow` already make: an arm written as steps has no value, and cannot stand
 // where one is wanted.
-// Arms are separated by a newline, or by a comma where the newlines were taken
-// away: inside `( )` the lexer drops them, the way it does for a map or a list,
-// and those separate with commas there too.
+// Arms are separated by a newline, or by a comma where the whole `match` is
+// written on one line, the way a map or a list takes either.
 MatchExpr infers MatchExpr:
     'match' subject=Expr '{' NL*
     (arms+=MatchArm ((',' | NL)+ arms+=MatchArm)* (',' | NL)*)? '}';

@@ -5,7 +5,8 @@ import type { Annotation, DecoDecl, Document, Expr, Param } from "../generated/a
 import { isAnnotation, isDecoDecl } from "../generated/ast.js";
 import type { Problem } from "../problem/index.js";
 import { checkBlock } from "./check-stmts.js";
-import { expect, type Infer, inferExpr } from "./infer.js";
+import { inferAgainst } from "./checked-against.js";
+import { expect, type Infer } from "./infer.js";
 import { mono } from "./scheme.js";
 import { DYNAMIC, type Type } from "./type.types.js";
 import { emptyEnv, type TypeEnv } from "./type-env.js";
@@ -150,7 +151,9 @@ function checkArgs(annotation: Annotation, decl: DecoDecl, args: Uses): Problem[
 
 function checkArg(value: Expr, param: Param | undefined, infer: Infer): void {
   if (!param) return;
-  expect(infer, value, inferExpr(value, emptyEnv(), infer), decoParamType(param, infer));
+  const wanted = decoParamType(param, infer);
+  const env = emptyEnv();
+  expect(infer, value, inferAgainst({ expr: value, env, infer, wanted }), wanted);
 }
 
 function arityProblem(args: {

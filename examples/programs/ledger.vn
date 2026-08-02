@@ -18,19 +18,22 @@ const SAMPLE = '[
   { "who": "cleo",  "category": "sabbatical",    "amount": 3000.0, "note": null }
 ]'
 
-fn claimsFrom(text: string) {
-  const read = try json.parse(text) else null
-  if read == null {
-    fail "the claims are not JSON" { code: "ledger.unreadable" }
-  }
-  return read
-}
+## What the text held, or no claims at all when it was not JSON.
+##
+## A `fn` is pure at every depth of its body, so a text nobody can read gets a
+## value back and never a `fail`: refusing is a verb, and a verb belongs where
+## the program reaches the world, which is below.
+fn claimsFrom(text: string) => try json.parse(text) else []
 
 ## Two decimals and a symbol, which is the whole of what this report needs from
 ## money and less than a currency library would insist on knowing.
 fn money(amount: number) -> string => "EUR ${amount.toFixed(2)}"
 
 const claims = claimsFrom(SAMPLE)
+if claims.len == 0 {
+  fail "there are no claims to report on" { code: "ledger.unreadable" }
+}
+
 const lines = byCategory(claims)
 const totals = summarise(lines)
 

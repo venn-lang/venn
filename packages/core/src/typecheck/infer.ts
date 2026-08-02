@@ -9,9 +9,6 @@ import type {
   FnBody,
   FragmentDecl,
   Index,
-  ListLit,
-  MapEntry,
-  MapLit,
   Member,
   Param,
   ParamList,
@@ -34,6 +31,7 @@ import type { TypeCatalog } from "./catalog.types.js";
 import { checkMatch } from "./check-match.js";
 import { badPatternIn } from "./check-pattern.js";
 import { checkStatement } from "./check-stmts.js";
+import { inferAgainst, inferList, inferMap } from "./checked-against.js";
 import type { TypeContext } from "./context.js";
 import { ERROR_TYPE } from "./error-type.js";
 import { fits } from "./fits.js";
@@ -43,7 +41,6 @@ import { mergedCall } from "./merged-call.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
-import { emptyPour, pour, shapeOf } from "./poured-into.js";
 import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
@@ -52,7 +49,6 @@ import {
   BOOL,
   DYNAMIC,
   fn,
-  list,
   NULL,
   NUMBER,
   STRING,
@@ -133,9 +129,9 @@ function inferKind(expr: Expr, env: TypeEnv, infer: Infer): Type {
     case "Ternary":
       return inferTernary(expr, env, infer);
     case "ListLit":
-      return inferList(expr, env, infer);
+      return inferList({ expr, env, infer });
     case "MapLit":
-      return inferMap(expr, env, infer);
+      return inferMap({ expr, env, infer });
     case "FnExpr":
       return inferFn({ params: expr.params, body: expr.body, returns: expr.returns }, env, infer);
     case "MatchExpr":
@@ -348,7 +344,7 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
   const verb = verbCall(expr, env, infer);
   if (verb) return verb;
   const callee = prune(inferExpr(expr.callee, env, infer));
-  const args = (expr.args?.args ?? []).map((arg) => inferExpr(arg.value, env, infer));
+  const args = inferArgs({ expr, callee, env, infer });
   if (callee.kind === "dynamic") return DYNAMIC;
   // Worked out from what it was handed, which no signature could have said.
   const merged = mergedCall({ expr, args, infer });
@@ -367,6 +363,26 @@ function inferCall(expr: Call, env: TypeEnv, infer: Infer): Type {
     unify(callee, fn(args, result));
   }
   return result;
+}
+
+/**
+ * Every argument, each told what the callee asks for in its place.
+ *
+ * A literal is written to be one thing in particular, and the parameter is where
+ * the call says which: without it a list of records written at a call site is
+ * checked against its own first row rather than against what it is being handed
+ * to.
+ */
+function inferArgs(args: { expr: Call; callee: Type; env: TypeEnv; infer: Infer }): Type[] {
+  const { expr, callee, env, infer } = args;
+  return (expr.args?.args ?? []).map((arg, at) =>
+    inferAgainst({ expr: arg.value, env, infer, wanted: paramAt(callee, at) }),
+  );
+}
+
+/** What a callee says the argument in one position is, when it says anything. */
+function paramAt(callee: Type, at: number): Type | undefined {
+  return callee.kind === "fn" ? callee.params[at] : undefined;
 }
 
 /**
@@ -476,51 +492,6 @@ function inferTernary(expr: Ternary, env: TypeEnv, infer: Infer): Type {
 }
 
 /**
- * A list literal. Every item is the same type, and a `...` pours in a list of
- * that same type, which is the only thing it could pour in.
- */
-function inferList(expr: ListLit, env: TypeEnv, infer: Infer): Type {
-  const element = infer.ctx.fresh() as Type;
-  for (const item of expr.items) {
-    const type = inferExpr(item.value, env, infer);
-    expect(infer, item.value, type, item.spread ? list(element) : element);
-  }
-  return list(element);
-}
-
-/**
- * A map literal, field by field, with a `...` pouring another map's fields in
- * where it is written. Later wins, so a key after a spread is the one that
- * counts, and a spread of something whose shape nobody knows leaves the whole
- * literal unknown: any field could be the one it overwrote.
- */
-function inferMap(expr: MapLit, env: TypeEnv, infer: Infer): Type {
-  const into = emptyPour();
-  for (const entry of expr.entries) {
-    const type = inferExpr(entry.value, env, infer);
-    if (!entry.spread) {
-      into.fields.set(entry.key as string, type);
-    } else if (!pour(into, type)) {
-      return notAMap(entry, type, infer);
-    }
-  }
-  return shapeOf(into);
-}
-
-/** A `...` of something that is not a map, said where it can still be helped. */
-function notAMap(entry: MapEntry, type: Type, infer: Infer): Type {
-  const held = prune(type);
-  if (held.kind === "dynamic" || held.kind === "var") return DYNAMIC;
-  infer.ctx.mismatches.push({
-    node: entry,
-    expected: held,
-    actual: DYNAMIC,
-    note: "is not a map, so it cannot be poured into one",
-  });
-  return DYNAMIC;
-}
-
-/**
  * What a parameter is: what it was annotated with, what the callers said, or an
  * open question for the body to answer.
  */
@@ -580,7 +551,7 @@ function declaredResult(
  * That last expression may be missing, in two ways that look alike and are not:
  * a half-written `fn` is the normal state of a file being edited, and a body
  * that ends in `return` is finished. Both read as unknown here, and what a
- * `return` gives back is settled by the check below rather than by guessing.
+ * `return` gives back is settled by {@link returned} rather than by guessing.
  */
 function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
   let scope = env;
@@ -588,16 +559,22 @@ function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
   const ending = body.result ? inferExpr(body.result, scope, infer) : undefined;
   const left = returned(body, scope, infer);
   if (!ending) return left ?? DYNAMIC;
-  if (left) expect(infer, body.result as Expr, ending, left);
-  return ending;
+  return left ? either(ending, left) : ending;
 }
 
 /**
  * What every `return` in the body hands back, as one type.
  *
- * A function with two of them has to agree with itself, and one that also ends
- * in an expression has to agree with that: three ways out of one function are
- * still one type coming back.
+ * The ways out are not asked to agree with each other, any more than the two
+ * sides of a `try` are. Answering with a value or with nothing is what a lookup
+ * does, and a block with two `return`s is how anybody writes one; measuring the
+ * second against the type of the first refused that outright. So they make a
+ * union, and {@link either} keeps ways out that do agree as the one type they
+ * are rather than a union of a thing with itself.
+ *
+ * An annotation still decides. {@link declaredResult} checks this against it,
+ * and `fits` lets a union through only when every member of it is allowed, so
+ * `-> string` still refuses the body that may hand back nothing.
  */
 function returned(body: FnBody, env: TypeEnv, infer: Infer): Type | undefined {
   const found = returnsIn(body.stmts).map((stmt) =>
@@ -605,8 +582,7 @@ function returned(body: FnBody, env: TypeEnv, infer: Infer): Type | undefined {
   );
   const first = found[0];
   if (!first) return undefined;
-  for (const one of found.slice(1)) expect(infer, body, one, first);
-  return first;
+  return found.slice(1).reduce((left, right) => either(left, right), first);
 }
 
 /** Every `return` the body holds, at any depth, in written order. */

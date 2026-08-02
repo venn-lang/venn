@@ -7,7 +7,6 @@
 # stops.
 
 import { fmt } from "venn/fmt"
-import { json } from "venn/json"
 import { math } from "venn/math"
 
 ## What a term is worth, and it has to come to one.
@@ -23,19 +22,18 @@ namespace scheme {
   ## A `fn` is pure: it decides, binds, loops and gives a value back, and it
   ## does not reach the world. So the answer here is a value, and the program
   ## below is what refuses. Everything this needs to say fits in one.
-  ## Written as a fold rather than as a block with two exits, because a block
-  ## cannot answer "a value or nothing": its `return`s are unified with each
-  ## other, so the second is measured against the type of the first (#223).
-  pub fn problemWith(row) => parts().reduce(
-    (found, part) => found ?? wrongWith(row.marks[part], part),
-    null
-  )
-
-  fn wrongWith(mark, part) => mark == null ? "no ${part}" : outOfRange(mark, part)
-
-  fn outOfRange(mark, part) => tooFar(mark) ? "${part} is ${mark}, not a percentage" : null
-
-  fn tooFar(mark) => mark < 0 || mark > 100
+  pub fn problemWith(row) {
+    forEach part in parts() {
+      const mark = row.marks[part]
+      if mark == null {
+        return "no ${part}"
+      }
+      if mark < 0 || mark > 100 {
+        return "${part} is ${mark}, not a percentage"
+      }
+    }
+    return null
+  }
 
   ## The weighted average of a row that `problemWith` had nothing to say about.
   pub fn average(marks) -> number {
@@ -65,17 +63,20 @@ namespace scheme {
   }
 }
 
+## One row per student, and the marks are a `map<number>` rather than a shape
+## with three fields: a row that is missing a component is the point of the
+## program, so a type that demanded all three would refuse the interesting one.
+type Row = { who: string, marks: map<number> }
+
 ## What the teachers filed, as it arrives: one file, four hands, and no promise
 ## that every row has every component.
-const FILED = '[
-  { "who": "ada",     "marks": { "homework": 95, "midterm": 88,  "final": 92 } },
-  { "who": "grace",   "marks": { "homework": 78, "midterm": 91,  "final": 85 } },
-  { "who": "alan",    "marks": { "homework": 88, "midterm": 110, "final": 90 } },
-  { "who": "edsger",  "marks": { "homework": 70, "midterm": 65 } },
-  { "who": "barbara", "marks": { "homework": 99, "midterm": 97,  "final": 98 } }
-]'
-
-const TERM = try json.parse(FILED) else []
+const TERM: list<Row> = [
+  { who: "ada",     marks: { homework: 95, midterm: 88,  final: 92 } },
+  { who: "grace",   marks: { homework: 78, midterm: 91,  final: 85 } },
+  { who: "alan",    marks: { homework: 88, midterm: 110, final: 90 } },
+  { who: "edsger",  marks: { homework: 70, midterm: 65 } },
+  { who: "barbara", marks: { homework: 99, midterm: 97,  final: 98 } }
+]
 
 fn scored(row) {
   const wrong = scheme.problemWith(row)

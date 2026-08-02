@@ -3,6 +3,7 @@ import type { Problem, Span } from "../problem/index.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
 import { bracketTheTry } from "./bracket-the-try.js";
 import { type Explained, removedKeyword } from "./removed-keyword.js";
+import { verbInAFn } from "./verb-in-a-fn.js";
 
 /** Structural view of a Chevrotain lexer error (avoids importing chevrotain). */
 interface LexerError {
@@ -80,7 +81,11 @@ function titleFor(args: { error: RecognitionError; text?: string }): Explained {
   const parsed = CODES.VN1002_PARSE;
   if (text === undefined) return { title: args.error.message, spec: parsed };
   const offset = args.error.token.startOffset;
+  // The purity of a `fn` comes first: inside one there are no arguments to
+  // bracket, so the other two would explain a mistake nobody made.
   const explained =
-    bracketTheArgument({ operator: token, text, offset }) ?? bracketTheTry({ text, offset });
+    verbInAFn({ text, offset }) ??
+    bracketTheArgument({ operator: token, text, offset }) ??
+    bracketTheTry({ text, offset });
   return { title: explained ?? args.error.message, spec: parsed };
 }

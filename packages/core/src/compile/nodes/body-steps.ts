@@ -27,7 +27,12 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   if (ast.isRepeatStmt(stmt)) return repeatStep(stmt, scope, compile);
   if (ast.isLoopStmt(stmt)) return loopStep(stmt, scope, compile);
   if (ast.isBreakStmt(stmt)) return () => BROKE;
-  return () => WENT_ON;
+  if (ast.isContinueStmt(stmt)) return () => WENT_ON;
+  // Everything a pure body may hold is named above, and the grammar holds it to
+  // that at every depth. Anything else stands still rather than stopping the
+  // block: a statement nobody compiled must not be able to end the body, which
+  // is what made a verb inside an `if` answer `null` and print nothing.
+  return () => RAN;
 }
 
 /**
@@ -161,13 +166,21 @@ function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: un
   };
 }
 
+/**
+ * `repeat n as i { … }`.
+ *
+ * `as` names the pass, and a pass is counted from one: the first time round is
+ * pass one, here and in the scheduler alike. Counting the passes rather than the
+ * offsets is also what makes a fractional count run the whole passes it asks for
+ * and no more, since the last one it could finish is the one at `n` rounded down.
+ */
 function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): Step {
   const count = compile(stmt.count, scope);
   const body = blockSteps(stmt.body, scope, compile);
   const slot = stmt.index ? scope.names.indexOf(stmt.index) : -1;
   return (frame) => {
     const times = Number(count(frame)) || 0;
-    for (let at = 0; at < times; at += 1) {
+    for (let at = 1; at <= times; at += 1) {
       if (slot !== -1) writeSlot(frame, slot, at);
       const stopped = runSteps(body, frame);
       if (stopped === LEFT) return LEFT;

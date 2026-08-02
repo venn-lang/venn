@@ -1,0 +1,119 @@
+# The tower, tested against services it stands up itself.
+# Run: venn test examples/programs/watchtower/tests.vn
+#
+# Two servers on ports the operating system picks, plus one address nobody is
+# listening on, which is the case that matters and the one a live environment
+# will not produce on demand.
+
+import { equals } from "venn/assert"
+import { http } from "venn/http"
+import { allWell, judged, probe, probeAll, shortened, tally, troubled, verdictOf } from "./watch"
+
+const good = http.serve { port: 0 }
+defer { good.close() }
+http.on good req => { status: 200, body: { ok: true } }
+
+const broken = http.serve { port: 0 }
+defer { broken.close() }
+http.on broken req => { status: 503, body: { ok: false } }
+
+const HEALTHY = { name: "checkout", url: "http://127.0.0.1:${good.port}/health" }
+const FAILING = { name: "billing", url: "http://127.0.0.1:${broken.port}/health" }
+const SILENT = { name: "search", url: "http://127.0.0.1:1/health" }
+
+flow "One service, asked once" {
+  step "a service that answers is up" {
+    run probe(HEALTHY) as result
+    expect result.status == 200
+    expect verdictOf(result) equals "up"
+  }
+
+  step "a service that answers badly is failing, not down" {
+    run probe(FAILING) as result
+    expect result.status == 503
+    expect verdictOf(result) equals "failing"
+  }
+
+  ## The distinction the whole report turns on: running and wrong is not the
+  ## same as not running, and whoever is woken at four in the morning needs to
+  ## know which of the two they are looking at.
+  step "a service that never answers is down, with no status at all" {
+    run probe(SILENT) as result
+    expect result.status == null
+    expect verdictOf(result) equals "down"
+  }
+
+  step "a probe never refuses, however badly it went" {
+    run probe(SILENT) as result
+    expect result.name equals "search"
+    expect result.note != ""
+  }
+}
+
+flow "The whole board" {
+  run probeAll([HEALTHY, FAILING, SILENT], 4) as results
+
+  step "one row per service" {
+    expect results.len == 3
+  }
+
+  ## Three checks in flight finish in whatever order the network decides, and a
+  ## board whose rows moved between runs would be a board nobody could compare.
+  step "in the order they were asked for" {
+    expect results.map((one) => one.name) equals ["checkout", "billing", "search"]
+  }
+
+  step "the tally counts each verdict once" {
+    const counts = tally(results)
+    expect counts.up == 1
+    expect counts.failing == 1
+    expect counts.down == 1
+  }
+
+  step "everything being well is one question, not three" {
+    expect !allWell(results)
+    expect troubled(results).map((one) => one.name) equals ["billing", "search"]
+  }
+}
+
+flow "A board where nothing is wrong" {
+  run probeAll([HEALTHY, HEALTHY], 2) as results
+
+  step "says so" {
+    expect allWell(results)
+    expect troubled(results).isEmpty
+    expect tally(results).up == 2
+  }
+}
+
+flow "Judging, without a server at all" {
+  step "a verdict is read off the status and nothing else" {
+    expect verdictOf({ name: "a", url: "u", status: 204, note: "" }) equals "up"
+    expect verdictOf({ name: "a", url: "u", status: 301, note: "" }) equals "up"
+    expect verdictOf({ name: "a", url: "u", status: 404, note: "" }) equals "failing"
+    expect verdictOf({ name: "a", url: "u", status: 500, note: "" }) equals "failing"
+    expect verdictOf({ name: "a", url: "u", status: null, note: "" }) equals "down"
+  }
+
+  step "judged rows carry the verdict beside the answer" {
+    const rows = judged([{ name: "a", url: "http://x/y", status: 200, note: "" }])
+    expect rows.first.verdict equals "up"
+    expect rows.first.status == 200
+  }
+
+  step "an empty board is well, and has nothing to report" {
+    expect allWell([])
+    expect tally([]).down == 0
+  }
+}
+
+flow "The name a column shows" {
+  step "an address without its scheme" {
+    expect shortened("https://example.com/health") equals "example.com/health"
+    expect shortened("http://127.0.0.1:8080/") equals "127.0.0.1:8080/"
+  }
+
+  step "something that is not an address is left as it is" {
+    expect shortened("checkout") equals "checkout"
+  }
+}

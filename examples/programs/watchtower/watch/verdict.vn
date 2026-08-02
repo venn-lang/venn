@@ -1,0 +1,87 @@
+## What a check answered, and what to make of it.
+##
+## Pure, and it never learns whether the answer came from a network or from a
+## fixture. That is the whole reason `tests.vn` can hold sixteen assertions
+## about the judgement without standing anything up.
+module examples.programs.watchtower.verdict
+
+## One service, as the tower was told to watch it.
+pub type Watch = { name: string, url: string }
+
+## What one check came back with.
+##
+## `status` is nothing when there was no answer at all, which is a different
+## thing from a bad answer and is the distinction the whole report turns on.
+pub type Result = {
+  name: string,
+  url: string,
+  status: number | null,
+  note: string
+}
+
+## The three things a check can be.
+##
+## Strings rather than an enum because the language has no enum, and the words
+## are what a person reads anyway.
+pub const UP = "up"
+pub const FAILING = "failing"
+pub const DOWN = "down"
+
+## What to make of one answer.
+##
+## A service that answered 500 and a service that answered nothing are told
+## apart on purpose: the first is running and wrong, the second is not running.
+## Whoever is woken at four in the morning needs to know which.
+##
+## Two levels of nesting for one question, because narrowing does not reach a
+## guard clause and does not survive into a `return`'s expression (#238). The
+## flat way to write this is refused today.
+pub fn verdictOf(result: Result) -> string {
+  const status = result.status
+  if status != null {
+    if status >= 200 && status < 400 {
+      return UP
+    }
+    return FAILING
+  }
+  return DOWN
+}
+
+## Every result with its verdict, in the order they were asked for.
+pub fn judged(results: list<Result>) -> list<map> => results.map((result) => {
+  name: result.name,
+  url: result.url,
+  status: result.status,
+  verdict: verdictOf(result),
+  note: result.note
+})
+
+## How many of each, for the line under the table.
+pub fn tally(results: list<Result>) -> map<number> {
+  let counts = { up: 0, failing: 0, down: 0 }
+  forEach result in results {
+    const verdict = verdictOf(result)
+    counts[verdict] = counts[verdict] + 1
+  }
+  return counts
+}
+
+## Whether anything is wrong, which is what an operator actually asked.
+pub fn allWell(results: list<Result>) -> bool => results.every((result) => verdictOf(result) == UP)
+
+## The ones worth reading first: everything that is not up.
+pub fn troubled(results: list<Result>) -> list<Result> => results.filter(isTroubled)
+
+fn isTroubled(result: Result) -> bool => verdictOf(result) != UP
+
+## A URL cut down to the part that identifies the service.
+##
+## The tower is given full addresses and prints a table, and a column of
+## `http://127.0.0.1:52413/health` is a column nobody reads.
+pub fn shortened(url: string) -> string {
+  const withoutScheme = url.after("://")
+  if withoutScheme == "" {
+    return url
+  }
+  return withoutScheme
+}

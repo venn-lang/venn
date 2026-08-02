@@ -1,0 +1,89 @@
+# The marking scheme, asked about the rows it is meant to refuse.
+# Run: venn test examples/programs/gradebook/tests.vn
+
+import { equals } from "venn/assert"
+import { scheme } from "./marks"
+
+fn rowOf(marks) => { who: "somebody", marks: marks }
+
+const WHOLE = { homework: 90, midterm: 80, final: 70 }
+
+flow "What the scheme is made of" {
+  step "three components, and they come to one" {
+    expect scheme.parts() equals ["homework", "midterm", "final"]
+
+    let total = 0
+    forEach part in scheme.parts() {
+      total = total + scheme.weightOf(part)
+    }
+    expect total == 1
+  }
+}
+
+flow "A row that can be graded" {
+  step "has nothing wrong with it" {
+    expect scheme.problemWith(rowOf(WHOLE)) == null
+  }
+
+  step "and averages by the weights, not by the count" {
+    expect scheme.average(WHOLE) == 77
+  }
+
+  ## The point of weighting: the same three numbers in a different order are a
+  ## different average, and an unweighted mean would give 80 for both.
+  step "so the order the components carry matters" {
+    expect scheme.average({ homework: 70, midterm: 80, final: 90 }) == 83
+  }
+}
+
+flow "A row that cannot" {
+  ## `problemWith` answers a value rather than refusing, because a `fn` is pure.
+  ## Refusing is what the program does with the answer, one level up.
+  step "a missing component is named, not averaged around" {
+    const said = scheme.problemWith(rowOf({ homework: 70, midterm: 65 }))
+
+    expect said equals "no final"
+  }
+
+  step "a mark outside the range says which mark and what it was" {
+    const said = scheme.problemWith(rowOf({ homework: 88, midterm: 110, final: 90 }))
+
+    expect said equals "midterm is 110, not a percentage"
+  }
+
+  step "and a negative one is refused the same way" {
+    const said = scheme.problemWith(rowOf({ homework: -1, midterm: 80, final: 70 }))
+
+    expect said equals "homework is -1, not a percentage"
+  }
+
+  step "the first thing wrong is the thing reported, in the order the parts run" {
+    const said = scheme.problemWith(rowOf({ midterm: 200 }))
+
+    expect said equals "no homework"
+  }
+
+  step "a row with nothing in it at all" {
+    expect scheme.problemWith(rowOf({})) equals "no homework"
+  }
+}
+
+flow "The letter a number earns" {
+  step "each band" {
+    expect scheme.letter(95) equals "A"
+    expect scheme.letter(85) equals "B"
+    expect scheme.letter(75) equals "C"
+    expect scheme.letter(65) equals "D"
+    expect scheme.letter(20) equals "F"
+  }
+
+  ## The edges are where a ladder of ranges goes wrong, so they are the ones
+  ## worth writing down.
+  step "and its edges, which are the part that goes wrong" {
+    expect scheme.letter(90) equals "A"
+    expect scheme.letter(89.9) equals "B"
+    expect scheme.letter(60) equals "D"
+    expect scheme.letter(59.9) equals "F"
+    expect scheme.letter(0) equals "F"
+  }
+}

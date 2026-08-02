@@ -1,12 +1,12 @@
 # An expense report: claims in, what the company pays out.
-# Run: venn run examples/programs/ledger.vn
+# Run: venn run examples/programs/ledger/main.vn
 #
-# The whole program is here; what it knows about money is in `./ledger`, which
+# The whole program is here; what it knows about money is in `./policy`, which
 # is a folder and reads as one name.
 
 import { fmt } from "venn/fmt"
 import { json } from "venn/json"
-import { byCategory, policy, summarise } from "./ledger"
+import { byCategory, policy, summarise } from "./policy"
 
 ## The claims a run works on, as they arrive: text nobody promised was JSON.
 const SAMPLE = '[

@@ -1,0 +1,35 @@
+# Whose turn it is to run standup, and when it lands where each person is.
+# Run: venn run examples/programs/standup/main.vn
+#
+# A rota is trivial arithmetic until timezones are in it. The team is in three
+# of them, the meeting is at one instant, and every person needs the wall clock
+# they will actually read.
+
+import { date } from "venn/date"
+import { fmt } from "venn/fmt"
+import { FIRST, localDay, localTime, meetingAt, nextAfter, rowAt, turnAt } from "./rota"
+
+const MEETINGS = 6
+
+print "Standup rota"
+print ""
+
+## `repeat … as` counts the passes from one, so the first meeting is pass one
+## and the arithmetic takes the pass minus one.
+let rows = []
+repeat MEETINGS as pass {
+  rows = rows.push(rowAt(pass - 1))
+}
+
+print fmt.table(rows)
+
+## What a name nobody recognises does, which is end the run at the mistake
+## rather than three lines later with an empty cell.
+print ""
+const said = try localTime(FIRST, "Mars/Olympus") catch e => "${e.message} (${e.code})"
+print "a zone nobody has: ${said}"
+
+const nowish: instant = date.of({ year: 2026, month: 8, day: 20 })
+const next = nextAfter(nowish, MEETINGS)
+print ""
+print "after ${localDay(nowish, 'UTC')}, next is ${turnAt(next).who} on ${localDay(meetingAt(next), 'UTC')}"

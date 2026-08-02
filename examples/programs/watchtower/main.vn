@@ -1,0 +1,102 @@
+# A watchtower: ask a list of services whether they are alive, all at once.
+#
+# Run: venn run examples/programs/watchtower/main.vn
+#      venn run examples/programs/watchtower/main.vn https://example.com https://example.com/nope
+#
+# Given addresses it watches those. Given none it stands three services of its
+# own up, one healthy, one broken and one that is not listening at all, and
+# watches those instead. So the demonstration runs offline and the program is
+# still a real one: nothing about the checking knows which of the two it is.
+
+import { fmt } from "venn/fmt"
+import { http } from "venn/http"
+import { io } from "venn/io"
+import { allWell, firstOf, judged, probeAll, shortened, tally, troubled } from "./watch"
+
+## How many checks are in flight at once.
+##
+## Eight is polite against a fleet and rude against one box, which is why it is
+## a number here rather than a constant buried in the loop.
+const AT_ONCE = 4
+
+## What the tower was told to watch, if anything.
+const given = io.args()
+
+if given.len > 0 {
+  run watch(given.map(named))
+} else {
+  run demonstrate()
+}
+
+## An address on the command line, given a name to show it by.
+fn named(url: string) -> map => { name: shortened(url), url: url }
+
+## The board, and the line under it.
+fragment watch(watches) {
+  run probeAll(watches, AT_ONCE) as results
+
+  print fmt.table(judged(results).map(row))
+  print ""
+
+  const counts = tally(results)
+  print "${counts.up} up, ${counts.failing} failing, ${counts.down} down"
+
+  ## What an operator actually asked, said in one line at the bottom rather than
+  ## left for them to work out from the table.
+  if allWell(results) {
+    print "everything is answering"
+  } else {
+    io.eprint("")
+    forEach bad in troubled(results) {
+      io.eprint("${bad.name}: ${bad.note}")
+    }
+  }
+}
+
+## One row of the board, with the empty status of something that never answered
+## written as a dash rather than as nothing at all.
+fn row(one: map) -> map => {
+  service: one.name,
+  status: one.status ?? "-",
+  verdict: one.verdict
+}
+
+## Three services of the tower's own, so the program demonstrates itself.
+##
+## The point of the third is that it is not listening: a watchtower that only
+## ever meets services which answer has never been tested on the day it matters.
+fragment demonstrate() {
+  const good = http.serve { port: 0 }
+  defer { good.close() }
+  http.on good req => { status: 200, body: { ok: true } }
+
+  const broken = http.serve { port: 0 }
+  defer { broken.close() }
+  http.on broken req => { status: 503, body: { ok: false } }
+
+  print "No addresses given, so three of my own:"
+  print ""
+
+  run watch([
+    { name: "checkout", url: "http://127.0.0.1:${good.port}/health" },
+    { name: "billing", url: "http://127.0.0.1:${broken.port}/health" },
+    { name: "search", url: "http://127.0.0.1:1/health" }
+  ])
+
+  print ""
+  run mirrors(good, broken)
+}
+
+## The same service behind two addresses, and only the first answer wanted.
+##
+## `race` keeps the branch that settles first and stops the other at its next
+## statement boundary. The question a mirror pair asks is whether anybody is
+## serving, and waiting for the slower one to agree buys nothing.
+fragment mirrors(good, broken) {
+  run firstOf(
+    { name: "eu-west", url: "http://127.0.0.1:${good.port}/health" },
+    { name: "us-east", url: "http://127.0.0.1:${broken.port}/health" }
+  ) as winner
+
+  print "mirrors: ${winner.name} answered first with ${winner.status ?? '-'}"
+}

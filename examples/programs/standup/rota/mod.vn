@@ -1,0 +1,2 @@
+## The face of the folder: the rota, and the words for reading it.
+pub import { FIRST, localDay, localTime, meetingAt, nextAfter, rowAt, TEAM, turnAt, WEEK } from "./schedule.vn"

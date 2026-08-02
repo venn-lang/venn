@@ -1,11 +1,11 @@
 # The tests for the ledger next door.
-# Run: venn test examples/programs/ledger-tests.vn
+# Run: venn test examples/programs/ledger/tests.vn
 #
 # The same folder the program imports, exercised the way the language was built
 # to exercise things. A `flow` is what runs, a `step` is what a report shows,
 # and a `fragment` is what two flows have in common.
 
-import { byCategory, policy, summarise } from "./ledger"
+import { byCategory, policy, summarise } from "./policy"
 
 ## One claim, written where a test can read it. Every flow below starts from
 ## these rather than from a literal, so a change to the shape is one edit.

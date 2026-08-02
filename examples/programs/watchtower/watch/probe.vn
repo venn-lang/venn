@@ -1,0 +1,97 @@
+## Everything in the tower that touches the network.
+##
+## `verdict.vn` decides what an answer means; this only goes and gets one. A
+## `fn` could not do it, and that is the line the folder is split along.
+module examples.programs.watchtower.probe
+
+import { http } from "venn/http"
+import { Result, Watch } from "./verdict.vn"
+
+## One service, asked once.
+##
+## Never refuses. A watchtower whose own check throws is a watchtower that stops
+## at the first service that is down, which is the one moment it exists for. So
+## a refusal becomes a `Result` with no status, and the caller reads the whole
+## board rather than a stack trace about the first row of it.
+pub fragment probe(one: Watch) -> Result {
+  try {
+    const res = http.get one.url
+    return { name: one.name, url: one.url, status: res.status, note: reason(res) }
+  } catch e {
+    return { name: one.name, url: one.url, status: null, note: e.message }
+  }
+}
+
+## What to write beside a status that is not a plain success.
+fn reason(res) -> string => (
+  res.ok ? ""
+  : res.status == 404 ? "no such path"
+  : res.status >= 500 ? "the service answered badly"
+  : "refused"
+)
+
+## The whole board, several at a time.
+##
+## `atOnce` is a knob rather than a constant because the right number is a
+## property of the thing being watched: eight is polite against a fleet and rude
+## against one box. The answers are put back in the order they were asked for,
+## since a board whose rows moved between runs is a board nobody can compare.
+pub fragment probeAll(watches: list<Watch>, atOnce: number) -> list<Result> {
+  let done = []
+  forEach one in numbered(watches) { concurrency: atOnce } {
+    run probe(one.watch) as result
+    done = done.push({ at: one.at, result: result })
+  }
+  return done.sortBy((row) => row.at).map((row) => row.result)
+}
+
+## The first of two mirrors to answer, with the other cancelled.
+##
+## `race` keeps the branch that settles first and stops the rest at their next
+## statement boundary. It is what you want from a service that is behind two
+## addresses: the question is whether *anybody* is serving, and waiting for the
+## slower one to agree buys nothing.
+pub fragment firstOf(primary: Watch, mirror: Watch) -> Result {
+  let answer = null
+  race {
+    step "primary" {
+      run probe(primary) as one
+      answer = one
+    }
+    step "mirror" {
+      run probe(mirror) as one
+      answer = one
+    }
+  }
+  return answer
+}
+
+## A settled board, checked all at once rather than one after another.
+##
+## `parallel` is the explicit form: named branches, written out, running
+## together. `onError: "collect"` lets the siblings finish and reports every
+## failure rather than cancelling them at the first, which for a status board is
+## the only setting that makes sense.
+pub fragment sweep(watches: list<Watch>) -> map {
+  let board = []
+  let checked = 0
+  parallel { onError: "collect" } {
+    step "ask everybody" {
+      run probeAll(watches, watches.len) as results
+      board = results
+    }
+    step "count the asking" {
+      checked = watches.len
+    }
+  }
+  return { board: board, checked: checked }
+}
+
+## Each watch with the position it was asked in.
+fn numbered(watches: list<Watch>) -> list<map> {
+  let out = []
+  repeat watches.len as pass {
+    out = out.push({ at: pass - 1, watch: watches[pass - 1] })
+  }
+  return out
+}

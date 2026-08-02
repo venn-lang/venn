@@ -107,6 +107,20 @@ describe("the returns of a block body", () => {
 
     expect(said(...lines)).toEqual([]);
   });
+
+  it("counts the expression the body ends with as one more way out", () => {
+    const lines = [
+      "fn sizeOf(n) {",
+      "  if n > 100 {",
+      "    return null",
+      "  }",
+      '  "small"',
+      "}",
+      "const size: string | null = sizeOf(0)",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
 });
 
 /**

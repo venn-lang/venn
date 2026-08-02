@@ -8,6 +8,7 @@ import {
   type MatcherClause,
 } from "@venn-lang/core";
 import type { MatcherArgs, MatcherDefinition } from "@venn-lang/sdk";
+import { createMatcherContext } from "../context/index.js";
 import type { ResolvedMatcher } from "../registry/index.js";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";
@@ -33,21 +34,26 @@ export async function evalMatcher(args: {
   const input = buildArgs({ ...args, resolved, clause });
   const raw = await resolved.matcher.test(input);
   if (args.stmt.negate ? !raw : raw) return { passed: true };
-  return failure({ matcher: resolved.matcher, input, stmt: args.stmt });
+  return failure({ matcher: resolved.matcher, input, stmt: args.stmt, engine: args.engine });
 }
 
 /**
  * A failing matcher hands back the two sides it compared, labelled with how the
  * flow spelled the subject. A negated expect gets no diff on purpose: under
  * `not` the two sides matched, and "expected 200, actual 200" explains nothing.
+ *
+ * This is where a matcher is handed `show`, so the values in a failure title
+ * read the way `print` writes them rather than the way a plugin would guess.
  */
 function failure(args: {
   matcher: MatcherDefinition;
   input: MatcherArgs<unknown>;
   stmt: ExpectStmt;
+  engine: Engine;
 }): MatcherOutcome {
-  const message = args.matcher.message(args.input);
-  const detail = args.stmt.negate ? undefined : args.matcher.detail?.(args.input);
+  const ctx = createMatcherContext(args.engine.ctx);
+  const message = args.matcher.message(args.input, ctx);
+  const detail = args.stmt.negate ? undefined : args.matcher.detail?.(args.input, ctx);
   if (!detail) return { passed: false, message };
   const label = subjectLabel(args.stmt);
   return { passed: false, message, diff: buildDiff({ label, ...detail }) };

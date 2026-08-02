@@ -1,6 +1,19 @@
-import type { MatcherDefinition, MatcherDetail } from "@venn-lang/sdk";
+import type { MatcherContext, MatcherDefinition, MatcherDetail } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { assertMatchers } from "./matchers/index.js";
+
+/**
+ * A stand-in for the renderer the runtime hands a matcher, marked so that a
+ * value written by anything else stands out. It is deliberately not the
+ * language's renderer: this package cannot reach `core`, and what the messages
+ * below hold is that the line writes with whatever it was handed rather than
+ * with a definition of its own.
+ */
+function show(value: unknown): string {
+  return `‹${JSON.stringify(value) ?? String(value)}›`;
+}
+
+const ctx: MatcherContext = { log: () => {}, show };
 
 function matcherOf(name: string): MatcherDefinition {
   const matcher = assertMatchers.find((candidate) => candidate.name === name);
@@ -13,11 +26,11 @@ function run(name: string, subject: unknown, args: unknown[], params: unknown = 
 }
 
 function message(name: string, subject: unknown, args: unknown[], params: unknown = {}): string {
-  return matcherOf(name).message({ subject, args, params });
+  return matcherOf(name).message({ subject, args, params }, ctx);
 }
 
 function detail(name: string, subject: unknown, args: unknown[]): MatcherDetail | undefined {
-  return matcherOf(name).detail?.({ subject, args, params: {} });
+  return matcherOf(name).detail?.({ subject, args, params: {} }, ctx);
 }
 
 describe("assert matchers", () => {
@@ -69,39 +82,78 @@ describe("assert matchers", () => {
   });
 });
 
+/**
+ * A failure title writes its values with the renderer it was handed, never with
+ * one of its own. It had one: strings quoted, structures as compact JSON, a
+ * fallback describing a value by its shape. So `{ hits: 0 }` read as
+ * `{"hits":0}` in a red assertion and as `{ hits: 0 }` from the `print` on the
+ * line above, and the reader of the two was somebody who already did not
+ * understand what had happened.
+ *
+ * Every expectation below is written against `show` rather than as the text it
+ * produces, because what is being held is that the line defers. Naming the text
+ * would go green on the day the line grew a renderer that happened to agree.
+ */
 describe("failure messages", () => {
-  it("never renders a value as [object Object]", () => {
-    const text = message("equals", { status: "pending" }, [{ status: "paid" }]);
-    expect(text).not.toContain("[object Object]");
-    expect(text).toBe('expected {"status":"pending"} to equal {"status":"paid"}');
-  });
+  const PAIRS: Array<[unknown, unknown]> = [
+    [{ status: "pending" }, { status: "paid" }],
+    [{ user: { name: "ada" } }, { user: { name: "bob" } }],
+    [[1, 2], [3]],
+    [500, 204],
+    [true, false],
+    [null, 1],
+  ];
 
-  it("describes a value too long for one line by its shape", () => {
+  for (const [subject, other] of PAIRS) {
+    it(`writes ${show(subject)} with the renderer it was handed`, () => {
+      expect(message("equals", subject, [other])).toBe(
+        `expected ${show(subject)} to equal ${show(other)}`,
+      );
+    });
+  }
+
+  /**
+   * The budget is the one thing the line still decides for itself: a title is
+   * one line and `print` has no such limit. It cuts what `show` wrote, though,
+   * rather than replacing it with prose about the value's shape, so the two
+   * still agree about what the value looks like as far as the line goes.
+   */
+  it("cuts a value past the line's budget out of what show wrote", () => {
     const big = Object.fromEntries(Array.from({ length: 12 }, (_, n) => [`f${n}`, n]));
-    expect(message("equals", big, [big])).toBe(
-      "expected a map with 12 fields to equal a map with 12 fields",
+
+    expect(message("equals", big, [1])).toBe(
+      `expected ${show(big).slice(0, 44)}… to equal ${show(1)}`,
     );
   });
 
-  it("summarises both sides together, never one spelled out beside one summarised", () => {
-    const long = { id: "ord_8812", status: "pending", total: 99 };
-    const short = { id: "ord_8812", status: "paid" };
+  /**
+   * Both sides used to be summarised together whenever either overran, so that
+   * one spelled out beside one described by its shape would not read as a
+   * reporter glitch. Cutting cannot produce that mismatch: a side that fits is
+   * whole, a side that does not is the start of the same text.
+   */
+  it("leaves the side that fits alone", () => {
+    const long = { id: "ord_8812", status: "pending", total: 99, note: "paid on the second try" };
+    const short = { id: "ord_8812" };
+
     expect(message("equals", long, [short])).toBe(
-      "expected a map with 3 fields to equal a map with 2 fields",
+      `expected ${show(long).slice(0, 44)}… to equal ${show(short)}`,
     );
   });
 
   it('quotes strings so `"200"` never reads as `200`', () => {
-    expect(message("equals", "200", [200])).toBe('expected "200" to equal 200');
+    expect(message("equals", "200", [200])).toBe(`expected "200" to equal ${show(200)}`);
   });
 
   it("names the options instead of calling them `the options`", () => {
-    expect(message("oneOf", 500, [[200, 204]])).toBe("expected 500 to be one of [200,204]");
+    expect(message("oneOf", 500, [[200, 204]])).toBe(
+      `expected ${show(500)} to be one of ${show([200, 204])}`,
+    );
   });
 
   it("states the tolerance closeTo used", () => {
     expect(message("closeTo", 99.5, [99.0], { within: 0.01 })).toBe(
-      "expected 99.5 to be within 0.01 of 99",
+      `expected ${show(99.5)} to be within 0.01 of ${show(99)}`,
     );
   });
 

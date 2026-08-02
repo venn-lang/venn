@@ -12,8 +12,13 @@ export const closeTo: MatcherDefinition = defineMatcher({
   test: ({ subject, args, params }) =>
     Math.abs(Number(subject) - Number(args[0])) <= tolerance(params),
   // The tolerance belongs in the title: without it a failure cannot be judged.
-  message: ({ subject, args, params }) =>
-    failureLine({ subject, relation: `to be within ${tolerance(params)} of`, other: args[0] }),
+  message: ({ subject, args, params }, { show }) =>
+    failureLine({
+      subject,
+      relation: `to be within ${tolerance(params)} of`,
+      other: args[0],
+      show,
+    }),
   detail: ({ subject, args }) => ({ expected: args[0], actual: subject }),
 });
 

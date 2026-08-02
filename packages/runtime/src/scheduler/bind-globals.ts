@@ -8,6 +8,7 @@ import {
   type LetStmt,
 } from "@venn-lang/core";
 import { binderFor, type Scope } from "../scope/index.js";
+import { bindDeclaredNamespaces } from "./declared-namespaces.js";
 
 /**
  * Bind every top-level `fn` as a callable closure. Hoisted so a function can be
@@ -34,6 +35,9 @@ export function bindFunctions(doc: Document, scope: Scope): void {
  */
 export function bindGlobals(doc: Document, scope: Scope): void {
   bindFunctions(doc, scope);
+  // Between the two: a namespace's own values may call the file's functions, and
+  // the file's values may read what a namespace published.
+  bindDeclaredNamespaces(doc.decls, scope);
   bindPlainValues(doc, scope);
 }
 

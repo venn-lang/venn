@@ -4,6 +4,7 @@ import { absorbExit } from "./absorb-exit.js";
 import { createBaseScope } from "./base-scope.js";
 import { bindFunctions } from "./bind-globals.js";
 import { bindImports } from "./bind-imports.js";
+import { bindDeclaredNamespaces } from "./declared-namespaces.js";
 import type { Engine } from "./engine.types.js";
 import { runPrologue } from "./run-prologue.js";
 import { registerEnding, runSetup } from "./script-lifecycle.js";
@@ -24,6 +25,9 @@ export async function runScript(engine: Engine, doc: Document): Promise<void> {
   if (graph)
     engine.homes = bindImports({ document: doc, uri: engine.uri, scope: root, graph, base });
   bindFunctions(doc, root);
+  // Declarations, like the functions above: what a namespace holds exists before
+  // the first statement runs, because that is what a declaration is.
+  bindDeclaredNamespaces(doc.decls, root);
   engine.emitter.emit({ kind: "run.started", data: { plan: { flows: [] } } });
   const start = engine.clock.now();
   await absorbExit(engine, () => runProgram(engine, doc, root));

@@ -1086,6 +1086,46 @@ de outro é preenchido depois dele.
 
 > **Regras duras.** Ciclos entre módulos são erro de compilação. Um arquivo tem exatamente um `module`. Colisão de namespace no import exige `as`, nada de resolução implícita por ordem.
 
+### Namespace
+
+Um namespace vem a existir de três maneiras, e as três respondem `x.membro` da
+mesma forma: um **plugin** publica um, um **arquivo ou pasta** vira um quando é
+importado com `* as`, e um **bloco** declara um.
+
+```venn
+pub namespace coupon {
+  const tabela = { black: 0.3 }          # privado ao bloco
+  pub fn aplica(total, code) => total * (1 - tabela[code])
+
+  pub namespace stacking {
+    pub fn permitido(a, b) => a.kind != b.kind
+  }
+}
+
+print coupon.aplica(100, "black")
+print coupon.stacking.permitido(a, b)
+```
+
+`pub` decide o que sai, exatamente como num módulo: mesma regra, nada de novo
+para aprender. O que não é marcado fica dentro, para o resto do bloco usar, e
+não existe para quem lê de fora, nem em runtime nem para o verificador.
+
+Aninha, porque agrupar é a razão de existir e um grupo de grupos é a forma
+comum de um. Um `pub namespace` é publicado pelo módulo dele e chega por
+`import` como qualquer outro nome.
+
+**Reabrir um namespace que outro arquivo declarou não é uma das três maneiras.**
+Tirar o `use` foi para que um arquivo diga o que consome, e um namespace que um
+terceiro arquivo pode aumentar devolve o problema um nível abaixo: `cart.checkout`
+existe e nada no arquivo diz quem o pôs lá. Substituir um verbo também não, e
+por uma razão melhor: isso já existe e chama-se **porta**, com duas
+implementações e o host a ligar a que quer. Embrulhar é local e honesto:
+
+```venn
+import { http } from "venn/http"
+fn get(url) => log("indo para ${url}"); http.get(url)
+```
+
 ### fn versus fragment
 
 |   | fn | fragment |

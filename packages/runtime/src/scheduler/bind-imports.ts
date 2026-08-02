@@ -9,6 +9,7 @@ import {
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { bindFunctions, bindPlainValues } from "./bind-globals.js";
+import { bindDeclaredNamespaces } from "./declared-namespaces.js";
 import { inDependencyOrder } from "./import-order.js";
 
 /** The files an import graph reached, and how one file names another. */
@@ -52,6 +53,7 @@ export function bindImports(args: {
     const scope = args.base();
     built.set(uri, scope);
     bindFunctions(module, scope);
+    bindDeclaredNamespaces(module.decls, scope);
   }
   const link = (uri: string, module: Document): void => {
     wire({ document: module, uri, into: scopeAt(built, uri), graph: args.graph, built });

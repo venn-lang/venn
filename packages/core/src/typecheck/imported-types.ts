@@ -202,5 +202,7 @@ function exportedTypes(module: Document, uri: string, state: State): Map<string,
 function published(decl: unknown): decl is { name: string } {
   const kind = decl as { export?: boolean };
   if (!kind.export) return false;
-  return ast.isFnDecl(decl) || ast.isTypeDecl(decl) || ast.isLetStmt(decl);
+  return (
+    ast.isFnDecl(decl) || ast.isTypeDecl(decl) || ast.isLetStmt(decl) || ast.isNamespaceDecl(decl)
+  );
 }

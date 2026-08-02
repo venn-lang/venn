@@ -1,0 +1,50 @@
+# Grouping names that belong together, without a second file.
+# Run: venn run examples/language/08-namespaces.vn
+
+## A namespace comes to exist three ways, and all three answer `x.member` the
+## same way: a plugin publishes one, a file or folder becomes one when it is
+## imported with `* as`, and a block declares one. This is the third.
+namespace coupon {
+  ## Not marked, so it stays inside. The rest of the block reads it; nobody else
+  ## can, at run time or in the checker.
+  const table = { black: 0.3, friend: 0.1 }
+
+  pub fn apply(total, code) => total * (1 - rateOf(code))
+
+  ## A helper beside a published function, private for the same reason and by
+  ## the same word a module uses.
+  fn rateOf(code) => table[code] ?? 0
+
+  ## Nesting is why grouping wanted this: a group of groups is the ordinary
+  ## shape of one.
+  pub namespace stacking {
+    pub fn allowed(a, b) => a != b
+  }
+}
+
+print "black:  ${coupon.apply(100, 'black')}"
+print "friend: ${coupon.apply(100, 'friend')}"
+print "unknown code: ${coupon.apply(100, 'nobody')}"
+print "stacking: ${coupon.stacking.allowed('black', 'friend')}"
+
+## `pub` decides what leaves, so what the block kept is not on the value:
+##
+##   print coupon.table
+##   VN3010 · Type { apply: …, stacking: … } has no field "table".
+
+## A member reads the file around it, the way anything written here does.
+const currency = "EUR"
+
+namespace prices {
+  pub fn shown(amount) => "${amount} ${currency}"
+}
+
+print "shown: ${prices.shown(70)}"
+
+## What is deliberately not here: reopening a namespace somebody else declared,
+## and replacing a verb in one. Removing `use` was so that a file says what it
+## takes; a namespace a third file can add to puts that back one level down.
+## Wrapping is local and says who did it:
+##
+##   import { http } from "venn/http"
+##   fn get(url) => log("going to ${url}"); http.get(url)

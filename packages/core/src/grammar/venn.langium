@@ -36,7 +36,7 @@ ImportName: name=ID ('as' alias=ID)?;
 // the program. Declarations (flow/fn/type/…) only run when called.
 Declaration:
     (annotations+=Annotation NL*)*
-    ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl
+    ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl | NamespaceDecl
     | ConfigDecl | MatrixDecl | LifecycleDecl
     | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
     | TryStmt | RunStmt | LetStmt | CaptureStmt | AssignStmt | ExpectStmt | MatchExpr
@@ -83,6 +83,19 @@ FnStmt infers Statement:
 // enforces that, not the grammar.
 DecoDecl:
     (export?='pub')? 'deco' name=ID '(' (params=ParamList)? ')' body=Block;
+
+// A namespace written here rather than published by a plugin or made by a file.
+//
+// The fourth spelling of one thing, not a fourth thing: a plugin's, a file's, a
+// folder's and this all answer `x.member` the same way. `pub` decides what
+// leaves, exactly as it does in a module, so there is no second rule to learn,
+// and what it does not mark stays inside for the rest of the block to use.
+//
+// Nestable, because grouping is why it exists and a group of groups is the
+// ordinary shape of one.
+NamespaceDecl:
+    (export?='pub')? 'namespace' name=ID
+    '{' NL* (decls+=Declaration NL*)* '}';
 
 ConfigDecl: 'config' body=MapLit;
 MatrixDecl: 'matrix' body=MapLit;

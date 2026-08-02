@@ -1,6 +1,6 @@
 import { VennError } from "@venn-lang/contracts";
 import { CODES, evaluate, type FragmentDecl, type ParamList, type RunStmt } from "@venn-lang/core";
-import { binderFor, createScope, type Scope } from "../scope/index.js";
+import { binderFor, type Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
 import { ReturnSignal } from "./signals.js";
@@ -10,7 +10,11 @@ export async function runRun(engine: Engine, stmt: RunStmt, scope: Scope): Promi
   const fragment = engine.fragments.get(stmt.target);
   if (!fragment) throw unknownFragment(stmt.target);
   const args = (stmt.args?.args ?? []).map((arg) => evaluate(arg.value, scope));
-  const fragScope = createScope();
+  // The file it was written in, not the one it was called from. A fragment
+  // belongs to its file the way a `fn` does, and its own scope on top of that is
+  // what keeps a caller's locals out of reach.
+  const home = engine.homes?.get(fragment) ?? scope.root();
+  const fragScope = home.child();
   bindParams(fragScope, fragment.params, args);
   const value = await runFragment(engine, fragment, fragScope);
   if (stmt.bind) scope.set(stmt.bind, value);

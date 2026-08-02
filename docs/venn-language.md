@@ -1095,6 +1095,26 @@ de outro é preenchido depois dele.
 | Chamada | dentro de expressão | `run nome(args)` |
 | No grafo | invisível | nó-container colapsável |
 
+Os dois leem o arquivo em que foram escritos, e nada mais. Um fragment importado
+lê o arquivo **dele**, não o de quem o chama, exatamente como uma `pub fn`:
+
+```venn
+const limite = 7
+
+fragment mostra() {
+  print limite          # 7, o do arquivo
+}
+
+fragment chama() {
+  const oculto = "meu"
+  run mostra()          # `oculto` não chega lá
+}
+```
+
+Cada `run` dá ao fragment um escopo próprio por cima do arquivo, então os
+parâmetros e o que ele ligar morrem com a chamada, e o que ele **atribuir** a um
+nome do arquivo fica, porque é o nome do arquivo.
+
 ### O que o editor conta enquanto você escreve
 
 Um verbo declara seus **argumentos posicionais** com nome, tipo e uma linha de explicação — e o editor os mostra no momento em que estão sendo digitados, sem que se peça nada:

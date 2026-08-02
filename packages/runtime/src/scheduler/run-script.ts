@@ -21,7 +21,8 @@ export async function runScript(engine: Engine, doc: Document): Promise<void> {
   const base = (): Scope => createBaseScope({ engine, document: doc });
   const root = base();
   const graph = engine.imports;
-  if (graph) bindImports({ document: doc, uri: engine.uri, scope: root, graph, base });
+  if (graph)
+    engine.homes = bindImports({ document: doc, uri: engine.uri, scope: root, graph, base });
   bindFunctions(doc, root);
   engine.emitter.emit({ kind: "run.started", data: { plan: { flows: [] } } });
   const start = engine.clock.now();

@@ -118,10 +118,6 @@ describe("what a function sees afterwards", () => {
     expect(await ran(source)).toEqual(["42"]);
   });
 
-  /**
-   * A fragment cannot read the file's bindings at all yet (#199), so it cannot
-   * write one either. What it can take is its own parameter, below.
-   */
   it("changes a name across passes of a loop", async () => {
     const source = [
       "let seen = 0",
@@ -134,6 +130,21 @@ describe("what a function sees afterwards", () => {
     ].join("\n");
 
     expect(await ran(source)).toEqual(["5"]);
+  });
+
+  /** A fragment reads the file it was written in, so it writes it too. */
+  it("changes a name from inside a fragment", async () => {
+    const source = [
+      "let seen = 0",
+      "fragment tick() {",
+      "  seen = seen + 1",
+      "}",
+      "run tick()",
+      "run tick()",
+      "io.print(seen)",
+    ].join(NEWLINE);
+
+    expect(await ran(source)).toEqual(["2"]);
   });
 
   /** A parameter is a binding like any other, so it takes a new value too. */

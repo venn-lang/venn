@@ -1,5 +1,7 @@
 import {
   type Document,
+  type FragmentDecl,
+  isFragmentDecl,
   isPackageSpecifier,
   isValueImport,
   publishedNames,
@@ -33,6 +35,9 @@ export interface ImportGraph {
  *
  * Call this before the document's own globals are bound, so a local name of the
  * same spelling wins. That is the rule fragments already follow.
+ *
+ * @returns Where each imported fragment reads from: the scope of the file it was
+ * written in, which is not the one it is `run` from.
  */
 export function bindImports(args: {
   document: Document;
@@ -41,7 +46,7 @@ export function bindImports(args: {
   graph: ImportGraph;
   /** How the scope a module is read in gets made: the same one the entry gets. */
   base: () => Scope;
-}): void {
+}): ReadonlyMap<FragmentDecl, Scope> {
   const built = new Map<string, Scope>();
   for (const [uri, module] of args.graph.modules) {
     const scope = args.base();
@@ -62,6 +67,26 @@ export function bindImports(args: {
     bindPlainValues(module, scopeAt(built, uri));
   }
   wire({ document: args.document, uri: args.uri, into: args.scope, graph: args.graph, built });
+  return fragmentHomes(args.graph.modules, built);
+}
+
+/**
+ * Every fragment a module declares, against that module's scope.
+ *
+ * Keyed by the declaration rather than by name, because two files may each
+ * declare a `login` and each reads its own.
+ */
+function fragmentHomes(
+  modules: ReadonlyMap<string, Document>,
+  built: ReadonlyMap<string, Scope>,
+): ReadonlyMap<FragmentDecl, Scope> {
+  const homes = new Map<FragmentDecl, Scope>();
+  for (const [uri, module] of modules) {
+    const scope = built.get(uri);
+    if (!scope) continue;
+    for (const decl of module.decls) if (isFragmentDecl(decl)) homes.set(decl, scope);
+  }
+  return homes;
 }
 
 function scopeAt(built: ReadonlyMap<string, Scope>, uri: string): Scope {

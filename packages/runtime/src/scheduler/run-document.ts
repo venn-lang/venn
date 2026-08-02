@@ -135,7 +135,13 @@ function rootScope(args: {
   // Before the document's own globals, so a local name of the same spelling
   // wins. That is the rule fragments already follow.
   if (graph) {
-    bindImports({ document: args.doc, uri: args.engine.uri, scope: root, graph, base });
+    args.engine.homes = bindImports({
+      document: args.doc,
+      uri: args.engine.uri,
+      scope: root,
+      graph,
+      base,
+    });
   }
   bindGlobals(args.doc, root);
   return root;

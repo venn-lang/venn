@@ -46,9 +46,9 @@ Four bugs, all of them things a person would hit on their first afternoon:
 - [#222](https://github.com/venn-lang/venn/issues/222): a list literal is checked
   against its first element rather than against the type the binding declared, so
   a list of records whose fields differ row by row is refused.
-- [#223](https://github.com/venn-lang/venn/issues/223): a block body cannot
-  return a value or nothing, which is the ordinary answer of anything that looks
-  something up.
+- [#223](https://github.com/venn-lang/venn/issues/223), since fixed: a block body
+  could not return a value or nothing, which is the ordinary answer of anything
+  that looks something up. Its `return`s now make a union.
 - [#224](https://github.com/venn-lang/venn/issues/224): `repeat n as i` counts
   from 1 at the top of a file and from 0 inside a `fn`.
 

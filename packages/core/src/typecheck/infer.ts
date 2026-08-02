@@ -580,7 +580,7 @@ function declaredResult(
  * That last expression may be missing, in two ways that look alike and are not:
  * a half-written `fn` is the normal state of a file being edited, and a body
  * that ends in `return` is finished. Both read as unknown here, and what a
- * `return` gives back is settled by the check below rather than by guessing.
+ * `return` gives back is settled by {@link returned} rather than by guessing.
  */
 function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
   let scope = env;
@@ -588,16 +588,22 @@ function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
   const ending = body.result ? inferExpr(body.result, scope, infer) : undefined;
   const left = returned(body, scope, infer);
   if (!ending) return left ?? DYNAMIC;
-  if (left) expect(infer, body.result as Expr, ending, left);
-  return ending;
+  return left ? either(ending, left) : ending;
 }
 
 /**
  * What every `return` in the body hands back, as one type.
  *
- * A function with two of them has to agree with itself, and one that also ends
- * in an expression has to agree with that: three ways out of one function are
- * still one type coming back.
+ * The ways out are not asked to agree with each other, any more than the two
+ * sides of a `try` are. Answering with a value or with nothing is what a lookup
+ * does, and a block with two `return`s is how anybody writes one; measuring the
+ * second against the type of the first refused that outright. So they make a
+ * union, and {@link either} keeps ways out that do agree as the one type they
+ * are rather than a union of a thing with itself.
+ *
+ * An annotation still decides. {@link declaredResult} checks this against it,
+ * and `fits` lets a union through only when every member of it is allowed, so
+ * `-> string` still refuses the body that may hand back nothing.
  */
 function returned(body: FnBody, env: TypeEnv, infer: Infer): Type | undefined {
   const found = returnsIn(body.stmts).map((stmt) =>
@@ -605,8 +611,7 @@ function returned(body: FnBody, env: TypeEnv, infer: Infer): Type | undefined {
   );
   const first = found[0];
   if (!first) return undefined;
-  for (const one of found.slice(1)) expect(infer, body, one, first);
-  return first;
+  return found.slice(1).reduce((left, right) => either(left, right), first);
 }
 
 /** Every `return` the body holds, at any depth, in written order. */

@@ -23,19 +23,18 @@ namespace scheme {
   ## A `fn` is pure: it decides, binds, loops and gives a value back, and it
   ## does not reach the world. So the answer here is a value, and the program
   ## below is what refuses. Everything this needs to say fits in one.
-  ## Written as a fold rather than as a block with two exits, because a block
-  ## cannot answer "a value or nothing": its `return`s are unified with each
-  ## other, so the second is measured against the type of the first (#223).
-  pub fn problemWith(row) => parts().reduce(
-    (found, part) => found ?? wrongWith(row.marks[part], part),
-    null
-  )
-
-  fn wrongWith(mark, part) => mark == null ? "no ${part}" : outOfRange(mark, part)
-
-  fn outOfRange(mark, part) => tooFar(mark) ? "${part} is ${mark}, not a percentage" : null
-
-  fn tooFar(mark) => mark < 0 || mark > 100
+  pub fn problemWith(row) {
+    forEach part in parts() {
+      const mark = row.marks[part]
+      if mark == null {
+        return "no ${part}"
+      }
+      if mark < 0 || mark > 100 {
+        return "${part} is ${mark}, not a percentage"
+      }
+    }
+    return null
+  }
 
   ## The weighted average of a row that `problemWith` had nothing to say about.
   pub fn average(marks) -> number {

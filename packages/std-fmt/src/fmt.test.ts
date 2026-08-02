@@ -10,6 +10,29 @@ const ROWS = [
   { name: "Linus", age: 54 },
 ];
 
+/**
+ * Stands in for the runtime's `ctx.show` in these tests: the same shape a map
+ * or list gets from `print` and `${}`, without pulling `@venn-lang/core` into
+ * a plugin package that must not depend on it.
+ */
+function show(value: unknown): string {
+  if (typeof value === "string") return value;
+  return written(value);
+}
+
+function written(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "string") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(written).join(", ")}]`;
+  if (typeof value === "object") return writtenMap(value as Record<string, unknown>);
+  return String(value);
+}
+
+function writtenMap(value: Record<string, unknown>): string {
+  const parts = Object.entries(value).map(([key, held]) => `${key}: ${written(held)}`);
+  return parts.length === 0 ? "{}" : `{ ${parts.join(", ")} }`;
+}
+
 describe("fmt.json", () => {
   it("indents by two by default and folds to one line at zero", () => {
     expect(toJson({ a: 1 })).toBe('{\n  "a": 1\n}');
@@ -26,7 +49,7 @@ describe("fmt.json", () => {
 
 describe("fmt.table", () => {
   it("aligns every column to its widest cell", () => {
-    const lines = toTable(ROWS).split("\n");
+    const lines = toTable(ROWS, show).split("\n");
 
     expect(lines[0]).toBe("name  │ age");
     expect(lines[2]).toBe("Ada   │ 36 ");
@@ -34,14 +57,21 @@ describe("fmt.table", () => {
   });
 
   it("keeps rows lined up when one lacks a field", () => {
-    const table = toTable([{ a: 1, b: 2 }, { a: 3 }]);
+    const table = toTable([{ a: 1, b: 2 }, { a: 3 }], show);
 
     expect(table).toContain("a │ b");
     expect(table.split("\n")).toHaveLength(4);
   });
 
   it("says so when there is nothing to show", () => {
-    expect(toTable([])).toBe("(no rows)");
+    expect(toTable([], show)).toBe("(no rows)");
+  });
+
+  it("writes a nested cell the way the language writes it, not as JSON", () => {
+    const table = toTable([{ name: "ada", marks: { homework: 95, final: 92 } }], show);
+
+    expect(table).toContain("{ homework: 95, final: 92 }");
+    expect(table).not.toContain('{"homework":95,"final":92}');
   });
 });
 

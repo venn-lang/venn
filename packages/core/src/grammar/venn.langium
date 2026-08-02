@@ -39,7 +39,8 @@ Declaration:
     ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl
     | ConfigDecl | MatrixDecl | LifecycleDecl
     | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
-    | TryStmt | RunStmt | LetStmt | AssignStmt | ExpectStmt | MatchExpr | ActionCall );
+    | TryStmt | RunStmt | LetStmt | CaptureStmt | AssignStmt | ExpectStmt | MatchExpr
+    | ActionCall );
 
 Annotation: '@' name=ID ('(' (args=ArgList)? ')')?;
 

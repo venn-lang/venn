@@ -272,7 +272,7 @@ export function isCall(item: unknown): item is Call {
     return reflection.isInstance(item, Call.$type);
 }
 
-export interface CaptureStmt extends Statement {
+export interface CaptureStmt extends Declaration, Statement {
     readonly $type: 'CaptureStmt';
     name: string;
     opts?: MapLit;
@@ -322,7 +322,7 @@ export function isContinueStmt(item: unknown): item is ContinueStmt {
 }
 
 export interface Declaration extends langium.AstNode {
-    readonly $type: 'ActionCall' | 'AssignStmt' | 'ConfigDecl' | 'Declaration' | 'DecoDecl' | 'ExpectStmt' | 'FlowDecl' | 'FnDecl' | 'ForEachStmt' | 'FragmentDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'MatrixDecl' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'RunStmt' | 'TryStmt' | 'TypeDecl';
+    readonly $type: 'ActionCall' | 'AssignStmt' | 'CaptureStmt' | 'ConfigDecl' | 'Declaration' | 'DecoDecl' | 'ExpectStmt' | 'FlowDecl' | 'FnDecl' | 'ForEachStmt' | 'FragmentDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'MatrixDecl' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'RunStmt' | 'TryStmt' | 'TypeDecl';
     annotations: Array<Annotation>;
 }
 
@@ -1706,7 +1706,7 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: CaptureStmt.value
                 }
             },
-            superTypes: [Statement.$type]
+            superTypes: [Declaration.$type, Statement.$type]
         },
         ConfigDecl: {
             name: ConfigDecl.$type,

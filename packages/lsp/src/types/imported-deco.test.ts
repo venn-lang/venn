@@ -38,11 +38,15 @@ describe("an imported deco, in the editor", () => {
 
   it("still draws on a call the decorator does not excuse", async () => {
     const source = [
-      'import { off } from "./lib.vn"',
+      'import { inject } from "./lib.vn"',
+      '@inject("who")',
+      "fn greet(g) => g",
       "fn plain(g) => g",
       'const r = plain("a", "b")',
     ].join("\n");
 
-    expect(await diagnostics(source)).toHaveLength(1);
+    expect(await diagnostics(source)).toEqual([
+      "Type mismatch: expected fn(string, string) -> a, found fn(a) -> a.",
+    ]);
   });
 });

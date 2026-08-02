@@ -25,16 +25,20 @@ import { checkAssign } from "./check-assign.js";
 import { checkAction, checkCapture, checkLet } from "./check-calls.js";
 import { checkInsideDeco } from "./check-deco-body.js";
 import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
+import { checkDuplicateKey } from "./check-duplicate-key.js";
 import { checkEnv } from "./check-env.js";
 import { checkFailCode } from "./check-fail-code.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
 import { checkInterpolation } from "./check-interpolation.js";
+import { checkLifecycleEvent } from "./check-lifecycle-event.js";
 import { checkMixedOperators } from "./check-mixed-operators.js";
 import { checkNameTaken } from "./check-name-taken.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
 import { checkRemovedUse } from "./check-removed-use.js";
+import { checkSwallowedArgument } from "./check-swallowed-argument.js";
 import { checkUnbound } from "./check-unbound.js";
 import { checkUncalledAction } from "./check-uncalled.js";
+import { checkUnusedImport } from "./check-unused-import.js";
 import { checkVerbCall } from "./check-verb-call.js";
 import { everyBoundName } from "./every-bound-name.js";
 
@@ -65,14 +69,29 @@ export function checkDocument(args: CheckArgs): Problem[] {
   const problems: Problem[] = [
     ...checkNameTaken(args.document, ctx),
     ...checkAssign(args.document, ctx),
+    ...checkUnusedImport(args.document, ctx),
   ];
   for (const node of walkAst(args.document)) {
     const inDeco = checkInsideDeco(node, ctx);
     if (inDeco) problems.push(...inDeco);
     else problems.push(...everyCheck(node, ctx));
   }
-  return problems;
+  return loudestFirst(problems);
 }
+
+/**
+ * What stops the run, before what merely reads badly.
+ *
+ * A file with one error and one hint should open with the error: whoever is
+ * reading wants the thing that broke, and an untidy import can wait. Stable, so
+ * two of the same loudness stay in the order they were found.
+ */
+function loudestFirst(problems: readonly Problem[]): Problem[] {
+  const rank = (problem: Problem): number => LOUDNESS.indexOf(problem.severity);
+  return [...problems].sort((one, other) => rank(one) - rank(other));
+}
+
+const LOUDNESS = ["error", "warning", "hint"];
 
 function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
   const removed = checkRemovedUse(node, ctx);
@@ -86,6 +105,9 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkVerbCall(node, ctx),
     ...checkMixedOperators(node, ctx),
     ...checkFailCode(node, ctx),
+    ...checkSwallowedArgument(node, ctx),
+    ...checkDuplicateKey(node, ctx),
+    ...checkLifecycleEvent(node, ctx),
     ...checkDecoratorName(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];

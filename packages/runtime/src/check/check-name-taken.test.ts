@@ -50,7 +50,9 @@ describe("a name already taken", () => {
 
   it("is reported for a declaration of any kind", () => {
     expect(codes(`${IMPORT}fn kit() => 1\nprint kit()`)).toEqual(["VN2020"]);
-    expect(codes(`${IMPORT}type kit = string\nprint 1`)).toEqual(["VN2020"]);
+    expect(codes(`${IMPORT}type kit = string\nconst one: kit = "a"\nprint one`)).toEqual([
+      "VN2020",
+    ]);
   });
 
   it("is reported for a name a pattern bound", () => {
@@ -93,7 +95,7 @@ describe("what it must not report", () => {
   });
 
   it("says nothing about a file that binds each name once", () => {
-    const source = `${IMPORT}const rate = 1\nfn twice(n) => n * 2\nprint twice(rate)`;
+    const source = "const rate = 1\nfn twice(n) => n * 2\nprint twice(rate)";
 
     expect(codes(source)).toEqual([]);
   });

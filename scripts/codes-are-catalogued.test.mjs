@@ -14,18 +14,50 @@ const CATALOGUES = [
   "project/src/codes.ts",
 ];
 
-/** Every `.ts` under a package's source, minus the tests and the generated tree. */
-async function sources(dir) {
+/**
+ * Every `.ts` a package wrote, minus the tests and the generated tree.
+ *
+ * Each package's `src` and nothing else. Walking `packages` itself also reached
+ * `dist`, whose `.d.ts` files carry the same codes as copies and are rewritten
+ * by every build, so the test read whatever the last build happened to leave.
+ */
+async function sources() {
+  const packages = await readdir(ROOT, { withFileTypes: true });
+  const trees = packages
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => written(join(ROOT, entry.name, "src")));
+  return (await Promise.all(trees)).flat();
+}
+
+async function written(dir) {
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
   const found = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
+  const deeper = [];
+  for (const entry of entries) {
     const path = join(dir, entry.name);
-    if (entry.isDirectory() && entry.name !== "generated" && entry.name !== "node_modules") {
-      found.push(...(await sources(path)));
-    } else if (entry.name.endsWith(".ts") && !/\.(test|suite)\.ts$/.test(entry.name)) {
+    if (entry.isDirectory() && entry.name !== "generated") deeper.push(written(path));
+    else if (entry.name.endsWith(".ts") && !/\.(test|suite)\.ts$/.test(entry.name))
       found.push(path);
-    }
   }
-  return found;
+  return [...found, ...(await Promise.all(deeper)).flat()];
+}
+
+/**
+ * Their text, a handful at a time.
+ *
+ * One `await` per file is one round trip per file, and eleven hundred of those
+ * while three hundred test files run beside it took longer than the five
+ * seconds a test is given. What made this fail was never the codes.
+ */
+const AT_A_TIME = 64;
+
+async function textsOf(paths) {
+  const texts = [];
+  for (let from = 0; from < paths.length; from += AT_A_TIME) {
+    const batch = paths.slice(from, from + AT_A_TIME).map((path) => readFile(path, "utf8"));
+    texts.push(...(await Promise.all(batch)));
+  }
+  return texts;
 }
 
 /**
@@ -56,14 +88,15 @@ const SEPARATOR = /[/\\]/;
  */
 async function declared() {
   const found = new Set();
-  for (const path of CATALOGUES) {
-    const text = await readFile(join(ROOT, path), "utf8");
+  for (const [at, text] of (await catalogueTexts()).entries()) {
     const codes = text.match(CODE) ?? [];
-    if (codes.length === 0) throw new Error(`${path} read back with no codes in it`);
+    if (codes.length === 0) throw new Error(`${CATALOGUES[at]} read back with no codes in it`);
     for (const code of codes) found.add(code);
   }
   return found;
 }
+
+const catalogueTexts = () => textsOf(CATALOGUES.map((path) => join(ROOT, path)));
 
 /**
  * The catalogue says it holds "every VNxxxx the kernel itself can raise", and
@@ -75,14 +108,18 @@ async function declared() {
  * keeps the list a list.
  */
 describe("every code a package raises", () => {
-  it("is declared in a catalogue", async () => {
+  // A thousand files off the disk, which is not what five seconds is for. The
+  // reads are batched and the tree is only each package's `src`, so this is
+  // tens of milliseconds; the room is for a machine with every other test file
+  // running beside this one.
+  it("is declared in a catalogue", { timeout: 30_000 }, async () => {
     const known = await declared();
+    const paths = (await sources()).filter((path) => !isCatalogue(path));
+    const texts = await textsOf(paths);
     const stray = [];
-    for (const path of await sources(ROOT)) {
-      if (isCatalogue(path)) continue;
-      const text = await readFile(path, "utf8");
+    for (const [at, text] of texts.entries()) {
       for (const code of raised(text)) {
-        if (!known.has(code)) stray.push(`${code} in ${path.slice(ROOT.length + 1)}`);
+        if (!known.has(code)) stray.push(`${code} in ${paths[at].slice(ROOT.length + 1)}`);
       }
     }
 
@@ -98,10 +135,9 @@ describe("every code a package raises", () => {
 
   it("is declared once, and not by two catalogues at odds", async () => {
     const seen = new Map();
-    for (const path of CATALOGUES) {
-      const text = await readFile(join(ROOT, path), "utf8");
+    for (const [at, text] of (await catalogueTexts()).entries()) {
       for (const code of new Set(text.match(CODE) ?? [])) {
-        seen.set(code, [...(seen.get(code) ?? []), path]);
+        seen.set(code, [...(seen.get(code) ?? []), CATALOGUES[at]]);
       }
     }
     const twice = [...seen].filter(([, where]) => where.length > 1);

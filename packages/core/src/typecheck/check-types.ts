@@ -11,6 +11,7 @@ import { createContext, type TypeContext, type TypeMismatch } from "./context.js
 import { type ImportedType, isGenericImport } from "./imported-types.js";
 import { type Infer, inferFn, type Slot } from "./infer.js";
 import { collectNamedTypes } from "./named-types.js";
+import { helpAboutNothing } from "./nothing-help.js";
 import { PRELUDE_SPECS } from "./prelude-types.js";
 import { reshapedFns } from "./reshaped-fns.js";
 import { generalize, mono } from "./scheme.js";
@@ -222,12 +223,13 @@ function placeholder(infer: Infer): Type {
 }
 
 function problem(mismatch: TypeMismatch, uri: string): Problem {
-  const title = titleOf(mismatch);
-  return buildProblem({
+  const built = buildProblem({
     spec: mismatch.code ?? CODES.VN3010_TYPE_MISMATCH,
     span: spanOf(mismatch.node, uri),
-    title,
+    title: titleOf(mismatch),
   });
+  const help = mismatch.sentence ? undefined : helpAboutNothing(mismatch.actual, mismatch.expected);
+  return help ? { ...built, help } : built;
 }
 
 /** Some clashes read better as a sentence than as the two types that clashed. */

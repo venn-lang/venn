@@ -48,14 +48,26 @@ describe("the type of a try expression", () => {
     expect(said(source)[0]).toContain("VN3010");
   });
 
-  /** Whatever §16 settles the failure to be, it is not the checker's to guess. */
   it("lets the fallback read the failure it named", () => {
+    const source = [
+      'fn read(text: string) -> string { return "read" }',
+      'const why: string = try read("x") catch e => e.message',
+    ].join(NEWLINE);
+
+    expect(said(source)).toEqual([]);
+  });
+
+  /**
+   * Both sides, even when one of them is the failure's. The annotation has to
+   * say so, which is the whole of what a union is for.
+   */
+  it("is still both sides when the fallback reads the failure", () => {
     const source = [
       "fn read(text: string) -> number { return 1 }",
       'const why: string = try read("x") catch e => e.message',
     ].join(NEWLINE);
 
-    expect(said(source)).toEqual([]);
+    expect(said(source)[0]).toContain("expected string, found number | string");
   });
 
   it("still checks inside the attempt", () => {

@@ -70,6 +70,44 @@ total, e um plugin que não diz nada sobre tipos continua sendo um plugin que fu
 
 ---
 
+## Nada não é alguma coisa
+
+`T | null` não entra onde se pede `T`. Vale em binding, argumento, retorno,
+campo e elemento de lista:
+
+```venn
+type User = { name: string | null }
+
+const mostrado: string = u.name     # VN3010 · expected string, found string | null
+fn grita(s: string) -> string => s.upper
+const alto = grita(u.name)          # o mesmo, apontando o argumento
+```
+
+A pergunta que a atribuição faz é direcional, e é por isso que precisa de nome
+próprio: `unify` pergunta se dois tipos **podem ser iguais**, o que uma união e
+um dos seus membros podem, escolhendo o membro que serve. O membro que fica para
+trás é exatamente o nada que ninguém tratou.
+
+Três saídas, todas escritas na linguagem:
+
+```venn
+const a: string = u.name ?? "anônimo"    # um valor para ficar no lugar
+
+if u.name != null {
+  const b: string = u.name               # a guarda, no campo
+}
+
+const guardado = u.name
+if guardado != null {
+  const c: string = guardado             # ou no nome
+}
+```
+
+A guarda sobre um campo estreita o **registo**, não o campo: um escopo liga
+nomes, então o que se escreve é `u` com aquele campo estreitado. Ler o campo
+depois lê o registo estreitado, que é a mesma resposta por um caminho que o
+escopo já tinha.
+
 ## `opaque` é a fronteira
 
 Projetar uma classe do JS como record arrastaria `EventEmitter`, símbolos, herança — o grafo de objetos

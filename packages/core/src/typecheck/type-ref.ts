@@ -17,7 +17,20 @@ import {
   union,
 } from "./type.types.js";
 
-const PRIMS = new Set(["number", "string", "bool", "null", "void"]);
+// The units are here too. Left out, `: duration` resolved to no type anybody
+// declared, which the reader of an annotation answers with `dynamic`, so the
+// four of them accepted whatever they were given.
+const PRIMS = new Set([
+  "number",
+  "string",
+  "bool",
+  "null",
+  "void",
+  "duration",
+  "size",
+  "percent",
+  "instant",
+]);
 
 /** Everything resolving a written annotation may need to look something up. */
 export interface RefScope {

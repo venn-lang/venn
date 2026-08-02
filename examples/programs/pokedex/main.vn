@@ -8,53 +8,18 @@
 # the real https://pokeapi.co. `tests.vn` beside it does not, because it stands
 # its own server up and points the same fragments at that.
 #
-# The three files behind it split along the line the language already draws:
+# The four files behind it split along the line the language already draws:
 # `dex/entry.vn` is what a Pokemon is, `dex/fetch.vn` is the only thing that
-# reaches the network, and the words a person reads are written here.
+# reaches the network, `dex/show.vn` is how a Pokemon is written down, and this
+# is the program: arguments, the prompt, and what to do with a name.
 
 import { fmt } from "venn/fmt"
 import { io } from "venn/io"
-import { Entry, lookup, lookupAll, scoreOn, strongest } from "./dex"
-import { instead, joined, named } from "./dex/shape.vn"
+import { card, lookup, lookupAll, nameOf, rows, scoreOn, strongest } from "./dex"
 
 const API = "https://pokeapi.co/api/v2"
 
 const COMPARED = ["hp", "attack", "speed"]
-
-## The API writes every name in lower case, and every one of them is read by a
-## person. `@named` is that rule, said once, above the function it is a rule
-## about.
-@named
-fn title(entry: Entry) -> string => entry.name
-
-@joined(" / ")
-fn kinds(entry: Entry) => entry.kinds.map((kind) => kind.capitalize)
-
-## A Pokemon with no stats at all is a Pokemon this program can still print.
-@instead(0)
-fn best(entry: Entry) => entry.stats.values.max
-
-## One entry, four lines, which is what a name on its own asks for.
-fn card(entry: Entry) -> string => [
-  "#${padded(entry.id)}  ${title(entry)}",
-  "  type    ${kinds(entry)}",
-  "  size    ${entry.height.toFixed(1)} m, ${entry.weight.toFixed(1)} kg",
-  "  best    ${best(entry)}"
-].join("
-")
-
-## A three-digit number, so a column of them lines up.
-fn padded(id: number) -> string => id.toString.padStart(3, "0")
-
-## What `fmt.table` wants: one map per row, every key a column.
-fn rows(entries: list<Entry>) -> list<map> => entries.map((entry) => {
-  no: padded(entry.id),
-  name: title(entry),
-  type: kinds(entry),
-  hp: scoreOn(entry, "hp"),
-  attack: scoreOn(entry, "attack"),
-  speed: scoreOn(entry, "speed")
-})
 
 ## What the person asked for on the command line, if anything.
 ##
@@ -92,7 +57,7 @@ fragment leaders(found) {
   forEach stat in COMPARED {
     const winner = strongest(found, stat)
     if winner != null {
-      print "${stat.padEnd(7)} ${title(winner)} (${scoreOn(winner, stat)})"
+      print "${stat.padEnd(7)} ${nameOf(winner)} (${scoreOn(winner, stat)})"
     }
   }
 }

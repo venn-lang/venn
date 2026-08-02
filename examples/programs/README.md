@@ -69,31 +69,44 @@ arguments stands three services of its own up and watches those.
 
 ## What writing them found
 
-Thirteen bugs, and they are the reason these programs exist. Four have been fixed
-and are in the language now:
+Seventeen bugs, and they are the reason these programs exist. Thirteen of them
+were found by writing the five programs above; four were found by the sweeps that
+fixed those thirteen.
 
-- [#221](https://github.com/venn-lang/venn/issues/221): a verb inside an `if` in
-  a `fn` body was ignored, and the function returned `null` instead of its value.
-- [#222](https://github.com/venn-lang/venn/issues/222): a list literal was
-  checked against its first element rather than against the type its binding
-  declared.
-- [#223](https://github.com/venn-lang/venn/issues/223): a block body could not
-  return a value or nothing, which is the ordinary answer of anything that looks
-  something up.
-- [#224](https://github.com/venn-lang/venn/issues/224): `repeat n as i` counted
-  from 1 at the top of a file and from 0 inside a `fn`.
+All thirteen are fixed, and three of them changed how a program here is written:
 
-Nine are open, and where a program here is shaped around one of them, the
-comment beside it says which:
+- The pokedex keeps its display functions in
+  [`dex/show.vn`](pokedex/dex/show.vn), beside the data they format, which is
+  where they belong. Until [#227](https://github.com/venn-lang/venn/issues/227)
+  a decorator written in an imported file was dropped in silence, so they had to
+  sit in the entry file to take effect at all.
+- The watchtower has a `took` column and a slowest line, which needed
+  [#235](https://github.com/venn-lang/venn/issues/235) and
+  [#237](https://github.com/venn-lang/venn/issues/237): a response's time was
+  always zero and two moments could not be subtracted, so nothing in the
+  language could answer how long anything took.
+- `verdictOf` is a guard clause and one line behind it rather than two levels of
+  nesting, which needed
+  [#238](https://github.com/venn-lang/venn/issues/238).
+
+The full list, oldest first:
 
 | | |
 | --- | --- |
-| [#227](https://github.com/venn-lang/venn/issues/227) | a decorator written in an imported file is silently dropped |
-| [#228](https://github.com/venn-lang/venn/issues/228) | a block-bodied `fn` as a call argument does not parse |
-| [#229](https://github.com/venn-lang/venn/issues/229) | a closure in a `deco` body cannot see the file's own names |
-| [#233](https://github.com/venn-lang/venn/issues/233) | a map interpolated into text reads `[object Object]` |
-| [#234](https://github.com/venn-lang/venn/issues/234) | two lists are never `==`, and nothing says so |
-| [#235](https://github.com/venn-lang/venn/issues/235) | `res.time` is always 0 |
-| [#237](https://github.com/venn-lang/venn/issues/237) | two instants cannot be subtracted |
-| [#238](https://github.com/venn-lang/venn/issues/238) | narrowing does not reach a guard clause |
-| [#239](https://github.com/venn-lang/venn/issues/239) | a refused connection reports `fetch failed` |
+| [#221](https://github.com/venn-lang/venn/issues/221) | a verb inside an `if` in a `fn` body was ignored |
+| [#222](https://github.com/venn-lang/venn/issues/222) | a list literal was checked against its first element |
+| [#223](https://github.com/venn-lang/venn/issues/223) | a block body could not return a value or nothing |
+| [#224](https://github.com/venn-lang/venn/issues/224) | `repeat n as i` counted from 1 at the top and from 0 in a `fn` |
+| [#227](https://github.com/venn-lang/venn/issues/227) | a decorator written in an imported file was silently dropped |
+| [#228](https://github.com/venn-lang/venn/issues/228) | a block-bodied `fn` as a call argument did not parse |
+| [#229](https://github.com/venn-lang/venn/issues/229) | a closure in a `deco` body read the file's own names as nothing |
+| [#230](https://github.com/venn-lang/venn/issues/230) | a `try` in a `fn` was reported as a verb called `return` |
+| [#231](https://github.com/venn-lang/venn/issues/231) | `loop` state advanced on one side only, and hung on the other |
+| [#232](https://github.com/venn-lang/venn/issues/232) | `repeat` and `forEach` passed a bad value in silence inside a `fn` |
+| [#233](https://github.com/venn-lang/venn/issues/233) | a map interpolated into text read `[object Object]` |
+| [#234](https://github.com/venn-lang/venn/issues/234) | two lists are never `==`, and nothing said so |
+| [#235](https://github.com/venn-lang/venn/issues/235) | `res.time` was always 0 |
+| [#236](https://github.com/venn-lang/venn/issues/236) | a `fn`'s declared return type did not reach a list literal |
+| [#237](https://github.com/venn-lang/venn/issues/237) | two instants could not be subtracted |
+| [#238](https://github.com/venn-lang/venn/issues/238) | narrowing did not reach a guard clause |
+| [#239](https://github.com/venn-lang/venn/issues/239) | a refused connection reported `fetch failed` |

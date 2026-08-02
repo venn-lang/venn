@@ -23,6 +23,8 @@ export interface TypeMismatch {
    * types can. Used where naming the types explains nothing about the mistake.
    */
   sentence?: string;
+  /** The way out, for a mistake that has one the two types do not spell. */
+  help?: string;
   /** What to report this under. A plain clash of two types is VN3010. */
   code?: CodeSpec;
 }

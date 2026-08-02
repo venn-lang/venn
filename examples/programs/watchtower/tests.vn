@@ -19,7 +19,7 @@ http.on broken req => { status: 503, body: { ok: false } }
 
 const HEALTHY = { name: "checkout", url: "http://127.0.0.1:${good.port}/health" }
 const FAILING = { name: "billing", url: "http://127.0.0.1:${broken.port}/health" }
-const SILENT = { name: "search", url: "http://127.0.0.1:1/health" }
+const SILENT = { name: "search", url: "http://127.0.0.1:59999/health" }
 
 flow "One service, asked once" {
   step "a service that answers is up" {
@@ -88,15 +88,15 @@ flow "A board where nothing is wrong" {
 
 flow "Judging, without a server at all" {
   step "a verdict is read off the status and nothing else" {
-    expect verdictOf({ name: "a", url: "u", status: 204, note: "" }) equals "up"
-    expect verdictOf({ name: "a", url: "u", status: 301, note: "" }) equals "up"
-    expect verdictOf({ name: "a", url: "u", status: 404, note: "" }) equals "failing"
-    expect verdictOf({ name: "a", url: "u", status: 500, note: "" }) equals "failing"
-    expect verdictOf({ name: "a", url: "u", status: null, note: "" }) equals "down"
+    expect verdictOf({ name: "a", url: "u", status: 204, ms: 0, note: "" }) equals "up"
+    expect verdictOf({ name: "a", url: "u", status: 301, ms: 0, note: "" }) equals "up"
+    expect verdictOf({ name: "a", url: "u", status: 404, ms: 0, note: "" }) equals "failing"
+    expect verdictOf({ name: "a", url: "u", status: 500, ms: 0, note: "" }) equals "failing"
+    expect verdictOf({ name: "a", url: "u", status: null, ms: 0, note: "" }) equals "down"
   }
 
   step "judged rows carry the verdict beside the answer" {
-    const rows = judged([{ name: "a", url: "http://x/y", status: 200, note: "" }])
+    const rows = judged([{ name: "a", url: "http://x/y", status: 200, ms: 12, note: "" }])
     expect rows.first.verdict equals "up"
     expect rows.first.status == 200
   }

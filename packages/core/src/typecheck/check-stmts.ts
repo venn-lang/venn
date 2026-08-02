@@ -5,14 +5,15 @@ import { callType } from "./action-signature.js";
 import { checkCases } from "./check-cases.js";
 import { checkMatch } from "./check-match.js";
 import { inferAgainst } from "./checked-against.js";
+import { endsThePass } from "./ends-the-pass.js";
 import { ERROR_TYPE } from "./error-type.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
-import { narrowed } from "./narrow.js";
+import { type Branches, narrowed } from "./narrow.js";
 import { paramType } from "./param-type.js";
 import { patternTypes } from "./pattern-types.js";
 import { checkRunArguments } from "./run-arguments.js";
 import { mono, type Scheme } from "./scheme.js";
-import { DYNAMIC, type Type } from "./type.types.js";
+import { DYNAMIC, NULL, type Type } from "./type.types.js";
 import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
 import { prune } from "./unify.js";
@@ -31,7 +32,7 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isLoopStmt(node)) return checkLoop(node, env, infer);
   if (ast.isRepeatStmt(node)) return repeat(node, env, infer);
   if (ast.isTryStmt(node)) return tryStmt(node, env, infer);
-  if (ast.isReturnStmt(node)) return maybeInfer(node.value, env, infer);
+  if (ast.isReturnStmt(node)) return returnStmt(node, env, infer);
   if (ast.isStepDecl(node) || ast.isGroupDecl(node)) return nested(node.body, env, infer);
   if (ast.isParallelStmt(node) || ast.isRaceStmt(node)) return nested(node.body, env, infer);
   if (ast.isLifecycleDecl(node)) return nested(node.body, env, infer);
@@ -163,7 +164,25 @@ function ifStmt(node: ast.IfStmt, env: TypeEnv, infer: Infer): TypeEnv {
   const branch = narrowed(node.cond, env, infer);
   checkBlockOrIf(node.then, branch.whenTrue, infer);
   if (node.otherwise) checkBlockOrIf(node.otherwise, branch.whenFalse, infer);
-  return env;
+  return afterTheIf({ node, branch, env });
+}
+
+/**
+ * The scope the statements below the `if` run in.
+ *
+ * A branch nobody falls out of has already dealt with what its condition said,
+ * so everything written after it is the other side of that condition. That is
+ * the whole of a guard clause: `if status == null { return "no" }` leaves
+ * `status` a number for the rest of the body, which is why the flat way of
+ * writing the function has to be as good as the nested one.
+ */
+function afterTheIf(args: { node: ast.IfStmt; branch: Branches; env: TypeEnv }): TypeEnv {
+  const { node, branch, env } = args;
+  const thenEnds = endsThePass(node.then);
+  const elseEnds = node.otherwise !== undefined && endsThePass(node.otherwise);
+  // Both, and nothing below runs at all; neither, and both sides come back.
+  if (thenEnds === elseEnds) return env;
+  return thenEnds ? branch.whenFalse : branch.whenTrue;
 }
 
 function checkBlockOrIf(node: Block | ast.IfStmt, env: TypeEnv, infer: Infer): void {
@@ -222,8 +241,20 @@ function checkLoop(node: ast.LoopStmt, env: TypeEnv, infer: Infer): TypeEnv {
   return carried;
 }
 
-function maybeInfer(expr: Expr | undefined, env: TypeEnv, infer: Infer): TypeEnv {
-  if (expr) inferExpr(expr, env, infer);
+/**
+ * `return`, read here and nowhere else.
+ *
+ * The scope it is written in is the one its `if` narrowed, and what the body was
+ * declared to hand back is what its value is checked against, so both reach the
+ * expression on the way in. What it found goes to the body, which collects the
+ * ways out once every statement has been walked.
+ */
+function returnStmt(node: ast.ReturnStmt, env: TypeEnv, infer: Infer): TypeEnv {
+  const sink = infer.returns;
+  const value = node.value
+    ? inferAgainst({ expr: node.value, env, infer, wanted: sink?.wanted })
+    : NULL;
+  sink?.found.push(value);
   return env;
 }
 

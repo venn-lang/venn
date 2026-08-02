@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "./index.js";
+import { verbInAFn } from "./verb-in-a-fn.js";
 
 const NEWLINE = String.fromCharCode(10);
 
@@ -11,6 +12,11 @@ function program(...lines: string[]): string {
 /** The titles reported for a source, which is what a reader sees. */
 function titles(source: string): string[] {
   return parse(source).problems.map((problem) => problem.title);
+}
+
+/** The problems reported for a source, spans included. */
+function problems(source: string): ReturnType<typeof parse>["problems"] {
+  return parse(source).problems;
 }
 
 /**
@@ -86,4 +92,89 @@ describe("a verb written inside a fn", () => {
 
     expect(titles(source)[0]).toContain("has to be bracketed");
   });
+});
+
+/**
+ * A `try` block inside a `fn`, which the grammar refuses too, but for a
+ * different reason than a verb: `try ... else ...`, the expression, is what a
+ * pure body may hold instead. Recovery used to fall through the `try` into its
+ * own block and land on the statement inside, so the explainer read that
+ * statement's first word, a keyword, and called it a verb.
+ */
+describe("a try block written inside a fn", () => {
+  it("says a fn cannot hold it, at the try, not at what recovery landed on", () => {
+    const source = program(
+      "fn f(n) {",
+      "  try {",
+      "    return n * 2",
+      "  } catch e {",
+      "    return 0",
+      "  }",
+      "}",
+      "print f(3)",
+    );
+
+    const said = problems(source);
+    expect(said[0]?.title).toBe(
+      "A `fn` is pure, so it cannot hold a `try` block. Write `try ... else ...`, the expression, instead.",
+    );
+    expect(said[0]?.span.line).toBe(2);
+    expect(said[0]?.span.column).toBe(3);
+  });
+
+  it("never blames the keyword recovery happened to land on", () => {
+    const said = titles(
+      program(
+        "fn f(n) {",
+        "  try {",
+        "    return n * 2",
+        "  } catch e {",
+        "    return 0",
+        "  }",
+        "}",
+        "print f(3)",
+      ),
+    );
+
+    for (const title of said) expect(title).not.toContain("cannot call `return`");
+  });
+
+  it("says the same thing one level in, where the try itself is what recovery hits", () => {
+    const source = program(
+      "fn f(n) {",
+      "  if n > 0 {",
+      "    try {",
+      "      return n * 2",
+      "    } catch e {",
+      "      return 0",
+      "    }",
+      "  }",
+      "  return n",
+      "}",
+      "print f(3)",
+    );
+
+    const said = problems(source);
+    expect(said[0]?.title).toContain("cannot hold a `try` block");
+    expect(said[0]?.span.line).toBe(3);
+    expect(said[0]?.span.column).toBe(5);
+  });
+});
+
+/**
+ * `verbInAFn` itself, called directly with a recovered line that starts with a
+ * keyword rather than a name. No shape of the grammar is known to reach this
+ * beyond a `try`, which has its own message above, but the explainer must
+ * refuse to call any of them a verb, whatever recovery lands on.
+ */
+describe("a keyword-first line inside a refused block", () => {
+  it.each(["if", "forEach", "capture", "match", "return"])(
+    "never reads `%s` as a verb",
+    (keyword) => {
+      const text = program("fn f(n) {", `  ${keyword}`, "}");
+      const offset = text.indexOf(keyword) + keyword.length;
+
+      expect(verbInAFn({ text, offset })).toBeUndefined();
+    },
+  );
 });

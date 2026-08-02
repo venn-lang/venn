@@ -39,9 +39,10 @@ its address to the same fragments the program uses.
 
 | file | what is in it |
 | --- | --- |
-| [`main.vn`](main.vn) | The program: arguments, the prompt, and every word a person reads. |
+| [`main.vn`](main.vn) | The program: arguments, the prompt, and what to do with a name. |
 | [`dex/entry.vn`](dex/entry.vn) | What a Pokemon is. Pure, and it does not know what a screen is. |
 | [`dex/fetch.vn`](dex/fetch.vn) | The only file that touches the network. |
+| [`dex/show.vn`](dex/show.vn) | How a Pokemon is written down. |
 | [`dex/shape.vn`](dex/shape.vn) | Three decorators this program wrote for itself. |
 | [`dex/mod.vn`](dex/mod.vn) | The face of the folder. |
 | [`tests.vn`](tests.vn) | Twenty-two assertions, no network. |
@@ -85,6 +86,11 @@ times.** `@named` capitalises, `@joined(" / ")` writes a list out as text, and
 the answer rather than about the work, which is the kind of rule that reads
 better above a function than inside it.
 
+They live in `dex/show.vn`, beside the functions they are rules about, which is
+where they belong and where they did not work until #227: a decorator written in
+an imported file used to be dropped in silence, so the display had to sit in the
+entry file to fire at all.
+
 **One loop serves a person and a pipe.** `io.ask` writes the question and reads
 the answer, and through a pipe it reads the piped line and answers nothing once
 there are none left. So this works:
@@ -97,16 +103,17 @@ and nothing in `prompt()` asks which of the two it is talking to.
 
 ## What writing it found
 
-Four bugs, all open:
+Four bugs, all four since fixed:
 
 - [#227](https://github.com/venn-lang/venn/issues/227): a decorator written in an
-  imported file is silently dropped. It is why the display functions live in
-  `main.vn` rather than beside the data they format, which is where they belong.
+  imported file was silently dropped. It is why the display functions used to
+  live in `main.vn` rather than beside the data they format; they are back in
+  `dex/show.vn` now.
 - [#228](https://github.com/venn-lang/venn/issues/228): a block-bodied `fn`
-  written directly as a call argument does not parse once its block holds a
+  written directly as a call argument did not parse once its block held a
   statement.
 - [#233](https://github.com/venn-lang/venn/issues/233): a map interpolated into
-  text reads `[object Object]`.
+  text read `[object Object]`.
 - [#234](https://github.com/venn-lang/venn/issues/234): two lists are never
-  `==`, and nothing says so. It cost four assertions in `tests.vn` that looked
+  `==`, and nothing said so. It cost four assertions in `tests.vn` that looked
   like they held.

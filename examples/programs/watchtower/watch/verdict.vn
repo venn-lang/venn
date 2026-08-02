@@ -16,6 +16,7 @@ pub type Result = {
   name: string,
   url: string,
   status: number | null,
+  ms: number,
   note: string
 }
 
@@ -33,18 +34,15 @@ pub const DOWN = "down"
 ## apart on purpose: the first is running and wrong, the second is not running.
 ## Whoever is woken at four in the morning needs to know which.
 ##
-## Two levels of nesting for one question, because narrowing does not reach a
-## guard clause and does not survive into a `return`'s expression (#238). The
-## flat way to write this is refused today.
+## The guard goes first and the rest of the body is flat behind it, which is
+## what a branch that cannot fall through buys: after the `return`, `status` is
+## a number and the checker knows it.
 pub fn verdictOf(result: Result) -> string {
   const status = result.status
-  if status != null {
-    if status >= 200 && status < 400 {
-      return UP
-    }
-    return FAILING
+  if status == null {
+    return DOWN
   }
-  return DOWN
+  return status >= 200 && status < 400 ? UP : FAILING
 }
 
 ## Every result with its verdict, in the order they were asked for.
@@ -52,9 +50,24 @@ pub fn judged(results: list<Result>) -> list<map> => results.map((result) => {
   name: result.name,
   url: result.url,
   status: result.status,
+  ms: result.ms,
   verdict: verdictOf(result),
   note: result.note
 })
+
+## The slowest of the ones that answered at all.
+##
+## A service that never answered has no time worth comparing, so it is dropped
+## rather than counted as instant, which is what a zero would have made it.
+pub fn slowest(results: list<Result>) -> Result | null {
+  const answered = results.filter(hasATime)
+  if answered.isEmpty {
+    return null
+  }
+  return answered.maxBy((result) => result.ms)
+}
+
+fn hasATime(result: Result) -> bool => result.status != null
 
 ## How many of each, for the line under the table.
 pub fn tally(results: list<Result>) -> map<number> {

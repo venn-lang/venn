@@ -1,0 +1,47 @@
+## What a Pokemon looks like once somebody is going to read it.
+##
+## Pure, like `entry.vn`, and separate from it because the two answer different
+## questions: that one is what a Pokemon is, this is how it is written down.
+## Change the columns of the table and nothing about the data moves.
+module examples.programs.pokedex.show
+
+import { Entry, scoreOn } from "./entry.vn"
+import { instead, joined, named } from "./shape.vn"
+
+## The API writes every name in lower case, and every one of them is read by a
+## person. `@named` is that rule, said once, above the function it is a rule
+## about, in the file the rule belongs to.
+@named
+fn title(entry: Entry) -> string => entry.name
+
+@joined(" / ")
+fn kinds(entry: Entry) => entry.kinds.map((kind) => kind.capitalize)
+
+## A Pokemon with no stats at all is a Pokemon this program can still print.
+@instead(0)
+fn best(entry: Entry) => entry.stats.values.max
+
+## One entry, four lines, which is what a name on its own asks for.
+pub fn card(entry: Entry) -> string => [
+  "#${padded(entry.id)}  ${title(entry)}",
+  "  type    ${kinds(entry)}",
+  "  size    ${entry.height.toFixed(1)} m, ${entry.weight.toFixed(1)} kg",
+  "  best    ${best(entry)}"
+].join("
+")
+
+## A three-digit number, so a column of them lines up.
+fn padded(id: number) -> string => id.toString.padStart(3, "0")
+
+## What `fmt.table` wants: one map per row, every key a column.
+pub fn rows(entries: list<Entry>) -> list<map> => entries.map((entry) => {
+  no: padded(entry.id),
+  name: title(entry),
+  type: kinds(entry),
+  hp: scoreOn(entry, "hp"),
+  attack: scoreOn(entry, "attack"),
+  speed: scoreOn(entry, "speed")
+})
+
+## The name of one, for a line that is not a table.
+pub fn nameOf(entry: Entry) -> string => title(entry)

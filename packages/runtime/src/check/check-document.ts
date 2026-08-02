@@ -24,6 +24,7 @@ import type { CheckArgs, CheckContext } from "./check.types.js";
 import { checkAssign } from "./check-assign.js";
 import { checkAction, checkCapture, checkLet } from "./check-calls.js";
 import { checkInsideDeco } from "./check-deco-body.js";
+import { checkDecoReach } from "./check-deco-reach.js";
 import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
 import { checkDuplicateKey } from "./check-duplicate-key.js";
 import { checkEnv } from "./check-env.js";
@@ -70,6 +71,7 @@ export function checkDocument(args: CheckArgs): Problem[] {
     ...checkNameTaken(args.document, ctx),
     ...checkAssign(args.document, ctx),
     ...checkUnusedImport(args.document, ctx),
+    ...checkDecoReach(args.document, ctx),
   ];
   for (const node of walkAst(args.document)) {
     const inDeco = checkInsideDeco(node, ctx);

@@ -11,7 +11,7 @@
 import { fmt } from "venn/fmt"
 import { http } from "venn/http"
 import { io } from "venn/io"
-import { allWell, firstOf, judged, probeAll, shortened, tally, troubled } from "./watch"
+import { allWell, firstOf, judged, probeAll, shortened, slowest, tally, troubled } from "./watch"
 
 ## How many checks are in flight at once.
 ##
@@ -41,6 +41,14 @@ fragment watch(watches) {
   const counts = tally(results)
   print "${counts.up} up, ${counts.failing} failing, ${counts.down} down"
 
+  ## Which one to look at first when everything is technically answering. It
+  ## needed `res.time` to be a real number and two moments to subtract, neither
+  ## of which the language could do when this program was written.
+  const worst = slowest(results)
+  if worst != null {
+    print "slowest to answer: ${worst.name} at ${worst.ms}ms"
+  }
+
   ## What an operator actually asked, said in one line at the bottom rather than
   ## left for them to work out from the table.
   if allWell(results) {
@@ -53,11 +61,12 @@ fragment watch(watches) {
   }
 }
 
-## One row of the board, with the empty status of something that never answered
-## written as a dash rather than as nothing at all.
+## One row of the board. What never answered has no status and no time, and both
+## read as a dash rather than as nothing at all or as an instant zero.
 fn row(one: map) -> map => {
   service: one.name,
   status: one.status ?? "-",
+  took: one.status == null ? "-" : "${one.ms}ms",
   verdict: one.verdict
 }
 
@@ -80,7 +89,7 @@ fragment demonstrate() {
   run watch([
     { name: "checkout", url: "http://127.0.0.1:${good.port}/health" },
     { name: "billing", url: "http://127.0.0.1:${broken.port}/health" },
-    { name: "search", url: "http://127.0.0.1:1/health" }
+    { name: "search", url: "http://127.0.0.1:59999/health" }
   ])
 
   print ""

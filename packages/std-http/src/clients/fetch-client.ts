@@ -1,29 +1,41 @@
-import type { HttpClient, HttpResponse } from "../port/index.js";
+import type { HttpClient, HttpRequest, HttpResponse } from "../port/index.js";
+import { asRequestError } from "./fetch-failure.js";
+import { startStopwatch } from "./stopwatch.js";
 
 /**
  * The real client, over the global `fetch`. Requires the `net` capability.
  *
  * The body is always read as text and parsed afterwards, so a reply that claims
  * JSON but is not still arrives whole in `body` instead of throwing.
+ *
+ * @returns An {@link HttpClient} that sends over the network.
  */
 export function createFetchClient(): HttpClient {
-  return {
-    async request(req): Promise<HttpResponse> {
-      const response = await fetch(req.url, {
-        method: req.method,
-        headers: req.headers,
-        body: req.body,
-        signal: req.signal,
-      });
-      const body = await response.text();
-      return mapResponse({
-        status: response.status,
-        ok: response.ok,
-        headers: response.headers,
-        body,
-      });
-    },
-  };
+  return { request: (req) => send(req) };
+}
+
+async function send(req: HttpRequest): Promise<HttpResponse> {
+  const elapsed = startStopwatch();
+  try {
+    return await roundTrip(req, elapsed);
+  } catch (error) {
+    throw asRequestError({
+      attempt: { method: req.method, url: req.url, elapsedMs: elapsed() },
+      error,
+    });
+  }
+}
+
+/** The clock stops once the body is in hand, which is when the request is done. */
+async function roundTrip(req: HttpRequest, elapsed: () => number): Promise<HttpResponse> {
+  const response = await fetch(req.url, initOf(req));
+  const body = await response.text();
+  const { status, ok, headers } = response;
+  return mapResponse({ status, ok, headers, body, time: elapsed() });
+}
+
+function initOf(req: HttpRequest): RequestInit {
+  return { method: req.method, headers: req.headers, body: req.body, signal: req.signal };
 }
 
 function mapResponse(args: {
@@ -31,6 +43,7 @@ function mapResponse(args: {
   ok: boolean;
   headers: Headers;
   body: string;
+  time: number;
 }): HttpResponse {
   return {
     status: args.status,
@@ -38,7 +51,7 @@ function mapResponse(args: {
     headers: toObject(args.headers),
     body: args.body,
     json: tryJson(args.body),
-    time: 0,
+    time: args.time,
   };
 }
 

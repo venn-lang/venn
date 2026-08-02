@@ -23,6 +23,12 @@ export const PLUGIN_CODES = {
   VN7020_PORT_TAKEN: "VN7020",
   /** A socket that refused to bind, for a reason of the machine's. */
   VN7021_CANNOT_BIND: "VN7021",
+  /** Nothing was listening at the address. */
+  VN7022_CONNECTION_REFUSED: "VN7022",
+  /** The name did not resolve. */
+  VN7023_HOST_NOT_FOUND: "VN7023",
+  /** The request was made and no answer came in time. */
+  VN7024_REQUEST_TIMED_OUT: "VN7024",
   /** A verb that needs something chosen first, and nothing was. */
   VN7090_NOTHING_CHOSEN: "VN7090",
 } as const;

@@ -7,6 +7,7 @@ import type { Step } from "../compile.types.js";
 import type { LexScope } from "../lex-scope.js";
 import { unpack, wholeValueName } from "../unpack.js";
 import type { CompileIn } from "./fn.js";
+import { checkedCount, checkedList } from "./loop-bound.js";
 
 /**
  * One statement of a function body, compiled.
@@ -27,7 +28,7 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   if (ast.isRepeatStmt(stmt)) return repeatStep(stmt, scope, compile);
   if (ast.isLoopStmt(stmt)) return loopStep(stmt, scope, compile);
   if (ast.isBreakStmt(stmt)) return () => BROKE;
-  if (ast.isContinueStmt(stmt)) return () => WENT_ON;
+  if (ast.isContinueStmt(stmt)) return continueStep(stmt, scope, compile);
   // Everything a pure body may hold is named above, and the grammar holds it to
   // that at every depth. Anything else stands still rather than stopping the
   // block: a statement nobody compiled must not be able to end the body, which
@@ -137,12 +138,11 @@ function elseSteps(
 
 function forEachStep(stmt: ast.ForEachStmt, scope: LexScope, compile: CompileIn): Step {
   const source = compile(stmt.source, scope);
+  const listed = checkedList(stmt.source);
   const body = blockSteps(stmt.body, scope, compile);
   const bind = binder(stmt, scope);
   return (frame) => {
-    const items = source(frame);
-    if (!Array.isArray(items)) return RAN;
-    for (const item of items) {
+    for (const item of listed(source(frame))) {
       bind(frame, item);
       const stopped = runSteps(body, frame);
       if (stopped === LEFT) return LEFT;
@@ -176,10 +176,11 @@ function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: un
  */
 function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): Step {
   const count = compile(stmt.count, scope);
+  const counted = checkedCount(stmt.count);
   const body = blockSteps(stmt.body, scope, compile);
   const slot = stmt.index ? scope.names.indexOf(stmt.index) : -1;
   return (frame) => {
-    const times = Number(count(frame)) || 0;
+    const times = counted(count(frame));
     for (let at = 1; at <= times; at += 1) {
       if (slot !== -1) writeSlot(frame, slot, at);
       const stopped = runSteps(body, frame);
@@ -192,6 +193,11 @@ function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): 
 
 /**
  * `loop { … }`, `loop cond { … }`, `loop state = initial { … }`.
+ *
+ * The state gets its slot filled once, before the first pass, so both ways of
+ * advancing it land in the same place: `continue next` writes the slot, and so
+ * does a plain `state = next`. Re-binding the name at the top of every pass
+ * would throw the second one away, and a loop that never advances never ends.
  *
  * Uncapped, as everywhere else: what ends a loop that should have ended is the
  * timeout around it, and a program that means to run forever is allowed to.
@@ -210,4 +216,35 @@ function loopStep(stmt: ast.LoopStmt, scope: LexScope, compile: CompileIn): Step
     }
     return RAN;
   };
+}
+
+/**
+ * `continue`, and `continue next` where the loop carries a state.
+ *
+ * The value goes into the state's slot, which is the same slot a plain
+ * assignment writes, so the next pass starts from it and the name still holds
+ * the last one after the loop. A value handed to a `repeat` or a `forEach` has
+ * nowhere to go: it is evaluated, because the source asked for it, and dropped.
+ */
+function continueStep(stmt: ast.ContinueStmt, scope: LexScope, compile: CompileIn): Step {
+  if (!stmt.value) return () => WENT_ON;
+  const value = compile(stmt.value, scope);
+  const slot = carriedSlot(stmt, scope);
+  return (frame) => {
+    const next = value(frame);
+    if (slot !== -1) writeSlot(frame, slot, next);
+    return WENT_ON;
+  };
+}
+
+/** The slot the enclosing `loop` carries its state in, or `-1` when there is none. */
+function carriedSlot(stmt: ast.ContinueStmt, scope: LexScope): number {
+  let up = stmt.$container as { $container?: unknown } | undefined;
+  while (up) {
+    if (ast.isFnExpr(up) || ast.isFnDecl(up)) return -1;
+    if (ast.isForEachStmt(up) || ast.isRepeatStmt(up)) return -1;
+    if (ast.isLoopStmt(up)) return up.state ? scope.names.indexOf(up.state.name) : -1;
+    up = up.$container as { $container?: unknown } | undefined;
+  }
+  return -1;
 }

@@ -25,6 +25,8 @@ export const CODES = {
   VN2020_NAME_TAKEN: { code: "VN2020", severity: "error" },
   VN2021_IMPORT_CYCLE: { code: "VN2021", severity: "error" },
   VN2022_CONST_ASSIGNED: { code: "VN2022", severity: "error" },
+  /** A name inside a `deco` body that expansion time cannot reach yet. */
+  VN2023_OUT_OF_REACH: { code: "VN2023", severity: "error" },
   VN3001_UNKNOWN_OPTION: { code: "VN3001", severity: "error" },
   VN3010_TYPE_MISMATCH: { code: "VN3010", severity: "error" },
   VN3012_UNIT_MISMATCH: { code: "VN3012", severity: "error" },
@@ -43,6 +45,8 @@ export const CODES = {
   VN5003_DUPLICATE_KEY: { code: "VN5003", severity: "error" },
   VN5004_UNKNOWN_EVENT: { code: "VN5004", severity: "error" },
   VN5005_UNUSED_IMPORT: { code: "VN5005", severity: "hint" },
+  /** `==` or `!=` between two lists or two maps: reference equality, always false. */
+  VN5006_IDENTITY_COMPARISON: { code: "VN5006", severity: "error" },
   VN6001_ASSERTION_FAILED: { code: "VN6001", severity: "error" },
   VN7001_ACTION_FAILED: { code: "VN7001", severity: "error" },
   VN7004_HOOK_FAILED: { code: "VN7004", severity: "error" },

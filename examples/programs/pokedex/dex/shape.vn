@@ -6,8 +6,9 @@
 ## exactly the kind of rule that reads better above a function than inside it.
 ##
 ## A `deco` body runs at expansion time, before the program exists, so what a
-## closure written here may read is its own parameters and the `target` handle.
-## Reaching for a name at the top of the file finds nothing.
+## closure written here may read is its own parameters, its own `const`s and the
+## prelude. Reaching for a name at the top of the file is refused where it is
+## written, with `VN2023`, rather than quietly reading as nothing.
 module examples.programs.pokedex.shape
 
 ## The answer with its first letter raised.

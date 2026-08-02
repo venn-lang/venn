@@ -57,7 +57,13 @@ export function createRunner(args: RunnerArgs): Runner {
   const drive = (walk: Walk) => (document: Document) => {
     // Decorators run first, on every path: what the scheduler walks is the tree
     // they left, not the one the parser produced.
-    const expansion = expand({ document, decorators, uri: args.uri, imported: args.moduleDecos });
+    const expansion = expand({
+      document,
+      decorators,
+      uri: args.uri,
+      imported: args.moduleDecos,
+      modules: args.modules?.modules,
+    });
     return runOnce({ args, registry, resolver, document }, walk, expansion.problems);
   };
   return { run: drive(runDocument), script: drive(runScript) };

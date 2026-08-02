@@ -1,6 +1,7 @@
 import type { AstNode } from "langium";
 import { dottedPath } from "../ast/index.js";
 import { CODES } from "../codes/index.js";
+import type * as ast from "../generated/ast.js";
 import type {
   Binary,
   Call,
@@ -13,14 +14,11 @@ import type {
   Param,
   ParamList,
   Pattern,
-  ReturnStmt,
-  Statement,
   StringLit,
   Ternary,
   TypeRef,
   Unary,
 } from "../generated/ast.js";
-import * as ast from "../generated/ast.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { callType } from "./action-signature.js";
@@ -35,12 +33,14 @@ import { inferAgainst, inferList, inferMap } from "./checked-against.js";
 import type { TypeContext } from "./context.js";
 import { ERROR_TYPE } from "./error-type.js";
 import { fits } from "./fits.js";
+import { identityComparison } from "./identity-comparison.js";
 import type { ImportedType } from "./imported-types.js";
 import { either, logicalType } from "./logical-type.js";
 import { mergedCall } from "./merged-call.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
+import type { ReturnSink } from "./return-sink.types.js";
 import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
@@ -91,6 +91,8 @@ export interface Infer {
   decos?: ReadonlyMap<string, DecoDecl>;
   /** The fragments this file declares, so a `run` can be checked against one. */
   fragments?: ReadonlyMap<string, FragmentDecl>;
+  /** Where the `return`s of the body being walked report what they hand back. */
+  returns?: ReturnSink;
 }
 
 /** Infer an expression's type, recording it for hover and reporting mismatches. */
@@ -428,6 +430,8 @@ function inferBinary(expr: Binary, env: TypeEnv, infer: Infer): Type {
   const right = inferExpr(expr.right, env, infer);
   if (ARITHMETIC.has(op) || COMPARISON.has(op)) return arithmetic({ infer, expr, op, left, right });
   if (op === "&&" || op === "||" || op === "??") return logicalType(op, left, right);
+  const identity = identityComparison({ node: expr, op, left, right });
+  if (identity) infer.ctx.mismatches.push(identity);
   return BOOL;
 }
 
@@ -513,16 +517,24 @@ export function inferFn(
     node: param,
     type: paramType(param, infer),
   }));
-  let body = env;
-  for (const param of params) body = inScope(param, body, infer);
-  const result = inferBody(decl.body, body, infer);
+  let scope = env;
+  for (const param of params) scope = inScope(param, scope, infer);
+  const declared = declaredType(decl.returns, infer);
+  const result = inferBody({ body: decl.body, env: scope, infer, wanted: declared });
   // Record each parameter once the body has constrained it, so hover and
   // completion know what `p` is inside `xs.filter(fn (p) => …)`.
   for (const param of params) infer.types?.set(param.node, param.type);
   return fn(
     params.map((param) => param.type),
-    declaredResult(decl, result, infer),
+    declaredResult({ body: decl.body, declared, result, infer }),
   );
+}
+
+/** What the `->` of a declaration names, when the declaration has one. */
+function declaredType(returns: TypeRef | undefined, infer: Infer): Type | undefined {
+  if (!returns) return undefined;
+  const { ctx, named, catalog } = infer;
+  return typeRefToType({ ref: returns, ctx, named, catalog });
 }
 
 /**
@@ -533,75 +545,62 @@ export function inferFn(
  * back what the body happened to build makes the union unwritable: a list of two
  * of them would be a list of two different things.
  */
-function declaredResult(
-  decl: { returns?: TypeRef; body: FnBody },
-  result: Type,
-  infer: Infer,
-): Type {
-  if (!decl.returns) return result;
-  const { ctx, named, catalog } = infer;
-  const declared = typeRefToType({ ref: decl.returns, ctx, named, catalog });
-  expect(infer, decl.body, result, declared);
+function declaredResult(args: {
+  body: FnBody;
+  declared: Type | undefined;
+  result: Type;
+  infer: Infer;
+}): Type {
+  const { body, declared, result, infer } = args;
+  if (!declared) return result;
+  expect(infer, body, result, declared);
   return declared;
 }
 
 /**
  * A body's statements, then the expression it ends with.
  *
- * That last expression may be missing, in two ways that look alike and are not:
+ * What the `fn` declared it hands back is threaded down rather than checked
+ * afterwards, since a list literal settles what its items are before anything
+ * else reads it: `-> list<Row>` only reaches it on the way in. Each `return`
+ * reports into the sink from the scope it stands in, which is the only scope
+ * that knows what the `if` around it narrowed.
+ *
+ * The ending expression may be missing, in two ways that look alike and are not:
  * a half-written `fn` is the normal state of a file being edited, and a body
- * that ends in `return` is finished. Both read as unknown here, and what a
- * `return` gives back is settled by {@link returned} rather than by guessing.
+ * that ends in `return` is finished. Both read as unknown here.
  */
-function inferBody(body: FnBody, env: TypeEnv, infer: Infer): Type {
-  let scope = env;
-  for (const stmt of body.stmts) scope = checkStatement(stmt, scope, infer);
-  const ending = body.result ? inferExpr(body.result, scope, infer) : undefined;
-  const left = returned(body, scope, infer);
-  if (!ending) return left ?? DYNAMIC;
-  return left ? either(ending, left) : ending;
+function inferBody(args: { body: FnBody; env: TypeEnv; infer: Infer; wanted?: Type }): Type {
+  const { body, infer, wanted } = args;
+  const sink: ReturnSink = { wanted, found: [] };
+  const inner: Infer = { ...infer, returns: sink };
+  let scope = args.env;
+  for (const stmt of body.stmts) scope = checkStatement(stmt, scope, inner);
+  const ending = body.result
+    ? inferAgainst({ expr: body.result, env: scope, infer: inner, wanted })
+    : undefined;
+  return waysOut(ending, sink.found);
 }
 
 /**
- * What every `return` in the body hands back, as one type.
+ * Every way out of a body, as one type.
  *
- * The ways out are not asked to agree with each other, any more than the two
- * sides of a `try` are. Answering with a value or with nothing is what a lookup
- * does, and a block with two `return`s is how anybody writes one; measuring the
- * second against the type of the first refused that outright. So they make a
- * union, and {@link either} keeps ways out that do agree as the one type they
- * are rather than a union of a thing with itself.
+ * They are not asked to agree with each other, any more than the two sides of a
+ * `try` are. Answering with a value or with nothing is what a lookup does, and a
+ * block with two `return`s is how anybody writes one; measuring the second
+ * against the type of the first refused that outright. So they make a union, and
+ * {@link either} keeps ways out that do agree as the one type they are rather
+ * than a union of a thing with itself.
  *
  * An annotation still decides. {@link declaredResult} checks this against it,
  * and `fits` lets a union through only when every member of it is allowed, so
  * `-> string` still refuses the body that may hand back nothing.
  */
-function returned(body: FnBody, env: TypeEnv, infer: Infer): Type | undefined {
-  const found = returnsIn(body.stmts).map((stmt) =>
-    stmt.value ? inferExpr(stmt.value, env, infer) : NULL,
-  );
+function waysOut(ending: Type | undefined, found: readonly Type[]): Type {
   const first = found[0];
-  if (!first) return undefined;
-  return found.slice(1).reduce((left, right) => either(left, right), first);
-}
-
-/** Every `return` the body holds, at any depth, in written order. */
-function returnsIn(stmts: readonly Statement[]): ReturnStmt[] {
-  const found: ReturnStmt[] = [];
-  for (const stmt of stmts) walkReturns(stmt, found);
-  return found;
-}
-
-function walkReturns(node: object, into: ReturnStmt[]): void {
-  if (ast.isReturnStmt(node)) into.push(node);
-  const held = node as {
-    body?: { stmts?: object[] };
-    then?: { stmts?: object[] };
-    otherwise?: { stmts?: object[] };
-  };
-  const blocks = [held.body?.stmts, held.then?.stmts, held.otherwise?.stmts];
-  for (const block of blocks) for (const child of block ?? []) walkReturns(child, into);
-  if (held.otherwise && !held.otherwise.stmts) walkReturns(held.otherwise, into);
+  const left = first && found.slice(1).reduce((one, next) => either(one, next), first);
+  if (!ending) return left ?? DYNAMIC;
+  return left ? either(ending, left) : ending;
 }
 
 /** A parameter in the body's scope: under its name, or taken apart. */

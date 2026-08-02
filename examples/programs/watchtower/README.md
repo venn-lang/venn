@@ -9,16 +9,17 @@ venn test examples/programs/watchtower/tests.vn
 ```
 
 ```
-service  │ status │ verdict
-─────────┼────────┼────────
-checkout │ 200    │ up
-billing  │ 503    │ failing
-search   │ -      │ down
+service  │ status │ took │ verdict
+─────────┼────────┼──────┼────────
+checkout │ 200    │ 27ms │ up
+billing  │ 503    │ 22ms │ failing
+search   │ -      │ -    │ down
 
 1 up, 1 failing, 1 down
+slowest to answer: checkout at 27ms
 
 billing: the service answered badly
-search: fetch failed
+search: Nothing is listening on 127.0.0.1:59999, so GET http://127.0.0.1:59999/health was refused.
 
 mirrors: eu-west answered first with 200
 ```
@@ -89,15 +90,24 @@ the second is not running, and whoever is woken at four in the morning needs to
 know which. It is the distinction the whole report turns on, and it is why
 `status` is `number | null` rather than a number with a sentinel in it.
 
+It is also why the slowest line drops anything that never answered rather than
+counting it as instant, and why the `took` column is a dash there. A zero would
+have made the dead service the fastest one on the board.
+
 ## What writing it found
 
-- [#237](https://github.com/venn-lang/venn/issues/237): two instants cannot be
-  subtracted, so nothing in the language can answer "how long did that take".
-  It is why this reports which services answered rather than how quickly, which
-  is the first thing a real watchtower would show.
-- [#238](https://github.com/venn-lang/venn/issues/238): narrowing does not reach
-  a guard clause and does not survive into a `return`'s expression, which is why
-  `verdictOf` is nested two levels deeper than it wants to be.
-- [#239](https://github.com/venn-lang/venn/issues/239): a connection that was
-  refused reports `fetch failed`, which is the platform's words rather than the
-  product's. It is the `search` row above.
+Three bugs, all three since fixed, and all three visible in the output above.
+
+- [#235](https://github.com/venn-lang/venn/issues/235) and
+  [#237](https://github.com/venn-lang/venn/issues/237): `res.time` was always
+  zero, and two instants could not be subtracted, so nothing in the language
+  could answer "how long did that take". The `took` column and the slowest line
+  are what those two bought.
+- [#238](https://github.com/venn-lang/venn/issues/238): narrowing did not reach
+  a guard clause and did not survive into a `return`'s expression, so
+  `verdictOf` was nested two levels deeper than it wanted to be. It is now the
+  guard and one line behind it.
+- [#239](https://github.com/venn-lang/venn/issues/239): a refused connection
+  reported `fetch failed`, the platform's words rather than the product's. The
+  `search` row now names the address and carries `VN7022`, so a caller can tell
+  a service that is down from one that is wrong without reading the sentence.

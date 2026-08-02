@@ -136,10 +136,23 @@ class LoopState {
     }
   }
 
-  /** The trailing `continue`, run without a signal because nothing is jumping. */
+  /**
+   * What the next pass starts from: the trailing `continue`, or whatever the
+   * pass left the name holding.
+   *
+   * The second half is why a loop that advances by `n = n + 1` ends. The name is
+   * re-set from `carried` at the top of every pass, so an assignment inside the
+   * body was written into the child scope and then overwritten, and the loop ran
+   * for ever without reporting anything. Reading it back here is what makes the
+   * two idioms agree, here and inside a compiled `fn` alike.
+   */
   private advance(): void {
     const value = (this.tail as { value?: unknown })?.value;
-    if (value) this.carried = evaluate(value as never, this.child);
+    if (value) {
+      this.carried = evaluate(value as never, this.child);
+      return;
+    }
+    if (this.name) this.carried = this.child.lookup(this.name);
   }
 
   /** `break` ends the loop; `continue` sets what the next pass starts from. */

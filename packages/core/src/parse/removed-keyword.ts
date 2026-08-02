@@ -1,10 +1,14 @@
 import type { CodeSpec } from "../codes/code.types.js";
 import { CODES } from "../codes/index.js";
 
-/** What an explainer answers with: the line to print, and which code it is. */
+/**
+ * What an explainer answers with: the line to print, which code it is, and
+ * where to point it when that is not where the parser itself stopped.
+ */
 export interface Explained {
   readonly title: string;
   readonly spec: CodeSpec;
+  readonly offset?: number;
 }
 
 /**

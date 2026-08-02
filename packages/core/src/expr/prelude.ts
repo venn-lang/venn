@@ -1,3 +1,4 @@
+import { displayValue } from "../interpolation/stringify-value.js";
 import { isClosure } from "./closure.js";
 import { invoke } from "./invoke.js";
 import { pattern } from "./methods/regex-methods.js";
@@ -5,23 +6,15 @@ import { isNativeFn, nativeFn } from "./native.types.js";
 import { startTask } from "./task.js";
 
 /**
- * Render a value the way `print` and `str` do: a string as itself, anything
- * else as JSON. A value JSON cannot hold falls back to its plain text rather
- * than throwing, because printing must never be the thing that fails a flow.
+ * Render a value the way `print` and `str` do, which is the way `${}` does.
+ *
+ * One definition rather than two: this used to answer with JSON, so `print
+ * 300ms` gave `{"kind":"duration","ms":300}` while `"${300ms}"` two lines later
+ * gave `300ms`. Whichever of those a reader saw first, the other one taught them
+ * that the language does not know its own mind.
  */
 export function display(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value === null || value === undefined) return String(value);
-  if (typeof value !== "object") return String(value);
-  // A moment prints as the moment. How it is held is nobody's business, and
-  // `{"kind":"instant","epochMs":…}` is the inside of the language leaking out.
-  const iso = (value as { kind?: unknown; iso?: unknown }).kind === "instant" && value;
-  if (iso) return String((value as { iso: string }).iso);
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
+  return displayValue(value);
 }
 
 /**

@@ -196,7 +196,7 @@ loop at = 0 {
 }
 print state.seen`;
 
-    expect(await run(source)).toEqual(["[0,1]"]);
+    expect(await run(source)).toEqual(["[0, 1]"]);
   });
 
   /**

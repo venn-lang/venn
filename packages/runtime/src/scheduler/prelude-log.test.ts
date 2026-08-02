@@ -23,10 +23,16 @@ describe("log", () => {
     expect(await logsOf('log "hello"')).toEqual(["hello"]);
   });
 
-  it("shows an object as JSON, not `[object Object]`", async () => {
+  /**
+   * This asked for JSON when JSON was the only thing that was not the host's
+   * own words. What it was always about is that a reader sees what the value
+   * holds, and a map written the way the program would write it says that
+   * better than JSON does, in the shape `"${o}"` gives for the same value.
+   */
+  it("shows a map the way the language writes one", async () => {
     const logs = await logsOf('const o = { alg: "RS256", n: 42 }\nlog o');
 
-    expect(logs).toEqual(['{"alg":"RS256","n":42}']);
+    expect(logs).toEqual(['{ alg: "RS256", n: 42 }']);
   });
 
   it("joins several arguments with a space, like console.log", async () => {

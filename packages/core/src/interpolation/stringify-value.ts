@@ -35,6 +35,30 @@ export function stringifyValue(value: unknown): string {
 }
 
 /**
+ * The same value, the way `print` and `str` show it.
+ *
+ * One definition with {@link stringifyValue}, because `print x` and `"${x}"` two
+ * lines apart showing the same value differently is worse than either being
+ * wrong on its own. `print` is how anybody looks at a value while working
+ * something out, and it used to answer with the interpreter's own shape:
+ * `{"kind":"duration","ms":300}` for `300ms`, and JSON for every map.
+ *
+ * One rule differs, and only at the top. Nothing prints as `null`, because
+ * `print x` asked what `x` is and deserves an answer, while an interpolation is
+ * a sentence with a gap in it and `add ${name}` with no name reads better as
+ * `add ` than as `add null`.
+ *
+ * @param value What to show.
+ * @returns Its text, the same as an interpolation would give, except that null
+ * and undefined read as `null`.
+ */
+export function displayValue(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "string") return value;
+  return write(value, new Set());
+}
+
+/**
  * The same value one level in, where the rules differ: a string is quoted so a
  * list of words reads as one, and nothing is `null` so a list keeps its length.
  */

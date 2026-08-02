@@ -10,7 +10,7 @@ export const onTopic: MatcherDefinition = defineMatcher({
   args: [arg("topic", t.string, "The topic the message should have arrived on.")],
   appliesTo: "Message",
   test: ({ subject, args }) => messageTopic(subject) === String(args[0]),
-  message: ({ args }) => `expected the message on topic "${String(args[0])}"`,
+  message: ({ args }, ctx) => `expected the message on topic "${ctx.show(args[0])}"`,
 });
 
 function messageTopic(subject: unknown): string | undefined {

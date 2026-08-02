@@ -78,7 +78,7 @@ describe("a failed assertion, from flow to terminal", () => {
     // `contains` held one needle against every item; there is no item 0 that was
     // ever supposed to be 5, so no line may claim one.
     expect(lines.some((line) => line.includes("[0]"))).toBe(false);
-    expect(lines).toContain("     expected  [5,6]");
-    expect(lines).toContain("     actual    [[1,2],[3,4]]");
+    expect(lines).toContain("     expected  [5, 6]");
+    expect(lines).toContain("     actual    [[1, 2], [3, 4]]");
   });
 });

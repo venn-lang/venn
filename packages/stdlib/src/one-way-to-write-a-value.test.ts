@@ -1,8 +1,8 @@
 import { ConsolePort, createMemoryConsole, createTestHost } from "@venn-lang/contracts";
 import { parse } from "@venn-lang/core";
-import { ioPlugin } from "@venn-lang/io";
 import { createMemorySink, createRunner } from "@venn-lang/runtime";
 import { describe, expect, it } from "vitest";
+import { allPlugins } from "./plugins.js";
 
 const NEWLINE = String.fromCharCode(10);
 
@@ -12,7 +12,7 @@ async function run(source: string): Promise<string[]> {
   const console = createMemoryConsole();
   const runner = createRunner({
     host: createTestHost(),
-    plugins: [ioPlugin],
+    plugins: allPlugins,
     sink: createMemorySink(),
     ports: [{ port: ConsolePort, impl: console }],
   });
@@ -87,5 +87,27 @@ describe("printing a value by both of its names", () => {
 
     expect(lines.join(" ")).not.toContain("object Object");
     expect(lines.join(" ")).not.toContain('"kind"');
+  });
+});
+
+/**
+ * A table is written for a person, so a cell holding a map reads the way the
+ * program would write one. Held here rather than in `std-fmt`, where the test
+ * has to hand `toTable` a stand-in renderer: a stand-in that drifted from the
+ * real one would pass while the table diverged, which is the whole failure this
+ * change is about.
+ */
+describe("a table cell", () => {
+  it("holds a map the way the language writes one", async () => {
+    const lines = await run(
+      [
+        'import { fmt } from "venn/fmt"',
+        'const rows = [{ who: "ada", marks: { homework: 95, final: 92 } }]',
+        "print fmt.table(rows)",
+      ].join(NEWLINE),
+    );
+
+    expect(lines.join(NEWLINE)).toContain("{ homework: 95, final: 92 }");
+    expect(lines.join(NEWLINE)).not.toContain('{"homework"');
   });
 });

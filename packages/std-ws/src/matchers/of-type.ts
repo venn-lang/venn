@@ -7,7 +7,7 @@ export const ofType: MatcherDefinition = defineMatcher({
   args: [arg("type", t.string, "The message type expected: `text`, `binary`.")],
   appliesTo: "Message",
   test: ({ subject, args }) => messageType(subject) === String(args[0]),
-  message: ({ args }) => `expected the message to have type "${String(args[0])}"`,
+  message: ({ args }, ctx) => `expected the message to have type "${ctx.show(args[0])}"`,
 });
 
 function messageType(subject: unknown): string | undefined {

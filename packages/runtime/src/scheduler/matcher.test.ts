@@ -141,7 +141,7 @@ describe("what a failed matcher reports", () => {
 
     expect(failure(sink).diff).toEqual({
       kind: "scalar",
-      expected: '["free","pro"]',
+      expected: '["free", "pro"]',
       actual: '"enterprise"',
     });
   });

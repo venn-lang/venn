@@ -13,7 +13,7 @@ export const text: MatcherDefinition = defineMatcher({
   args: [arg("value", t.string, "The text the element should carry.")],
   appliesTo: "Element",
   test: ({ subject, args }) => matchesText(subject, String(args[0])),
-  message: ({ args }) => `expected the element text to contain "${String(args[0])}"`,
+  message: ({ args }, ctx) => `expected the element text to contain "${ctx.show(args[0])}"`,
 });
 
 function matchesText(subject: unknown, expected: string): boolean {

@@ -7,7 +7,6 @@
 # stops.
 
 import { fmt } from "venn/fmt"
-import { json } from "venn/json"
 import { math } from "venn/math"
 
 ## What a term is worth, and it has to come to one.
@@ -65,17 +64,20 @@ namespace scheme {
   }
 }
 
+## One row per student, and the marks are a `map<number>` rather than a shape
+## with three fields: a row that is missing a component is the point of the
+## program, so a type that demanded all three would refuse the interesting one.
+type Row = { who: string, marks: map<number> }
+
 ## What the teachers filed, as it arrives: one file, four hands, and no promise
 ## that every row has every component.
-const FILED = '[
-  { "who": "ada",     "marks": { "homework": 95, "midterm": 88,  "final": 92 } },
-  { "who": "grace",   "marks": { "homework": 78, "midterm": 91,  "final": 85 } },
-  { "who": "alan",    "marks": { "homework": 88, "midterm": 110, "final": 90 } },
-  { "who": "edsger",  "marks": { "homework": 70, "midterm": 65 } },
-  { "who": "barbara", "marks": { "homework": 99, "midterm": 97,  "final": 98 } }
-]'
-
-const TERM = try json.parse(FILED) else []
+const TERM: list<Row> = [
+  { who: "ada",     marks: { homework: 95, midterm: 88,  final: 92 } },
+  { who: "grace",   marks: { homework: 78, midterm: 91,  final: 85 } },
+  { who: "alan",    marks: { homework: 88, midterm: 110, final: 90 } },
+  { who: "edsger",  marks: { homework: 70, midterm: 65 } },
+  { who: "barbara", marks: { homework: 99, midterm: 97,  final: 98 } }
+]
 
 fn scored(row) {
   const wrong = scheme.problemWith(row)

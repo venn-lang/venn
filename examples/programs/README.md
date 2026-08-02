@@ -45,7 +45,8 @@ Four bugs, all of them things a person would hit on their first afternoon:
   that checked clean.
 - [#222](https://github.com/venn-lang/venn/issues/222): a list literal is checked
   against its first element rather than against the type the binding declared, so
-  a list of records whose fields differ row by row is refused.
+  a list of records whose fields differ row by row is refused. Fixed, and the
+  gradebook now writes its rows as the list literal they are.
 - [#223](https://github.com/venn-lang/venn/issues/223): a block body cannot
   return a value or nothing, which is the ordinary answer of anything that looks
   something up.

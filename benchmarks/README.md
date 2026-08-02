@@ -173,6 +173,17 @@ supposed to look like.
   name resolves to a slot, runs 4% faster and no more. Closing that gap means
   emitting JavaScript source, which this project has decided against.
 
+**When the effect is smaller than the noise, count the signs.** Reordering the
+member read, so that the four objects a map is not are told apart by one
+property rather than by three calls that each re-ask whether the value is an
+object at all, moved every case and resolved in none of them: `records 20k` went
+-3.7% against a noise floor of 87.5%, and the largest reading on the isolated
+member read was -7.9% against 11.5%. What settles it is that thirteen of the
+fourteen cases measured, six on the member read alone and eight on the suite,
+moved the same way. Under no effect that is one outcome in a thousand. The
+change is real and it is one to three percent, which is what a machine this
+noisy can say about it.
+
 **Cold start is 1.9×, and most of what is left is Node itself.** 184 ms against
 89 ms, of which ~60 ms is building the Langium parser and ~13 ms is running the
 program. Registry negotiation for all 25 plugins, which looked like an obvious

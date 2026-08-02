@@ -123,6 +123,26 @@ describe("a fragment and the file it was written in", () => {
   });
 });
 
+/** The same rule under `venn run`, where the file is a suite of flows. */
+async function inTestMode(lines: string[]): Promise<string[]> {
+  const { ast, problems } = parse(lines.join(NEWLINE), { uri: "/main.vn" });
+  expect(problems).toEqual([]);
+  const resolved = await resolveImports({ document: ast, uri: "/main.vn", io });
+  const sink = createMemorySink();
+  const runner = createRunner({
+    host: createTestHost(),
+    plugins: [],
+    sink,
+    uri: "/main.vn",
+    moduleFragments: resolved.fragments,
+    modules: { modules: resolved.modules, resolve: io.resolve },
+  });
+  await runner.run(ast);
+  return sink.envelopes
+    .filter((event) => event.kind === "log")
+    .map((event) => String((event.data as { message?: unknown }).message ?? ""));
+}
+
 describe("a fragment that came from another file", () => {
   it("reads that file's bindings, not the caller's", async () => {
     const lines = ['import { hello } from "./greet.vn"', 'const who = "the caller"', "run hello()"];
@@ -134,5 +154,17 @@ describe("a fragment that came from another file", () => {
     const lines = ['import { count } from "./counter.vn"', "run count()", "run count()"];
 
     expect(await ran(lines)).toEqual(["seen 1", "seen 2"]);
+  });
+
+  it("reads its own file from inside a flow as well", async () => {
+    const lines = [
+      'import { hello } from "./greet.vn"',
+      'const who = "the caller"',
+      'flow "F" {',
+      "  run hello()",
+      "}",
+    ];
+
+    expect(await inTestMode(lines)).toEqual(["hello from the module"]);
   });
 });

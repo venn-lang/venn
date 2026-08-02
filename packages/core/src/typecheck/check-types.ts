@@ -11,6 +11,7 @@ import { createContext, type TypeContext, type TypeMismatch } from "./context.js
 import { type ImportedType, isGenericImport } from "./imported-types.js";
 import { type Infer, inferFn, type Slot } from "./infer.js";
 import { collectNamedTypes } from "./named-types.js";
+import { namespaceEnv } from "./namespace-type.js";
 import { helpAboutNothing } from "./nothing-help.js";
 import { PRELUDE_SPECS } from "./prelude-types.js";
 import { reshapedFns } from "./reshaped-fns.js";
@@ -117,7 +118,9 @@ function topLevelEnv(document: Document, infer: Infer): TypeEnv {
     if (!reshaped.has(decl)) unify(env.lookup(decl.name)?.type ?? placeholder(infer), inferred);
   }
   if (!infer.seeding) env = generalizeFns(fns, env, infer);
-  return bindValues(document, env, infer);
+  // After the file's functions, since a member may call one, and before its
+  // values, since one of those may read what a namespace published.
+  return bindValues(document, namespaceEnv(document, env, infer), infer);
 }
 
 /**

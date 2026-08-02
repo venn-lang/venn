@@ -79,6 +79,7 @@ export type VennKeywordNames =
     | "match"
     | "matrix"
     | "module"
+    | "namespace"
     | "not"
     | "null"
     | "on"
@@ -322,7 +323,7 @@ export function isContinueStmt(item: unknown): item is ContinueStmt {
 }
 
 export interface Declaration extends langium.AstNode {
-    readonly $type: 'ActionCall' | 'AssignStmt' | 'CaptureStmt' | 'ConfigDecl' | 'Declaration' | 'DecoDecl' | 'ExpectStmt' | 'FlowDecl' | 'FnDecl' | 'ForEachStmt' | 'FragmentDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'MatrixDecl' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'RunStmt' | 'TryStmt' | 'TypeDecl';
+    readonly $type: 'ActionCall' | 'AssignStmt' | 'CaptureStmt' | 'ConfigDecl' | 'Declaration' | 'DecoDecl' | 'ExpectStmt' | 'FlowDecl' | 'FnDecl' | 'ForEachStmt' | 'FragmentDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'MatrixDecl' | 'NamespaceDecl' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'RunStmt' | 'TryStmt' | 'TypeDecl';
     annotations: Array<Annotation>;
 }
 
@@ -1019,6 +1020,25 @@ export function isNamePattern(item: unknown): item is NamePattern {
     return reflection.isInstance(item, NamePattern.$type);
 }
 
+export interface NamespaceDecl extends Declaration {
+    readonly $type: 'NamespaceDecl';
+    decls: Array<Declaration>;
+    export: boolean;
+    name: string;
+}
+
+export const NamespaceDecl = {
+    $type: 'NamespaceDecl',
+    annotations: 'annotations',
+    decls: 'decls',
+    export: 'export',
+    name: 'name'
+} as const;
+
+export function isNamespaceDecl(item: unknown): item is NamespaceDecl {
+    return reflection.isInstance(item, NamespaceDecl.$type);
+}
+
 export interface NullLit extends langium.AstNode {
     readonly $container: ActionCall | Arg | AssignStmt | Binary | Call | CaptureStmt | ContinueStmt | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListItem | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReturnStmt | Ternary | TryExpr | Unary;
     readonly $type: 'NullLit';
@@ -1513,6 +1533,7 @@ export type VennAstType = {
     Member: Member
     NamePattern: NamePattern
     NamedType: NamedType
+    NamespaceDecl: NamespaceDecl
     NullLit: NullLit
     NullType: NullType
     NumberLit: NumberLit
@@ -2405,6 +2426,30 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [SingleType.$type]
+        },
+        NamespaceDecl: {
+            name: NamespaceDecl.$type,
+            properties: {
+                annotations: {
+                    name: NamespaceDecl.annotations,
+                    defaultValue: [],
+                    optional: true
+                },
+                decls: {
+                    name: NamespaceDecl.decls,
+                    defaultValue: [],
+                    optional: true
+                },
+                export: {
+                    name: NamespaceDecl.export,
+                    defaultValue: false,
+                    optional: true
+                },
+                name: {
+                    name: NamespaceDecl.name
+                }
+            },
+            superTypes: [Declaration.$type]
         },
         NullLit: {
             name: NullLit.$type,

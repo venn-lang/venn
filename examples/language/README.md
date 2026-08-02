@@ -13,6 +13,7 @@ and wants to know what the kernel offers beyond statements.
 | [`05-shared-alias.vn`](05-shared-alias.vn) | a `#shared` path alias out of `venn.toml`, and a `pub deco` applied across files |
 | [`06-fragments.vn`](06-fragments.vn) | `fragment` as reusable steps, `run … as`, and what a fragment can and cannot see |
 | [`07-folders.vn`](07-folders.vn) | a folder as a module: the caller names the folder, `mod.vn` says what it offers |
+| [`08-namespaces.vn`](08-namespaces.vn) | grouping names in one file, what `pub` lets out of a block, and why reopening one is not a thing |
 | [`07-unions.vn`](07-unions.vn) | a union told apart by a field, `match` over its shapes, narrowing with `if`, and the cases the checker insists on |
 | [`shared/`](shared) | the helpers the files above import: `pub fn`, `pub deco`, `pub fragment` |
 

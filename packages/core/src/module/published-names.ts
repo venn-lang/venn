@@ -34,6 +34,7 @@ function declaredNames(decl: unknown): readonly string[] {
   if (!marked.export) return [];
   if (ast.isLetStmt(decl)) return boundNames(decl);
   if (ast.isFnDecl(decl) || ast.isFragmentDecl(decl) || ast.isDecoDecl(decl)) return [decl.name];
+  if (ast.isNamespaceDecl(decl)) return [decl.name];
   return ast.isTypeDecl(decl) ? [decl.name] : [];
 }
 

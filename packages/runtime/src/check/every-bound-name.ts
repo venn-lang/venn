@@ -9,6 +9,7 @@ import {
   isLetStmt,
   isLoopState,
   isMatchArm,
+  isNamespaceDecl,
   isParam,
   isRepeatStmt,
   isRunStmt,
@@ -46,6 +47,7 @@ function namesOf(node: AstNode): readonly string[] {
   if (isLetStmt(node) || isParam(node)) return boundNames(node);
   if (isForEachStmt(node)) return boundNames(loopBinding(node));
   if (isFnDecl(node) || isFragmentDecl(node) || isDecoDecl(node)) return [node.name];
+  if (isNamespaceDecl(node)) return [node.name];
   if (isLoopState(node)) return [node.name];
   if (isMatchArm(node)) return node.patterns.flatMap(patternNames);
   if (isValueImport(node)) return imported(node);

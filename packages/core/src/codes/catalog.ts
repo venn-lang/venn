@@ -47,6 +47,10 @@ export const CODES = {
   VN5005_UNUSED_IMPORT: { code: "VN5005", severity: "hint" },
   /** `==` or `!=` between two lists or two maps: reference equality, always false. */
   VN5006_IDENTITY_COMPARISON: { code: "VN5006", severity: "error" },
+  /** A trailing map literal read as a verb's options block when it was meant as a value. */
+  VN5007_OPTIONS_NOT_A_VALUE: { code: "VN5007", severity: "error" },
+  /** `{ concurrency: n }` on a `forEach` inside a `fn`, where a pure body runs one pass at a time. */
+  VN5008_CONCURRENCY_IN_A_PURE_BODY: { code: "VN5008", severity: "error" },
   VN6001_ASSERTION_FAILED: { code: "VN6001", severity: "error" },
   VN7001_ACTION_FAILED: { code: "VN7001", severity: "error" },
   VN7004_HOOK_FAILED: { code: "VN7004", severity: "error" },

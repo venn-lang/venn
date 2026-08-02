@@ -4,6 +4,7 @@ import * as ast from "../generated/ast.js";
 import { callType } from "./action-signature.js";
 import { checkCases } from "./check-cases.js";
 import { checkMatch } from "./check-match.js";
+import { inferAgainst } from "./checked-against.js";
 import { ERROR_TYPE } from "./error-type.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { narrowed } from "./narrow.js";
@@ -72,10 +73,18 @@ function nested(block: Block, env: TypeEnv, infer: Infer): TypeEnv {
   return env;
 }
 
-/** A `let`/`const` binds its inferred type; the binding is visible from here on. */
+/**
+ * A `let`/`const` binds its inferred type; the binding is visible from here on.
+ *
+ * The annotation is read first, so the value is inferred knowing what it was
+ * asked to be. A list literal has no other way of learning it: by the time the
+ * check below runs, it has already decided what its items are.
+ */
 function bindLet(node: ast.LetStmt, env: TypeEnv, infer: Infer): TypeEnv {
-  const type = isCall(node) ? boundCall(node, env, infer) : inferExpr(node.value, env, infer);
   const declared = declaredTypeOf(node, infer);
+  const type = isCall(node)
+    ? boundCall(node, env, infer)
+    : inferAgainst({ expr: node.value, env, infer, wanted: declared });
   // An annotation the checker parses and never reads is worse than no
   // annotation: the author believes something is being enforced.
   if (declared) expect(infer, node.value, type, declared);

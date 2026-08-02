@@ -103,6 +103,36 @@ describe("the ways out", () => {
   });
 });
 
+/** A guard that has nothing to teach leaves the scope as it found it. */
+describe("a guard that learns nothing", () => {
+  it("says nothing about a field that was never nothing", () => {
+    const lines = [
+      "type Card = { title: string }",
+      'const card: Card = { title: "a" }',
+      "if card.title != null {",
+      "  const shown: string = card.title",
+      "}",
+    ];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** A list has no field to narrow, and asking is not an error. */
+  it("says nothing about a field of something that has none", () => {
+    const lines = ["const xs = [1, 2]", "if xs.len != null {", "  print xs.len", "}"];
+
+    expect(said(...lines)).toEqual([]);
+  });
+
+  /** Arity is its own question, on either side of it, and answered elsewhere. */
+  it("leaves a call with the wrong number of arguments to the arity check", () => {
+    const declared = "fn pair(a: string, b: string) -> string => a";
+
+    expect(said(declared, 'const few = pair("x")')[0]).toContain("VN3010");
+    expect(said(declared, 'const many = pair("x", "y", "z")')[0]).toContain("VN3010");
+  });
+});
+
 /**
  * Four names an annotation could not read, so `: instant` resolved to no type
  * anybody declared, which is answered with `dynamic`, which takes everything.

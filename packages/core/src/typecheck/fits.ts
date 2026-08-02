@@ -60,11 +60,12 @@ function through(from: Type, into: Type): boolean {
 function signatureFits(from: FnType, into: FnType): boolean {
   if (!fits(from.result, into.result)) return false;
   if (from.variadic || into.variadic) return true;
-  const shared = Math.min(from.params.length, into.params.length);
-  for (let at = 0; at < shared; at += 1) {
+  // How many there are is `unify`'s question, and it answers before this is
+  // reached: what is left here is what each one holds.
+  if (from.params.length !== into.params.length) return true;
+  for (const [at, taken] of from.params.entries()) {
     const given = into.params[at];
-    const taken = from.params[at];
-    if (given && taken && !fits(given, taken)) return false;
+    if (given && !fits(given, taken)) return false;
   }
   return true;
 }

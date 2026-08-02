@@ -33,6 +33,19 @@ describe("compileTemplate", () => {
     expect(hole?.expr).toBeUndefined();
   });
 
+  // The wrapper the placeholder is parsed in used to be `expect`, which takes a
+  // block of checks as well as a subject, so an empty map read as an empty block
+  // and the hole came back holding nothing.
+  it("reads a map literal, down to the empty one", () => {
+    const sources = ["{}", "{ }", "{ a: 1 }", "{ a: { b: 1 } }"];
+
+    for (const source of sources) {
+      const [hole] = compileTemplate(`\${${source}}`).holes;
+
+      expect(hole?.expr?.$type, source).toBe("MapLit");
+    }
+  });
+
   it("compiles a given literal once", () => {
     expect(compileTemplate("${x} twice")).toBe(compileTemplate("${x} twice"));
   });

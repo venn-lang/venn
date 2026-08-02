@@ -1,8 +1,8 @@
 import { ConsolePort, createMemoryConsole, createTestHost } from "@venn-lang/contracts";
 import { parse } from "@venn-lang/core";
+import { ioPlugin } from "@venn-lang/io";
 import { createMemorySink, createRunner } from "@venn-lang/runtime";
 import { describe, expect, it } from "vitest";
-import { ioPlugin } from "./plugin.js";
 
 const NEWLINE = String.fromCharCode(10);
 

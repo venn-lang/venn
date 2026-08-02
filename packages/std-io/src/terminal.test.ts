@@ -44,6 +44,19 @@ describe("asking the terminal about itself", () => {
 
     expect(await run({ name: "isTerminal", console, args: [] })).toBe(true);
   });
+
+  /**
+   * A question with nothing in it writes nothing, rather than the word for
+   * nothing. `io.ask()` with no argument is a bare prompt, and `undefined` on
+   * the terminal would be the language talking to itself.
+   */
+  it("writes no question when it was given none", async () => {
+    const console = createMemoryConsole();
+
+    await run({ name: "ask", console, args: [] });
+
+    expect(console.out).toBe("");
+  });
 });
 
 describe("doing something to the screen", () => {

@@ -41,6 +41,12 @@ export const CODES = {
   VN3021_NOT_A_PLACE: { code: "VN3021", severity: "error" },
   VN3022_RESERVED_CODE: { code: "VN3022", severity: "error" },
   VN5001_REMOVED_KEYWORD: { code: "VN5001", severity: "error" },
+  /**
+   * Retired: folded into VN5007, which says the same sentence about any verb
+   * rather than about three. Kept declared so the number is never reused for
+   * something else, since a code is meant to stay googlable after it stops
+   * being raised.
+   */
   VN5002_SWALLOWED_ARGUMENT: { code: "VN5002", severity: "error" },
   VN5003_DUPLICATE_KEY: { code: "VN5003", severity: "error" },
   VN5004_UNKNOWN_EVENT: { code: "VN5004", severity: "error" },

@@ -249,6 +249,20 @@ describe("concurrency asked of a pure body", () => {
     expect(codes(...lines)).toEqual([]);
   });
 
+  /** A map key may be written as a quoted string, and it is the same key. */
+  it("finds the option however the key was spelled", () => {
+    const lines = [
+      "fn walk(xs) {",
+      '  forEach x in xs { "concurrency": 4 } {',
+      "  }",
+      "  return true",
+      "}",
+      "print walk([1, 2])",
+    ];
+
+    expect(codes(...lines)).toEqual(["VN5008"]);
+  });
+
   it("says nothing about the same option inside a step", () => {
     const lines = [
       'flow "F" {',

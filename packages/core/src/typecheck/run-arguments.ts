@@ -27,7 +27,8 @@ export function checkRunArguments(args: {
   const params = fragment.params?.params ?? [];
   const written = (args.node.args?.args ?? []).map((arg) => arg.value);
   if (written.length !== params.length) {
-    return countIsWrong({ ...args, takes: params.length, given: written.length });
+    countIsWrong({ ...args, takes: params.length, given: written.length });
+    return;
   }
   const wanted = params.map((param: Param) => paramType(param, args.infer));
   eachFits({ written, given: args.given, wanted, infer: args.infer });

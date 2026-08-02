@@ -4,9 +4,18 @@ export type {
   DecoSignature,
   DocumentDecoArgs,
   ImportedDeco,
+  NameRead,
   SignatureResult,
 } from "./deco/index.js";
-export { decoCannotCall, decoDecorator, readSignature, withDocumentDecos } from "./deco/index.js";
+export {
+  decoCannotCall,
+  decoDecorator,
+  namesBound,
+  namesOutOfReach,
+  namesRead,
+  readSignature,
+  withDocumentDecos,
+} from "./deco/index.js";
 export { decorateCallable } from "./decorate-callable.js";
 export type { Decorations } from "./decorations.js";
 export { AROUND_KEYS, addDecoration, readDecorations } from "./decorations.js";

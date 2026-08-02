@@ -3,7 +3,7 @@ import { walkAst } from "../ast/index.js";
 import { buildProblem, CODES } from "../codes/index.js";
 import type { Annotation, Document } from "../generated/ast.js";
 import type { Problem } from "../problem/index.js";
-import type { ImportedDeco } from "./deco/index.js";
+import type { DocumentDecoArgs, ImportedDeco } from "./deco/index.js";
 import { withDocumentDecos } from "./deco/index.js";
 import type { DecoratorDefinition, DecoratorSource, ExpandResult } from "./expand.types.js";
 import { makeContext } from "./make-context.js";
@@ -34,7 +34,11 @@ interface Site {
  * below here can tell whether `@memoize` was written in TypeScript, in this
  * file, or in the one next to it.
  *
- * @returns the problems raised. The document itself is rewritten in place.
+ * Every file the run reached is expanded, not only the one being run. A `pub fn`
+ * is called with the file it was written in around it, and a `@name` written
+ * above it belongs to that declaration wherever it is called from.
+ *
+ * @returns the problems raised. The documents themselves are rewritten in place.
  */
 export function expand(args: {
   document: Document;
@@ -42,6 +46,15 @@ export function expand(args: {
   uri?: string;
   /** The `pub deco`s this file's imports reach, by name. */
   imported?: ReadonlyMap<string, ImportedDeco>;
+  /**
+   * The other files the import graph reached, by uri.
+   *
+   * Each is expanded against its own `deco`s and reports at its own uri, exactly
+   * as if it were the file being run. Without it a decorator written next to the
+   * declaration it decorates took effect only in the file that happened to be
+   * the entry, which made decorators a feature of single-file programs.
+   */
+  modules?: ReadonlyMap<string, Document>;
   /**
    * Which decorated nodes to run. Everything, unless a caller narrows it.
    *
@@ -53,14 +66,21 @@ export function expand(args: {
   only?: (node: AstNode) => boolean;
 }): ExpandResult {
   const problems: Problem[] = [];
-  const uri = args.uri ?? "memory://inline.vn";
-  const decorators = withDocumentDecos({ ...args, uri, problems });
+  expandOne({ ...args, uri: args.uri ?? "memory://inline.vn", problems });
+  for (const [uri, module] of args.modules ?? []) {
+    if (module !== args.document) expandOne({ ...args, document: module, uri, problems });
+  }
+  return { problems };
+}
+
+/** One file, with the decorators it can reach layered over the host's. */
+function expandOne(args: DocumentDecoArgs & { only?: (node: AstNode) => boolean }): void {
+  const decorators = withDocumentDecos(args);
   const wanted = args.only ?? (() => true);
   const sites = walkAst(args.document).filter(decorated).filter(wanted);
   for (const node of sites.reverse()) {
-    applyAll({ node, decorators, uri, problems });
+    applyAll({ node, decorators, uri: args.uri, problems: args.problems });
   }
-  return { problems };
 }
 
 function decorated(node: AstNode): node is AstNode & { annotations: Annotation[] } {

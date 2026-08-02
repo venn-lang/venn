@@ -5,3 +5,4 @@
 ## the door into the kitchen.
 pub import { lookup, lookupAll } from "./fetch.vn"
 pub import { Entry, entryOf, scoreOn, strongest } from "./entry.vn"
+pub import { card, nameOf, rows } from "./show.vn"

@@ -7,7 +7,7 @@ module examples.programs.watchtower.probe
 import { http } from "venn/http"
 import { Result, Watch } from "./verdict.vn"
 
-## One service, asked once.
+## One service, asked once, and how long it took.
 ##
 ## Never refuses. A watchtower whose own check throws is a watchtower that stops
 ## at the first service that is down, which is the one moment it exists for. So
@@ -16,9 +16,9 @@ import { Result, Watch } from "./verdict.vn"
 pub fragment probe(one: Watch) -> Result {
   try {
     const res = http.get one.url
-    return { name: one.name, url: one.url, status: res.status, note: reason(res) }
+    return { name: one.name, url: one.url, status: res.status, ms: res.time, note: reason(res) }
   } catch e {
-    return { name: one.name, url: one.url, status: null, note: e.message }
+    return { name: one.name, url: one.url, status: null, ms: 0, note: e.message }
   }
 }
 

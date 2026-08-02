@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
 import { createRunner } from "./create-runner.js";
 
+const NEWLINE = String.fromCharCode(10);
+
 /** A plugin that records what a script printed, so the answer is observable. */
 function recorder(out: string[]) {
   return definePlugin({
@@ -289,5 +291,56 @@ describe("a loop written in a fn and the same loop written at the top of a file"
 
     expect(inFn).toEqual(top);
     expect(top.help).toBe("Name the list inside it, as in `forEach item in res.data`.");
+  });
+});
+
+/**
+ * The two ways a `loop` carries a value forward.
+ *
+ * `continue next` advanced only at the top of a file and `state = next` advanced
+ * only inside a `fn`, and on the wrong side neither reported anything: the loop
+ * spun for ever, which is the one failure with nothing at all to read.
+ *
+ * Every case here counts its own passes and breaks on that count rather than on
+ * the carried value. A loop guarded by the thing under test would hang the suite
+ * on a regression instead of failing it, and a synchronous hang is not something
+ * a timeout can interrupt: it takes the worker down on memory a minute later.
+ */
+describe("a loop that carries a value", () => {
+  const GUARD = [
+    "let passes = 0",
+    "loop n = 1 {",
+    "passes = passes + 1",
+    "if passes > 8 { break }",
+  ];
+
+  it("advances by assignment, in both", async () => {
+    const { top, inFn } = await bothWays(
+      [...GUARD, "if n > 3 { break }", 'seen = "${seen}${n} "', "n = n + 1", "}"].join(NEWLINE),
+    );
+
+    expect(inFn).toBe(top);
+    expect(top).toBe("1 2 3 ");
+  });
+
+  it("advances by continue, in both", async () => {
+    const { top, inFn } = await bothWays(
+      [...GUARD, "if n > 3 { break }", 'seen = "${seen}${n} "', "continue n + 1", "}"].join(
+        NEWLINE,
+      ),
+    );
+
+    expect(inFn).toBe(top);
+    expect(top).toBe("1 2 3 ");
+  });
+
+  /** The name outlives the loop and holds what the last pass left it. */
+  it("leaves the state readable after the loop, in both", async () => {
+    const { top, inFn } = await bothWays(
+      [...GUARD, "if n > 3 { break }", "n = n + 1", "}", 'seen = "${seen}${n}"'].join(NEWLINE),
+    );
+
+    expect(inFn).toBe(top);
+    expect(top).toBe("4");
   });
 });

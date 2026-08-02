@@ -1,4 +1,4 @@
 ## The face of the folder: what a tower needs to check things and judge them.
 pub import { firstOf, probe, probeAll, sweep } from "./probe.vn"
 pub import { allWell, DOWN, FAILING, judged, Result, Watch } from "./verdict.vn"
-pub import { shortened, tally, troubled, UP, verdictOf } from "./verdict.vn"
+pub import { shortened, slowest, tally, troubled, UP, verdictOf } from "./verdict.vn"

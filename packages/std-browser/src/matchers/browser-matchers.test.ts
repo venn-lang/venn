@@ -22,4 +22,17 @@ describe("browser matchers", () => {
     expect(text.test({ subject, args: ["Welcome"], params: {} })).toBe(true);
     expect(text.test({ subject, args: ["Goodbye"], params: {} })).toBe(false);
   });
+
+  /**
+   * The message writes its argument with the renderer it was handed, so a
+   * failure and a `print` of the same value agree. A stand-in here, marked, so
+   * the test is about the deferring rather than about the text.
+   */
+  it("text writes what it wanted through the renderer it was handed", () => {
+    const ctx = { log: () => {}, show: (value: unknown) => `<${value}>` };
+
+    const said = text.message({ args: ["Welcome"], params: {} } as never, ctx as never);
+
+    expect(said).toContain("<Welcome>");
+  });
 });

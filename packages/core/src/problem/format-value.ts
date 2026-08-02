@@ -1,40 +1,39 @@
+import { displayValue } from "../interpolation/stringify-value.js";
+
 /** Past this a value stops informing and starts scrolling. */
 const LIMIT = 200;
 
 /**
- * One side of a diff, rendered the way the language shows values: strings quoted
- * so `"1"` never reads as `1`, structures as compact JSON. Never `[object
- * Object]`, because a failure that hides what it compared is not a report.
+ * One side of a diff, written the way the language writes a value.
+ *
+ * The same definition `print` and `${}` use, because the title of a failure and
+ * the body under it show the same two values, and a message that disagrees with
+ * itself reads worse than one wrong the same way twice. This file used to hold
+ * its own copy: structures as compact JSON, and a map too awkward to print
+ * described in prose as `a map with 12 fields`, which is a different shape
+ * rather than less of the same one.
+ *
+ * Two things are not taken verbatim. A key missing from one side reads `absent`
+ * rather than `null`, which is a distinction only the walk below can produce and
+ * one the title never has occasion to make: it says whether the producer left
+ * the field out, which is usually the answer.
+ *
+ * And a string. `displayValue` leaves one at the top level bare, which is right
+ * for `print name` and wrong here: a side of a comparison stands among values,
+ * so `"1"` has to be told from `1`. That is the rule the renderer itself applies
+ * one level in.
+ *
+ * @param value The side to show.
+ * @returns Its text. Nothing can read as `[object Object]`, because a failure
+ * that hides what it compared is not a report.
  */
 export function formatValue(value: unknown): string {
   if (value === undefined) return "absent";
-  if (value === null) return "null";
-  if (typeof value === "function") return "fn";
   if (typeof value === "string") return JSON.stringify(value);
-  if (typeof value !== "object") return String(value);
-  return json(value);
+  return displayValue(value);
 }
 
 /** Trim for display only. Sameness is decided on the untrimmed rendering. */
 export function clamp(text: string): string {
   return text.length <= LIMIT ? text : `${text.slice(0, LIMIT)}…`;
-}
-
-function json(value: object): string {
-  try {
-    return JSON.stringify(value) ?? shapeOf(value);
-  } catch {
-    // Cyclic, or a BigInt inside: say what it is rather than what it prints as.
-    return shapeOf(value);
-  }
-}
-
-function shapeOf(value: object): string {
-  if (Array.isArray(value)) return `a list of ${value.length} ${plural("item", value.length)}`;
-  const count = Object.keys(value).length;
-  return `a map with ${count} ${plural("field", count)}`;
-}
-
-function plural(noun: string, count: number): string {
-  return count === 1 ? noun : `${noun}s`;
 }

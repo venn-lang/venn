@@ -19,7 +19,7 @@ export const header: MatcherDefinition = defineMatcher({
   ],
   appliesTo: "Response",
   test: ({ subject, args }) => hasHeader(subject, String(args[0])),
-  message: ({ args }) => `expected the response to carry header "${String(args[0])}"`,
+  message: ({ args }, ctx) => `expected the response to carry header "${ctx.show(args[0])}"`,
 });
 
 function hasHeader(subject: unknown, name: string): boolean {

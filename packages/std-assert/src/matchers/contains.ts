@@ -8,7 +8,8 @@ export const contains: MatcherDefinition = defineMatcher({
   name: "contains",
   args: [arg("value", t.dynamic, "What to look for: a substring, or an item of the list.")],
   test: ({ subject, args }) => includes(subject, args[0]),
-  message: ({ subject, args }) => failureLine({ subject, relation: "to contain", other: args[0] }),
+  message: ({ subject, args }, { show }) =>
+    failureLine({ subject, relation: "to contain", other: args[0], show }),
   // `aligned: false`: the needle is held against every item, never against item
   // 0, so the two sides do not correspond by position.
   detail: ({ subject, args }) => ({ expected: args[0], actual: subject, aligned: false }),

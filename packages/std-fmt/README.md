@@ -62,7 +62,10 @@ strip the keys a caller wrote there.
 
 - **`table`** takes the columns from the union of every row's keys, in first-seen order, so a row
   missing a field still lines up. Each column is padded to its widest cell. An empty list renders as
-  `(no rows)`.
+  `(no rows)`. A cell holding a map or a list is written the way the language itself writes it (the
+  same renderer behind `print` and `${}`), not as JSON: a table is written for a person to read, and
+  `{ homework: 95, final: 92 }` is what that person would have typed. `json`, `csv`, `xml` and `yaml`
+  keep their own writers, because they answer to formats outside this language.
 - **`yaml`** puts a scalar on its key's line and opens an indented block for a map or a list. A
   string that would not read back as plain YAML is quoted, and so is the empty string. An empty list
   is `[]` and an empty map is `{}`.
@@ -78,12 +81,14 @@ strip the keys a caller wrote there.
 | `fmtPlugin` (also the default export) | The `PluginDefinition`: namespace `fmt`, five actions, no required capability, no types of its own. |
 | `fmtActions` | The five `ActionDefinition`s. |
 | `toJson(value, spaces?)` | The renderer behind `fmt.json`. Defaults to 2 spaces. |
-| `toTable(rows)` | The renderer behind `fmt.table`. |
+| `toTable(rows, show)` | The renderer behind `fmt.table`. `show` writes a cell the way the language writes it; `fmt.table` passes `ctx.show`. |
 | `toYaml(value, indent?)` | The renderer behind `fmt.yaml`. |
 | `toCsv(rows, separator?)` | The renderer behind `fmt.csv`. Defaults to a comma. |
 | `toXml(value, tag?, indent?)` | The renderer behind `fmt.xml`. Defaults to the tag `root`. |
 
-The renderers are plain functions with no context and no ports, so they are usable on their own:
+The renderers take no ports and reach for no host capability. `toTable` is the one that takes a
+second argument, since a cell that holds a map or a list needs the language's own writer to read
+right; the other four are usable standalone with nothing but the value:
 
 ```ts
 import { toCsv, toYaml } from "@venn-lang/fmt";

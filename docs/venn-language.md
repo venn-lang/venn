@@ -1469,7 +1469,7 @@ export default definePlugin({
       appliesTo: "Charge",
       params: z.object({ within: Duration.default("10s") }),
       test: async (charge, p, ctx) => ctx.poll(() => charge.refresh(), (c) => c.status === "paid", p.within),
-      message: (c) => `esperava cobrança liquidada, veio "${c.status}"`,
+      message: (c, ctx) => `esperava cobrança liquidada, veio ${ctx.show(c.status)}`,
     }),
   ],
 

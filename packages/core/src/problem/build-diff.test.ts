@@ -61,7 +61,7 @@ describe("buildDiff", () => {
         ],
         aligned: false,
       }),
-    ).toEqual({ kind: "scalar", expected: "[5,6]", actual: "[[1,2],[3,4]]" });
+    ).toEqual({ kind: "scalar", expected: "[5, 6]", actual: "[[1, 2], [3, 4]]" });
   });
 
   it("stops descending into a value that contains itself", () => {
@@ -84,7 +84,7 @@ describe("buildDiff", () => {
     });
     expect(buildDiff({ label: "x", expected: [200, 204], actual: 500 })).toEqual({
       kind: "scalar",
-      expected: "[200,204]",
+      expected: "[200, 204]",
       actual: "500",
     });
   });
@@ -97,10 +97,10 @@ describe("formatValue", () => {
   });
 
   it("never renders a structure as [object Object]", () => {
-    expect(formatValue({ a: 1 })).toBe('{"a":1}');
+    expect(formatValue({ a: 1 })).toBe("{ a: 1 }");
     const cyclic: Record<string, unknown> = { a: 1 };
     cyclic.self = cyclic;
-    expect(formatValue(cyclic)).toBe("a map with 2 fields");
+    expect(formatValue(cyclic)).toBe("{ a: 1, self: <circular> }");
   });
 
   it("distinguishes a missing field from a null one", () => {

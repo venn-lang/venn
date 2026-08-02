@@ -72,14 +72,17 @@ thing, and comparing it by identity would fail an assertion that reads as true o
 The title is one line, in the values' own terms:
 
 ```
-expected {"status":"pending"} to equal {"status":"paid"}
-expected 500 to be one of [200,204]
+expected { status: "pending" } to equal { status: "paid" }
+expected 500 to be one of [200, 204]
 expected 99.5 to be within 0.01 of 99
 ```
 
-Both sides are rendered to the same level of detail. Past a line's worth, both are summarised by
-shape (`expected a map with 3 fields to equal a map with 2 fields`) rather than one being spelled
-out beside one that is not. Strings are quoted, so `"200"` never reads as `200`.
+The values are written by `ctx.show`, the one definition behind `print`, `str` and `"${…}"`, so a
+red check and a `print` of the same value agree about what it looks like. What this plugin decides
+is width, not shape: a title is one line, so a side past that budget is cut where it stands and
+marked with `…` rather than rewritten into prose. A string is quoted, the one place a value on the
+line reads differently from a value on its own, because `expect "200" equals 200` failing with
+`expected 200 to equal 200` is a line nobody can act on.
 
 The full values are not lost: each matcher hands back the two sides, and the kernel turns them into
 the diff carried by the `VN6001` problem. Membership matchers (`contains`, `oneOf`) mark their sides
@@ -94,20 +97,25 @@ actual 200" explains nothing.
 | `assertPlugin` (also the default export) | The `PluginDefinition`: namespace `assert`, matchers only, no actions, no `typeDefs`, no required capability. |
 | `assertMatchers` | The four `MatcherDefinition`s, in order: `equals`, `contains`, `oneOf`, `closeTo`. |
 
-A matcher is a plain object, so it can be exercised directly:
+A matcher is a plain object, so it can be exercised directly. `message` and `detail` take the
+`MatcherContext` the runtime normally hands over, whose `show` is how a value becomes text:
 
 ```ts
 import { assertMatchers } from "@venn-lang/assert";
 
+const ctx = { log: () => {}, show: (value: unknown) => JSON.stringify(value) ?? "null" };
 const equals = assertMatchers.find((matcher) => matcher.name === "equals");
 
 equals?.test({ subject: { id: 1 }, args: [{ id: 1 }], params: {} });
 // true
-equals?.message({ subject: "200", args: [200], params: {} });
+equals?.message({ subject: "200", args: [200], params: {} }, ctx);
 // 'expected "200" to equal 200'
-equals?.detail?.({ subject: { status: "pending" }, args: [{ status: "paid" }], params: {} });
+equals?.detail?.({ subject: { status: "pending" }, args: [{ status: "paid" }], params: {} }, ctx);
 // { expected: { status: "paid" }, actual: { status: "pending" } }
 ```
+
+In a run the `show` is the language's own, so the same call gives
+`expected { status: "pending" } to equal { status: "paid" }`.
 
 ## See also
 

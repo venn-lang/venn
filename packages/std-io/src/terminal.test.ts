@@ -13,7 +13,10 @@ async function run(args: {
 }): Promise<unknown> {
   const found = actions.find((candidate) => candidate.name === args.name);
   if (!found) throw new Error(`io.${args.name} is not a verb`);
-  const ctx = { port: () => args.console } as unknown as ActionContext;
+  const ctx = {
+    port: () => args.console,
+    show: (value: unknown) => String(value),
+  } as unknown as ActionContext;
   return found.run(ctx, { args: args.args ?? [], params: {} });
 }
 

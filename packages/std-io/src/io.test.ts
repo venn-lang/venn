@@ -14,8 +14,16 @@ function action(name: string): ActionDefinition {
   return found;
 }
 
+/**
+ * `show` here only has to be present. What it answers is the language's, not
+ * this plugin's, and `one-way-to-write-a-value.test.ts` holds it by running both
+ * spellings against the real renderer.
+ */
 function run(args: { name: string; console: MemoryConsole; values?: unknown[] }): unknown {
-  const ctx = { port: () => args.console } as unknown as ActionContext;
+  const ctx = {
+    port: () => args.console,
+    show: (value: unknown) => String(value),
+  } as unknown as ActionContext;
   return action(args.name).run(ctx, { args: args.values ?? [], params: {} });
 }
 

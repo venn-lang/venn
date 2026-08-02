@@ -77,8 +77,12 @@ would have typed, empty for the ones that type nothing.
 Every screen operation is **quietly ignored where there is no terminal**, and `size` answers `null`
 there, so one program run interactively and through a pipe is the same program.
 
-`io.print` takes as many values as you like and joins them with a space. Strings are written as
-they are; anything else is rendered as JSON, so a map never prints as `[object Object]`.
+`io.print` takes as many values as you like and joins them with a space. Every one of them is
+written by `ctx.show`, which is the language's own renderer, the same definition behind `print`,
+`str` and `"${…}"`. So `io.print` is the prelude's `print` under its full name and not merely
+something that looks like it: a map reads `{ hits: 0, name: "ada" }`, a list `[1, 2]`, a duration
+`300ms`, and nothing prints as `[object Object]`. The same goes for `io.write`, `io.eprint` and the
+question `io.ask` puts on the screen.
 
 `readLine` returns a union with `null` in its signature, not a bare `string`: end of input is a real
 answer and a caller has to face it. `args` returns a `list<string>` rather than a bare list, so

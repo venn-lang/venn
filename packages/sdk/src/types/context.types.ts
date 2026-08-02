@@ -17,6 +17,21 @@ export interface ActionContext {
   log(message: string): void;
   redact(value: string): void;
   /**
+   * Write a value out the way the language itself writes it: the one definition
+   * behind `print`, `str` and `"${…}"`.
+   *
+   * Required, not optional. A plugin that renders a value has to reach the
+   * language's answer rather than invent a second one, and an optional member
+   * would leave every plugin author writing the fallback that is exactly how the
+   * second definition gets born.
+   *
+   * @param value Anything the flow evaluated: a map, a list, a duration, a
+   * moment, a closure.
+   * @returns Its text. A map reads `{ name: "ada" }`, a list `[1, 2]`, a
+   * duration `300ms`, and nothing ever reads as `[object Object]`.
+   */
+  show(value: unknown): string;
+  /**
    * Call a function the flow passed in, as in `http.on server fn (req) => …`.
    *
    * A closure is one of the language's own values, not a JavaScript function, so

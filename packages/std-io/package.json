@@ -48,6 +48,8 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "catalog:",
+    "@venn-lang/core": "workspace:*",
+    "@venn-lang/runtime": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

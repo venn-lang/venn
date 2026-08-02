@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { parse } from "./parse.js";
 
+const NEWLINE = String.fromCharCode(10);
+
 /**
  * Syntax that parsed and did nothing, now gone.
  *
@@ -30,7 +32,45 @@ describe("syntax that was removed", () => {
       expect(problems.length > 0 || declared.every((kind) => kind === "ActionCall")).toBe(true);
     });
   }
+});
 
+/**
+ * Two words that were removed and are still written, so what they get is a
+ * sentence rather than the parser's own words about a token it did not expect.
+ */
+describe("a word the language used to have", () => {
+  it("says what became of `while`, wherever it is written", () => {
+    const found = parse(["while true {", "  break", "}"].join(NEWLINE)).problems[0];
+
+    expect(found?.code).toBe("VN5001");
+    expect(found?.title).toContain("`loop` while the condition holds");
+  });
+
+  it("says the same inside a flow", () => {
+    const source = [
+      'flow "F" {',
+      '  step "s" {',
+      "    while true {",
+      "      break",
+      "    }",
+      "  }",
+      "}",
+    ].join(NEWLINE);
+
+    expect(parse(source).problems[0]?.code).toBe("VN5001");
+  });
+
+  /**
+   * `capture` keeps its rule, so it parses and reaches its own check. It was
+   * only in the statement list, which made it a parse error at the top of a
+   * file, where a program has its bindings.
+   */
+  it("takes `capture` at the top of a file, to refuse it properly", () => {
+    expect(parse("capture x = 1").problems).toEqual([]);
+  });
+});
+
+describe("what the removals left alone", () => {
   /** The two spellings that do work, so the removal took nothing else with it. */
   it("still takes the imports that publish by name", () => {
     const source = 'import { total } from "./cart.vn"\nimport * as cart from "./cart.vn"';

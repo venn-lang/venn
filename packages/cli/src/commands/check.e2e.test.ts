@@ -2,7 +2,9 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { checkProblems } from "./check.js";
+import { checkCommand, checkProblems } from "./check.js";
+
+const NEWLINE = String.fromCharCode(10);
 
 let root = "";
 
@@ -123,5 +125,27 @@ describe("checking a folder reached through an alias", () => {
     await write("main.vn", 'import { total } from "#lib/cart"\nprint total(3)\n');
 
     expect(await codes("main.vn")).toEqual([]);
+  });
+});
+
+/**
+ * What the exit code is for.
+ *
+ * A hint is worth saying and not worth stopping for. A check that fails on an
+ * untidy import is a check people stop running, so it is reported and the
+ * command still says the file is fine.
+ */
+describe("what fails the check and what merely gets said", () => {
+  it("passes a file whose only problem is a hint", async () => {
+    await write("tidy.vn", ['import { json } from "venn/json"', 'print "hi"'].join(NEWLINE));
+
+    expect(await checkCommand({ paths: [join(root, "tidy.vn")] })).toBe(0);
+    expect(await codes("tidy.vn")).toEqual(["VN5005"]);
+  });
+
+  it("fails a file with an error, hint or no hint", async () => {
+    await write("wrong.vn", ["on banana {", "  print 1", "}"].join(NEWLINE));
+
+    expect(await checkCommand({ paths: [join(root, "wrong.vn")] })).toBe(1);
   });
 });

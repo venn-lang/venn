@@ -2,6 +2,7 @@ import { buildProblem, CODES } from "../codes/index.js";
 import type { Problem, Span } from "../problem/index.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
 import { bracketTheTry } from "./bracket-the-try.js";
+import { type Explained, removedKeyword } from "./removed-keyword.js";
 
 /** Structural view of a Chevrotain lexer error (avoids importing chevrotain). */
 interface LexerError {
@@ -50,7 +51,8 @@ export function parserErrorToProblem(args: {
     line: at(t.startLine, 1),
     column: at(t.startColumn, 1),
   };
-  return buildProblem({ spec: CODES.VN1002_PARSE, span, title: titleFor(args) });
+  const said = titleFor(args);
+  return buildProblem({ spec: said.spec, span, title: said.title });
 }
 
 /**
@@ -63,13 +65,22 @@ function at(value: number | undefined, fallback: number): number {
   return Number.isFinite(value) ? (value as number) : fallback;
 }
 
-/** The parser's own words, unless this is an error the language can explain. */
-function titleFor(args: { error: RecognitionError; text?: string }): string {
+/**
+ * The parser's own words, unless this is an error the language can explain.
+ *
+ * Some of them are not really syntax errors at all: a word the language used to
+ * have is a `VN5001`, wherever the parser happened to stop, so an explainer says
+ * which code it is as well as what to write.
+ */
+function titleFor(args: { error: RecognitionError; text?: string }): Explained {
+  const token = args.error.token.image;
+  const removed = removedKeyword(token);
+  if (removed) return removed;
   const text = args.text;
-  if (text === undefined) return args.error.message;
+  const parsed = CODES.VN1002_PARSE;
+  if (text === undefined) return { title: args.error.message, spec: parsed };
   const offset = args.error.token.startOffset;
   const explained =
-    bracketTheArgument({ operator: args.error.token.image, text, offset }) ??
-    bracketTheTry({ text, offset });
-  return explained ?? args.error.message;
+    bracketTheArgument({ operator: token, text, offset }) ?? bracketTheTry({ text, offset });
+  return { title: explained ?? args.error.message, spec: parsed };
 }

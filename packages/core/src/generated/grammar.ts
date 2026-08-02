@@ -462,6 +462,13 @@ export const VennGrammar = (): Grammar => loadedVennGrammar ?? (loadedVennGramma
               {
                 "$type": "RuleCall",
                 "rule": {
+                  "$ref": "#/rules@42"
+                },
+                "arguments": []
+              },
+              {
+                "$type": "RuleCall",
+                "rule": {
                   "$ref": "#/rules@40"
                 },
                 "arguments": []

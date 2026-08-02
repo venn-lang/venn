@@ -49,6 +49,17 @@ export async function checkCommand(args: { paths: readonly string[] }): Promise<
 }
 
 /**
+ * Whether a problem is one that fails the check.
+ *
+ * A hint is something worth saying and not something worth stopping for: an
+ * import nobody used is untidy, not wrong, and a check that fails on it is a
+ * check people stop running.
+ */
+function isError(problem: Problem): boolean {
+  return problem.severity === "error";
+}
+
+/**
  * The same walk without the printing, for whoever wants the answer rather than
  * the report: `build` records the count, `check` prints the list.
  */
@@ -177,7 +188,7 @@ function names(document: Document, imported: ReadonlyMap<string, FragmentDecl>):
 
 function report(problems: Problem[]): number {
   reportProblems(problems);
-  return 1;
+  return problems.some(isError) ? 1 : 0;
 }
 
 function ok(files: number): number {

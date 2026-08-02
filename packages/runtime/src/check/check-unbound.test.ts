@@ -72,7 +72,10 @@ describe("a name something binds", () => {
     { how: "loop state", source: "loop x = 0 {\n  break\n}\nprint x" },
     { how: "run as", source: "fragment f() {\n  print 1\n}\nrun f() as x\nprint x" },
     { how: "catch", source: "try {\n  print 1\n} catch x {\n  print x\n}" },
-    { how: "a match pattern", source: "print match [1] {\n  [x] => x\n  _ => 0\n}" },
+    {
+      how: "a match pattern",
+      source: "const said = match [1] {\n  [x] => x\n  _ => 0\n}\nprint said",
+    },
     { how: "an import", source: 'import { kit } from "@t/kit"\nprint kit' },
     { how: "an aliased import", source: 'import { kit as x } from "@t/kit"\nprint x' },
     { how: "a module import", source: 'import * as x from "./other.vn"\nprint x' },

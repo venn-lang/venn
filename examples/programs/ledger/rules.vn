@@ -19,17 +19,18 @@ pub namespace policy {
 
   ## What a claim is worth after the policy: the rate, then the ceiling. Nothing
   ## when the policy has no opinion about the category.
-  ##
-  ## Written as expressions rather than as a block with three exits, because a
-  ## block cannot answer "a number or nothing": its `return`s are unified with
-  ## each other (#223).
-  pub fn allowed(claim) => paidFor(claim, rateFor(claim.category))
-
-  fn paidFor(claim, rate) => rate == null ? null : capped(claim.category, claim.amount * rate)
-
-  fn capped(category, paid) => over(paid, ceilings[category])
-
-  fn over(paid, ceiling) => (ceiling != null && paid > ceiling) ? ceiling : paid
+  pub fn allowed(claim) {
+    const rate = rateFor(claim.category)
+    if rate == null {
+      return null
+    }
+    const paid = claim.amount * rate
+    const ceiling = ceilings[claim.category]
+    if ceiling != null && paid > ceiling {
+      return ceiling
+    }
+    return paid
+  }
 
   pub fn covers(category) => rateFor(category) != null
 }

@@ -37,21 +37,22 @@ folder the program imports.
 
 ## What writing them found
 
-Four bugs, all of them things a person would hit on their first afternoon:
+Four bugs, all of them things a person would hit on their first afternoon, and
+all four since fixed. The programs below are written the way they wanted to be
+written in the first place:
 
 - [#221](https://github.com/venn-lang/venn/issues/221): a verb inside an `if` in
-  a `fn` body is ignored, and the function returns `null` instead of its value.
+  a `fn` body was ignored, and the function returned `null` instead of its value.
   This one cost a debugging session: a refusal that never happened, in a file
-  that checked clean.
-- [#222](https://github.com/venn-lang/venn/issues/222): a list literal is checked
-  against its first element rather than against the type the binding declared, so
-  a list of records whose fields differ row by row is refused. Fixed, and the
+  that checked clean. A body is pure at every depth now, so the same line is a
+  parse error wherever it sits.
+- [#222](https://github.com/venn-lang/venn/issues/222): a list literal was
+  checked against its first element rather than against the type the binding
+  declared, so a list of records whose fields differ row by row was refused. The
   gradebook now writes its rows as the list literal they are.
-- [#223](https://github.com/venn-lang/venn/issues/223): a block body cannot
+- [#223](https://github.com/venn-lang/venn/issues/223): a block body could not
   return a value or nothing, which is the ordinary answer of anything that looks
-  something up.
+  something up. Its `return`s make a union now, the way a `try`'s two sides do.
 - [#224](https://github.com/venn-lang/venn/issues/224): `repeat n as i` counted
-  from 1 at the top of a file and from 0 inside a `fn`. Fixed: it counts the
-  passes from one in both, so the rota no longer starts a week late.
-
-Where a program is shaped around one of these, the comment says which and why.
+  from 1 at the top of a file and from 0 inside a `fn`. It counts the passes from
+  one in both, so the rota no longer starts a week late.

@@ -6,6 +6,7 @@ import { kindOf, makeHandle } from "../handles/index.js";
 import { spanOf } from "../node-span.js";
 import type { DecoSignature } from "./deco.types.js";
 import { DecoEnv } from "./deco-env.js";
+import { namesOutOfReach } from "./reach/index.js";
 import { readSignature } from "./read-signature.js";
 import { runDecoBody } from "./run-body.js";
 
@@ -25,10 +26,15 @@ interface DecoArgs {
  * comes from how the author wrote the parameters rather than from a list kept by
  * hand beside them.
  *
+ * What the body reaches for is settled here too, before it is ever run: a name
+ * expansion time cannot bind is refused where it is written rather than read as
+ * nothing and carried into the program.
+ *
  * @returns a definition that does nothing when the signature does not read. The
  * reason is pushed onto `args.problems` once, here, rather than at every use.
  */
 export function decoDecorator(args: DecoArgs): DecoratorDefinition {
+  args.problems.push(...namesOutOfReach(args));
   const read = readSignature(args.decl);
   if (read.ok) return definition({ ...args, sig: read.signature });
   args.problems.push(signatureProblem(args, read.title));

@@ -3,7 +3,7 @@ import { INVOKE } from "./invoke.js";
 import { builtinMember, NO_METHOD } from "./methods/index.js";
 import { nativeFn } from "./native.types.js";
 import { isWaiting } from "./pending.js";
-import { isTask } from "./task.js";
+import { isTask, TASK } from "./task.js";
 
 /**
  * One member of a value: `xs.len`, `m.user`, `target.wrap`.
@@ -85,15 +85,22 @@ function own(receiver: unknown, member: string): unknown {
   return nativeFn((values) => method.apply(receiver, [...values]));
 }
 
+/**
+ * Whether this is a map, as against the four objects that are not one.
+ *
+ * A unit, a moment and a task are all objects, and each is told apart by one
+ * property it carries: the three kinds by `kind`, a task by its own symbol. So
+ * the question is asked once here rather than through three calls that each
+ * begin by re-asking whether this is an object at all.
+ *
+ * A moment is held as a shape with an `epochMs` in it, and reading it as a map
+ * would answer `"instant"` for `.kind`. What it publishes is its own.
+ */
 function isData(receiver: unknown): boolean {
-  return (
-    receiver !== null &&
-    typeof receiver === "object" &&
-    !Array.isArray(receiver) &&
-    !isUnitValue(receiver) &&
-    // A moment is held as a shape with an `epochMs` in it, and reading it as a
-    // map would answer `"instant"` for `.kind`. What it publishes is its own.
-    !isInstant(receiver) &&
-    !isTask(receiver)
-  );
+  if (typeof receiver !== "object" || receiver === null || Array.isArray(receiver)) return false;
+  const kind = (receiver as { kind?: unknown }).kind;
+  if (kind === "duration" || kind === "size" || kind === "percent" || kind === "instant") {
+    return false;
+  }
+  return !(TASK in receiver);
 }

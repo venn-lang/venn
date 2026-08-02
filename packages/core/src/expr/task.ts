@@ -1,6 +1,10 @@
 import { type Method, nativeFn } from "./native.types.js";
 
-const TASK = Symbol("venn.task");
+/**
+ * Exported so the member read can ask for it once rather than through a call
+ * that re-asks whether the value is an object at all.
+ */
+export const TASK = Symbol("venn.task");
 
 /**
  * Work already under way, held rather than waited for.

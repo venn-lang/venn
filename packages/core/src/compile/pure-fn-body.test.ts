@@ -112,7 +112,8 @@ describe("a fn body that is pure all the way down", () => {
       "}",
     );
 
-    expect(call(source, "firstOver", [[{ n: 1 }, { n: 9 }], 4])).toBe(9);
+    // 9 on the first pass, and a pass is counted from one.
+    expect(call(source, "firstOver", [[{ n: 1 }, { n: 9 }], 4])).toBe(10);
     expect(call(source, "firstOver", [[{ n: 1 }], 4])).toBe(0);
   });
 

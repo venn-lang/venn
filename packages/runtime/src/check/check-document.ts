@@ -35,6 +35,7 @@ import { checkLifecycleEvent } from "./check-lifecycle-event.js";
 import { checkMixedOperators } from "./check-mixed-operators.js";
 import { checkNameTaken } from "./check-name-taken.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
+import { checkPureConcurrency } from "./check-pure-concurrency.js";
 import { checkRemovedUse } from "./check-removed-use.js";
 import { checkSwallowedArgument } from "./check-swallowed-argument.js";
 import { checkUnbound } from "./check-unbound.js";
@@ -98,6 +99,11 @@ const LOUDNESS = ["error", "warning", "hint"];
 function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
   const removed = checkRemovedUse(node, ctx);
   if (removed.length > 0) return removed;
+  return [...structuralChecks(node, ctx), ...styleChecks(node, ctx)];
+}
+
+/** Checks over what a node resolves to: a name, a namespace, a call target. */
+function structuralChecks(node: AstNode, ctx: CheckContext): Problem[] {
   return [
     ...checkNode(node, ctx),
     ...checkNamespaceUse(node, ctx),
@@ -105,13 +111,20 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
     ...checkVerbCall(node, ctx),
+    ...one(checkUncalledAction(node, ctx)),
+  ];
+}
+
+/** Checks over how a node is written, once what it resolves to is settled. */
+function styleChecks(node: AstNode, ctx: CheckContext): Problem[] {
+  return [
     ...checkMixedOperators(node, ctx),
     ...checkFailCode(node, ctx),
     ...checkSwallowedArgument(node, ctx),
     ...checkDuplicateKey(node, ctx),
+    ...checkPureConcurrency(node, ctx),
     ...checkLifecycleEvent(node, ctx),
     ...checkDecoratorName(node, ctx),
-    ...one(checkUncalledAction(node, ctx)),
   ];
 }
 

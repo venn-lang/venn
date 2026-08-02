@@ -55,6 +55,10 @@ class MapScope implements Scope {
   child(): Scope {
     return new MapScope(this);
   }
+
+  root(): Scope {
+    return this.parent ? this.parent.root() : this;
+  }
 }
 
 /**

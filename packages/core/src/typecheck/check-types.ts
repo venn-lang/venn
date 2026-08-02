@@ -244,8 +244,14 @@ function problem(mismatch: TypeMismatch, uri: string): Problem {
     span: spanOf(mismatch.node, uri),
     title: titleOf(mismatch),
   });
-  const help = mismatch.sentence ? undefined : helpAboutNothing(mismatch.actual, mismatch.expected);
+  const help = mismatch.help ?? wayOut(mismatch);
   return help ? { ...built, help } : built;
+}
+
+/** The nothing is only the fault where the two types are otherwise the same. */
+function wayOut(mismatch: TypeMismatch): string | undefined {
+  if (mismatch.sentence) return undefined;
+  return helpAboutNothing(mismatch.actual, mismatch.expected);
 }
 
 /** Some clashes read better as a sentence than as the two types that clashed. */

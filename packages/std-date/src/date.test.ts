@@ -66,8 +66,8 @@ describe("writing one out", () => {
     expect(run("format", moment(AT), "HH:mm")).toBe("12:00");
   });
 
-  it("says so when the zone is not one", () => {
-    expect(() => run("format", moment(AT), "HH", "Mars/Olympus")).toThrow(/not a timezone/);
+  it("refuses a zone that is not one, the way `in` does", () => {
+    expect(() => run("format", moment(AT), "HH", "Mars/Olympus")).toThrow(/no timezone called/);
   });
 });
 
@@ -90,8 +90,13 @@ describe("reading one where somebody stands", () => {
     );
   });
 
-  it("answers with nothing for a zone nobody has heard of", () => {
-    expect(run("in", moment(AT), "Nowhere/Fictional")).toBeNull();
+  /**
+   * A name that is not a timezone is a mistake in the program, not data being
+   * ordinary, so the run ends at it. It answered with nothing while `format`
+   * refused the same name, which is two verbs disagreeing about one thing.
+   */
+  it("refuses a zone nobody has heard of, the way `format` does", () => {
+    expect(() => run("in", moment(AT), "Nowhere/Fictional")).toThrow(/no timezone called/);
   });
 });
 

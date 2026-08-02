@@ -1583,6 +1583,23 @@ numa janela para a run inteira em vez de um relato do que correu mal. `related`,
 `diff` e `artifacts` ficam de fora pelo mesmo motivo: existem para ser
 renderizados, não para se decidir sobre eles.
 
+### Quando um verbo falha
+
+Três finais possíveis, e uma regra para escolher entre eles. A regra vale para
+todo verbo da stdlib e para todo plugin, e está escrita em
+[`@venn-lang/sdk`](../packages/sdk/README.md#when-a-verb-fails), onde quem
+escreve um plugin a lê:
+
+| O que aconteceu | O verbo | Porquê |
+| --- | --- | --- |
+| O mundo falhou | levanta | Nada que o programa escreveu está errado e nada que ele leia ajuda |
+| Quem chamou errou | levanta | É um bug no programa, e a run acabar no bug é o caminho mais curto para a correção |
+| O dado é ilegível | responde `null` | Ser ilegível é coisa comum de dado, e quem lê dado escreve à espera disso |
+
+Um gémeo `tryX` existe só onde as duas leituras são comuns o bastante para
+quererem um nome cada, como `json.parse` e `json.tryParse`. Nunca como a única
+grafia.
+
 ### Uma falha com identidade
 
 `fail` leva um código e uma carga, senão uma biblioteca não consegue levantar

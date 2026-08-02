@@ -1,4 +1,5 @@
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { VennError } from "@venn-lang/contracts";
+import { type ActionDefinition, arg, defineAction, PLUGIN_CODES } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import { parseJson } from "../parse/parse-json.js";
 
@@ -40,5 +41,9 @@ export const jsonActions: ActionDefinition[] = [
 function taken(text: string): unknown {
   const found = parseJson(text);
   if (found.ok) return found.value;
-  throw new Error(`This is not JSON: ${found.reason}.`);
+  throw new VennError({
+    code: PLUGIN_CODES.VN7003_UNREADABLE,
+    message: `This is not JSON: ${found.reason}.`,
+    detail: { reason: found.reason },
+  });
 }

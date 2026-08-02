@@ -37,6 +37,16 @@ describe("reading JSON", () => {
     expect(() => run("parse", '{ "b": oops }')).toThrow(/near/);
   });
 
+  /** The code a program reads to tell this failure from another. */
+  it("carries the code for a payload it could not read", () => {
+    try {
+      run("parse", "{ oops");
+      throw new Error("parse raised nothing");
+    } catch (error) {
+      expect((error as { code?: string }).code).toBe("VN7003");
+    }
+  });
+
   it("says it is not JSON, in those words", () => {
     expect(() => run("parse", "{")).toThrow(/This is not JSON/);
   });

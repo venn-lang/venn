@@ -1,3 +1,5 @@
+import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import type { Rng } from "../rng/index.js";
 
 const COMBINING = /[\u0300-\u036f]/g;
@@ -10,7 +12,12 @@ export const ALNUM: string = `${LOWER}${LOWER.toUpperCase()}${DIGITS}`;
 /** Pick one item from a list. Drawing from an empty list is a programming error. */
 export function pick<T>(items: readonly T[], rng: Rng): T {
   const chosen = items[Math.floor(rng() * items.length)];
-  if (chosen === undefined) throw new Error("faker: cannot pick from an empty list");
+  if (chosen === undefined) {
+    throw new VennError({
+      code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
+      message: "There is nothing to pick from.",
+    });
+  }
   return chosen;
 }
 

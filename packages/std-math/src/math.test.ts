@@ -87,6 +87,18 @@ describe("randomness", () => {
       expect(Number.isInteger(found)).toBe(true);
     }
   });
+
+  /**
+   * A range whose end is below its start is not a range. It answered with a
+   * number outside both ends, which is a verb agreeing to something impossible.
+   */
+  it("refuses a range whose end is below its start", () => {
+    expect(() => run("randomInt", 10, 1)).toThrow(/no range from 10 to 1/);
+  });
+
+  it("takes a range of one, which is a range", () => {
+    expect(run("randomInt", 4, 4)).toBe(4);
+  });
 });
 
 describe("the questions a number cannot answer about itself", () => {

@@ -1,6 +1,6 @@
 // biome-ignore-all lint/suspicious/noTemplateCurlyInString: Venn source under test.
 import { createTestHost } from "@venn-lang/contracts";
-import { parse } from "@venn-lang/core";
+import { type ProblemError, parse } from "@venn-lang/core";
 import { defineAction, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
@@ -40,11 +40,48 @@ async function runScript(source: string): Promise<string[]> {
  * else has to be predicted.
  */
 async function bothWays(body: string): Promise<{ top: string; inFn: string }> {
-  const [top] = await runScript(['let seen = ""', body, "io.print seen"].join("\n"));
-  const [inFn] = await runScript(
-    ["fn inside() {", 'let seen = ""', body, "return seen", "}", "io.print inside()"].join("\n"),
-  );
+  const [top] = await runScript(atTop(body));
+  const [inFn] = await runScript(inAFn(body));
   return { top: top as string, inFn: inFn as string };
+}
+
+function atTop(body: string): string {
+  return ['let seen = ""', body, "io.print seen"].join("\n");
+}
+
+function inAFn(body: string): string {
+  return ["fn inside() {", 'let seen = ""', body, "return seen", "}", "io.print inside()"].join(
+    "\n",
+  );
+}
+
+/**
+ * The same lines, refused in both places: what each refusal said.
+ *
+ * The spans cannot be compared whole. A compiled body is built with no document
+ * behind it, so its span carries the offset, the line and the column and leaves
+ * the URI empty, while the scheduler fills the URI from the engine. The column
+ * is the part that says the refusal points at the same word.
+ */
+async function bothRefuse(body: string): Promise<{ top: Refusal; inFn: Refusal }> {
+  return { top: await refusalOf(atTop(body)), inFn: await refusalOf(inAFn(body)) };
+}
+
+interface Refusal {
+  code: string;
+  title: string;
+  help: string | undefined;
+  column: number;
+}
+
+async function refusalOf(source: string): Promise<Refusal> {
+  try {
+    await runScript(source);
+  } catch (error) {
+    const { code, title, help, span } = (error as ProblemError).problem;
+    return { code, title, help, column: span.column };
+  }
+  throw new Error(`Expected this to be refused, and it was not:\n${source}`);
 }
 
 /**
@@ -169,5 +206,88 @@ describe("a loop written in a fn and the same loop written at the top of a file"
 
     expect(inFn).toBe(top);
     expect(top).toBe("1 2 3 ");
+  });
+
+  /**
+   * `continue next` is the documented way to advance what a `loop` carries, and
+   * for a while it only worked at the top of a file: inside a `fn` the value was
+   * evaluated and dropped, so the state never moved and the loop never ended. A
+   * hang is the worst answer a language can give, because there is nothing to
+   * read, which is why the two ways of writing this loop are both here.
+   */
+  it("advances the state a loop carries with continue, in both", async () => {
+    const body = [
+      "loop n = 1 {",
+      "if n > 3 { break }",
+      'seen = "${seen}${n} "',
+      "continue n + 1",
+      "}",
+    ].join("\n");
+    const { top, inFn } = await bothWays(body);
+
+    expect(inFn).toBe(top);
+    expect(top).toBe("1 2 3 ");
+  });
+
+  it("advances it from a continue written inside an if, in both", async () => {
+    const body = [
+      "loop n = 1 {",
+      "if n > 3 { break }",
+      "if n == 2 { continue n + 1 }",
+      'seen = "${seen}${n} "',
+      "continue n + 1",
+      "}",
+    ].join("\n");
+    const { top, inFn } = await bothWays(body);
+
+    expect(inFn).toBe(top);
+    expect(top).toBe("1 3 ");
+  });
+
+  /** The value belongs to the loop that carries one, and `repeat` carries none. */
+  it("drops the value a continue inside a repeat carries, in both", async () => {
+    const body = [
+      "loop n = 1 {",
+      "if n > 3 { break }",
+      "repeat 1 { continue 99 }",
+      'seen = "${seen}${n} "',
+      "continue n + 1",
+      "}",
+    ].join("\n");
+    const { top, inFn } = await bothWays(body);
+
+    expect(inFn).toBe(top);
+    expect(top).toBe("1 2 3 ");
+  });
+
+  /**
+   * A bound the loop cannot use is refused rather than shrugged at. Inside a
+   * `fn` these two used to pass in silence: `repeat "3"` counted three because
+   * `Number` obliged, and `forEach` over a number ran no passes at all, which is
+   * the checked-nothing-dressed-as-passing that `VN3015` exists to prevent.
+   */
+  it("refuses a repeat count that is not a number, in both", async () => {
+    const { top, inFn } = await bothRefuse('repeat "3" {\nseen = "${seen}x "\n}');
+
+    expect(inFn).toEqual(top);
+    expect(top.code).toBe("VN3016");
+    expect(top.title).toBe("repeat needs a number of times, and this is a string.");
+  });
+
+  it("refuses a forEach source that is not a list, in both", async () => {
+    const { top, inFn } = await bothRefuse('forEach x in 5 {\nseen = "${seen}${x} "\n}');
+
+    expect(inFn).toEqual(top);
+    expect(top.code).toBe("VN3015");
+    expect(top.title).toBe("forEach needs a list, and this is a number.");
+  });
+
+  it("says the same thing about a map handed to a forEach, in both", async () => {
+    const { top, inFn } = await bothRefuse(
+      'forEach x in { data: [1] } {\nseen = "${seen}${x} "\n}',
+    );
+
+    expect(inFn).toEqual(top);
+    expect(top.help).toBe("Name the list inside it, as in `forEach item in res.data`.");
   });
 });

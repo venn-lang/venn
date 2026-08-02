@@ -1,0 +1,136 @@
+# The dex, tested without a network.
+# Run: venn test examples/programs/pokedex/tests.vn
+#
+# `main.vn` talks to the real pokeapi.co. Nothing here does: the file stands a
+# server of its own up on a port the operating system picks, teaches it to
+# answer the way the API answers, and hands its address to the same fragments
+# the program uses. That is what `base` being an argument buys, and it is why
+# `lookup` needed no test-shaped hole cut in it.
+
+import { contains, equals } from "venn/assert"
+import { http } from "venn/http"
+import { entryOf, lookup, lookupAll, scoreOn, strongest } from "./dex"
+
+const gateway = http.serve { port: 0 }
+defer { gateway.close() }
+
+const BASE = "http://127.0.0.1:${gateway.port}"
+
+## Three Pokemon in the shape the API sends them, and no more of it than the dex
+## reads. A fixture that mirrored all two hundred fields would be a fixture
+## nobody could check against the real thing.
+const SEED = {
+  pikachu: asApi(25, "pikachu", ["electric"], 4, 60, { hp: 35, attack: 55, speed: 90 }),
+  snorlax: asApi(143, "snorlax", ["normal"], 21, 4600, { hp: 160, attack: 110, speed: 30 }),
+  gyarados: asApi(130, "gyarados", ["water", "flying"], 65, 2350, { hp: 95, attack: 125, speed: 81 })
+}
+
+fn asApi(id, name, kinds, height, weight, stats) => {
+  id: id,
+  name: name,
+  height: height,
+  weight: weight,
+  types: kinds.map((kind) => { type: { name: kind } }),
+  stats: stats.entries.map((pair) => { stat: { name: pair[0] }, base_stat: pair[1] })
+}
+
+## The one place the stub decides anything: a name it knows, or a 404.
+##
+## Not a 200 with an empty body, because that is not what the API does, and a
+## double that lies about the failure path is a double that hides the bug.
+http.on gateway req => reply(req.url.after("/pokemon/"))
+
+fn reply(name) => (
+  SEED[name] == null
+    ? { status: 404, body: { detail: "Not found." } }
+    : { status: 200, body: SEED[name] }
+)
+
+flow "One Pokemon, read out of what the API sent" {
+  run lookup(BASE, "pikachu") as pikachu
+
+  step "the six fields the dex keeps" {
+    expect pikachu.id == 25
+    expect pikachu.name == "pikachu"
+    expect pikachu.kinds equals ["electric"]
+    expect pikachu.stats["speed"] == 90
+  }
+
+  step "decimetres and hectograms become metres and kilograms" {
+    expect pikachu.height == 0.4
+    expect pikachu.weight == 6
+  }
+
+  step "a name is taken as the person typed it" {
+    run lookup(BASE, "  SNORLAX  ") as snorlax
+    expect snorlax.id == 143
+  }
+}
+
+flow "A name the dex does not have" {
+  step "refuses with a code, not just a sentence" {
+    try {
+      run lookup(BASE, "missingno") as gone
+      fail "looking up a name that is not there should have refused"
+    } catch e {
+      expect e.code == "dex.unknown"
+      expect e.message contains "missingno"
+    }
+  }
+}
+
+flow "A team, fetched at once" {
+  run lookupAll(BASE, ["snorlax", "pikachu", "gyarados"]) as answer
+
+  step "everybody comes back" {
+    expect answer.found.len == 3
+    expect answer.missing.isEmpty
+  }
+
+  ## The whole reason `lookupAll` carries a position: four requests in flight
+  ## finish in whatever order the network decides, and a report whose rows moved
+  ## between runs would be a report nobody could diff.
+  step "in the order they were asked for, not the order they arrived" {
+    expect answer.found.map((one) => one.name) equals ["snorlax", "pikachu", "gyarados"]
+  }
+}
+
+flow "A team with a typo in it" {
+  run lookupAll(BASE, ["pikachu", "missingno", "snorlax"]) as answer
+
+  step "the ones that exist still come back" {
+    expect answer.found.map((one) => one.name) equals ["pikachu", "snorlax"]
+  }
+
+  step "and the one that does not is named rather than dropped" {
+    expect answer.missing.len == 1
+    expect answer.missing.first.name == "missingno"
+  }
+}
+
+flow "Comparing a team" {
+  run lookupAll(BASE, ["pikachu", "snorlax", "gyarados"]) as answer
+
+  step "the winner of a stat is the one with the highest number" {
+    expect strongest(answer.found, "hp").name == "snorlax"
+    expect strongest(answer.found, "speed").name == "pikachu"
+  }
+
+  step "an empty team has no winner, rather than a made-up one" {
+    expect strongest([], "hp") == null
+  }
+
+  step "a stat nobody has scores zero for everyone" {
+    expect scoreOn(answer.found.first, "wisdom") == 0
+  }
+}
+
+flow "The pure part, without a server at all" {
+  step "entryOf reads a body the API never sent" {
+    const made = entryOf(asApi(1, "bulbasaur", ["grass", "poison"], 7, 69, { hp: 45 }))
+
+    expect made.kinds equals ["grass", "poison"]
+    expect made.height == 0.7
+    expect made.stats["hp"] == 45
+  }
+}

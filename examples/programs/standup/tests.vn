@@ -1,0 +1,79 @@
+# The rota, asked questions without a clock or a screen.
+# Run: venn test examples/programs/standup/tests.vn
+
+import { equals } from "venn/assert"
+import { FIRST, localDay, localTime, meetingAt, nextAfter, rowAt, TEAM, turnAt, WEEK } from "./rota"
+
+flow "Whose turn it is" {
+  step "the team list is the rota, in order" {
+    expect turnAt(0).who equals "ana"
+    expect turnAt(1).who equals "bruno"
+    expect turnAt(2).who equals "cleo"
+  }
+
+  ## Adding a person changes the rota and nothing else, which is only true
+  ## because the wrap is arithmetic on the list rather than a table somebody
+  ## has to remember to extend.
+  step "and it wraps" {
+    expect turnAt(3).who equals "ana"
+    expect turnAt(TEAM.len * 10).who equals "ana"
+  }
+}
+
+flow "When the meetings are" {
+  step "the first one is where the rota was started" {
+    expect meetingAt(0) equals FIRST
+  }
+
+  step "and every one after it is a week later" {
+    expect localDay(meetingAt(0), "UTC") equals "2026-08-03"
+    expect localDay(meetingAt(1), "UTC") equals "2026-08-10"
+    expect localDay(meetingAt(5), "UTC") equals "2026-09-07"
+  }
+
+  step "a week is measured in hours, so a clock change cannot move it" {
+    expect WEEK == 168h
+  }
+}
+
+flow "The same instant where each person stands" {
+  step "three wall clocks, one moment" {
+    expect localTime(FIRST, "Europe/Lisbon") equals "10:00"
+    expect localTime(FIRST, "America/Sao_Paulo") equals "06:00"
+    expect localTime(FIRST, "Asia/Tokyo") equals "18:00"
+  }
+
+  ## A name nobody recognises ends the run at the mistake rather than three
+  ## lines later with an empty cell.
+  step "a zone that is not a place refuses" {
+    try {
+      const said = localTime(FIRST, "Mars/Olympus")
+      fail "formatting against a zone nobody has should have refused"
+    } catch e {
+      expect e.code equals "VN7005"
+    }
+  }
+}
+
+flow "A row of the rota" {
+  step "carries the day, the host, and everybody's clock" {
+    const row = rowAt(0)
+
+    expect row.when equals "2026-08-03"
+    expect row.host equals "ana"
+    expect row.ana equals "10:00"
+    expect row.cleo equals "18:00"
+  }
+}
+
+flow "The turn after a given moment" {
+  step "is the one that has not happened yet" {
+    const nowish = meetingAt(2).plus(1h)
+
+    expect turnAt(nextAfter(nowish, 6)).who equals "ana"
+  }
+
+  step "before the rota started, it is the first turn" {
+    expect nextAfter(FIRST.minus(1h), 6) == 0
+  }
+}

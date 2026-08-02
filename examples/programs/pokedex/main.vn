@@ -1,0 +1,134 @@
+# A Pokedex: one Pokemon at a time, or a team side by side.
+#
+# Run: venn run examples/programs/pokedex/main.vn pikachu eevee snorlax
+#      venn run examples/programs/pokedex/main.vn
+#      printf 'pikachu\nteam eevee snorlax\nquit\n' | venn run examples/programs/pokedex/main.vn
+#
+# This is the one example in the repository that needs a network: it talks to
+# the real https://pokeapi.co. `tests.vn` beside it does not, because it stands
+# its own server up and points the same fragments at that.
+#
+# The three files behind it split along the line the language already draws:
+# `dex/entry.vn` is what a Pokemon is, `dex/fetch.vn` is the only thing that
+# reaches the network, and the words a person reads are written here.
+
+import { fmt } from "venn/fmt"
+import { io } from "venn/io"
+import { Entry, lookup, lookupAll, scoreOn, strongest } from "./dex"
+import { instead, joined, named } from "./dex/shape.vn"
+
+const API = "https://pokeapi.co/api/v2"
+
+const COMPARED = ["hp", "attack", "speed"]
+
+## The API writes every name in lower case, and every one of them is read by a
+## person. `@named` is that rule, said once, above the function it is a rule
+## about.
+@named
+fn title(entry: Entry) -> string => entry.name
+
+@joined(" / ")
+fn kinds(entry: Entry) => entry.kinds.map((kind) => kind.capitalize)
+
+## A Pokemon with no stats at all is a Pokemon this program can still print.
+@instead(0)
+fn best(entry: Entry) => entry.stats.values.max
+
+## One entry, four lines, which is what a name on its own asks for.
+fn card(entry: Entry) -> string => [
+  "#${padded(entry.id)}  ${title(entry)}",
+  "  type    ${kinds(entry)}",
+  "  size    ${entry.height.toFixed(1)} m, ${entry.weight.toFixed(1)} kg",
+  "  best    ${best(entry)}"
+].join("
+")
+
+## A three-digit number, so a column of them lines up.
+fn padded(id: number) -> string => id.toString.padStart(3, "0")
+
+## What `fmt.table` wants: one map per row, every key a column.
+fn rows(entries: list<Entry>) -> list<map> => entries.map((entry) => {
+  no: padded(entry.id),
+  name: title(entry),
+  type: kinds(entry),
+  hp: scoreOn(entry, "hp"),
+  attack: scoreOn(entry, "attack"),
+  speed: scoreOn(entry, "speed")
+})
+
+## What the person asked for on the command line, if anything.
+##
+## Arguments mean one shot, no arguments mean sit at the prompt. It is the rule
+## `git log` follows and for the same reason: a program in a pipeline must not
+## stop and wait for somebody who is not there.
+const asked = io.args()
+
+if asked.len > 0 {
+  run team(asked)
+} else {
+  run prompt()
+}
+
+## Several Pokemon, fetched at once and shown as a table.
+fragment team(names) {
+  run lookupAll(API, names) as answer
+
+  if answer.found.len > 0 {
+    print fmt.table(rows(answer.found))
+    print ""
+    run leaders(answer.found)
+  }
+
+  ## The names that came back with nothing are the point of saying anything at
+  ## all: a table quietly holding five rows for six names would be worse than an
+  ## error.
+  forEach gone in answer.missing {
+    io.eprint("${gone.name}: ${gone.why}")
+  }
+}
+
+## Who tops the table, per stat, which is what a team is compared for.
+fragment leaders(found) {
+  forEach stat in COMPARED {
+    const winner = strongest(found, stat)
+    if winner != null {
+      print "${stat.padEnd(7)} ${title(winner)} (${scoreOn(winner, stat)})"
+    }
+  }
+}
+
+## The prompt: a name looks one up, `team` compares several.
+##
+## `io.ask` writes the question and reads the answer, and through a pipe it
+## reads the piped line and answers nothing once there are none left. So one
+## loop serves a person and a test, and nothing here asks which it is talking to.
+fragment prompt() {
+  print "Pokedex. A name looks one up. `team a b c` compares. `quit` leaves."
+  loop {
+    const line = io.ask("dex> ")
+    if line == null {
+      break
+    }
+    const said = line.trim
+    if said == "quit" || said == "exit" {
+      break
+    }
+    if said != "" {
+      run answer(said.words)
+    }
+  }
+}
+
+## One line of input, already split into words.
+fragment answer(words) {
+  if words.first == "team" {
+    run team(words.drop(1))
+    return
+  }
+  try {
+    run lookup(API, words.first) as entry
+    print card(entry)
+  } catch e {
+    io.eprint(e.message)
+  }
+}

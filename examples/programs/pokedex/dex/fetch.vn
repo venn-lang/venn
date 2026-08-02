@@ -1,0 +1,71 @@
+## Everything in this program that touches the network.
+##
+## A `fn` is pure and cannot make a request; a `fragment` can. So the boundary
+## the language draws is the boundary this folder is split along: `entry.vn` is
+## what the dex knows, and this is where it finds out.
+##
+## Nothing here hard-codes an address. `base` is an argument, which is what lets
+## `tests.vn` point the same fragments at a server it stood up itself.
+module examples.programs.pokedex.fetch
+
+import { http } from "venn/http"
+import { entryOf } from "./entry.vn"
+
+## One Pokemon by name or by number.
+##
+## Refuses with a code rather than a sentence, so a caller can tell "no such
+## Pokemon" from "the dex is down" without reading the message. The first is the
+## person's mistake and the second is not.
+##
+## @param base  Where the API lives, without a trailing slash.
+## @param asked What the person typed.
+pub fragment lookup(base, asked) {
+  const name = asked.trim.lower
+  const res = http.get "${base}/pokemon/${name}"
+  if res.status == 404 {
+    fail "There is no Pokemon called ${asked}." { code: "dex.unknown", data: { asked: asked } }
+  }
+  if !res.ok {
+    fail "The Pokedex answered ${res.status}." { code: "dex.unavailable", data: { status: res.status } }
+  }
+  return entryOf(res.json)
+}
+
+## A whole team at once, four requests in flight.
+##
+## `concurrency` is the point: six names cost about as much as the slowest one
+## rather than the sum of six. What it also costs is arrival order, so each name
+## carries the position it was asked in and the answers are put back in that
+## order at the end. A report whose rows move between runs is a report nobody
+## can diff.
+##
+## One name that fails does not take the others with it: the refusal is caught
+## per name and handed back beside the ones that worked, because a team of six
+## with one typo in it is still five Pokemon worth showing.
+pub fragment lookupAll(base, names) {
+  let found = []
+  let missing = []
+  forEach one in numbered(names) { concurrency: 4 } {
+    try {
+      run lookup(base, one.name) as entry
+      found = found.push({ at: one.at, entry: entry })
+    } catch e {
+      missing = missing.push({ at: one.at, name: one.name, why: e.message })
+    }
+  }
+  return {
+    found: inOrder(found).map((one) => one.entry),
+    missing: inOrder(missing)
+  }
+}
+
+## Each name with the position it was asked in.
+fn numbered(names: list<string>) -> list<map> {
+  let out = []
+  repeat names.len as pass {
+    out = out.push({ at: pass - 1, name: names[pass - 1] })
+  }
+  return out
+}
+
+fn inOrder(rows: list<map>) -> list<map> => rows.sortBy((row) => row.at)

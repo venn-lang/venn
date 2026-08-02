@@ -1,0 +1,7 @@
+## The face of the folder: what a program using this dex needs, and no more.
+##
+## `shape.vn` is absent on purpose. The decorators are how this folder is built,
+## not what it offers, and a caller that reached for them would be reaching past
+## the door into the kitchen.
+pub import { lookup, lookupAll } from "./fetch.vn"
+pub import { Entry, entryOf, scoreOn, strongest } from "./entry.vn"

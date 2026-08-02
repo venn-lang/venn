@@ -1,0 +1,48 @@
+## What a Pokemon is, once it has stopped being JSON.
+##
+## Everything here is pure, and none of it knows what a screen is. The API
+## answers with about two hundred fields; this file names the six the dex uses,
+## and that line is the boundary. A change at the API costs one function here
+## rather than a search across the program.
+module examples.programs.pokedex.entry
+
+## One Pokemon, as this program cares about it.
+pub type Entry = {
+  id: number,
+  name: string,
+  kinds: list<string>,
+  height: number,
+  weight: number,
+  stats: map<number>
+}
+
+## The reply from the API, reduced to an `Entry`.
+##
+## Height and weight arrive in decimetres and hectograms, which is a unit nobody
+## thinks in. They are turned into metres and kilograms here, once, rather than
+## at each of the places that show them.
+pub fn entryOf(body) -> Entry => {
+  id: body.id,
+  name: body.name,
+  kinds: body.types.map((one) => one.type.name),
+  height: body.height / 10,
+  weight: body.weight / 10,
+  stats: body.stats.map((one) => [one.stat.name, one.base_stat]).toMap
+}
+
+## What one of them scores on a stat, or zero where the API had no such stat.
+##
+## Zero rather than nothing, because every caller of this is comparing, and a
+## comparison against nothing is a comparison that has to be written twice.
+pub fn scoreOn(entry: Entry, stat: string) -> number => entry.stats[stat] ?? 0
+
+## Which of them wins on a stat, and nothing at all when there is nobody in it.
+##
+## Answering nothing rather than guessing on an empty team: a winner of an empty
+## contest is a lie the caller would then have to un-tell.
+pub fn strongest(entries: list<Entry>, stat: string) -> Entry | null {
+  if entries.isEmpty {
+    return null
+  }
+  return entries.maxBy((entry) => scoreOn(entry, stat))
+}

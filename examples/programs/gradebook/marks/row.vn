@@ -1,0 +1,7 @@
+## What one student's marks look like when they arrive.
+module examples.programs.gradebook.row
+
+## One row per student, and the marks are a `map<number>` rather than a shape
+## with three fields: a row that is missing a component is the point of the
+## program, so a type that demanded all three would refuse the interesting one.
+pub type Row = { who: string, marks: map<number> }

@@ -1,0 +1,37 @@
+## Decorators this program wrote for itself.
+##
+## A decorator here is not a feature demonstration: each one exists because the
+## same three lines were about to be written into four functions. What they have
+## in common is that they are about the *answer*, not about the work, which is
+## exactly the kind of rule that reads better above a function than inside it.
+##
+## A `deco` body runs at expansion time, before the program exists, so what a
+## closure written here may read is its own parameters and the `target` handle.
+## Reaching for a name at the top of the file finds nothing.
+module examples.programs.pokedex.shape
+
+## The answer with its first letter raised.
+##
+## The API names everything in lower case, and every one of them is shown to a
+## person. Capitalising at the point of display would mean remembering to, in
+## each of the places that display.
+pub deco named(target: Fn) {
+  target.wrap(fn (call, args) => call(args).capitalize)
+}
+
+## `fallback` wherever the answer is nothing.
+##
+## Half the fields of a Pokemon are optional, and a dex full of `null` is a dex
+## nobody can read. The default belongs with the reader, not with each caller.
+##
+## @param fallback  What to show instead of nothing.
+pub deco instead(target: Fn, fallback) {
+  target.wrap(fn (call, args) => call(args) ?? fallback)
+}
+
+## A list answer, written out as text.
+##
+## @param separator  What goes between the items.
+pub deco joined(target: Fn, separator: string) {
+  target.wrap(fn (call, args) => call(args).join(separator))
+}

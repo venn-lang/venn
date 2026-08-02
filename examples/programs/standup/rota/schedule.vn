@@ -1,0 +1,67 @@
+## Whose turn it is, and when that lands where each person stands.
+##
+## All of it pure, so `tests.vn` can ask it questions without a clock and
+## without a screen. The only thing this file will not do is print.
+module examples.programs.standup.schedule
+
+import { date } from "venn/date"
+
+## Where everyone is. An IANA name, because an offset is not a place: the offset
+## changes twice a year and the place does not.
+pub const TEAM = [
+  { who: "ana", zone: "Europe/Lisbon" },
+  { who: "bruno", zone: "America/Sao_Paulo" },
+  { who: "cleo", zone: "Asia/Tokyo" }
+]
+
+## The rota started here, and turns are a week apart.
+##
+## A week is `168h` because the units stop at the hour, and that is the right
+## place to stop: a day is not a fixed length where clocks change, so `7d` would
+## be a lie twice a year in two of the three zones above.
+pub const FIRST: instant = date.of({ year: 2026, month: 8, day: 3, hour: 9 })
+pub const WEEK = 168h
+
+## Whose turn the nth meeting is.
+##
+## The team list is the rota, so adding a person changes the rota and nothing
+## else. Counting from zero here because it is arithmetic rather than a count of
+## passes: the first meeting is meeting zero.
+pub fn turnAt(index: number) => TEAM[index % TEAM.len]
+
+pub fn meetingAt(index: number) -> instant => FIRST.plus(WEEK * index)
+
+## The same instant, written where somebody stands.
+##
+## `date.in` refuses a name that is not a timezone rather than answering with
+## nothing, which is what it used to do while `date.format` refused: two verbs
+## disagreeing about one thing.
+pub fn localTime(at: instant, zone: string) -> string => date.format(at, "HH:mm", zone)
+
+## The tokens stop at numbers: there is no name of a month and no name of a day,
+## so a rota reads as `2026-08-03` rather than as `Mon 03 Aug`.
+pub fn localDay(at: instant, zone: string) -> string => date.format(at, "YYYY-MM-DD", zone)
+
+## One row of the rota: the day, whose turn it is, and each person's wall clock.
+pub fn rowAt(index: number) -> map {
+  let line = { when: localDay(meetingAt(index), "UTC"), host: turnAt(index).who }
+  forEach person in TEAM {
+    line[person.who] = localTime(meetingAt(index), person.zone)
+  }
+  return line
+}
+
+## The turn that comes after a given moment.
+##
+## A fold rather than a search, and it answers the last meeting before `moment`
+## rather than nothing when `moment` is past the end: a rota that ran out is a
+## rota that wraps, which is what `turnAt` does anyway.
+pub fn nextAfter(moment: instant, meetings: number) -> number {
+  let next = 0
+  repeat meetings as pass {
+    if meetingAt(pass - 1).isBefore(moment) {
+      next = pass
+    }
+  }
+  return next
+}

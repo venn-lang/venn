@@ -1,5 +1,5 @@
 # A gradebook: marks in, grades and a class summary out.
-# Run: venn run examples/programs/gradebook.vn
+# Run: venn run examples/programs/gradebook/main.vn
 #
 # What it is really about is bad data. A term's marks arrive from four teachers
 # and one of them will have typed a mark of 110, left a component out, or filed
@@ -8,65 +8,7 @@
 
 import { fmt } from "venn/fmt"
 import { math } from "venn/math"
-
-## What a term is worth, and it has to come to one.
-namespace scheme {
-  const weights = { homework: 0.2, midterm: 0.3, final: 0.5 }
-
-  pub fn weightOf(part: string) => weights[part]
-
-  pub fn parts() => weights.keys
-
-  ## What is wrong with a row, or nothing when it can be graded.
-  ##
-  ## A `fn` is pure: it decides, binds, loops and gives a value back, and it
-  ## does not reach the world. So the answer here is a value, and the program
-  ## below is what refuses. Everything this needs to say fits in one.
-  pub fn problemWith(row) {
-    forEach part in parts() {
-      const mark = row.marks[part]
-      if mark == null {
-        return "no ${part}"
-      }
-      if mark < 0 || mark > 100 {
-        return "${part} is ${mark}, not a percentage"
-      }
-    }
-    return null
-  }
-
-  ## The weighted average of a row that `problemWith` had nothing to say about.
-  pub fn average(marks) -> number {
-    let sum = 0
-    forEach part in parts() {
-      sum = sum + marks[part] * weightOf(part)
-    }
-    return sum
-  }
-
-  ## A `match` arm is a pattern rather than a condition, so a ladder of ranges
-  ## is written as one: `match` is for telling shapes apart, `if` for deciding.
-  pub fn letter(average: number) -> string {
-    if average >= 90 {
-      return "A"
-    }
-    if average >= 80 {
-      return "B"
-    }
-    if average >= 70 {
-      return "C"
-    }
-    if average >= 60 {
-      return "D"
-    }
-    return "F"
-  }
-}
-
-## One row per student, and the marks are a `map<number>` rather than a shape
-## with three fields: a row that is missing a component is the point of the
-## program, so a type that demanded all three would refuse the interesting one.
-type Row = { who: string, marks: map<number> }
+import { Row, scheme } from "./marks"
 
 ## What the teachers filed, as it arrives: one file, four hands, and no promise
 ## that every row has every component.

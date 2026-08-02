@@ -7,7 +7,9 @@ import { checkMatch } from "./check-match.js";
 import { ERROR_TYPE } from "./error-type.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { narrowed } from "./narrow.js";
+import { paramType } from "./param-type.js";
 import { patternTypes } from "./pattern-types.js";
+import { checkRunArguments } from "./run-arguments.js";
 import { mono, type Scheme } from "./scheme.js";
 import { DYNAMIC, type Type } from "./type.types.js";
 import { type TypeEnv, withAll } from "./type-env.js";
@@ -136,7 +138,8 @@ function actionArgs(node: ast.ActionCall, env: TypeEnv, infer: Infer): TypeEnv {
 }
 
 function runArgs(node: ast.RunStmt, env: TypeEnv, infer: Infer): TypeEnv {
-  for (const arg of node.args?.args ?? []) inferExpr(arg.value, env, infer);
+  const given = (node.args?.args ?? []).map((arg) => inferExpr(arg.value, env, infer));
+  checkRunArguments({ node, given, infer });
   return node.bind ? env.with(node.bind, mono(DYNAMIC)) : env;
 }
 
@@ -229,16 +232,11 @@ export function checkBlock(block: Block, env: TypeEnv, infer: Infer): void {
 export function checkFragment(decl: FragmentDecl, env: TypeEnv, infer: Infer): void {
   let scope = env;
   for (const param of decl.params?.params ?? []) {
-    const type = annotated(param, infer);
+    const type = paramType(param, infer);
     if (param.name) scope = scope.with(param.name, mono(type));
     else if (param.pattern) {
       scope = withAll(scope, patternTypes({ pattern: param.pattern, type, infer }).map(scheme));
     }
   }
   checkBlock(decl.body, scope, infer);
-}
-
-function annotated(param: ast.Param, infer: Infer): Type {
-  const { ctx, named, catalog } = infer;
-  return param.paramType ? typeRefToType({ ref: param.paramType, ctx, named, catalog }) : DYNAMIC;
 }

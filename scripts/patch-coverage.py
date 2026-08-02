@@ -8,6 +8,10 @@ Branches are counted too, and that is the point: a line can run and still leave
 one side of its `??` or its `if` untried, and codecov calls that a partial and
 holds it against the patch. Counting lines alone reads 100% for a patch codecov
 fails.
+
+A file git has never seen is counted whole. `git diff` says nothing about an
+untracked file, so a patch made mostly of new files read as a handful of lines
+in the ones it touched, and answered 100% for work nothing had covered.
 """
 import io, os, re, subprocess, sys
 
@@ -22,6 +26,17 @@ for line in diff.splitlines():
         if m:
             start, count = int(m.group(1)), int(m.group(2) or 1)
             added.setdefault(path, set()).update(range(start, start + count))
+
+untracked = subprocess.run(
+    ["git", "ls-files", "--others", "--exclude-standard", "--", "packages"],
+    capture_output=True,
+    text=True,
+).stdout.split()
+for path in untracked:
+    if not path.endswith(".ts") or path.endswith(".test.ts"):
+        continue
+    lines = sum(1 for _ in io.open(path, encoding="utf-8", errors="replace"))
+    added.setdefault(path, set()).update(range(1, lines + 1))
 
 hits, misses, partials, cur = {}, {}, {}, None
 branch = {}

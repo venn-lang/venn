@@ -73,6 +73,7 @@ export function checkTypes(document: Document, options: CheckTypesOptions = {}):
     named: collectNamedTypes(document, ctx, options.catalog, options.imports),
     catalog: options.catalog,
     decos,
+    fragments: declaredFragments(document),
     seeds,
     values,
     parsed,
@@ -216,6 +217,18 @@ function checkDeclaration(decl: Declaration, env: TypeEnv, infer: Infer): void {
 
 function isExecutable(decl: Declaration): boolean {
   return !(ast.isTypeDecl(decl) || ast.isConfigDecl(decl) || ast.isMatrixDecl(decl));
+}
+
+/**
+ * The fragments this file declares, by name.
+ *
+ * Local only. One imported from elsewhere is resolved by the runtime, and a
+ * name nobody declares anywhere is `VN2005`, which is a different thing to say.
+ */
+function declaredFragments(document: Document): ReadonlyMap<string, ast.FragmentDecl> {
+  const found = new Map<string, ast.FragmentDecl>();
+  for (const decl of document.decls) if (ast.isFragmentDecl(decl)) found.set(decl.name, decl);
+  return found;
 }
 
 function placeholder(infer: Infer): Type {

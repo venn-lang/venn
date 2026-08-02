@@ -1,3 +1,4 @@
+import type { AstNode } from "langium";
 import type { Call } from "../generated/ast.js";
 import { fits } from "./fits.js";
 // Type-only, so the cycle with `infer.ts` is erased at build.
@@ -27,11 +28,31 @@ export function argumentsFit(args: {
 }): boolean {
   const callee = prune(args.callee);
   if (callee.kind !== "fn" || callee.variadic) return true;
-  const written = args.expr.args?.args ?? [];
+  const written = (args.expr.args?.args ?? []).map((arg) => arg.value);
+  return eachFits({ written, given: args.given, wanted: callee.params, infer: args.infer });
+}
+
+/**
+ * The same, given the parameters directly.
+ *
+ * A `run` has no callee to unify against: a fragment is a declaration, not a
+ * value, so what it takes is read off its parameter list. What a caller hands it
+ * is checked the same way and reported in the same place.
+ *
+ * @param args The argument expressions, their types, what the parameters are,
+ * and where a mismatch is recorded.
+ * @returns Whether every argument fits.
+ */
+export function eachFits(args: {
+  written: readonly AstNode[];
+  given: readonly Type[];
+  wanted: readonly Type[];
+  infer: Infer;
+}): boolean {
   let ok = true;
-  for (const [at, wanted] of callee.params.entries()) {
+  for (const [at, wanted] of args.wanted.entries()) {
     const held = args.given[at];
-    const node = written[at]?.value;
+    const node = args.written[at];
     if (!held || !node || fits(held, wanted)) continue;
     args.infer.ctx.mismatches.push({ node, expected: wanted, actual: held });
     ok = false;

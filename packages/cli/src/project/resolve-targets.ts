@@ -59,7 +59,7 @@ function runTarget(
   name?: string,
 ): ResolvedTargets {
   const found = binTarget({ packages, name });
-  if (!found) return { paths: [], problem: "no program to run here, expected `src/main.vn`.\n" };
+  if (!found) return { paths: [], problem: "no program to run here: expected `src/main.vn`.\n" };
   if ("ambiguous" in found) {
     return {
       paths: [],

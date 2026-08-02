@@ -31,7 +31,7 @@ function builtinHover(name: string): string | undefined {
   return rule([
     fence(name),
     sections([builtin.doc, labelled("Written", fence(builtin.example))]),
-    "**Built in**, part of the language, no `use` needed.",
+    "**Built in**: part of the language, no `use` needed.",
   ]);
 }
 

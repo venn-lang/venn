@@ -87,7 +87,7 @@ function renderBinding(args: {
  */
 function waited(waits: boolean): string | undefined {
   if (!waits) return undefined;
-  return "**Waits**, it reaches for a plugin verb, so it hands back a value that is still arriving. Anything that binds it with `let` gets the value.";
+  return "**Waits**: it reaches for a plugin verb, so it hands back a value that is still arriving. Anything that binds it with `let` gets the value.";
 }
 
 function declaredName(node: AstNode): string | undefined {

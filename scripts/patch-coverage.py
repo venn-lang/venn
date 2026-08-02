@@ -16,7 +16,15 @@ in the ones it touched, and answered 100% for work nothing had covered.
 import io, os, re, subprocess, sys
 
 base = sys.argv[1] if len(sys.argv) > 1 else "origin/main"
-diff = subprocess.run(["git", "diff", "-U0", base, "--", "packages"], capture_output=True, text=True).stdout
+# Decoded as utf-8 rather than as whatever the console is: a diff holds source,
+# and on Windows the default codec stops at the first byte it does not know.
+diff = subprocess.run(
+    ["git", "diff", "-U0", base, "--", "packages"],
+    capture_output=True,
+    text=True,
+    encoding="utf-8",
+    errors="replace",
+).stdout
 added, path = {}, None
 for line in diff.splitlines():
     if line.startswith("+++ b/"):
@@ -31,6 +39,8 @@ untracked = subprocess.run(
     ["git", "ls-files", "--others", "--exclude-standard", "--", "packages"],
     capture_output=True,
     text=True,
+    encoding="utf-8",
+    errors="replace",
 ).stdout.split()
 for path in untracked:
     if not path.endswith(".ts") or path.endswith(".test.ts"):

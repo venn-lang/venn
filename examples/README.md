@@ -24,12 +24,14 @@ Read them in this order. Each assumes the one before it.
 | [`testing/`](testing) | A first `flow` through to lifecycle hooks, expected failure, concurrency and matrices. | `venn test` |
 | [`servers/`](servers) | Starting a real HTTP server and asserting against it in the same file. | `venn run`, one `venn test` |
 | [`algorithms/`](algorithms) | Venn away from testing: fibonacci, sorting, binary search, word frequency, primes. | `venn run` |
+| [`programs/`](programs) | Whole programs rather than features: an expense report, a gradebook, a rota across timezones, and the tests for one of them. | `venn run`, one `venn test` |
 
 ## Where to start
 
 - **Never seen Venn**: [`basics/01-hello.vn`](basics/01-hello.vn).
 - **Here to write tests**: [`testing/01-first-flow.vn`](testing/01-first-flow.vn).
 - **Wondering what the language is like to think in**: [`algorithms/`](algorithms).
+- **Wondering whether you could write something real in it**: [`programs/`](programs).
 
 ## Notes
 

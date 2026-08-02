@@ -1,0 +1,4 @@
+## The face of the folder: what a program using this ledger needs, and no more.
+## Whoever imports it names the folder and never a file inside it.
+pub import { policy } from "./rules.vn"
+pub import { byCategory, summarise } from "./group.vn"

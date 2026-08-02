@@ -1,0 +1,97 @@
+# The tests for the ledger next door.
+# Run: venn test examples/programs/ledger-tests.vn
+#
+# The same folder the program imports, exercised the way the language was built
+# to exercise things. A `flow` is what runs, a `step` is what a report shows,
+# and a `fragment` is what two flows have in common.
+
+import { byCategory, policy, summarise } from "./ledger"
+
+## One claim, written where a test can read it. Every flow below starts from
+## these rather than from a literal, so a change to the shape is one edit.
+fn claim(category: string, amount: number) => {
+  who: "ana",
+  category: category,
+  amount: amount,
+  note: null
+}
+
+## What the policy is for: three rules, and each is a step somebody can point at
+## when it changes.
+flow "The policy pays what it says it pays" {
+  step "a category it covers in full" {
+    expect policy.allowed(claim("travel", 100.0)) == 100.0
+  }
+
+  step "a category it covers by half" {
+    expect policy.allowed(claim("meals", 30.0)) == 15.0
+  }
+
+  step "a ceiling that bites before the rate does" {
+    expect policy.allowed(claim("meals", 200.0)) == 40.0
+  }
+
+  step "a category it will not pay for" {
+    expect policy.allowed(claim("entertainment", 50.0)) == 0.0
+  }
+
+  step "a category nobody wrote down" {
+    expect policy.allowed(claim("sabbatical", 10.0)) == null
+    expect policy.covers("sabbatical") == false
+  }
+}
+
+## What a fragment is for: the same setup, twice, without saying it twice.
+fragment grouped(claims) -> map {
+  const lines = byCategory(claims)
+  return { lines: lines, totals: summarise(lines) }
+}
+
+flow "Grouping keeps the order the categories arrived in" {
+  run grouped([
+    claim("meals", 10.0),
+    claim("travel", 50.0),
+    claim("meals", 20.0)
+  ]) as report
+
+  step "one line per category, not per claim" {
+    expect report.lines.len == 2
+  }
+
+  step "the first category seen is the first line" {
+    expect report.lines[0].category == "meals"
+  }
+
+  step "a category's claims are added up" {
+    expect report.lines[0].claimed == 30.0
+    expect report.lines[0].count == 2
+  }
+
+  step "the total is over the lines, not over the claims" {
+    expect report.totals.claims == 3
+    expect report.totals.claimed == 80.0
+  }
+}
+
+flow "What the company pays is the policy applied claim by claim" {
+  run grouped([claim("meals", 200.0), claim("meals", 10.0)]) as report
+
+  step "the ceiling applies to each claim and not to the line" {
+    expect report.totals.claimed == 210.0
+    expect report.totals.paid == 45.0
+  }
+}
+
+flow "An empty ledger is a report with nothing in it" {
+  run grouped([]) as report
+
+  step "no lines" {
+    expect report.lines.len == 0
+  }
+
+  step "and nothing claimed or paid" {
+    expect report.totals.claimed == 0
+    expect report.totals.paid == 0
+    expect report.totals.claims == 0
+  }
+}

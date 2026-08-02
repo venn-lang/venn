@@ -1,0 +1,73 @@
+import { policy } from "./rules.vn"
+
+## A claim, as it arrives: the shape the file on the wire has.
+pub type Claim = { who: string, category: string, amount: number, note: string | null }
+
+## One category's line in the report.
+pub type Line = { category: string, claimed: number, paid: number, count: number }
+
+## Every claim grouped by its category, in the order the categories first appear.
+##
+## A map would lose that order, and a report whose rows move between runs is a
+## report nobody can diff.
+pub fn byCategory(claims: list<Claim>) -> list<Line> {
+  let lines = []
+  forEach claim in claims {
+    const at = indexOf(lines, claim.category)
+    if at == null {
+      lines = lines.push(lineOf(claim))
+    } else {
+      lines = replace(lines, at, add(lines[at], claim))
+    }
+  }
+  return lines
+}
+
+fn lineOf(claim: Claim) -> Line => {
+  category: claim.category,
+  claimed: claim.amount,
+  paid: policy.allowed(claim) ?? 0,
+  count: 1
+}
+
+fn add(line: Line, claim: Claim) -> Line => {
+  category: line.category,
+  claimed: line.claimed + claim.amount,
+  paid: line.paid + (policy.allowed(claim) ?? 0),
+  count: line.count + 1
+}
+
+## A name that starts as nothing has to say what it will hold, or the first
+## assignment is refused: `let found = null` is a binding whose type is `null`.
+fn indexOf(lines: list<Line>, category: string) -> number | null {
+  let found: number | null = null
+  repeat lines.len as at {
+    if lines[at].category == category {
+      found = at
+    }
+  }
+  return found
+}
+
+fn replace(lines: list<Line>, at: number, line: Line) -> list<Line> {
+  let out = []
+  repeat lines.len as index {
+    out = out.push(index == at ? line : lines[index])
+  }
+  return out
+}
+
+## What the whole claim set comes to, which is the line under the table.
+pub fn summarise(lines: list<Line>) => {
+  claimed: total(lines, (line) => line.claimed),
+  paid: total(lines, (line) => line.paid),
+  claims: total(lines, (line) => line.count)
+}
+
+fn total(lines: list<Line>, of) {
+  let sum = 0
+  forEach line in lines {
+    sum = sum + of(line)
+  }
+  return sum
+}

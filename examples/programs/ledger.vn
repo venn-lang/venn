@@ -1,0 +1,56 @@
+# An expense report: claims in, what the company pays out.
+# Run: venn run examples/programs/ledger.vn
+#
+# The whole program is here; what it knows about money is in `./ledger`, which
+# is a folder and reads as one name.
+
+import { fmt } from "venn/fmt"
+import { json } from "venn/json"
+import { byCategory, policy, summarise } from "./ledger"
+
+## The claims a run works on, as they arrive: text nobody promised was JSON.
+const SAMPLE = '[
+  { "who": "ana",   "category": "travel",        "amount": 220.0, "note": "lisbon" },
+  { "who": "bruno", "category": "meals",         "amount": 62.5,  "note": null },
+  { "who": "ana",   "category": "meals",         "amount": 18.0,  "note": null },
+  { "who": "cleo",  "category": "hardware",      "amount": 899.0, "note": "laptop" },
+  { "who": "bruno", "category": "entertainment", "amount": 140.0, "note": "match" },
+  { "who": "cleo",  "category": "sabbatical",    "amount": 3000.0, "note": null }
+]'
+
+fn claimsFrom(text: string) {
+  const read = try json.parse(text) else null
+  if read == null {
+    fail "the claims are not JSON" { code: "ledger.unreadable" }
+  }
+  return read
+}
+
+## Two decimals and a symbol, which is the whole of what this report needs from
+## money and less than a currency library would insist on knowing.
+fn money(amount: number) -> string => "EUR ${amount.toFixed(2)}"
+
+const claims = claimsFrom(SAMPLE)
+const lines = byCategory(claims)
+const totals = summarise(lines)
+
+print "Expense report"
+print ""
+print fmt.table(lines.map((line) => {
+  category: line.category,
+  claims: line.count,
+  claimed: money(line.claimed),
+  paid: money(line.paid)
+}))
+
+print ""
+print "claimed ${money(totals.claimed)} across ${totals.claims} claims"
+print "paid    ${money(totals.paid)}"
+
+## What the policy has no opinion about is not a rounding error, it is a claim
+## nobody can pay. Saying which ones, once, beats a zero in the table.
+const unknown = claims.filter((claim) => !policy.covers(claim.category))
+if unknown.len > 0 {
+  print ""
+  print "no policy for: ${unknown.map((claim) => claim.category).join(', ')}"
+}

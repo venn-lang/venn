@@ -7,7 +7,7 @@
  * that no code is raised without being declared.
  */
 export const RUN_CODES = {
-  /** `fail "…"`, which is a program refusing itself. */
+  /** `fail "…"` with no code of its own, which is a program refusing itself. */
   VN6002_FAILED: "VN6002",
   /** A caught error that carried no code of its own. */
   VN7000_UNKNOWN: "VN7000",

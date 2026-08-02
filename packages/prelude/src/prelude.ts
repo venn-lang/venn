@@ -4,11 +4,30 @@ import type { PreludeEntry } from "./prelude.types.js";
 /**
  * The named types the language brings with it.
  *
- * `regex` is the only one that is not a primitive: a compiled pattern, opaque
- * because how it is held is none of a program's business, and these four members
- * are the whole of what one offers.
+ * Neither is a primitive, and both are opaque because how they are held is none
+ * of a program's business: what each publishes is the whole of what it offers.
  */
 export const PRELUDE_TYPES: Readonly<Record<string, TypeSpec>> = {
+  /**
+   * What a `catch` binds.
+   *
+   * Drawn from the `Problem` every failure already is, and deliberately not all
+   * of it. `where` is where it happened, written out; `data` is whatever the
+   * `fail` that raised it attached, and nothing when a plugin or the kernel
+   * raised it.
+   *
+   * The flow trace is not here. It holds spans of files the program may never
+   * have opened, and handing those to a `catch` makes a failure a window into
+   * the whole run rather than an account of one thing that went wrong.
+   */
+  error: t.opaque("error", {
+    code: t.string,
+    message: t.string,
+    where: t.union(t.string, t.null),
+    help: t.union(t.string, t.null),
+    docs: t.union(t.string, t.null),
+    data: t.dynamic,
+  }),
   regex: t.opaque("regex", {
     source: t.string,
     flags: t.string,

@@ -37,6 +37,7 @@ export const CODES = {
   VN3019_MISSING_CASE: { code: "VN3019", severity: "error" },
   VN3020_UNREACHABLE_CASE: { code: "VN3020", severity: "error" },
   VN3021_NOT_A_PLACE: { code: "VN3021", severity: "error" },
+  VN3022_RESERVED_CODE: { code: "VN3022", severity: "error" },
   VN5001_REMOVED_KEYWORD: { code: "VN5001", severity: "error" },
   VN6001_ASSERTION_FAILED: { code: "VN6001", severity: "error" },
   VN7001_ACTION_FAILED: { code: "VN7001", severity: "error" },

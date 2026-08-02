@@ -10,13 +10,14 @@ import {
   splitCall,
 } from "@venn-lang/core";
 import type { ActionDefinition, ActionInput } from "@venn-lang/sdk";
-import { RUN_CODES } from "../codes.js";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";
 import { takes } from "./declared-arity.js";
 import type { Engine } from "./engine.types.js";
+import { failError } from "./fail-error.js";
 import type { Invocation } from "./invocation.js";
 import { localCallee } from "./local-call.js";
+import { nodeSpan } from "./node-span.js";
 import { settle } from "./settled.js";
 import { ExitSignal } from "./signals.js";
 import { PRELUDE, resolveTarget } from "./target.js";
@@ -120,7 +121,17 @@ async function runPrelude(engine: Engine, call: Invocation, scope: Scope): Promi
   if (call.target === "wait") await engine.clock.sleep(waitMs(args[0]));
   else if (call.target === "skip") skipLog(engine, message);
   else if (call.target === "exit") throw new ExitSignal(exitCode(args[0]));
-  else if (call.target === "fail") throw failError(message);
+  else if (call.target === "fail") {
+    const opts = await failOpts(call, scope);
+    throw failError({ message, opts, where: nodeSpan(siteOf(call), engine.uri) });
+  }
+}
+
+/** The `{ code, data }` a `fail` carries, evaluated where it is written. */
+async function failOpts(call: Invocation, scope: Scope): Promise<Record<string, unknown>> {
+  const written = call.opts;
+  if (!written) return {};
+  return (await settle(evaluate(written, scope))) as Record<string, unknown>;
 }
 
 /**
@@ -158,8 +169,4 @@ function waitMs(value: unknown): number {
   if (typeof value === "number") return value;
   const duration = value as { kind?: string; ms?: number };
   return duration?.kind === "duration" ? (duration.ms ?? 0) : 0;
-}
-
-function failError(message: string): VennError {
-  return new VennError({ code: RUN_CODES.VN6002_FAILED, message: message || "fail" });
 }

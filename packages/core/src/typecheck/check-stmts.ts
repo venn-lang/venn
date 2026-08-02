@@ -4,6 +4,7 @@ import * as ast from "../generated/ast.js";
 import { callType } from "./action-signature.js";
 import { checkCases } from "./check-cases.js";
 import { checkMatch } from "./check-match.js";
+import { ERROR_TYPE } from "./error-type.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { narrowed } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
@@ -183,7 +184,7 @@ function repeat(node: ast.RepeatStmt, env: TypeEnv, infer: Infer): TypeEnv {
 function tryStmt(node: ast.TryStmt, env: TypeEnv, infer: Infer): TypeEnv {
   checkBlock(node.body, env, infer);
   if (node.handler) {
-    const scope = node.error ? env.with(node.error, mono(DYNAMIC)) : env;
+    const scope = node.error ? env.with(node.error, mono(ERROR_TYPE)) : env;
     checkBlock(node.handler, scope, infer);
   }
   if (node.finalizer) checkBlock(node.finalizer, env, infer);

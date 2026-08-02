@@ -228,8 +228,9 @@ const rate = 99.9%
 `parseNumber` turns a NUMBER lexeme into a plain number or a `UnitValue`; `parseInstant` turns an
 ISO-8601 lexeme into an `Instant` that keeps its source text. `combine({ op, left, right })` does the
 arithmetic and comparison: `300ms + 1s` succeeds, `300ms + 2mb` returns the mismatch behind VN3012.
-`isUnitValue` and `isInstant` are the guards. Canonical bases are milliseconds, bytes, a ratio from 0
-to 1, and epoch milliseconds.
+A moment takes part too: `ended - began` is the duration between them, `began + 2h` and `began - 2h`
+are moments, and anything else involving one is a mismatch. `isUnitValue` and `isInstant` are the
+guards. Canonical bases are milliseconds, bytes, a ratio from 0 to 1, and epoch milliseconds.
 
 ### Interpolation
 
@@ -238,6 +239,10 @@ to 1, and epoch milliseconds.
 carrying both its source and its parsed `Expr`. There is always exactly one more chunk than holes, so
 rejoining them cannot drop text. Both are cached by text, because a `.vn` file holds a fixed set of
 string literals.
+
+`stringifyValue(value)` is how a filled placeholder reads, and the only definition of it: a list as
+`[1, 2]`, a map as `{ hits: 0, name: "ada" }`, a moment as its ISO text, a unit keeping its unit, and
+nothing at all for `null`. No value can read as `[object Object]`.
 
 ### Formatting
 

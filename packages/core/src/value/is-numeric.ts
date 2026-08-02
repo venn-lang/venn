@@ -1,6 +1,6 @@
-import { isUnitValue, type Numeric } from "../units/index.js";
+import { isInstant, isUnitValue, type Numeric } from "../units/index.js";
 
-/** True for plain numbers and unit values (duration/size/percent). */
+/** True for plain numbers, unit values (duration/size/percent) and moments. */
 export function isNumeric(value: unknown): value is Numeric {
-  return typeof value === "number" || isUnitValue(value);
+  return typeof value === "number" || isUnitValue(value) || isInstant(value);
 }

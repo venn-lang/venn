@@ -1,24 +1,4 @@
-import { isUnitValue, type UnitValue } from "../units/index.js";
-
-/**
- * How a filled placeholder reads. One definition, because a title and a string
- * showing the same value must not disagree about what it looks like.
- *
- * @param value What the placeholder evaluated to.
- * @returns Its text. Nothing at all for null and undefined, since a title
- * reading `add ${name}` with no name is better as `add ` than as `add null`.
- */
-export function stringifyValue(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (isUnitValue(value)) return stringifyUnit(value);
-  return String(value);
-}
-
-function stringifyUnit(value: UnitValue): string {
-  if (value.kind === "duration") return `${value.ms}ms`;
-  if (value.kind === "size") return `${value.bytes}b`;
-  return `${value.ratio * 100}%`;
-}
+import { stringifyValue } from "./stringify-value.js";
 
 /**
  * The text around the placeholders, with the placeholders filled.

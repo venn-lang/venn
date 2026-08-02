@@ -1,6 +1,6 @@
 import { createTestHost } from "@venn-lang/contracts";
 import { parse } from "@venn-lang/core";
-import { defineAction, defineMatcher, definePlugin } from "@venn-lang/sdk";
+import { defineAction, defineMatcher, definePlugin, z } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { buildRegistry } from "../registry/index.js";
 import { collectFragments } from "../scheduler/index.js";
@@ -12,7 +12,14 @@ const plugin = definePlugin({
   name: "@t/kit",
   version: "0",
   namespace: "kit",
-  actions: [defineAction({ name: "shout", run: () => undefined })],
+  actions: [
+    defineAction({
+      name: "shout",
+      params: z.object({ loudly: z.boolean() }),
+      run: () => undefined,
+    }),
+    defineAction({ name: "whisper", run: () => undefined }),
+  ],
   matchers: [defineMatcher({ name: "louder", test: () => true, message: () => "louder" })],
 });
 
@@ -33,13 +40,15 @@ const codes = (...lines: string[]): string[] => problems(...lines).map((one) => 
  *
  * A trailing `{ … }` on a verb is its options, always, and that rule is what
  * lets `http.get "/x" { headers }` be written without brackets. The cost is a
- * line that looks exactly like the thing somebody meant.
+ * line that looks exactly like the thing somebody meant, whether the verb is
+ * one of the language's own or a plugin's: neither declares options of its
+ * own, so both read the map as them and lose whatever it held.
  */
 describe("a verb whose argument never reached it", () => {
   it("says so when the map was read as options", () => {
     const found = problems("print { a: 1 }")[0];
 
-    expect(found?.code).toBe("VN5002");
+    expect(found?.code).toBe("VN5007");
     expect(found?.help).toContain("print ({ a: 1 })");
   });
 
@@ -51,14 +60,32 @@ describe("a verb whose argument never reached it", () => {
   it("says so when the value became a statement of its own", () => {
     const found = problems("const x = 1", "print match x {", "  1 => 2", "}")[0];
 
-    expect(found?.code).toBe("VN5002");
+    expect(found?.code).toBe("VN5007");
     expect(found?.help).toContain("const said =");
   });
 
-  /** `log` and `skip` say rather than print, and the sentence says so. */
-  it("says it of the other verbs whose job is what they are handed", () => {
-    expect(problems("log { a: 1 }")[0]?.title).toContain("nothing to say");
-    expect(codes("skip { why: 1 }")).toEqual(["VN5002"]);
+  it("says it of the other prelude verbs whose job is what they are handed", () => {
+    expect(codes("log { a: 1 }")).toEqual(["VN5007"]);
+    expect(codes("skip { why: 1 }")).toEqual(["VN5007"]);
+  });
+
+  /**
+   * `fail` reads its own `{ code, data }`, informally rather than through a
+   * schema, so it is the one prelude verb this does not reach.
+   */
+  it("says nothing about fail, which reads its own options", () => {
+    expect(codes('fail { code: "x.broke" }')).toEqual([]);
+  });
+
+  /**
+   * A plugin verb is no different: `kit.whisper` declares no options schema
+   * either, so a bare `{ … }` after it is swallowed exactly as `print`'s is.
+   */
+  it("says so of a plugin verb with no options schema", () => {
+    const found = problems('import { kit } from "@t/kit"', "kit.whisper { a: 1 }")[0];
+
+    expect(found?.code).toBe("VN5007");
+    expect(found?.help).toContain("kit.whisper ({ a: 1 })");
   });
 
   /** Short enough to write out, so the suggestion carries it. */
@@ -71,7 +98,7 @@ describe("a verb whose argument never reached it", () => {
   it("says it inside a step as well as at the top of a file", () => {
     const lines = ['flow "F" {', '  step "s" {', "    print { a: 1 }", "  }", "}"];
 
-    expect(codes(...lines)).toEqual(["VN5002"]);
+    expect(codes(...lines)).toEqual(["VN5007"]);
   });
 
   it("says nothing about a verb given something to work on", () => {
@@ -79,11 +106,9 @@ describe("a verb whose argument never reached it", () => {
     expect(codes("const x = 1", "print x")).toEqual([]);
   });
 
-  /** A verb whose whole input is options is an ordinary verb. */
-  it("says nothing about a plugin verb with options", () => {
-    expect(codes('import { kit } from "@t/kit"', "kit.shout { loudly: true }")).not.toContain(
-      "VN5002",
-    );
+  /** A verb whose whole input is options declared a schema for them. */
+  it("says nothing about a plugin verb with an options schema", () => {
+    expect(codes('import { kit } from "@t/kit"', "kit.shout { loudly: true }")).toEqual([]);
   });
 
   /** On its own line it is an empty line somebody wanted. */

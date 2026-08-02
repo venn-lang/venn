@@ -195,6 +195,63 @@ describe("a word the language used to have", () => {
   });
 });
 
+/**
+ * `{ concurrency: n }` on a `forEach` written inside a `fn`.
+ *
+ * A pure body cannot run a pass out of order, so the option is powerless
+ * there, and silently doing nothing is not an answer a reader can see.
+ */
+describe("concurrency asked of a pure body", () => {
+  it("says a fn runs one pass at a time", () => {
+    const lines = [
+      "fn walk(xs) {",
+      "  forEach x in xs { concurrency: 4 } {",
+      "  }",
+      "  return true",
+      "}",
+      "print walk([1, 2])",
+    ];
+    const found = problems(...lines)[0];
+
+    expect(found?.code).toBe("VN5008");
+    expect(found?.title).toContain("one pass at a time");
+    expect(found?.help).toContain("fragment");
+  });
+
+  it("says nothing about the same option at the top of a file", () => {
+    const lines = ["forEach x in [1, 2] { concurrency: 4 } {", "  print x", "}"];
+
+    expect(codes(...lines)).toEqual([]);
+  });
+
+  it("says nothing about the same option inside a step", () => {
+    const lines = [
+      'flow "F" {',
+      '  step "s" {',
+      "    forEach x in [1, 2] { concurrency: 4 } {",
+      "      print x",
+      "    }",
+      "  }",
+      "}",
+    ];
+
+    expect(codes(...lines)).toEqual([]);
+  });
+
+  it("says nothing about a forEach in a fn that asks nothing of it", () => {
+    const lines = [
+      "fn walk(xs) {",
+      "  forEach x in xs {",
+      "  }",
+      "  return true",
+      "}",
+      "print walk([1])",
+    ];
+
+    expect(codes(...lines)).toEqual([]);
+  });
+});
+
 /** A hint under an error is a hint nobody reads first. */
 describe("the order they are reported in", () => {
   it("puts what stops the run before what merely reads badly", () => {

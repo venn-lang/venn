@@ -14,7 +14,12 @@ async function tracked() {
 /** Anything that is not text, and a lockfile nobody writes by hand. */
 const NOT_PROSE = /\.(png|jpg|jpeg|gif|ico|woff2?|lock)$/;
 
-const DASHES = /[—–]/;
+/**
+ * Built from the code points rather than written out, so this file is not the
+ * one thing it forbids. Written out, the guard fails on itself the moment git
+ * starts tracking it, which is a test that can only pass while it is new.
+ */
+const DASHES = new RegExp(`[${String.fromCharCode(0x2014, 0x2013)}]`);
 
 /**
  * No em dash, and no en dash, anywhere git can see.

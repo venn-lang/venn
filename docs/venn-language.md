@@ -2,29 +2,29 @@ _Especificação de linguagem_
 
 # Venn
 
-_Uma linguagem para descrever testes end-to-end como fluxos. O kernel é minúsculo e imutável; todo poder real — HTTP, browser, MQTT, WebSocket, GraphQL, e-mail, banco — chega como biblioteca. O texto e o node graph são a mesma coisa vista de dois ângulos._
+_Uma linguagem para descrever testes end-to-end como fluxos. O kernel é minúsculo e imutável; todo poder real, HTTP, browser, MQTT, WebSocket, GraphQL, e-mail, banco, chega como biblioteca. O texto e o node graph são a mesma coisa vista de dois ângulos._
 
 
 ---
 
 ## 00 · Quatro camadas, uma regra
 
-A regra que sustenta tudo: **a gramática não conhece nenhum verbo de teste**. Ela conhece estrutura — blocos, steps, controle de fluxo, expressões. Os verbos (`http.post`, `browser.click`, `mqtt.publish`) vivem num registry em runtime. Adicionar protocolo novo nunca toca no parser.
+A regra que sustenta tudo: **a gramática não conhece nenhum verbo de teste**. Ela conhece estrutura: blocos, steps, controle de fluxo, expressões. Os verbos (`http.post`, `browser.click`, `mqtt.publish`) vivem num registry em runtime. Adicionar protocolo novo nunca toca no parser.
 
 _[diagrama: Pilha de camadas da Venn]_
 
-**Por que travar o kernel** — Gramática fixa significa parser gerado uma vez, highlight estável, e node graph que nunca quebra. Um plugin novo não invalida arquivos existentes.
+**Por que travar o kernel**: Gramática fixa significa parser gerado uma vez, highlight estável, e node graph que nunca quebra. Um plugin novo não invalida arquivos existentes.
 
-**Por que stdlib não é built-in** — Se `browser` fosse embutido, todo arquivo carregaria Playwright. Com o import explícito o runner sabe exatamente quais recursos subir, e o teste de API roda em milissegundos.
+**Por que stdlib não é built-in**: Se `browser` fosse embutido, todo arquivo carregaria Playwright. Com o import explícito o runner sabe exatamente quais recursos subir, e o teste de API roda em milissegundos.
 
 
 ---
 
 ## 01 · Arquitetura provider-based
 
-O núcleo não sabe o que é HTTP, o que é um arquivo, o que é o relógio ou onde um artefato é gravado. Ele conhece **portas** — contratos tipados — e recebe implementações prontas no arranque. Adicionar recurso vira assinar um contrato existente; remover vira desligar uma implementação.
+O núcleo não sabe o que é HTTP, o que é um arquivo, o que é o relógio ou onde um artefato é gravado. Ele conhece **portas**, contratos tipados, e recebe implementações prontas no arranque. Adicionar recurso vira assinar um contrato existente; remover vira desligar uma implementação.
 
-> **A regra que impede isso de virar sopa de plugin.** "Tudo é provider" levado ao literal produz o modo de falha oposto: dezenas de abstrações com uma implementação só, imposto de indireção em código que nunca vai variar, e um núcleo tão fino que nada funciona sem montar meia dúzia de peças. A disciplina que paga é outra — **duas implementações ou não é porta**. Todo contrato nasce com pelo menos duas implementações no mesmo commit: a real e o dublê usado em teste. Se você não consegue nomear a segunda, não é porta, é módulo com interface boa. E como o dublê é obrigatório, o sistema inteiro fica testável sem I/O de graça.
+> **A regra que impede isso de virar sopa de plugin.** "Tudo é provider" levado ao literal produz o modo de falha oposto: dezenas de abstrações com uma implementação só, imposto de indireção em código que nunca vai variar, e um núcleo tão fino que nada funciona sem montar meia dúzia de peças. A disciplina que paga é outra, **duas implementações ou não é porta**. Todo contrato nasce com pelo menos duas implementações no mesmo commit: a real e o dublê usado em teste. Se você não consegue nomear a segunda, não é porta, é módulo com interface boa. E como o dublê é obrigatório, o sistema inteiro fica testável sem I/O de graça.
 
 _[diagrama: Núcleo agnóstico cercado por quatro famílias de portas]_
 
@@ -51,7 +51,7 @@ Cada linha lista as duas implementações que existem desde o primeiro commit. S
 | StateStore | Histórico de runs e de instabilidade | jsonl · sqlite · memory |
 | LayoutProvider | Posicionar nós no grafo | elk · manual |
 
-> **A porta `FileSystem` não é preciosismo — é o que faz o compilador rodar nos dois lugares.** O pacote `core/` precisa executar num Web Worker (para o LSP) e no Node (para o CLI). Um único `import fs from "node:fs"` vazando pra dentro dele quebra o editor, e você só descobre tarde. Com a porta, o vazamento é erro de compilação.
+> **A porta `FileSystem` não é preciosismo, é o que faz o compilador rodar nos dois lugares.** O pacote `core/` precisa executar num Web Worker (para o LSP) e no Node (para o CLI). Um único `import fs from "node:fs"` vazando pra dentro dele quebra o editor, e você só descobre tarde. Com a porta, o vazamento é erro de compilação.
 
 ### Como as implementações chegam
 
@@ -67,7 +67,7 @@ export type Host = {
   random:  Random
   secrets: SecretProvider
   log:     Logger
-  caps:    HostCapability[]     // ["process", "fs", "net"] — o worker não tem todas
+  caps:    HostCapability[]     // ["process", "fs", "net"], o worker não tem todas
 }
 
 // três montagens, nenhuma lógica
@@ -80,7 +80,7 @@ export const createHost = {
 
 ### Negociação de capacidade
 
-Um plugin declara de que portas do host precisa. Se o host não oferece — o Web Worker não tem `process` —, o carregamento falha com diagnóstico legível em vez de estourar no meio de um teste.
+Um plugin declara de que portas do host precisa. Se o host não oferece (o Web Worker não tem `process`), o carregamento falha com diagnóstico legível em vez de estourar no meio de um teste.
 
 ****packages/contracts/port.ts**o padrão que toda porta segue**
 
@@ -102,7 +102,7 @@ export const ArtifactStorePort: Port<ArtifactStore> = {
 };
 ```
 
-### Suíte de conformidade — o que torna a promessa verdadeira
+### Suíte de conformidade: o que torna a promessa verdadeira
 
 "Assinar o contrato garante o funcionamento" só é verdade se o contrato for executável. Cada porta publica uma suíte parametrizada que **toda** implementação roda, inclusive os dublês. É o mesmo mecanismo de um TCK: a suíte é a especificação, a prosa é comentário.
 
@@ -135,7 +135,7 @@ export function artifactStoreConformance(
   });
 }
 
-// todas as implementações rodam a mesma suíte — inclusive o dublê
+// todas as implementações rodam a mesma suíte, inclusive o dublê
 artifactStoreConformance("fs",     () => fsStore(tmp()));
 artifactStoreConformance("memory", () => memoryStore());
 artifactStoreConformance("s3",     () => s3Store(minio()));
@@ -185,12 +185,12 @@ Estas peças têm interface boa e implementação única, e transformá-las em p
 | A palavra `expect` | Os matchers são providers; o mecanismo de asserção é kernel. |
 | Modelo `Problem` | Uma forma de erro, muitos renderizadores. O renderizador é que é porta. |
 
-> **O teste que resolve a dúvida em qualquer caso novo.** Escreva o nome da segunda implementação antes de escrever a interface. Se o nome sair fácil — `memory`, `fake`, `s3`, `redis`, `sequential` — é porta. Se você precisar inventar um cenário hipotético para justificar, é módulo. Essa única pergunta mantém o núcleo pequeno sem sacrificar nada do desacoplamento que você quer.
+> **O teste que resolve a dúvida em qualquer caso novo.** Escreva o nome da segunda implementação antes de escrever a interface. Se o nome sair fácil, `memory`, `fake`, `s3`, `redis`, `sequential`, é porta. Se você precisar inventar um cenário hipotético para justificar, é módulo. Essa única pergunta mantém o núcleo pequeno sem sacrificar nada do desacoplamento que você quer.
 
 
 ---
 
-## 02 · Kernel — a gramática fixa
+## 02 · Kernel: a gramática fixa
 
 Estas são todas as palavras reservadas. Nada além disto entra na gramática, nunca.
 
@@ -219,7 +219,7 @@ mqtt.publish "inventory/sku-42" { json: { delta: -1 }, qos: 1 }
 db.exec "TRUNCATE orders CASCADE"
 ```
 
-> **Mudança em relação ao protótipo.** Caminhos deixam de ser bare tokens (`POST /api/auth/login`) e passam a ser strings. Isso remove a ambiguidade fatal entre caminho e regex — `/success` versus `/Order #(\d+)/` — que impediria o lexer de decidir sem lookahead semântico. O açúcar `POST "/x"` continua disponível como alias do `http`.
+> **Mudança em relação ao protótipo.** Caminhos deixam de ser bare tokens (`POST /api/auth/login`) e passam a ser strings. Isso remove a ambiguidade fatal entre caminho e regex, `/success` versus `/Order #(\d+)/`, que impediria o lexer de decidir sem lookahead semântico. O açúcar `POST "/x"` continua disponível como alias do `http`.
 
 
 ---
@@ -231,14 +231,14 @@ db.exec "TRUNCATE orders CASCADE"
 ```venn
 # texto
 "simples"
-"interpolado: ${user.email} — total ${order.total}"
+"interpolado: ${user.email}, total ${order.total}"
 r"C:\raw\sem\escape"
 """
   bloco multilinha
   preserva quebras
 """
 
-# números com unidade — unidade faz parte do tipo, não é sufixo decorativo
+# números com unidade: unidade faz parte do tipo, não é sufixo decorativo
 42          2.5         -7
 300ms       1.5s        2m        1h        24h
 512b        2kb         8mb       1gb
@@ -639,7 +639,7 @@ let membro   = user.plan in ["pro", "enterprise"]
 
 ## 05 · Flow, step e grupo
 
-`flow` é a única unidade executável. `step` é a unidade de relatório e de nó no grafo. `group` agrupa steps sem criar escopo novo — vira um nó-container colapsável.
+`flow` é a única unidade executável. `step` é a unidade de relatório e de nó no grafo. `group` agrupa steps sem criar escopo novo, vira um nó-container colapsável.
 
 ****estrutura e ciclo de vida****
 
@@ -671,13 +671,13 @@ flow "Checkout" {
 }
 ```
 
-> **`defer` versus `teardown`.** `defer` roda ao sair do bloco onde foi declarado, na ordem inversa, mesmo em falha — é limpeza local e composta. `teardown` é global da suíte. O protótipo só tinha o segundo, e é aí que nascem os testes que sujam o banco quando quebram no meio.
+> **`defer` versus `teardown`.** `defer` roda ao sair do bloco onde foi declarado, na ordem inversa, mesmo em falha, é limpeza local e composta. `teardown` é global da suíte. O protótipo só tinha o segundo, e é aí que nascem os testes que sujam o banco quando quebram no meio.
 
 ### Eventos de `on`
 
 `on failure` · `on success` · `on retry` · `on timeout` · `on skip` · `on step(name)`
 
-> **`on` reage a um evento da *execução*, não da máquina.** Um programa sendo parado é o que `teardown` já significa — dar a isso uma grafia própria fazia uma palavra querer dizer duas coisas.
+> **`on` reage a um evento da *execução*, não da máquina.** Um programa sendo parado é o que `teardown` já significa, dar a isso uma grafia própria fazia uma palavra querer dizer duas coisas.
 
 ```flow
 const api = http.serve { port: 0 }
@@ -686,7 +686,7 @@ setup    { print "subindo" }
 teardown { print "fim" }             # roda antes do que foi diferido
 ```
 
-Na saída — última instrução, `Ctrl+C`, `SIGTERM` ou falha não tratada — vêm primeiro os `teardown`, e depois os `defer`, na ordem inversa da abertura. O host dá um prazo (5s no CLI) e um segundo sinal corta a espera: um programa que ignora o segundo `Ctrl+C` é um programa do qual não se sai.
+Na saída, última instrução, `Ctrl+C`, `SIGTERM` ou falha não tratada, vêm primeiro os `teardown`, e depois os `defer`, na ordem inversa da abertura. O host dá um prazo (5s no CLI) e um segundo sinal corta a espera: um programa que ignora o segundo `Ctrl+C` é um programa do qual não se sai.
 
 
 ---
@@ -824,7 +824,7 @@ flow em volta, que é o que a linguagem já promete.
 Qual escrever tem uma resposta só: `repeat` quando o número de vezes é conhecido,
 `forEach` quando há uma coleção, `loop` quando é nenhum dos dois.
 
-# blocos concorrentes — nomes distintos, semânticas distintas
+# blocos concorrentes: nomes distintos, semânticas distintas
 parallel {
   step "Perfil GraphQL" { gql.query "{ me { id plan } }" { auth: bearer(token) } }
   step "Estoque gRPC"   { grpc.call "Inventory/Check" { sku: "sku-42" } }
@@ -886,7 +886,7 @@ ninguém tratou.
 
 ## 07 · Asserções
 
-`expect` é kernel. Os **matchers** não são — vêm do registry, exatamente como as ações. Por isso `noViolations` e `matchesBaseline` só existem depois de `import { assert } from "venn/assert"`.
+`expect` é kernel. Os **matchers** não são, vêm do registry, exatamente como as ações. Por isso `noViolations` e `matchesBaseline` só existem depois de `import { assert } from "venn/assert"`.
 
 ****formas de asserção****
 
@@ -918,12 +918,12 @@ expect.all {
   res.time < 500ms
 }
 
-# extração — captura é tipada e escopada ao bloco
+# extração: captura é tipada e escopada ao bloco
 capture token   = res.json.token
 capture orderId = mail.body ~= r"Order #(\d+)" { group: 1 }
 ```
 
-> **Escopo de `capture`.** Uma captura é visível do ponto de declaração até o fim do bloco. Dentro de `parallel`, cada ramo tem escopo próprio — capturar num ramo e ler no irmão é erro de compilação, não corrida silenciosa em runtime.
+> **Escopo de `capture`.** Uma captura é visível do ponto de declaração até o fim do bloco. Dentro de `parallel`, cada ramo tem escopo próprio, capturar num ramo e ler no irmão é erro de compilação, não corrida silenciosa em runtime.
 
 
 ---
@@ -944,7 +944,7 @@ Substituem os modificadores inline do protótipo (`retries=2 timeout=90s tags=[.
 | @lock("orders") | flow, step | Mutex nomeado entre workers |
 | @flaky(ratio: 0.05) | flow, step | Tolerância declarada; falha se ultrapassar |
 | @doc("...") | qualquer | Aparece no hover do editor e no tooltip do nó |
-| @load({...}) | flow | Do plugin `@venn-lang/load` — roda o flow como teste de carga |
+| @load({...}) | flow | Do plugin `@venn-lang/load`, roda o flow como teste de carga |
 
 
 ---
@@ -955,7 +955,7 @@ O buraco mais perigoso do protótipo: `clock.freeze`, `TRUNCATE orders` e `paral
 
 ****recursos: quem abre, desfaz****
 
-Não há forma de declaração para isso. Um recurso é uma ligação como outra qualquer, e `defer` diz como ela se desfaz — na linha seguinte à abertura, onde já existe algo a fechar e ainda não pode dar errado no meio. O tempo de vida é o do bloco em que está escrito: no topo do arquivo dura a execução inteira; dentro de um `step`, dura o step.
+Não há forma de declaração para isso. Um recurso é uma ligação como outra qualquer, e `defer` diz como ela se desfaz, na linha seguinte à abertura, onde já existe algo a fechar e ainda não pode dar errado no meio. O tempo de vida é o do bloco em que está escrito: no topo do arquivo dura a execução inteira; dentro de um `step`, dura o step.
 
 ```venn
 const navegador = browser.launch { engine: "chromium", headless: true }
@@ -1066,7 +1066,7 @@ apontar de onde veio o que foi lido.
 
 ### Visibilidade
 
-****lib/auth.vn — privado por padrão****
+****lib/auth.vn: privado por padrão****
 
 ```venn
 module acme.lib.auth
@@ -1226,12 +1226,12 @@ nome do arquivo fica, porque é o nome do arquivo.
 
 ### O que o editor conta enquanto você escreve
 
-Um verbo declara seus **argumentos posicionais** com nome, tipo e uma linha de explicação — e o editor os mostra no momento em que estão sendo digitados, sem que se peça nada:
+Um verbo declara seus **argumentos posicionais** com nome, tipo e uma linha de explicação, e o editor os mostra no momento em que estão sendo digitados, sem que se peça nada:
 
 ```venn
 http.on ▮
 #       └─ http.on server: http.Server handler: fn(http.Request) -> dynamic
-#          server — The handle `http.serve` gave back.
+#          server: The handle `http.serve` gave back.
 ```
 
 A lista de sugestões nessa posição oferece **o que o programa já tem**, o do tipo certo primeiro, e só depois os namespaces. Depois de `http.on ` o `api` declarado acima vem em primeiro; depois de `http.get `, vem a string com a URL.
@@ -1255,7 +1255,7 @@ const fechar = api.close  # expressão: a função, ainda não chamada
 const _ = api.close()     # expressão: fecha
 ```
 
-É a mesma razão pela qual `http.get "url"` é uma chamada sem parêntese nenhum: **em posição de statement, um verbo é uma chamada** — não haveria sentido em ler um valor e jogá-lo fora. Em expressão, um nome é um valor, e `()` é o que o invoca.
+É a mesma razão pela qual `http.get "url"` é uma chamada sem parêntese nenhum: **em posição de statement, um verbo é uma chamada**, não haveria sentido em ler um valor e jogá-lo fora. Em expressão, um nome é um valor, e `()` é o que o invoca.
 
 Na dúvida, escreva os parênteses. Eles nunca estão errados.
 
@@ -1291,7 +1291,7 @@ O corpo é **uma expressão**. Um corpo em bloco se leria como literal de mapa, 
 
 Um parâmetro sem parênteses não leva tipo: `f(x: number => …)` já significa um **argumento nomeado** chamado `x`, e argumento nomeado ganha. Quer anotar o tipo, use os parênteses: `(x: number) -> number => x + 1`.
 
-**Toda callback de lista recebe o índice junto do item** — e é livre para ignorá-lo. `pessoas.map(p => p.idade)` e `pessoas.map((p, i) => …)` são ambas corretas; pedir um terceiro parâmetro é erro de tipo.
+**Toda callback de lista recebe o índice junto do item**: e é livre para ignorá-lo. `pessoas.map(p => p.idade)` e `pessoas.map((p, i) => …)` são ambas corretas; pedir um terceiro parâmetro é erro de tipo.
 
 ---
 
@@ -1305,7 +1305,7 @@ Um projeto é uma pasta com manifesto. O manifesto é o que o LSP lê para saber
 [package]
 name    = "acme-checkout"
 version = "1.4.0"
-flowlang = "^0.1"          # versão da linguagem — habilita migrações automáticas
+flowlang = "^0.1"          # versão da linguagem, habilita migrações automáticas
 
 [dependencies]
 "@venn-lang/http"    = "0.1"
@@ -1347,7 +1347,7 @@ Disponível sem importar nada. Deliberadamente minúsculo: tudo aqui é independ
 | Símbolo | Assinatura | Uso |
 | --- | --- | --- |
 | log | log(msg, level?) | Anota o relatório |
-| wait | wait(duration) | Pausa explícita — o linter avisa quando há `waitFor` melhor |
+| wait | wait(duration) | Pausa explícita, o linter avisa quando há `waitFor` melhor |
 | fail | fail(msg) | Aborta com mensagem |
 | skip | skip(msg) | Marca como pulado em runtime |
 | env | env.NOME, env.name | Ambiente resolvido do manifesto |
@@ -1360,7 +1360,7 @@ Disponível sem importar nada. Deliberadamente minúsculo: tudo aqui é independ
 
 ## 13 · Stdlib
 
-Cada pacote registra um namespace, matchers e tipos. Todos usam a mesma API pública de plugin — não há atalho interno.
+Cada pacote registra um namespace, matchers e tipos. Todos usam a mesma API pública de plugin, não há atalho interno.
 
 | Pacote | Namespace | Ações principais | Registra também |
 | --- | --- | --- | --- |
@@ -1375,7 +1375,7 @@ Cada pacote registra um namespace, matchers e tipos. Todos usam a mesma API púb
 | @venn-lang/mock | mock | start stop intercept respond clock.freeze clock.advance flag reset | controle de tempo e feature flags |
 | @venn-lang/auth | auth | oauth2 bearer basic apikey hmac totp jwt | refresh automático de token |
 | @venn-lang/data | data | csv json faker.* oneOf range shuffle | seed determinístico por worker |
-| @venn-lang/assert | — | (só matchers) | `schema`, `contract`, `closeTo`, `noViolations`, `matchesBaseline` |
+| @venn-lang/assert | - | (só matchers) | `schema`, `contract`, `closeTo`, `noViolations`, `matchesBaseline` |
 | @venn-lang/load | load | ramp constant spike | anotação `@load`; métricas p50/p95/p99 |
 | @venn-lang/artifacts | artifacts | save flush attach | trace, video, HAR, screenshot |
 | @venn-lang/notify | notify | slack webhook email | reporter de saída |
@@ -1383,21 +1383,21 @@ Cada pacote registra um namespace, matchers e tipos. Todos usam a mesma API púb
 
 ---
 
-## 14 · Plugins — como uma lib aumenta os poderes
+## 14 · Plugins: como uma lib aumenta os poderes
 
 Um plugin é um módulo TypeScript que exporta uma definição. Ele pode contribuir com seis coisas, e cada uma alimenta simultaneamente o runtime, o autocomplete e o node graph.
 
-**1 · Ações** — Novos verbos no namespace. Schema de parâmetros com Zod vira validação, hover e formulário do nó.
+**1 · Ações**: Novos verbos no namespace. Schema de parâmetros com Zod vira validação, hover e formulário do nó.
 
-**2 · Matchers** — Novas palavras utilizáveis depois de `expect`, com mensagem de falha própria.
+**2 · Matchers**: Novas palavras utilizáveis depois de `expect`, com mensagem de falha própria.
 
-**3 · Recursos** — Handles com ciclo de vida gerenciado — conexões, browsers, brokers. O runner cuida de abrir e fechar por escopo.
+**3 · Recursos**: Handles com ciclo de vida gerenciado, conexões, browsers, brokers. O runner cuida de abrir e fechar por escopo.
 
-**4 · Tipos** — Formas nominais que o LSP usa para dar autocomplete em `res.`, `row.`, `msg.`
+**4 · Tipos**: Formas nominais que o LSP usa para dar autocomplete em `res.`, `row.`, `msg.`
 
-**5 · Anotações** — Modificadores próprios, como `@load`. Não mudam a gramática — `@nome(args)` já é kernel.
+**5 · Anotações**: Modificadores próprios, como `@load`. Não mudam a gramática, `@nome(args)` já é kernel.
 
-**6 · Reporters e hooks** — Saída customizada e middleware que envolve toda ação — ideal para tracing e redação de segredos.
+**6 · Reporters e hooks**: Saída customizada e middleware que envolve toda ação, ideal para tracing e redação de segredos.
 
 ****plugins/stripe/index.ts**TypeScript**
 
@@ -1410,7 +1410,7 @@ export default definePlugin({
   namespace: "stripe",
   requires: ["@venn-lang/http"],
 
-  // 1 · ações — uma definição alimenta runtime, LSP e node graph
+  // 1 · ações, uma definição alimenta runtime, LSP e node graph
   actions: [
     defineAction({
       name:  "charge",
@@ -1465,7 +1465,7 @@ step "Cobrar" {
 }
 ```
 
-> **É isto que faz a linguagem escalar.** WebSocket, MQTT, GraphQL, REST e browser são exatamente esse mesmo objeto — nenhum deles tem tratamento especial no compilador. Se amanhã você precisar de Kafka, AMQP, Redis ou SAP, é um arquivo como o de cima e mais nada.
+> **É isto que faz a linguagem escalar.** WebSocket, MQTT, GraphQL, REST e browser são exatamente esse mesmo objeto, nenhum deles tem tratamento especial no compilador. Se amanhã você precisar de Kafka, AMQP, Redis ou SAP, é um arquivo como o de cima e mais nada.
 
 
 ---
@@ -1482,18 +1482,18 @@ _[diagrama: Caminho de um evento do runner até a interface]_
 
 ```ts
 type Envelope = {
-  seq:     number       // monotônico por run — a UI detecta lacuna e pede resync
+  seq:     number       // monotônico por run, a UI detecta lacuna e pede resync
   ts:      string       // ISO-8601 com milissegundos, relógio do runner
   run:     RunId        // ULID; ordena o histórico sem consultar timestamp
   kind:    EventKind
   node?:   NodePath     // "checkout/flow-checkout/step-cart"  ← chave de junção
   parent?: NodePath
-  worker?: number       // qual worker emitiu — essencial sob concorrência
+  worker?: number       // qual worker emitiu, essencial sob concorrência
   data:    EventData[EventKind]
 }
 ```
 
-> **A chave de junção é o `@id`.** O mesmo identificador que ancora o layout do nó no grafo ancora o marcador na margem do editor e a linha na árvore de execução. Uma identidade, três superfícies. Se você emitir índice numérico em vez de `NodePath` derivado do `@id`, qualquer edição no arquivo desalinha silenciosamente todo o histórico — e você só descobre semanas depois.
+> **A chave de junção é o `@id`.** O mesmo identificador que ancora o layout do nó no grafo ancora o marcador na margem do editor e a linha na árvore de execução. Uma identidade, três superfícies. Se você emitir índice numérico em vez de `NodePath` derivado do `@id`, qualquer edição no arquivo desalinha silenciosamente todo o histórico, e você só descobre semanas depois.
 
 ### Taxonomia
 
@@ -1516,14 +1516,14 @@ type Envelope = {
 
 ### Volume e contrapressão
 
-Uma run de 16 steps emite cerca de 200 eventos — irrelevante. Dois casos escapam disso e precisam de tratamento explícito:
+Uma run de 16 steps emite cerca de 200 eventos, irrelevante. Dois casos escapam disso e precisam de tratamento explícito:
 
 | Caso | Volume ingênuo | Estratégia |
 | --- | --- | --- |
 | Flow com `@load` | 200 VUs × 5min ≈ 3M eventos | O runner agrega em `load.sample` a cada 1s. Iterações individuais nunca cruzam a fronteira; ficam no `.jsonl` para autópsia. |
 | Preview do navegador | 60fps × JPEG | Limitado a 8fps, descartado quando a aba não está visível, e cortado assim que `Headless` é ligado. |
 
-No lado Rust, eventos são acumulados e entregues em lotes de 16ms — um `requestAnimationFrame`. Sem isso, um `forEach` com 4 workers faz o React re-renderizar centenas de vezes por segundo e a UI trava justamente quando você mais precisa dela.
+No lado Rust, eventos são acumulados e entregues em lotes de 16ms, um `requestAnimationFrame`. Sem isso, um `forEach` com 4 workers faz o React re-renderizar centenas de vezes por segundo e a UI trava justamente quando você mais precisa dela.
 
 ### Reconexão e histórico
 
@@ -1535,7 +1535,7 @@ No lado Rust, eventos são acumulados e entregues em lotes de 16ms — um `reque
 pub struct RunSession {
     id:      RunId,
     ring:    VecDeque<Envelope>,   // últimos 10 000
-    journal: BufWriter<File>,      // ~/.venn/runs/<run>.jsonl — append-only
+    journal: BufWriter<File>,      // ~/.venn/runs/<run>.jsonl, append-only
     last:    u64,
 }
 
@@ -1558,7 +1558,7 @@ async fn subscribe_run(
 
 > **O histórico é o mesmo fluxo, lido do disco.** Abrir uma run de 3 horas atrás no painel lateral não usa código diferente: é o mesmo `.jsonl` passando pelo mesmo redutor, só que sem `runner.heartbeat`. Um renderizador, dois modos. Isso elimina a classe inteira de bugs em que o vivo e o histórico divergem.
 
-****ui/useRun.ts**o redutor é puro — mesma função para vivo e histórico**
+****ui/useRun.ts**o redutor é puro: mesma função para vivo e histórico**
 
 ```ts
 export function useRun(run: RunId) {
@@ -1585,23 +1585,23 @@ export function useRun(run: RunId) {
 
 `run.start(pipeline, filtro)` · `run.pause` · `run.resume` · `run.stop` · `run.rerun(node)` · `run.focus(node)` · `run.headless(bool)` · `step.stepOver` · `breakpoint.set(node)`
 
-Comandos são idempotentes e carregam o `seq` observado pela UI, para que o runner recuse ordens baseadas em estado obsoleto — o clássico "cliquei em pausar mas ele já tinha terminado".
+Comandos são idempotentes e carregam o `seq` observado pela UI, para que o runner recuse ordens baseadas em estado obsoleto, o clássico "cliquei em pausar mas ele já tinha terminado".
 
 
 ---
 
 ## 16 · Modelo de erros
 
-Erro de teste é o produto. É o que a pessoa lê às duas da manhã. Duas famílias — diagnóstico de compilação e falha de execução — compartilham **uma única forma**, para que exista um renderizador só.
+Erro de teste é o produto. É o que a pessoa lê às duas da manhã. Duas famílias, diagnóstico de compilação e falha de execução, compartilham **uma única forma**, para que exista um renderizador só.
 
 ****core/problem.ts**a forma comum**
 
 ```ts
 type Problem = {
-  code:     string            // "VN3012" — estável, googlável, documentado
+  code:     string            // "VN3012", estável, googlável, documentado
   severity: "error" | "warning" | "hint"
   title:    string            // uma linha, linguagem humana, sem jargão de compilador
-  span:     Span              // arquivo, linha, coluna, comprimento — o local exato
+  span:     Span              // arquivo, linha, coluna, comprimento, o local exato
   related?: { span: Span; label: string }[]   // "aqui foi declarado como..."
   diff?:    Diff              // esperado vs recebido, estruturado
   trace?:   Frame[]           // pilha em termos do .vn, não do Node
@@ -1616,7 +1616,7 @@ type Problem = {
 
 ### Anatomia
 
-Todo erro bem formado responde sete perguntas, nesta ordem. Se faltar uma, a pessoa vai ter que abrir o código para descobrir — e aí o erro falhou.
+Todo erro bem formado responde sete perguntas, nesta ordem. Se faltar uma, a pessoa vai ter que abrir o código para descobrir, e aí o erro falhou.
 
 | # | Pergunta | Elemento |
 | --- | --- | --- |
@@ -1638,14 +1638,14 @@ o que os plugins compartilham, o do runtime e o do projeto. Um plugin não inven
 família: usa a que corresponde ao tipo da falha, com número alto na faixa para
 não encontrar um do kernel.
 
-| VN1xxx | Léxico e sintático | Parse — o Langium reporta com recuperação de erro |
+| VN1xxx | Léxico e sintático | Parse, o Langium reporta com recuperação de erro |
 | VN2xxx | Resolução de nomes | Namespace não importado, símbolo inexistente, ciclo de módulo |
 | VN3xxx | Tipos | Incompatibilidade, unidade errada, argumento faltando |
 | VN4xxx | Concorrência e isolamento | Recurso compartilhado mutado sem lock, captura vazando entre ramos |
 | VN5xxx | Lint | Sintaxe removida, argumento engolido, chave repetida, evento inexistente, import por usar |
-| VN6xxx | Asserção | Runtime — `expect` falhou |
-| VN7xxx | Ação e protocolo | Runtime — HTTP recusou, seletor não encontrado, broker caiu |
-| VN8xxx | Timeout e recursos | Runtime — estouro de prazo, recurso não abriu |
+| VN6xxx | Asserção | Runtime, `expect` falhou |
+| VN7xxx | Ação e protocolo | Runtime, HTTP recusou, seletor não encontrado, broker caiu |
+| VN8xxx | Timeout e recursos | Runtime, estouro de prazo, recurso não abriu |
 
 ### A família de lint
 
@@ -1674,15 +1674,15 @@ correr.
 
 | Tipo | Renderização |
 | --- | --- |
-| scalar | Lado a lado, com o tipo anotado — `99.00 (float)` vs `"99.00" (string)` |
+| scalar | Lado a lado, com o tipo anotado, `99.00 (float)` vs `"99.00" (string)` |
 | json | Diff por caminho: só os campos divergentes, com contexto colapsado |
 | text | Diferença por caractere, com espaço e quebra de linha visíveis |
-| duration / size | Unidade normalizada e delta — `excedeu em 412ms` |
+| duration / size | Unidade normalizada e delta, `excedeu em 412ms` |
 | image | Três painéis: base, atual, máscara de diferença com percentual |
 | http | Par requisição/resposta, cabeçalhos e corpo, segredos redigidos |
 | element | HTML do elemento encontrado versus seletor esperado, com candidatos próximos |
 
-> **Redação é obrigatória no produtor, não no consumidor.** Qualquer valor originado de `secrets.*` carrega uma marca que o acompanha por expressões, capturas e chamadas. O runner substitui por `‹redigido›` antes de serializar o evento. Redigir na UI é tarde demais — o valor já está no `.jsonl`, no HAR e no trace.
+> **Redação é obrigatória no produtor, não no consumidor.** Qualquer valor originado de `secrets.*` carrega uma marca que o acompanha por expressões, capturas e chamadas. O runner substitui por `‹redigido›` antes de serializar o evento. Redigir na UI é tarde demais, o valor já está no `.jsonl`, no HAR e no trace.
 
 ### Pilha de flow, não pilha de implementação
 
@@ -1755,11 +1755,11 @@ Sem código, `fail` levanta `VN6002`, que é um programa a recusar-se a si mesmo
 
 ## 17 · Galeria de erros
 
-Como cada família aparece de fato. Estes são componentes reais, não maquete — a mesma estrutura `Problem` renderizada.
+Como cada família aparece de fato. Estes são componentes reais, não maquete, a mesma estrutura `Problem` renderizada.
 
 #### VN2004 · namespace não importado
 
-**erro · VN2004** — O namespace `web` não está disponível neste arquivo.
+**erro · VN2004**: O namespace `web` não está disponível neste arquivo.
 
 `src/checkout.vn:142:5`
 
@@ -1773,8 +1773,8 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
   143 │   }
 ```
 
-- **ajuda** — O pacote `@venn-lang/browser` registra o namespace `browser`. Você usou o apelido `web`, então importe com `as web`.
-- **similar** — `http` · `ws` — disponíveis neste arquivo
+- **ajuda**, O pacote `@venn-lang/browser` registra o namespace `browser`. Você usou o apelido `web`, então importe com `as web`.
+- **similar**, `http` · `ws`, disponíveis neste arquivo
 
 - ⌘. adicionar import { browser as web } from "venn/browser"
 - ⌘. trocar por http
@@ -1783,7 +1783,7 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
 
 #### VN3012 · incompatibilidade de unidade
 
-**erro · VN3012** — Não dá para comparar uma duração com um tamanho.
+**erro · VN3012**: Não dá para comparar uma duração com um tamanho.
 
 `src/checkout.vn:58:19`
 
@@ -1793,9 +1793,9 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
       │          duration
 ```
 
-- **esperado** — `duration` — algo como `300ms`, `1.5s`, `2m`
-- **recebido** — `size` — `2mb`
-- **ajuda** — Você provavelmente quis `res.size < 2mb` ou `res.time < 2s`.
+- **esperado**, `duration`, algo como `300ms`, `1.5s`, `2m`
+- **recebido**, `size`, `2mb`
+- **ajuda**, Você provavelmente quis `res.size < 2mb` ou `res.time < 2s`.
 
 - ⌘. trocar para res.size
 - ⌘. trocar para 2s
@@ -1804,7 +1804,7 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
 
 #### VN4002 · recurso compartilhado sem exclusão mútua
 
-**erro · VN4002** — Este flow muta um recurso de escopo `suite` enquanto roda em paralelo.
+**erro · VN4002**: Este flow muta um recurso de escopo `suite` enquanto roda em paralelo.
 
 `src/checkout.vn:96:7`
 
@@ -1821,16 +1821,16 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
    97 │     }
 ```
 
-- **ajuda** — Anote o step com `@lock("orders")`, ou marque o flow com `@serial`, ou abra a conexão dentro do flow com um schema próprio.
+- **ajuda**, Anote o step com `@lock("orders")`, ou marque o flow com `@serial`, ou abra a conexão dentro do flow com um schema próprio.
 
 - ⌘. adicionar @lock("orders")
 - ⌘. adicionar @serial ao flow
 
-> Sem esta verificação, o sintoma não seria um erro — seria um teste que passa 95% das vezes. Essa é a categoria de bug mais cara que existe numa suíte.
+> Sem esta verificação, o sintoma não seria um erro, seria um teste que passa 95% das vezes. Essa é a categoria de bug mais cara que existe numa suíte.
 
 #### VN6001 · asserção falhou, com diff estrutural
 
-**erro · VN6001** — O pedido não foi conciliado como pago.
+**erro · VN6001**: O pedido não foi conciliado como pago.
 
 `src/checkout.vn:231:7 · flow Checkout · worker 2 · 1.42s`
 
@@ -1840,8 +1840,8 @@ Como cada família aparece de fato. Estes são componentes reais, não maquete �
       │       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
-- **contexto** — `orderId = "ord_8812"` capturado em `step "E-mail de confirmação"` · linha 219
-- **ajuda** — O webhook do provedor de pagamento costuma chegar depois da resposta HTTP. O `repeat` desta etapa esgotou 10 tentativas em 5s — considere `within: 15s` ou aguarde o evento em vez do banco.
+- **contexto**, `orderId = "ord_8812"` capturado em `step "E-mail de confirmação"` · linha 219
+- **ajuda**, O webhook do provedor de pagamento costuma chegar depois da resposta HTTP. O `repeat` desta etapa esgotou 10 tentativas em 5s, considere `within: 15s` ou aguarde o evento em vez do banco.
 
 ```
 row
@@ -1864,7 +1864,7 @@ em flow "Checkout"           src/checkout.vn:88:1  (tentativa 2 de 3)
 
 #### VN7031 · ação falhou, com causa do runtime colapsada
 
-**erro · VN7031** — O elemento `#card` nunca ficou pronto para receber texto.
+**erro · VN7031**: O elemento `#card` nunca ficou pronto para receber texto.
 
 `src/checkout.vn:198:7 · flow Checkout · worker 1 · 30.0s (timeout)`
 
@@ -1874,19 +1874,19 @@ em flow "Checkout"           src/checkout.vn:88:1  (tentativa 2 de 3)
       │       ^^^^^^^^^^^^^^^^ esperou 30s por um elemento editável
 ```
 
-- **encontrado** — 1 elemento correspondente, mas dentro de um `<iframe src="https://js.stripe.com/…">` e coberto por `div.overlay-loading`
-- **ajuda** — Campos de pagamento hospedados vivem em iframe. Entre nele antes: `web.frame "stripe-card" { web.fill "#card" … }`
-- **causa** — `playwright · TimeoutError: locator.fill: Timeout 30000ms exceeded` — 24 quadros ocultos ▸
+- **encontrado**, 1 elemento correspondente, mas dentro de um `<iframe src="https://js.stripe.com/…">` e coberto por `div.overlay-loading`
+- **ajuda**, Campos de pagamento hospedados vivem em iframe. Entre nele antes: `web.frame "stripe-card" { web.fill "#card" … }`
+- **causa**, `playwright · TimeoutError: locator.fill: Timeout 30000ms exceeded`, 24 quadros ocultos ▸
 
 - ⌘. envolver com web.frame
 - ▸ screenshot no instante da falha
 - ▸ vídeo · HAR · console
 
-> A pilha do Playwright existe e está a um clique, mas ela não é a resposta — a resposta é que o campo está num iframe.
+> A pilha do Playwright existe e está a um clique, mas ela não é a resposta, a resposta é que o campo está num iframe.
 
 #### VN5007 · lint, o aviso que evita a suíte instável
 
-**aviso · VN5007** — Espera de tempo fixo onde existe uma condição observável.
+**aviso · VN5007**: Espera de tempo fixo onde existe uma condição observável.
 
 `src/checkout.vn:167:7`
 
@@ -1897,14 +1897,14 @@ em flow "Checkout"           src/checkout.vn:88:1  (tentativa 2 de 3)
   168 │       expect element("#recibo").visible
 ```
 
-- **ajuda** — A linha seguinte já descreve a condição real. Use `web.waitFor { selector: "#recibo" }` e remova a espera fixa.
+- **ajuda**, A linha seguinte já descreve a condição real. Use `web.waitFor { selector: "#recibo" }` e remova a espera fixa.
 
 - ⌘. substituir por web.waitFor
 - ⌘. silenciar nesta linha
 
 #### VN1008 · sintaxe, com recuperação de erro
 
-**erro · VN1008** — Faltou fechar o bloco aberto em `step "Pagar"`.
+**erro · VN1008**: Faltou fechar o bloco aberto em `step "Pagar"`.
 
 `src/checkout.vn:205:1`
 
@@ -1917,30 +1917,30 @@ em flow "Checkout"           src/checkout.vn:88:1  (tentativa 2 de 3)
       │ ^^^^ esperava `}`, encontrou `flow`
 ```
 
-- **ajuda** — Declarações de topo não podem aparecer dentro de um `flow`. Feche o bloco na linha 204.
+- **ajuda**, Declarações de topo não podem aparecer dentro de um `flow`. Feche o bloco na linha 204.
 
 - ⌘. inserir } na linha 205
 
-> O parser continua depois deste ponto em vez de desistir — por isso o resto do arquivo ainda recebe autocomplete e realce enquanto você digita.
+> O parser continua depois deste ponto em vez de desistir, por isso o resto do arquivo ainda recebe autocomplete e realce enquanto você digita.
 
 ### O mesmo problema, três superfícies
 
 Um único `Problem` alimenta os três destinos. Nenhum deles reformata texto do outro; cada um lê os campos estruturados.
 
-**Terminal** — ANSI, largura adaptativa, recorte de código com circunflexo. Sem cor quando não há TTY, para o log de CI ficar legível.
+**Terminal**: ANSI, largura adaptativa, recorte de código com circunflexo. Sem cor quando não há TTY, para o log de CI ficar legível.
 
-**Editor** — Diagnóstico LSP no span exato, sublinhado ondulado, `relatedInformation` nos spans secundários, `codeAction` para cada `QuickFix`.
+**Editor**: Diagnóstico LSP no span exato, sublinhado ondulado, `relatedInformation` nos spans secundários, `codeAction` para cada `QuickFix`.
 
-**Painel da UI** — Cartão completo com diff, artefatos, vídeo e o botão de reexecutar só aquele nó. É este o formato mostrado acima.
+**Painel da UI**: Cartão completo com diff, artefatos, vídeo e o botão de reexecutar só aquele nó. É este o formato mostrado acima.
 
-> **Regra de escrita para toda mensagem.** Título em uma linha, na voz do produto, descrevendo o que aconteceu no domínio do usuário — não no do compilador. `"O elemento #card nunca ficou pronto"`, não `"TimeoutError in locator.fill"`. A ajuda é imperativa e diz o próximo passo. A nota explica a regra. Nada pede desculpas e nada é vago.
+> **Regra de escrita para toda mensagem.** Título em uma linha, na voz do produto, descrevendo o que aconteceu no domínio do usuário, não no do compilador. `"O elemento #card nunca ficou pronto"`, não `"TimeoutError in locator.fill"`. A ajuda é imperativa e diz o próximo passo. A nota explica a regra. Nada pede desculpas e nada é vago.
 
 
 ---
 
 ## 18 · Integrar a linguagem em outro software
 
-A linguagem roda sozinha. Um software que queira embuti-la — o seu estúdio em Tauri, um runner de CI, um serviço interno — acopla por um de três níveis, e escolher o nível errado custa caro.
+A linguagem roda sozinha. Um software que queira embuti-la, o seu estúdio em Tauri, um runner de CI, um serviço interno, acopla por um de três níveis, e escolher o nível errado custa caro.
 
 | Nível | Superfície | Executa onde | Para quem |
 | --- | --- | --- | --- |
@@ -1964,7 +1964,7 @@ $ venn serve --stdio --project ./tests
 {"id":2,"method":"run.start","params":{"pipeline":"Checkout E2E","env":"staging","preview":true}}
 {"id":3,"method":"run.pause","params":{"run":"01J8...","seq":418}}
 
-# sai (stdout, uma linha por evento — o envelope da §15)
+# sai (stdout, uma linha por evento: o envelope da §15)
 {"seq":1,"kind":"run.started","run":"01J8...","data":{"plan":{…}}}
 {"seq":2,"kind":"step.started","node":"checkout/flow-checkout/step-login"}
 {"seq":3,"kind":"expect.failed","node":"…/step-db","data":{"problem":{…}}}
@@ -2039,7 +2039,7 @@ Um plugin não tem instalador próprio: **é um pacote npm que implementa `Capab
 
 ## 19 · Acoplar o browser num app Tauri
 
-A premissa que precisa ser desfeita primeiro: **você não embute o browser no app — embute os pixels dele.** O motor roda em processo separado, fora da tela, e o app recebe um fluxo de quadros mais um canal de entrada de volta.
+A premissa que precisa ser desfeita primeiro: **você não embute o browser no app, embute os pixels dele.** O motor roda em processo separado, fora da tela, e o app recebe um fluxo de quadros mais um canal de entrada de volta.
 
 ### Por que não a webview nativa
 
@@ -2088,7 +2088,7 @@ pub struct Frames(DashMap<(RunId, u32), Frame>);
 pub struct Frame { pub seq: u64, pub meta: FrameMeta, pub jpeg: Bytes }
 
 impl Frames {
-    // último vence: se a UI atrasar, ela pula quadros — comportamento correto
+    // último vence: se a UI atrasar, ela pula quadros, comportamento correto
     pub fn put(&self, run: RunId, worker: u32, f: Frame) { self.0.insert((run, worker), f); }
     pub fn latest(&self, run: RunId, worker: u32) -> Option<Frame> { … }
 }
@@ -2118,7 +2118,7 @@ Builder::default()
 
 ### 4 · Entrada de volta: a conversão de coordenadas
 
-O `<img>` está escalado para caber no painel, e a página tem escala e rolagem próprias. Errar essa conta faz o clique cair no lugar errado — e o sintoma parece bug do teste, não da UI.
+O `<img>` está escalado para caber no painel, e a página tem escala e rolagem próprias. Errar essa conta faz o clique cair no lugar errado, e o sintoma parece bug do teste, não da UI.
 
 ****ui/Preview.tsx**os três espaços de coordenada**
 
@@ -2142,18 +2142,18 @@ async function enviarClique(e) {
 }
 ```
 
-No runner, o comando vira CDP direto — `Input.dispatchMouseEvent` e `Input.dispatchKeyEvent`. Note que `metadata` chega junto de cada quadro, então a conversão sempre usa a escala e a rolagem daquele instante, não uma cópia velha.
+No runner, o comando vira CDP direto, `Input.dispatchMouseEvent` e `Input.dispatchKeyEvent`. Note que `metadata` chega junto de cada quadro, então a conversão sempre usa a escala e a rolagem daquele instante, não uma cópia velha.
 
 ### 5 · Focus, Parallel e Headless são orçamento de quadros
 
-> **O botão Headless não pode alterar como o teste roda.** Se ele alternar `headless: true/false` no lançamento, você cria a categoria clássica "passa com janela, falha sem". Rode **sempre** headless — o headless novo do Chromium renderiza igual ao headed — e deixe o botão controlar apenas se a UI assina o fluxo de quadros. A execução é bit a bit idêntica nos três modos.
+> **O botão Headless não pode alterar como o teste roda.** Se ele alternar `headless: true/false` no lançamento, você cria a categoria clássica "passa com janela, falha sem". Rode **sempre** headless, o headless novo do Chromium renderiza igual ao headed, e deixe o botão controlar apenas se a UI assina o fluxo de quadros. A execução é bit a bit idêntica nos três modos.
 
 | Modo | O que muda |
 | --- | --- |
 | Focus | Um worker a 8fps, resolução cheia |
 | Parallel | Grade; o worker sob o cursor a 8fps, os demais a 1fps e meia resolução |
 | Headless | `Page.stopScreencast` em todos. Nada mais. |
-| Aba oculta | Screencast suspenso automaticamente — é o maior ganho de CPU disponível |
+| Aba oculta | Screencast suspenso automaticamente, é o maior ganho de CPU disponível |
 
 ### 6 · A porta PreviewProvider
 
@@ -2162,13 +2162,13 @@ No runner, o comando vira CDP direto — `Input.dispatchMouseEvent` e `Input.dis
 | Implementação | Motores | Custo |
 | --- | --- | --- |
 | cdp-screencast | Chromium | Baixo; contrapressão nativa |
-| screenshot-poll | Firefox, WebKit | Alto; 2–3fps, só com painel visível |
+| screenshot-poll | Firefox, WebKit | Alto; 2-3fps, só com painel visível |
 | cef-osr | Chromium embutido | Futuro; textura GPU sem round-trip, ao preço de empacotar Chromium |
 | none | Todos | Zero; padrão em CI |
 
 ### 7 · Memória: contexts, não browsers
 
-Quatro workers **não** precisam de quatro browsers. Precisam de um browser e quatro `BrowserContext` — isolamento de cookies, storage e cache sem uma pilha completa por worker. É a maior economia disponível e depende só de como o seu scheduler abre as coisas.
+Quatro workers **não** precisam de quatro browsers. Precisam de um browser e quatro `BrowserContext`, isolamento de cookies, storage e cache sem uma pilha completa por worker. É a maior economia disponível e depende só de como o seu scheduler abre as coisas.
 
 | Alavanca | Efeito |
 | --- | --- |
@@ -2191,9 +2191,9 @@ contexts     = "shared"     # um browser por worker-pool, não por worker
 
 O canal de entrada já existe, então duas funcionalidades grandes vêm quase sem código novo:
 
-**Assumir o controle** — Pausar a execução e deixar o usuário clicar no preview. Os eventos já viajam por `Input.dispatch*` — só falta suspender o scheduler.
+**Assumir o controle**: Pausar a execução e deixar o usuário clicar no preview. Os eventos já viajam por `Input.dispatch*`, só falta suspender o scheduler.
 
-**Gravar** — Enquanto o usuário interage, o runner observa os eventos reais do DOM e emite steps `.vn`. É exatamente a aba Record: uma infraestrutura, três produtos.
+**Gravar**: Enquanto o usuário interage, o runner observa os eventos reais do DOM e emite steps `.vn`. É exatamente a aba Record: uma infraestrutura, três produtos.
 
 
 ---
@@ -2205,7 +2205,7 @@ Um arquivo que exercita toda a linguagem: módulos, tipos, dados, recursos escop
 ****src/checkout.vn**cobre 100% das construções**
 
 ```venn
-# ═══ checkout.vn — pipeline "Checkout E2E" ════════════════════
+# ═══ checkout.vn: pipeline "Checkout E2E" ════════════════════
 module acme.checkout
 
 # ---------- capacidades ----------
@@ -2329,7 +2329,7 @@ flow "Checkout" {
         expect res.json.discount closeTo 0.10 { within: 0.001 }
       }
     } else {
-      log "cliente free — sem desconto"
+      log "cliente free, sem desconto"
     }
 
     # ── UI ──
@@ -2374,7 +2374,7 @@ flow "Checkout" {
         web.click "Pagar agora"
         web.waitForUrl "/success"
       } catch erro {
-        log "cartão falhou (${erro.code}) — caindo para boleto"
+        log "cartão falhou (${erro.code}), caindo para boleto"
         http.post "/api/pay/boleto" { auth: auth.bearer(token) }
         expect res.status == 201
       } finally {
@@ -2440,79 +2440,303 @@ on failure { notify.slack "#qa" { mention: "@oncall" } }
 
 ---
 
-## 21 · Gramática Langium — esqueleto
+## 21 · Gramática Langium
 
-Isto é o arquivo inteiro. Repare que não existe uma única palavra de protocolo aqui: `ActionCall` absorve tudo.
+O arquivo inteiro, sem os comentários. Repare que não existe uma única palavra de
+protocolo aqui: `ActionCall` absorve todas.
 
-****venn.langium**~70 regras, congela na v1.0**
+Este bloco é gerado a partir de `packages/core/src/grammar/venn.langium` e um
+teste recusa qualquer diferença entre os dois. Antes era um esqueleto mantido à
+mão, e um esqueleto deriva: chegou a listar três regras que já não existiam e a
+omitir cinquenta que existiam, incluindo `match`, os padrões todos e o corpo de
+uma `fn`. Uma especificação que deriva é pior do que nenhuma, porque é lida como
+autoridade.
+
+****venn.langium**as regras, em ordem**
 
 ```langium
 grammar Venn
 
 entry Document:
-  ('module' name=QualifiedName)?
-  imports+=ImportDecl*
-  decls+=Declaration*;
+    NL*
+    ('module' name=QualifiedName NL*)?
+    (imports+=ImportDecl NL*)*
+    (decls+=Declaration NL*)*;
 
 ImportDecl: ValueImport;
-ValueImport: export?='pub'? 'import'
-  ( '{' names+=ImportName (',' names+=ImportName)* '}'
-  | '*' 'as' ns=ID
-  | default=ID ) 'from' path=STRING;
+
+ValueImport:
+    (export?='pub')? 'import'
+    ( '{' names+=ImportName (',' names+=ImportName)* '}'
+    | '*' 'as' wildcard=ID
+    | default=ID )
+    'from' path=STRING;
+
 ImportName: name=ID ('as' alias=ID)?;
 
 Declaration:
-  annotations+=Annotation*
-  ( FlowDecl | FragmentDecl | FnDecl | TypeDecl | FactoryDecl
-  | ConfigDecl
-  | MatrixDecl | LifecycleDecl | ReportDecl | ActionCall );
+    (annotations+=Annotation NL*)*
+    ( FlowDecl | FragmentDecl | FnDecl | DecoDecl | TypeDecl | NamespaceDecl
+    | ConfigDecl | MatrixDecl | LifecycleDecl
+    | IfStmt | ForEachStmt | RepeatStmt | LoopStmt | ParallelStmt | RaceStmt
+    | TryStmt | RunStmt | LetStmt | CaptureStmt | AssignStmt | ExpectStmt | MatchExpr
+    | ActionCall );
 
-Annotation: '@' name=ID ('(' args=ArgList ')')?;
+Annotation: '@' name=ID ('(' (args=ArgList)? ')')?;
 
-FlowDecl:     'flow'     title=STRING body=Block;
-FragmentDecl: export?='pub'? 'fragment' name=ID '(' params=ParamList? ')'
-                ('->' returns=TypeRef)? body=Block;
-StepDecl:     'step'     title=STRING body=Block;
-GroupDecl:    'group'    title=STRING body=Block;
-LifecycleDecl: kind=('setup'|'teardown'|'beforeEach'|'afterEach'|'defer') body=Block
-  | 'on' event=ID ('(' arg=Expr ')')? body=Block;
+FlowDecl: 'flow' title=STRING body=Block;
 
-Block: '{' stmts+=Statement* '}';
+FragmentDecl:
+    (export?='pub')? 'fragment' name=ID '(' (params=ParamList)? ')'
+    ('->' returns=TypeRef)? body=Block;
+
+FnDecl:
+    (export?='pub')? 'fn' name=ID '(' (params=ParamList)? ')'
+    ('->' returns=TypeRef)? body=FnBody;
+
+FnBody:
+    '=>' result=Expr
+  | '{' NL* (stmts+=FnStmt NL+)* ('return'? result=Expr NL*)? '}';
+
+/** What a pure function may do: bind, decide, loop, and give a value back. */
+FnStmt infers Statement:
+    LetStmt | AssignStmt | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
+  | ReturnStmt | BreakStmt | ContinueStmt;
+
+DecoDecl:
+    (export?='pub')? 'deco' name=ID '(' (params=ParamList)? ')' body=Block;
+
+NamespaceDecl:
+    (export?='pub')? 'namespace' name=ID
+    '{' NL* (decls+=Declaration NL*)* '}';
+
+ConfigDecl: 'config' body=MapLit;
+MatrixDecl: 'matrix' body=MapLit;
+
+TypeDecl:
+    (export?='pub')? 'type' name=ID ('<' params+=ID (',' params+=ID)* '>')?
+    ('=' alias=TypeRef | body=TypeBody);
+TypeBody: '{' (',' | NL)* fields+=FieldDecl ((',' | NL)+ fields+=FieldDecl)* (',' | NL)* '}';
+FieldDecl: (annotations+=Annotation NL*)* name=ID (optional?='?')? ':' fieldType=TypeRef;
+
+ParamList: params+=Param (',' params+=Param)*;
+Param: (annotations+=Annotation)* (name=ID | pattern=ShapePattern) (':' paramType=TypeRef)?;
+
+TypeRef: members+=SingleType ('|' members+=SingleType)*;
+SingleType:
+    {infer NamedType} name=QualifiedName ('<' args+=TypeRef (',' args+=TypeRef)* '>')?
+  | {infer LiteralType} value=STRING
+  | {infer NullType} 'null'
+  | {infer ShapeType} body=TypeBody;
+
+Block: '{' NL* (stmts+=Statement (NL+ stmts+=Statement)* NL*)? '}';
 
 Statement:
-  annotations+=Annotation*
-  ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt
-  | WhileStmt | ParallelStmt | RaceStmt | TryStmt | LifecycleDecl
-  | LetStmt | CaptureStmt | ExpectStmt | RunStmt | ReturnStmt
-  | BreakStmt | ContinueStmt | ActionCall );
+    (annotations+=Annotation NL*)*
+    ( StepDecl | GroupDecl | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
+    | ParallelStmt | RaceStmt | TryStmt | LifecycleDecl | LetStmt | CaptureStmt
+    | ExpectStmt | RunStmt | ReturnStmt | BreakStmt | ContinueStmt | MatchExpr
+    | AssignStmt | ActionCall );
 
-IfStmt:       'if' cond=Expr then=Block ('else' else=(IfStmt|Block))?;
-ForEachStmt:  'forEach' item=ID 'in' src=Expr opts=MapLit? body=Block;
-RepeatStmt:   'repeat' count=Expr ('as' idx=ID)? body=Block;
-LoopStmt:     'loop' (state=LoopState | cond=Expr)? body=Block;
-LoopState:    name=ID '=' initial=Expr;
-ParallelStmt: 'parallel' opts=MapLit? body=Block;
-RaceStmt:     'race'     opts=MapLit? body=Block;
-TryStmt:      'try' body=Block ('catch' err=ID? handler=Block)?
-                            ('finally' final=Block)?;
-TryExpr:      'try' attempt=Expr ('else' fallback=Expr
-                                | 'catch' err=ID '=>' fallback=Expr);
+StepDecl: 'step' title=STRING body=Block;
+GroupDecl: 'group' title=STRING body=Block;
 
-LetStmt:     'let'     name=ID '=' value=Expr;
-CaptureStmt: 'capture' name=ID '=' value=Expr opts=MapLit?;
-RunStmt:     'run' ref=[FragmentDecl:QualifiedName] '(' args=ArgList? ')' ('as' bind=ID)?;
+IfStmt: 'if' cond=Expr then=Block ('else' otherwise=ElseBranch)?;
+ElseBranch: IfStmt | Block;
 
-// asserção: `expect` é kernel, o matcher é resolvido no registry
-ExpectStmt: 'expect' (soft?='.soft' | all?='.all')?
-  ( body=Block | negate?='not'? subject=Expr (matcher=ID args=ArgList? opts=MapLit?)? );
+ForEachStmt: 'forEach' (item=ID | pattern=ShapePattern) 'in' source=Expr (opts=MapLit)? body=Block;
+RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=Block;
+LoopStmt: 'loop' (state=LoopState | cond=Expr)? body=Block;
+LoopState: name=ID '=' initial=Expr;
 
-// ★ a regra que absorve todo protocolo, presente e futuro
-ActionCall: target=QualifiedName args+=Expr* opts=MapLit?;
+ParallelStmt: 'parallel' (opts=MapLit)? body=Block;
+RaceStmt: 'race' (opts=MapLit)? body=Block;
+TryStmt:
+    'try' body=Block
+    ('catch' (error=ID)? handler=Block)?
+    ('finally' finalizer=Block)?;
 
-QualifiedName: ID ('.' ID)*;
+LifecycleDecl:
+    hook=('setup' | 'teardown' | 'beforeEach' | 'afterEach' | 'defer') body=Block
+  | 'on' event=ID ('(' arg=Expr ')')? body=Block;
+
+LetStmt:
+    (export?='pub')? kind=('let' | 'const') (name=ID | pattern=ShapePattern) (':' declaredType=TypeRef)? '='
+    value=Expr (args+=ActionArg)* (opts=MapLit)?;
+
+Pattern:
+    ShapePattern
+  | {infer NamePattern} name=ID
+  | {infer LiteralPattern} value=LiteralValue;
+
+ShapePattern:
+    {infer MapPattern} '{' NL*
+      ( fields+=FieldPattern ((',' | NL)+ fields+=FieldPattern)* ((',' | NL)+ '...' rest=ID)?
+      | '...' rest=ID )?
+      (',' | NL)* '}'
+  | {infer ListPattern} '[' NL*
+      ( items+=Pattern ((',' | NL)+ items+=Pattern)* ((',' | NL)+ '...' rest=ID)?
+      | '...' rest=ID )?
+      (',' | NL)* ']';
+
+LiteralValue infers Expr:
+    {infer StringLit} value=STRING
+  | {infer NumberLit} raw=NUMBER
+  | {infer BoolLit} value=('true' | 'false')
+  | {infer NullLit} 'null';
+
+FieldPattern: name=ID (':' value=Pattern)?;
+
+AssignStmt: target=AssignTarget '=' value=Expr;
+
+AssignTarget infers Expr:
+    {infer Ref} name=RefName
+    ( {infer Member.receiver=current} '.' member=Word
+    | {infer Index.receiver=current} '[' index=Expr ']' )*;
+
+CaptureStmt: 'capture' name=ID '=' value=Expr (opts=MapLit)?;
+RunStmt: 'run' target=QualifiedName '(' (args=ArgList)? ')' ('as' bind=ID)?;
+ReturnStmt: {infer ReturnStmt} 'return' (value=Expr)?;
+BreakStmt: {infer BreakStmt} 'break';
+ContinueStmt: {infer ContinueStmt} 'continue' (value=Expr)?;
+
+ExpectStmt:
+    'expect' ('.' modifier=('soft' | 'all'))?
+    ( '{' NL* (checks+=Expr (NL+ checks+=Expr)* NL*)? '}'
+    | (negate?='not')? subject=Expr (matcher=MatcherClause)? );
+
+MatcherClause: name=ID (args+=ActionArg)* (opts=MapLit)?;
+
+ActionCall:
+    target=QualifiedName (called?='(' (call=ArgList)? ')')?
+    (args+=ActionArg)* (opts=MapLit)?;
+
+ActionArg infers Expr:
+    {infer Unary} operator='-' operand=ArgValue | ArgValue;
+
+ArgValue infers Expr:
+    Atom (
+        {infer Member.receiver=current} (optional?='?.' | '.') member=Word
+      | {infer Index.receiver=current} '[' index=Expr ']'
+      | {infer Call.callee=current} '(' (args=ArgList)? ')'
+    )*;
+
+Expr: TryExpr;
+
+TryExpr infers Expr:
+    {infer TryExpr} 'try' attempt=Ternary
+      ('else' fallback=Ternary | 'catch' error=ID '=>' fallback=Ternary)
+  | Ternary;
+
+Ternary infers Expr:
+    Coalesce ({infer Ternary.condition=current} '?' then=Expr ':' otherwise=Expr)?;
+
+Coalesce infers Expr:
+    LogicalOr ({infer Binary.left=current} operator='??' right=LogicalOr)*;
+
+LogicalOr infers Expr:
+    LogicalAnd ({infer Binary.left=current} operator='||' right=LogicalAnd)*;
+
+LogicalAnd infers Expr:
+    Equality ({infer Binary.left=current} operator='&&' right=Equality)*;
+
+Equality infers Expr:
+    Relational ({infer Binary.left=current} operator=('==' | '!=' | '~=') right=Relational)*;
+
+Relational infers Expr:
+    Additive ({infer Binary.left=current} operator=('<=' | '>=' | '<' | '>' | 'in') right=Additive)*;
+
+Additive infers Expr:
+    Multiplicative ({infer Binary.left=current} operator=('+' | '-') right=Multiplicative)*;
+
+Multiplicative infers Expr:
+    Unary ({infer Binary.left=current} operator=('*' | '/' | '%') right=Unary)*;
+
+Unary infers Expr:
+    {infer Unary} operator=('!' | '-') operand=Unary
+  | Postfix;
+
+Postfix infers Expr:
+    Primary (
+        {infer Member.receiver=current} (optional?='?.' | '.') member=Word
+      | {infer Index.receiver=current} '[' index=Expr ']'
+      | {infer Call.callee=current} '(' (args=ArgList)? ')'
+    )*;
+
+Primary infers Expr:
+    Atom | MapLit | MatchExpr;
+
+MatchExpr infers MatchExpr:
+    'match' subject=Expr '{' NL*
+    (arms+=MatchArm ((',' | NL)+ arms+=MatchArm)* (',' | NL)*)? '}';
+
+MatchArm:
+    patterns+=Pattern ('|' patterns+=Pattern)*
+    ('if' guard=Expr)? ('=>' value=Expr | body=Block);
+
+Atom infers Expr:
+    {infer NumberLit} raw=NUMBER
+  | {infer InstantLit} value=INSTANT
+  | {infer StringLit} value=STRING
+  | {infer StringLit} value=BLOCK_STRING
+  | {infer StringLit} value=RAW_STRING
+  | {infer BoolLit} value=('true' | 'false')
+  | {infer NullLit} 'null'
+  | {infer FnExpr} 'fn' '(' (params=ParamList)? ')' ('->' returns=TypeRef)? body=FnBody
+  | {infer FnExpr} params=BareParam '=>' body=ArrowBody
+  | {infer FnExpr} '(' (params=ParamList)? ')' ('->' returns=TypeRef)? '=>' body=ArrowBody
+  | {infer Ref} name=RefName
+  | ListLit
+  | '(' Expr ')';
+
+BareParam infers ParamList: params+=BareParamName;
+BareParamName infers Param: name=ID;
+
+ArrowBody infers FnBody:
+    result=Expr;
+
+ListLit infers ListLit:
+    '[' (items+=ListItem (',' items+=ListItem)* ','?)? ']';
+
+ListItem: (spread?='...')? value=Expr;
+
+MapLit infers MapLit:
+    '{' (',' | NL)*
+    (entries+=MapEntry ((',' | NL)+ entries+=MapEntry)* (',' | NL)*)?
+    '}';
+
+MapEntry: key=MapKey ':' value=Expr | spread?='...' value=Expr;
+MapKey returns string: Word | STRING;
+
+ArgList: args+=Arg (',' args+=Arg)*;
+Arg: (name=ID ':')? value=Expr;
+
+QualifiedName returns string: ID ('.' Word)*;
+
+RefName returns string: ID | 'matrix' | 'flow' | 'step';
+
+Word returns string:
+    ID | 'module' | 'as' | 'pub' | 'import' | 'from' | 'flow'
+  | 'fragment' | 'fn' | 'deco' | 'return' | 'const' | 'let' | 'config'
+  | 'matrix' | 'type' | 'setup' | 'teardown'
+  | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'
+  | 'else' | 'forEach' | 'in' | 'repeat' | 'while' | 'parallel' | 'race' | 'try'
+  | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
+  | 'all' | 'soft' | 'not' | 'match';
+
+terminal NL: /([ \t]*(\r?\n|;)[ \t]*)+/;
+hidden terminal WS: /[ \t]+/;
+hidden terminal COMMENT: /#[^\n\r]*/;
+
+terminal INSTANT: /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
+terminal BLOCK_STRING: /"""[\s\S]*?"""/;
+terminal RAW_STRING: /r"[^"]*"/;
+terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+terminal NUMBER: /[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(ms|kb|mb|gb|b|s|m|h|%)?/;
+terminal ID: /[_a-zA-Z]\w*/;
 ```
 
-> **Sobre o highlight.** A gramática não distingue `http.post` de `meuHelper.foo` — ambos são `ActionCall`. Quem colore corretamente é o **semantic token provider** do LSP, consultando o registry. Uma gramática TextMate serve só de fallback enquanto o servidor não respondeu. Não mantenha duas descrições da linguagem.
+> **Sobre o highlight.** A gramática não distingue `http.post` de `meuHelper.foo`, ambos são `ActionCall`. Quem colore corretamente é o **semantic token provider** do LSP, consultando o registry. Uma gramática TextMate serve só de fallback enquanto o servidor não respondeu. Não mantenha duas descrições da linguagem.
 
 
 ---
@@ -2545,7 +2769,7 @@ Toda construção precisa de representação visual definida _antes_ de você es
 
 ## 23 · Tokens do tema
 
-Estes são os `semanticTokenTypes` que o LSP deve emitir. As cores abaixo são as usadas neste documento — servem como tema inicial do editor.
+Estes são os `semanticTokenTypes` que o LSP deve emitir. As cores abaixo são as usadas neste documento, servem como tema inicial do editor.
 
 | Token | Cor | Aplica em |
 | --- | --- | --- |
@@ -2563,7 +2787,7 @@ Estes são os `semanticTokenTypes` que o LSP deve emitir. As cores abaixo são a
 
 ### Modificadores
 
-`declaration` · `readonly — const, capture` · `async — ação com await` · `deprecated — do registry` · `defaultLibrary — prelude e stdlib`
+`declaration` · `readonly, const, capture` · `async, ação com await` · `deprecated, do registry` · `defaultLibrary, prelude e stdlib`
 
 
 ---

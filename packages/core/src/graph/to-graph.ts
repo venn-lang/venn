@@ -21,7 +21,7 @@ import {
 } from "../generated/ast.js";
 import type { Graph, GraphNode } from "./graph.types.js";
 
-/** Derive the node graph (§22) from a parsed document — a pure AST transform. */
+/** Derive the node graph (§22) from a parsed document, a pure AST transform. */
 export function toGraph(doc: Document): Graph {
   const graph: Graph = { nodes: [], edges: [] };
   doc.decls.filter(isFlowDecl).forEach((flow, index) => {

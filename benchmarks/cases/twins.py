@@ -2,7 +2,7 @@
 
 Each mirrors its `.vn` file the way `src/cases/twins.ts` does: same algorithm,
 same intermediate lists, same closures. Venn has no assignment, so these avoid
-one too — except in `loop`, for the same reason the TypeScript twin needs it.
+one too, except in `loop`, for the same reason the TypeScript twin needs it.
 
 Run through `runner.py`, which does the warmup, the repetitions and the median.
 """

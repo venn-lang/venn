@@ -139,7 +139,7 @@
       "name": "constant.numeric.venn"
     },
     "action": {
-      "comment": "Only at the start of a statement — elsewhere a dot is member access, which the language server colours correctly.",
+      "comment": "Only at the start of a statement, elsewhere a dot is member access, which the language server colours correctly.",
       "match": "^\\s*([a-z][\\w]*)\\.([A-Za-z_]\\w*)",
       "captures": {
         "1": {

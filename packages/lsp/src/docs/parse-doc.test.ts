@@ -45,8 +45,8 @@ describe("doc comments", () => {
 
     expect(markdown).toContain("⚠️ **Deprecated**");
     expect(markdown).toContain("**Parameters**");
-    expect(markdown).toContain("- `user` — The account name.");
-    expect(markdown).toContain("**Returns** — The HTTP response.");
+    expect(markdown).toContain("- `user`. The account name.");
+    expect(markdown).toContain("**Returns**: The HTTP response.");
     expect(markdown).toContain("```venn");
   });
 

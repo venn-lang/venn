@@ -7,7 +7,7 @@ describe("venn/env", () => {
     expect(envPlugin.name).toBe("venn/env");
   });
 
-  it("has no verbs — `env.NAME` is a read, not a call", () => {
+  it("has no verbs, `env.NAME` is a read, not a call", () => {
     expect(envPlugin.actions ?? []).toEqual([]);
     expect(envPlugin.matchers ?? []).toEqual([]);
   });

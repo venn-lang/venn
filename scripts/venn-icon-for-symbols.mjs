@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 /**
  * Teach the Symbols file icon theme what a `.vn` file is.
  *
- * VS Code's own answer — `contributes.languages[].icon` — is already in the
+ * VS Code's own answer, `contributes.languages[].icon`, is already in the
  * extension manifest, but a theme only honours it when it declares
  * `showLanguageModeIcons`. Symbols does not: it maps every unknown file to its
  * generic `document`, so the language icon never gets a chance. The theme is
@@ -13,7 +13,7 @@ import { join, resolve } from "node:path";
  *
  * Written into the *source* theme (and its backup), not the generated one, so
  * a later change to any Symbols setting regenerates from a file that already
- * knows about Venn — and nothing has to be added to the user's settings.json.
+ * knows about Venn, and nothing has to be added to the user's settings.json.
  *
  * A Symbols update replaces these files. Re-run this then.
  */

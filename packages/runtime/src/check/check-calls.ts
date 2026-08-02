@@ -50,7 +50,7 @@ function checkPub(stmt: LetStmt, ctx: CheckContext): Problem | undefined {
 /** `capture` is folded into `let`; say so where it is written. */
 export function checkCapture(stmt: CaptureStmt, ctx: CheckContext): Problem {
   const title =
-    "`capture` was removed — use `let` for a value that changes, `const` for one that does not.";
+    "`capture` was removed, use `let` for a value that changes, `const` for one that does not.";
   return problem(stmt, ctx, CODES.VN5001_REMOVED_KEYWORD, title);
 }
 

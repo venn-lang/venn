@@ -18,7 +18,7 @@ export interface Explained {
  */
 const REMOVED: Readonly<Record<string, string>> = {
   while:
-    "`while` was removed — `loop` while the condition holds, `repeat` a known number of times, `forEach` over a collection.",
+    "`while` was removed, `loop` while the condition holds, `repeat` a known number of times, `forEach` over a collection.",
 };
 
 /**

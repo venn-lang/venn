@@ -53,7 +53,7 @@ describe("the kinds are types", () => {
     expect(titles(source)[0]).toContain('has no field "params"');
   });
 
-  it("is a stdlib and not a reserved word — a file's own `Fn` wins", () => {
+  it("is a stdlib and not a reserved word, a file's own `Fn` wins", () => {
     const source = ["type Fn { arity: number }", "deco m(target: Fn) { }"].join("\n");
 
     expect(typeOf(source, "target", "Param")).toBe("{ arity: number }");

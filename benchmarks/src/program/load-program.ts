@@ -10,7 +10,7 @@ import type { Program } from "./program.types.ts";
  * Parse a `.vn` file and hand back something that runs it.
  *
  * Parsing, type-checking and building the plugin registry all happen here,
- * once — the same way a real process does them once at startup. Only the
+ * once, the same way a real process does them once at startup. Only the
  * execution is timed, so the ratio compares engines, not startup costs.
  */
 export async function loadProgram(path: string): Promise<Program> {

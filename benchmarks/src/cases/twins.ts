@@ -3,7 +3,7 @@
  * same algorithm, same intermediate arrays, same closures.
  *
  * Venn has no assignment, so none of these use one. A `for` loop with a mutable
- * accumulator would be faster and more idiomatic TypeScript — and would measure
+ * accumulator would be faster and more idiomatic TypeScript, and would measure
  * a different program, which is not what this compares.
  */
 
@@ -50,8 +50,8 @@ export function strings(): number {
 /**
  * The loop twin uses an assignment, which Venn does not have.
  *
- * Without one V8 deletes the whole loop — the body computes a value nobody
- * reads — and the case would time an empty statement. The store is the smallest
+ * Without one V8 deletes the whole loop, the body computes a value nobody
+ * reads, and the case would time an empty statement. The store is the smallest
  * thing that keeps both sides doing the same work per item.
  */
 let sink = 0;

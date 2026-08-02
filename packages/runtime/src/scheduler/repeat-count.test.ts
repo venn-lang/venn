@@ -43,7 +43,7 @@ describe("repeat over something that is not a number", () => {
     expect(failure.problem.span.line).toBe(2);
   });
 
-  it("leaves a count of zero alone — a program may ask for nothing", async () => {
+  it("leaves a count of zero alone, a program may ask for nothing", async () => {
     const { ast } = parse('flow "F" { step "s" { repeat 0 { expect false } } }');
 
     const result = await runnerWith(createMemorySink()).run(ast);

@@ -44,6 +44,8 @@ function unread(location: ImportedLocation, name: string): string {
 export function importPathHover(args: { location: ImportedLocation; path: string }): string {
   const { location, path } = args;
   const file = code(UriUtils.basename(location.uri));
-  const read = location.document ? `Resolves to ${file}.` : `Resolves to ${file} — not readable.`;
+  const read = location.document
+    ? `Resolves to ${file}.`
+    : `Resolves to ${file}, which is not readable.`;
   return rule([fence(`from "${path}"`), read]);
 }

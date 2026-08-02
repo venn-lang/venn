@@ -6,11 +6,11 @@ import { code, fence, labelled, rule, sections } from "../markdown/index.js";
 
 /** What each decorator handle is a handle *on*, in the user's words. */
 const DECORATES: Readonly<Record<string, string>> = {
-  Fn: "a `fn` — its parameters, and what happens around a call to it",
-  Flow: "a `flow` — its title, and what happens around its body",
-  Step: "a `step` — its title, and what happens around its body",
-  Binding: "a `let` or `const` — the value it holds",
-  Type: "a `type` — the fields it declares",
+  Fn: "a `fn`, its parameters, and what happens around a call to it",
+  Flow: "a `flow`, its title, and what happens around its body",
+  Step: "a `step`, its title, and what happens around its body",
+  Binding: "a `let` or `const`, the value it holds",
+  Type: "a `type`, the fields it declares",
   Node: "any declaration at all, by name",
 };
 
@@ -31,7 +31,7 @@ function builtinHover(name: string): string | undefined {
   return rule([
     fence(name),
     sections([builtin.doc, labelled("Written", fence(builtin.example))]),
-    "**Built in** — part of the language, no `use` needed.",
+    "**Built in**: part of the language, no `use` needed.",
   ]);
 }
 
@@ -40,7 +40,7 @@ function kindHover(name: string): string | undefined {
   if (!TARGET_KINDS.includes(name as (typeof TARGET_KINDS)[number])) return undefined;
   const spec = KIND_SPECS[name as keyof typeof KIND_SPECS];
   return rule([
-    fence(`${name} — a decorator target`),
+    fence(`${name}, a decorator target`),
     sections([
       `Written as a \`deco\`'s first parameter, it decorates ${DECORATES[name] ?? "a declaration"}.`,
       membersBlock(spec),

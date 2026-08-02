@@ -59,7 +59,7 @@ function compileHole(hole: TemplateHole, compile: Compile): Thunk {
       buildProblem({
         spec: CODES.VN1002_PARSE,
         span: NO_SPAN,
-        title: `Cannot read \`\${${hole.source}}\` — that is not an expression.`,
+        title: `Cannot read \`\${${hole.source}}\`, that is not an expression.`,
       }),
     );
   };

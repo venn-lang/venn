@@ -14,7 +14,11 @@ export interface PreludeArg {
   readonly name: string;
   /** How the type reads to a person, which is not always how it is checked. */
   readonly type: string;
-  readonly doc?: string;
+  /**
+   * Required, because an argument of the language's own that nobody explains is
+   * a gap in the one documentation every user reads without asking for it.
+   */
+  readonly doc: string;
   readonly optional?: boolean;
 }
 

@@ -43,7 +43,7 @@ function street(rng: Rng): string {
 function address(rng: Rng): string {
   const state = pick(BR_STATES, rng)[1];
   const number = intBetween({ min: 1, max: 4000, rng });
-  return `${street(rng)}, ${number} — ${pick(BR_CITIES, rng)}/${state}, ${cep(rng)}`;
+  return `${street(rng)}, ${number}, ${pick(BR_CITIES, rng)}/${state}, ${cep(rng)}`;
 }
 
 export const brazilSpecs: readonly FakerSpec[] = [

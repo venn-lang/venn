@@ -22,7 +22,7 @@ function row(result: CaseResult): string[] {
     result.name + (result.agrees ? "" : " ✗"),
     ms(result.ts.median),
     ms(result.vn.median),
-    result.python === undefined ? "—" : ms(result.python),
+    result.python === undefined ? "-" : ms(result.python),
     times(ratio),
     versus(result),
     ms(result.compile),
@@ -31,7 +31,7 @@ function row(result: CaseResult): string[] {
 
 /** How Venn reads against Python: under 1× means Venn got there first. */
 function versus(result: CaseResult): string {
-  if (result.python === undefined) return "—";
+  if (result.python === undefined) return "-";
   return times(result.vn.median / result.python);
 }
 
@@ -64,7 +64,7 @@ function againstPython(results: readonly CaseResult[]): string {
 }
 
 function mean(ratios: readonly number[]): string {
-  return `median ${times(median(ratios))} — Venn runs at ${share(median(ratios))}`;
+  return `median ${times(median(ratios))}, Venn runs at ${share(median(ratios))}`;
 }
 
 /** Naming the cases Venn won, rather than assuming it never does. */
@@ -96,7 +96,7 @@ function startupLines(startup: StartupResult): string {
   const ratio = startup.venn.median / startup.script.median;
   const run = startup.runtime;
   return [
-    `Cold start — one process, end to end, running the same fib(25) under ${run}:`,
+    `Cold start, one process, end to end, running the same fib(25) under ${run}:`,
     `  ${run} fib.ts       ${ms(startup.script.median)} ms`,
     `  venn run fib.vn ${ms(startup.venn.median)} ms   (${times(ratio)} of that)`,
     startup.python ? `  python fib.py      ${ms(startup.python.median)} ms` : "",

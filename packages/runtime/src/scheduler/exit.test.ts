@@ -68,7 +68,7 @@ describe("exit", () => {
     expect(kinds(sink).at(-1)).toBe("run.finished");
   });
 
-  it("is not an error a `try` can catch — it ends the run, not the block", async () => {
+  it("is not an error a `try` can catch, it ends the run, not the block", async () => {
     const { ast } = parse('flow "F" { step "s" { try { exit 4 } catch e { expect false } } }');
 
     const result = await runnerWith(createMemorySink()).run(ast);

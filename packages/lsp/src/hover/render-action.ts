@@ -43,7 +43,7 @@ function renderAction(entry: ActionEntry, catalog: SymbolCatalog): string {
  * exactly what it is not.
  */
 const WHAT_IT_IS =
-  "**Verb** — a package contributes it, it reaches the world outside, and the program waits for it without saying so. Naming it calls it; it is not a value you can hold.";
+  "**Verb**: a package contributes it, it reaches the world outside, and the program waits for it without saying so. Naming it calls it; it is not a value you can hold.";
 
 /** The call as it is written: `http.on server handler`, with no brackets. */
 function signatureLine(target: string, args: readonly ShownArg[]): string {
@@ -60,7 +60,7 @@ function argumentsBlock(args: readonly ShownArg[]): string | undefined {
 
 function argumentLine(arg: ShownArg): string {
   const optional = arg.optional ? " *(optional)*" : "";
-  const doc = arg.doc ? ` — ${arg.doc}` : "";
+  const doc = arg.doc ? `. ${arg.doc}` : "";
   return `- ${code(arg.name)}: ${code(arg.type)}${optional}${doc}`;
 }
 
@@ -89,6 +89,6 @@ function optionsBlock(specs: ParamSpec[]): string | undefined {
 
 function optionLine(spec: ParamSpec): string {
   const required = spec.required ? " *(required)*" : "";
-  const doc = spec.doc ? ` — ${spec.doc}` : "";
+  const doc = spec.doc ? `. ${spec.doc}` : "";
   return `- ${code(spec.name)}: ${code(spec.type)}${required}${doc}`;
 }

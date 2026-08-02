@@ -6,7 +6,7 @@ import { join } from "node:path";
  * A Python that actually runs.
  *
  * On Windows the `python` on PATH is often the Microsoft Store's stub, which
- * prints an advert and exits — so a candidate only counts once it has answered
+ * prints an advert and exits, so a candidate only counts once it has answered
  * a trivial program.
  */
 export function findPython(): string | undefined {

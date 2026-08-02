@@ -24,7 +24,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     summary: "The module an `import` reads from: a relative path or a `#alias` from `venn.toml`.",
   },
   as: {
-    summary: "Rename what you just bound — a `use` namespace, a `repeat` index or a `run` result.",
+    summary: "Rename what you just bound, a `use` namespace, a `repeat` index or a `run` result.",
   },
   pub: {
     summary: "Export this declaration so other files may `import` it.",
@@ -40,7 +40,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
     example: 'step "Ping" {\n  const health = http.get "/health"\n  expect health.status == 200\n}',
   },
   group: {
-    summary: "Label a set of steps. Structure only — it changes no scope.",
+    summary: "Label a set of steps. Structure only, it changes no scope.",
     example: 'group "payment" {\n  step "Charge" { … }\n}',
   },
   fragment: {
@@ -49,12 +49,12 @@ const KEYWORDS: Record<string, KeywordDoc> = {
   },
   fn: {
     summary:
-      "A pure function returning a value — first-class, callable anywhere. `=> expr` for one line; a `{ … }` block returns its last expression. No steps, no I/O.",
+      "A pure function returning a value, first-class, callable anywhere. `=> expr` for one line; a `{ … }` block returns its last expression. No steps, no I/O.",
     example: "fn double(x) => x * 2\nconst add = fn (a, b) => a + b",
   },
   deco: {
     summary:
-      "Declare a decorator. The first parameter is the target, and the type written on it is what `@name` may sit on — `Fn`, `Flow`, `Step`, `Binding`, `Type`, or `Node` for anything. The parameters after it are the decorator's own arguments. The body runs before the program exists, so it is pure: no plugin verbs.",
+      "Declare a decorator. The first parameter is the target, and the type written on it is what `@name` may sit on, `Fn`, `Flow`, `Step`, `Binding`, `Type`, or `Node` for anything. The parameters after it are the decorator's own arguments. The body runs before the program exists, so it is pure: no plugin verbs.",
     example:
       'deco memoize(target: Fn) {\n  const cache = {}\n  target.wrap(fn (call, args) => cache.get(str(args)) ?? call(args))\n}\n\npub deco retry(target: Flow, times: number) {\n  target.meta "retry" times\n}',
   },
@@ -74,7 +74,7 @@ const KEYWORDS: Record<string, KeywordDoc> = {
   const: { summary: "Bind a value that cannot be reassigned.", example: "const retries = 3" },
   capture: {
     summary:
-      "Removed. It did exactly what `let` does — use `let` for a value that changes, `const` for one that does not.",
+      "Removed. It did exactly what `let` does, use `let` for a value that changes, `const` for one that does not.",
     example: "const orderId = order.json.id",
   },
   env: {

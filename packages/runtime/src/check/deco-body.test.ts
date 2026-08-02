@@ -32,7 +32,7 @@ const codes = (source: string): string[] => check(source).map((problem) => probl
  * author still has the file open.
  */
 describe("a deco body's calls", () => {
-  it("leaves a verb on the target alone — it is not an action anyone provides", () => {
+  it("leaves a verb on the target alone, it is not an action anyone provides", () => {
     const source = [
       "deco memoize(target: Fn) {",
       "  const cache = {}",

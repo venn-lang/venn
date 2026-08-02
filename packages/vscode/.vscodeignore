@@ -1,4 +1,4 @@
-# Only the bundle and the manifest ship — sources are already bundled into dist/.
+# Only the bundle and the manifest ship: sources are already bundled into dist/.
 src/**
 scripts/**
 tsconfig.json

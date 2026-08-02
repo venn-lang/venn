@@ -7,7 +7,7 @@ import { createRealArtifactStore } from "./real-store.js";
 
 artifactStoreConformance({ name: "memory", make: () => createMemoryArtifactStore() });
 
-it("the real store rejects — not implemented in this build (VN8090)", async () => {
+it("the real store rejects, not implemented in this build (VN8090)", async () => {
   const make = () => createRealArtifactStore().list();
   await expect(make()).rejects.toBeInstanceOf(VennError);
   await expect(make()).rejects.toMatchObject({ code: "VN8090" });

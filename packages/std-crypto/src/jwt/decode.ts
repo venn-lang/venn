@@ -34,5 +34,5 @@ function section(part: string | undefined, what: string): Record<string, unknown
 }
 
 function malformed(detail: string): VennError {
-  return new VennError({ code: PLUGIN_CODES.VN7003_UNREADABLE, message: `Not a JWT — ${detail}.` });
+  return new VennError({ code: PLUGIN_CODES.VN7003_UNREADABLE, message: `Not a JWT, ${detail}.` });
 }

@@ -39,7 +39,7 @@ describe("createShutdown", () => {
     expect(order).toEqual(["database"]);
   });
 
-  it("forgets what was unregistered — a file's server is not the run's", async () => {
+  it("forgets what was unregistered, a file's server is not the run's", async () => {
     const order: string[] = [];
     const shutdown = createShutdown();
     const forget = shutdown.add(() => void order.push("first file"));

@@ -97,7 +97,7 @@ const IMPURE_LET =
   "A decorator runs before the program exists, so this binding cannot call an action.";
 
 const UNSUPPORTED =
-  "A decorator body understands `let`, `const`, `if` and verbs on what it was given — this is none of them.";
+  "A decorator body understands `let`, `const`, `if` and verbs on what it was given, this is none of them.";
 
 /**
  * The one sentence for a verb a decorator cannot reach.

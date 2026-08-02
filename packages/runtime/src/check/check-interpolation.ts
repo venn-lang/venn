@@ -35,7 +35,7 @@ function unreadable(slot: InterpolationSlot, span: Span): Problem {
   return buildProblem({
     spec: CODES.VN1002_PARSE,
     span,
-    title: `Cannot read \`\${${slot.source}}\` — that is not an expression.`,
+    title: `Cannot read \`\${${slot.source}}\`, that is not an expression.`,
   });
 }
 

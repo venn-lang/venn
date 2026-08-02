@@ -23,17 +23,17 @@ export function preludeHover(name: string): string | undefined {
   return rule([
     fence(spec.signature),
     sections([spec.doc, argumentsBlock(spec.args), example(spec.example)]),
-    "**Prelude** — available without `use`.",
+    "**Prelude**: available without `use`.",
   ]);
 }
 
 /** One line per argument, laid out as an action's is; a verb is a verb. */
 function argumentsBlock(args: readonly PreludeArg[] | undefined): string | undefined {
   if (!args?.length) return undefined;
-  const lines = args.map((arg) => {
-    const doc = arg.doc ? ` — ${arg.doc}` : "";
-    return `- ${code(arg.name)}: ${code(arg.type)}${arg.optional ? " *(optional)*" : ""}${doc}`;
-  });
+  const lines = args.map(
+    (arg) =>
+      `- ${code(arg.name)}: ${code(arg.type)}${arg.optional ? " *(optional)*" : ""}. ${arg.doc}`,
+  );
   return labelled("Arguments", lines.join("\n"));
 }
 
@@ -72,7 +72,7 @@ export function memberHover(args: { receiver: Type; member: string }): string | 
   return rule([
     fence(`${kind}.${args.member}${shown}`),
     sections([doc.doc, example(doc.example)]),
-    `**Built in** — on every ${code(kind)}.`,
+    `**Built in**: on every ${code(kind)}.`,
   ]);
 }
 
@@ -97,7 +97,7 @@ function fieldHover(args: { receiver: Type; member: string }): string | undefine
 function shaping(type: Type): string | undefined {
   if (type.kind !== "dynamic") return undefined;
   return [
-    "**Shape it by naming one** — nothing can know what this holds, so say what you expect:",
+    "**Shape it by naming one**: nothing can know what this holds, so say what you expect:",
     fence("type Price { symbol: string, price: number }\nconst price: Price = res.json"),
     "From there it reads as a `Price`: members are offered, and a wrong one is an error.",
   ].join("\n\n");

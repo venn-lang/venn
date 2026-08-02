@@ -27,7 +27,12 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   if (ast.isRepeatStmt(stmt)) return repeatStep(stmt, scope, compile);
   if (ast.isLoopStmt(stmt)) return loopStep(stmt, scope, compile);
   if (ast.isBreakStmt(stmt)) return () => BROKE;
-  return () => WENT_ON;
+  if (ast.isContinueStmt(stmt)) return () => WENT_ON;
+  // Everything a pure body may hold is named above, and the grammar holds it to
+  // that at every depth. Anything else stands still rather than stopping the
+  // block: a statement nobody compiled must not be able to end the body, which
+  // is what made a verb inside an `if` answer `null` and print nothing.
+  return () => RAN;
 }
 
 /**

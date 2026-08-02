@@ -71,8 +71,21 @@ FnBody:
 
 /** What a pure function may do: bind, decide, loop, and give a value back. */
 FnStmt infers Statement:
-    LetStmt | AssignStmt | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
+    LetStmt | AssignStmt | FnIfStmt | FnForEachStmt | FnRepeatStmt | FnLoopStmt
   | ReturnStmt | BreakStmt | ContinueStmt;
+
+// A body is pure all the way down, so the blocks its statements hold are made of
+// `FnStmt` too. Written out rather than reusing `IfStmt` and the loops, because
+// those hold a `Block`, which is any `Statement` and so a verb: the purity said
+// at the top of the body was true of the top of the body only, and a `print` one
+// level in parsed, compiled to nothing, and stopped the body where it stood.
+FnBlock infers Block: '{' NL* (stmts+=FnStmt (NL+ stmts+=FnStmt)* NL*)? '}';
+
+FnIfStmt infers IfStmt: 'if' cond=Expr then=FnBlock ('else' otherwise=(FnIfStmt | FnBlock))?;
+FnForEachStmt infers ForEachStmt:
+    'forEach' (item=ID | pattern=ShapePattern) 'in' source=Expr (opts=MapLit)? body=FnBlock;
+FnRepeatStmt infers RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=FnBlock;
+FnLoopStmt infers LoopStmt: 'loop' (state=LoopState | cond=Expr)? body=FnBlock;
 
 // A decorator written in the language itself. The first parameter *is* the
 // target, and the type on it (`Fn`, `Flow`, `Step`, `Binding`, `Type`,

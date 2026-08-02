@@ -599,7 +599,7 @@ export interface IfStmt extends Declaration, Statement {
     readonly $container: IfStmt;
     readonly $type: 'IfStmt';
     cond: Expr;
-    otherwise?: ElseBranch;
+    otherwise?: Block | ElseBranch | IfStmt;
     then: Block;
 }
 

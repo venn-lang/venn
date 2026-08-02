@@ -429,6 +429,10 @@ gramática do corpo em vez de numa regra para lembrar: uma `fn` é pura, então 
 decide, liga, itera e devolve. O que alcança o mundo mora num `flow` ou num
 `fragment`.
 
+E vale em qualquer profundidade: os blocos que o `if` e os laços de um corpo
+puro seguram são feitos das mesmas declarações, então um verbo dentro de um `if`
+é o mesmo erro de sintaxe que um verbo na primeira linha do corpo.
+
 Um corpo é um escopo só. Um `let` dentro de um `if` é um nome da função, porque
 uma chamada tem um frame e não uma corrente deles.
 
@@ -2500,8 +2504,16 @@ FnBody:
 
 /** What a pure function may do: bind, decide, loop, and give a value back. */
 FnStmt infers Statement:
-    LetStmt | AssignStmt | IfStmt | ForEachStmt | RepeatStmt | LoopStmt
+    LetStmt | AssignStmt | FnIfStmt | FnForEachStmt | FnRepeatStmt | FnLoopStmt
   | ReturnStmt | BreakStmt | ContinueStmt;
+
+FnBlock infers Block: '{' NL* (stmts+=FnStmt (NL+ stmts+=FnStmt)* NL*)? '}';
+
+FnIfStmt infers IfStmt: 'if' cond=Expr then=FnBlock ('else' otherwise=(FnIfStmt | FnBlock))?;
+FnForEachStmt infers ForEachStmt:
+    'forEach' (item=ID | pattern=ShapePattern) 'in' source=Expr (opts=MapLit)? body=FnBlock;
+FnRepeatStmt infers RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=FnBlock;
+FnLoopStmt infers LoopStmt: 'loop' (state=LoopState | cond=Expr)? body=FnBlock;
 
 DecoDecl:
     (export?='pub')? 'deco' name=ID '(' (params=ParamList)? ')' body=Block;

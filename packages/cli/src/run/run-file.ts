@@ -5,7 +5,10 @@ import { createNodeServer } from "@venn-lang/http/node";
 import {
   buildRegistry,
   type CleanupSink,
+  checkDocument,
   checkImports,
+  collectFragments,
+  createDecoratorSource,
   createRunner,
   type EventSink,
   type ModuleIo,
@@ -85,6 +88,8 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
       })
     : [];
   if (bad.length > 0) return { problems: bad };
+  const refused = refusedBefore({ ast, args, registry, resolved });
+  if (refused.length > 0) return { problems: refused };
   const runner = createRunner({
     host: args.host,
     plugins: allPlugins,
@@ -114,4 +119,43 @@ function bindings(args: RunFileArgs) {
     { port: HttpServerPort, impl: args.httpServer ?? createNodeServer() },
     ...console,
   ];
+}
+
+/**
+ * What the document check refuses, before anything runs.
+ *
+ * `venn check` ran this and `venn run` did not, so a lint was something you only
+ * met if you happened to ask twice. `print { a: 1 }` was the worst of it: the
+ * check says the map was swallowed as an options block, and the run printed an
+ * empty line and said nothing.
+ *
+ * Errors only. A run already stops for a parse error and for an import that
+ * names nothing, and a lint error is the same thing said later: a line that
+ * cannot mean what it says. A warning or a hint is `venn check`'s business, and
+ * printing one on every run would teach people to stop reading them.
+ */
+function refusedBefore(input: {
+  ast: Parameters<typeof collectFragments>[0];
+  args: RunFileArgs;
+  registry: ReturnType<typeof buildRegistry>;
+  resolved: Awaited<ReturnType<typeof resolveImports>> | undefined;
+}): Problem[] {
+  const found = checkDocument({
+    document: input.ast,
+    registry: input.registry,
+    decorators: createDecoratorSource(allPlugins),
+    importedDecos: input.resolved?.decos.keys(),
+    fragments: reachable(input.ast, input.resolved),
+    env: input.args.env ? Object.keys(input.args.env) : undefined,
+    uri: input.args.uri,
+  });
+  return found.filter((problem) => problem.severity === "error");
+}
+
+/** Every fragment this file can call: its own, and the ones it imported. */
+function reachable(
+  ast: Parameters<typeof collectFragments>[0],
+  resolved: Awaited<ReturnType<typeof resolveImports>> | undefined,
+): Set<string> {
+  return new Set([...collectFragments(ast).keys(), ...(resolved?.fragments.keys() ?? [])]);
 }

@@ -41,12 +41,22 @@ export const CODES = {
   VN3021_NOT_A_PLACE: { code: "VN3021", severity: "error" },
   VN3022_RESERVED_CODE: { code: "VN3022", severity: "error" },
   VN5001_REMOVED_KEYWORD: { code: "VN5001", severity: "error" },
+  /**
+   * Retired: folded into VN5007, which says the same sentence about any verb
+   * rather than about three. Kept declared so the number is never reused for
+   * something else, since a code is meant to stay googlable after it stops
+   * being raised.
+   */
   VN5002_SWALLOWED_ARGUMENT: { code: "VN5002", severity: "error" },
   VN5003_DUPLICATE_KEY: { code: "VN5003", severity: "error" },
   VN5004_UNKNOWN_EVENT: { code: "VN5004", severity: "error" },
   VN5005_UNUSED_IMPORT: { code: "VN5005", severity: "hint" },
   /** `==` or `!=` between two lists or two maps: reference equality, always false. */
   VN5006_IDENTITY_COMPARISON: { code: "VN5006", severity: "error" },
+  /** A trailing map literal read as a verb's options block when it was meant as a value. */
+  VN5007_OPTIONS_NOT_A_VALUE: { code: "VN5007", severity: "error" },
+  /** `{ concurrency: n }` on a `forEach` inside a `fn`, where a pure body runs one pass at a time. */
+  VN5008_CONCURRENCY_IN_A_PURE_BODY: { code: "VN5008", severity: "error" },
   VN6001_ASSERTION_FAILED: { code: "VN6001", severity: "error" },
   VN7001_ACTION_FAILED: { code: "VN7001", severity: "error" },
   VN7004_HOOK_FAILED: { code: "VN7004", severity: "error" },

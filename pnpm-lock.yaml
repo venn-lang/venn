@@ -947,6 +947,9 @@ importers:
         specifier: workspace:*
         version: link:../std-ws
     devDependencies:
+      '@venn-lang/core':
+        specifier: workspace:*
+        version: link:../core
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)

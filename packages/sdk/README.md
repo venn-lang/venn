@@ -162,6 +162,7 @@ a free-form map, and nothing in it is unknown.
 | `config` | The document's evaluated `config { … }` block, for example `baseUrl`. |
 | `signal` | Aborted when a `race` this action runs inside has already been won. |
 | `log(message)` | One line into the host log. |
+| `show(value)` | The value as text, the way the language writes it. |
 | `invoke(fn, args)` | Call a function the flow passed in. The only way to run a language closure. |
 | `redact(value)` | Marks a string as secret. Present on the interface; the current runner binds it to a no-op. |
 
@@ -170,6 +171,25 @@ a free-form map, and nothing in it is unknown.
 ```ts
 server.onRequest((request) => ctx.invoke(handler, [request]));
 ```
+
+`show` is what makes a verb that writes agree with the rest of the language. Reach for it whenever a
+plugin turns a value into text for a person to read: a line on standard output, a label, a failure
+message. It is the one definition behind `print`, `str` and `"${…}"`, so a map reads
+`{ name: "ada" }`, a list `[1, 2]`, a duration `300ms`, and nothing ever reads as `[object Object]`.
+
+```ts
+run: (ctx, input) => ctx.port(ConsolePort).write(`${input.args.map((v) => ctx.show(v)).join(" ")}\n`),
+```
+
+The renderer itself lives in `@venn-lang/core`, which a plugin may not depend on, so the runtime
+passes it in. That is the whole reason `show` is on the context and not an import: the alternative is
+a plugin writing a renderer of its own, and two renderers disagree the moment one of them learns
+about a value the other has not met. It is **required**, not optional, for the same reason. An
+optional member reads as an invitation to write a fallback, and the fallback is the second
+definition.
+
+A format is not the same thing. `fmt.json`, `fmt.csv` and `fmt.yaml` answer to a specification
+outside this language and keep their own writers; `show` is for the language's own voice.
 
 ## Matchers
 

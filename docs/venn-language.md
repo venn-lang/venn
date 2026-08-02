@@ -1685,16 +1685,20 @@ tipo: cada um é uma linha que se lê como uma coisa e faz outra.
 | Código | O quê |
 | --- | --- |
 | `VN5001` | Palavra que a linguagem já não tem: `while`, `capture` |
-| `VN5002` | Verbo cujo argumento não lhe chegou: `print { a: 1 }` imprime uma linha vazia |
 | `VN5003` | Chave repetida num mapa: a segunda ganha, em silêncio |
 | `VN5004` | Evento que nada dispara: `on banana { … }` |
 | `VN5005` | Nome importado e nunca lido (dica, não erro) |
+| `VN5006` | Duas listas ou dois mapas comparados com `==`, que é identidade |
+| `VN5007` | Verbo sem opções cujo argumento virou opções: `print { a: 1 }` |
+| `VN5008` | `concurrency` num `forEach` dentro de uma `fn`, onde não tem efeito |
 
-O `VN5002` é o mais afiado, porque a regra por trás dele é deliberada: um
+O `VN5007` é o mais afiado, porque a regra por trás dele é deliberada: um
 `{ … }` no fim de um verbo é sempre as opções dele, e é isso que permite
 escrever `http.get "/x" { headers }` sem parênteses. O preço é `print { a: 1 }`,
-que se lê exatamente como o que a pessoa queria e imprime uma linha vazia. Uma
-regra que ninguém conta no momento em que se tropeça nela é uma armadilha.
+que se lê exatamente como o que a pessoa queria e imprimia uma linha vazia. Uma
+regra que ninguém conta no momento em que se tropeça nela é uma armadilha, e por
+isso qualquer verbo que não declare esquema de opções recusa a forma em vez de
+engolir o valor. Ponha-o entre parênteses e ele volta a ser um argumento.
 
 O `VN5005` é dica e não erro de propósito: é desarrumação, não erro, e um
 `venn check` que reprova por causa dela é um `venn check` que se deixa de

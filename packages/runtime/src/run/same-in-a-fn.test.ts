@@ -3,7 +3,10 @@ import { createTestHost } from "@venn-lang/contracts";
 import { type ProblemError, parse } from "@venn-lang/core";
 import { defineAction, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
+import { checkDocument } from "../check/index.js";
 import { createMemorySink } from "../eventsink/index.js";
+import { buildRegistry } from "../registry/index.js";
+import { collectFragments } from "../scheduler/index.js";
 import { createRunner } from "./create-runner.js";
 
 const NEWLINE = String.fromCharCode(10);
@@ -84,6 +87,25 @@ async function refusalOf(source: string): Promise<Refusal> {
     return { code, title, help, column: span.column };
   }
   throw new Error(`Expected this to be refused, and it was not:\n${source}`);
+}
+
+/**
+ * What `venn check` says about a script, without running it.
+ *
+ * Registers and imports the same `io` plugin `runScript` binds without asking
+ * a document to declare, so `io.print` resolves here exactly as it does
+ * there and the only difference between the two is the one under test.
+ */
+function checkedCodes(source: string): string[] {
+  const withImport = `import { io } from "@t/io"\n${source}\n`;
+  const document = parse(withImport).ast;
+  const registry = buildRegistry({ plugins: [recorder([])], caps: createTestHost().caps });
+  const problems = checkDocument({
+    document,
+    registry,
+    fragments: new Set(collectFragments(document).keys()),
+  });
+  return problems.map((one) => one.code);
 }
 
 /**
@@ -291,6 +313,25 @@ describe("a loop written in a fn and the same loop written at the top of a file"
 
     expect(inFn).toEqual(top);
     expect(top.help).toBe("Name the list inside it, as in `forEach item in res.data`.");
+  });
+
+  /**
+   * `{ concurrency: n }` on a `forEach`, which does the same thing in both
+   * places until the loop is inside a `fn`: a compiled body has no scheduler to
+   * ask for a pass out of order, so the option is powerless where a `fn` reads
+   * it. This one is not a runtime refusal, since nothing has to run for it to be
+   * true, so it is checked statically rather than compared through `runScript`.
+   */
+  it("honours the concurrency a forEach at the top of a file asks for", async () => {
+    const body = 'forEach x in [1, 2] { concurrency: 2 } {\nseen = "${seen}${x} "\n}';
+
+    expect(checkedCodes(atTop(body))).toEqual([]);
+  });
+
+  it("says a forEach inside a fn cannot honour it, where the option is written", () => {
+    const body = 'forEach x in [1, 2] { concurrency: 2 } {\nseen = "${seen}${x} "\n}';
+
+    expect(checkedCodes(inAFn(body))).toEqual(["VN5008"]);
   });
 });
 

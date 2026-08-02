@@ -13,7 +13,10 @@ async function run(args: {
 }): Promise<unknown> {
   const found = actions.find((candidate) => candidate.name === args.name);
   if (!found) throw new Error(`io.${args.name} is not a verb`);
-  const ctx = { port: () => args.console } as unknown as ActionContext;
+  const ctx = {
+    port: () => args.console,
+    show: (value: unknown) => String(value),
+  } as unknown as ActionContext;
   return found.run(ctx, { args: args.args ?? [], params: {} });
 }
 
@@ -40,6 +43,19 @@ describe("asking the terminal about itself", () => {
     const console = createMemoryConsole({ terminal: ["out"] });
 
     expect(await run({ name: "isTerminal", console, args: [] })).toBe(true);
+  });
+
+  /**
+   * A question with nothing in it writes nothing, rather than the word for
+   * nothing. `io.ask()` with no argument is a bare prompt, and `undefined` on
+   * the terminal would be the language talking to itself.
+   */
+  it("writes no question when it was given none", async () => {
+    const console = createMemoryConsole();
+
+    await run({ name: "ask", console, args: [] });
+
+    expect(console.out).toBe("");
   });
 });
 

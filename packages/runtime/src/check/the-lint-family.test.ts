@@ -180,6 +180,21 @@ describe("a name brought in and never read", () => {
   });
 });
 
+/**
+ * `capture`, which is `let` under an older name.
+ *
+ * It keeps its rule in the grammar so that it reaches this message rather than
+ * a parse error about a token nobody expected.
+ */
+describe("a word the language used to have", () => {
+  it("says what became of `capture`, and what to write", () => {
+    const found = problems("capture x = 1", "print x")[0];
+
+    expect(found?.code).toBe("VN5001");
+    expect(found?.title).toContain("use `let` for a value that changes");
+  });
+});
+
 /** A hint under an error is a hint nobody reads first. */
 describe("the order they are reported in", () => {
   it("puts what stops the run before what merely reads badly", () => {

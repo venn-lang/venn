@@ -30,10 +30,10 @@ export function preludeHover(name: string): string | undefined {
 /** One line per argument, laid out as an action's is; a verb is a verb. */
 function argumentsBlock(args: readonly PreludeArg[] | undefined): string | undefined {
   if (!args?.length) return undefined;
-  const lines = args.map((arg) => {
-    const doc = arg.doc ? `. ${arg.doc}` : "";
-    return `- ${code(arg.name)}: ${code(arg.type)}${arg.optional ? " *(optional)*" : ""}${doc}`;
-  });
+  const lines = args.map(
+    (arg) =>
+      `- ${code(arg.name)}: ${code(arg.type)}${arg.optional ? " *(optional)*" : ""}. ${arg.doc}`,
+  );
   return labelled("Arguments", lines.join("\n"));
 }
 

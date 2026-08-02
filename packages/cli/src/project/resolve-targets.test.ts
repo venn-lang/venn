@@ -128,3 +128,24 @@ describe("what a command with no path acts on", () => {
     expect(found.paths[0]?.endsWith("dois.vn")).toBe(true);
   });
 });
+
+/**
+ * A package with no program in it.
+ *
+ * `venn run` in a folder that has a `venn.toml` and no `src/main.vn` is
+ * somebody in the wrong directory, and what they need is the path that was
+ * looked for rather than an empty list.
+ */
+describe("a package with nothing to run", () => {
+  it("says which file it looked for", async () => {
+    const root = await projectOf({
+      "venn.toml": '[package]\nname = "quiet"\n',
+      "tests/one.vn": 'flow "s" { step "t" { expect true } }\n',
+    });
+
+    const found = await resolveTargets({ kind: "run", cwd: root });
+
+    expect(found.paths).toEqual([]);
+    expect(found.problem).toContain("src/main.vn");
+  });
+});

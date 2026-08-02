@@ -1,6 +1,6 @@
 import type { ZodType } from "zod";
 import type { ArgSpec } from "../schema/args.types.js";
-import type { MatcherArgs } from "./context.types.js";
+import type { MatcherArgs, MatcherContext } from "./context.types.js";
 
 /**
  * The two sides a matcher compared, as values. The kernel turns them into the
@@ -37,7 +37,7 @@ export interface MatcherDefinition {
    */
   args?: readonly ArgSpec[];
   test(args: MatcherArgs<unknown>): boolean | Promise<boolean>;
-  message(args: MatcherArgs<unknown>): string;
+  message(args: MatcherArgs<unknown>, ctx: MatcherContext): string;
   /** What the one-line message summarises. Omit it and the failure has no body. */
-  detail?(args: MatcherArgs<unknown>): MatcherDetail;
+  detail?(args: MatcherArgs<unknown>, ctx: MatcherContext): MatcherDetail;
 }

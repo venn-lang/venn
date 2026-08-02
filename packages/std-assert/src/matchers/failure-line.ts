@@ -1,55 +1,43 @@
-/** A failure title is one line. Past this, a value is summarised instead. */
+/** A failure title is one line. Past this, a value is cut short. */
 const LIMIT = 44;
 
 /**
  * Builds the line a failure leads with: `expected <subject> <relation> <other>`.
  *
- * Both sides render to the same level of detail: one spelled out next to one
- * summarised reads as a reporter glitch rather than a comparison. Nothing is
- * lost, the full values travel in the problem's diff.
+ * The values are written by `show`, the language's one renderer, so a red check
+ * and a `print` of the same value agree about what it looks like. What this file
+ * decides is width, not shape: a title is one line, so a value past the budget is
+ * cut where it stands rather than rewritten into prose. Nothing is lost, the full
+ * values travel in the problem's diff.
+ *
+ * @param args The subject, how the matcher relates it to the other side, that
+ * other side, and the renderer the runtime handed the matcher (`ctx.show`).
+ * @returns The one-line title, each side at most a line's worth.
  */
-export function failureLine(args: { subject: unknown; relation: string; other: unknown }): string {
-  const [left, right] = pair(args.subject, args.other);
+export function failureLine(args: {
+  subject: unknown;
+  relation: string;
+  other: unknown;
+  show: (value: unknown) => string;
+}): string {
+  const left = side(args.subject, args.show);
+  const right = side(args.other, args.show);
   return `expected ${left} ${args.relation} ${right}`;
 }
 
-function pair(subject: unknown, other: unknown): [string, string] {
-  const left = render(subject);
-  const right = render(other);
-  if (left.length <= LIMIT && right.length <= LIMIT) return [left, right];
-  return [summarize(subject), summarize(other)];
+/**
+ * One side of the line: written, then fitted.
+ *
+ * A string is quoted, the one thing `show` answers differently. A value on its
+ * own reads bare, so that `print name` gives `ada` rather than `"ada"`, while a
+ * value standing among others is quoted, and a side of a comparison stands among
+ * others. Bare here, `expect "200" equals 200` would fail with
+ * `expected 200 to equal 200`, a line nobody can act on.
+ */
+function side(value: unknown, show: (value: unknown) => string): string {
+  return fit(typeof value === "string" ? JSON.stringify(value) : show(value));
 }
 
-/** Strings quoted, maps and lists as compact JSON. Never `[object Object]`. */
-function render(value: unknown): string {
-  if (value === undefined) return "absent";
-  if (value === null) return "null";
-  if (typeof value === "function") return "fn";
-  if (typeof value === "string") return JSON.stringify(value);
-  if (typeof value !== "object") return String(value);
-  return json(value);
-}
-
-function summarize(value: unknown): string {
-  if (typeof value === "string") return `${JSON.stringify(value.slice(0, LIMIT))}…`;
-  if (typeof value === "object" && value !== null) return shapeOf(value);
-  return render(value);
-}
-
-function shapeOf(value: object): string {
-  if (Array.isArray(value)) return `a list of ${value.length} ${plural("item", value.length)}`;
-  const count = Object.keys(value).length;
-  return `a map with ${count} ${plural("field", count)}`;
-}
-
-function json(value: object): string {
-  try {
-    return JSON.stringify(value) ?? shapeOf(value);
-  } catch {
-    return shapeOf(value);
-  }
-}
-
-function plural(noun: string, count: number): string {
-  return count === 1 ? noun : `${noun}s`;
+function fit(text: string): string {
+  return text.length <= LIMIT ? text : `${text.slice(0, LIMIT)}…`;
 }

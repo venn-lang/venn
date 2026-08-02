@@ -186,7 +186,8 @@ passes it in. That is the whole reason `show` is on the context and not an impor
 a plugin writing a renderer of its own, and two renderers disagree the moment one of them learns
 about a value the other has not met. It is **required**, not optional, for the same reason. An
 optional member reads as an invitation to write a fallback, and the fallback is the second
-definition.
+definition. A matcher's context carries the same `show`, on the same terms; see
+[Matchers](#matchers).
 
 A format is not the same thing. `fmt.json`, `fmt.csv` and `fmt.yaml` answer to a specification
 outside this language and keep their own writers; `show` is for the language's own voice.
@@ -204,10 +205,26 @@ export const contains: MatcherDefinition = defineMatcher({
   name: "contains",
   args: [arg("value", t.dynamic, "What to look for: a substring, or an item of the list.")],
   test: ({ subject, args }) => includes(subject, args[0]),
-  message: ({ subject, args }) => failureLine({ subject, relation: "to contain", other: args[0] }),
+  message: ({ subject, args }, { show }) =>
+    failureLine({ subject, relation: "to contain", other: args[0], show }),
   detail: ({ subject, args }) => ({ expected: args[0], actual: subject, aligned: false }),
 });
 ```
+
+`message` and `detail` get a second argument, the `MatcherContext`:
+
+| Member | Meaning |
+| --- | --- |
+| `log(message)` | One line into the host log. |
+| `show(value)` | The value as text, the way the language writes it. |
+
+It is the same `show` an action's context carries, handed over by the same runtime for the same
+reason, and **required** for the same reason: a failure title is the place a reader least deserves a
+second answer about what a value looks like. Write the values of a failure with it and a red check
+agrees with the `print` on the line above.
+
+`test` does not get the context. A verdict is reached by comparing values, and a matcher holding a
+renderer while deciding one is a matcher that can compare their text instead.
 
 Matcher options are validated exactly like an action's, with the same codes and the same words.
 

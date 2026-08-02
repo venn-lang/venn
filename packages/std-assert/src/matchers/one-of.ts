@@ -8,8 +8,8 @@ export const oneOf: MatcherDefinition = defineMatcher({
   name: "oneOf",
   args: [arg("values", t.list(t.dynamic), "The accepted values. The subject must be one of them.")],
   test: ({ subject, args }) => options(args[0]).some((option) => deepEquals(option, subject)),
-  message: ({ subject, args }) =>
-    failureLine({ subject, relation: "to be one of", other: args[0] }),
+  message: ({ subject, args }, { show }) =>
+    failureLine({ subject, relation: "to be one of", other: args[0], show }),
   // The subject is held against every option, never against one by position.
   detail: ({ subject, args }) => ({ expected: args[0], actual: subject, aligned: false }),
 });

@@ -41,9 +41,29 @@ export interface ActionContext {
   invoke(fn: unknown, args: readonly unknown[]): unknown;
 }
 
-/** What a matcher's `test`/`message` may use. */
+/**
+ * What a matcher is handed when it puts a failure into words.
+ *
+ * It reaches `message` and `detail`, the two hooks that produce text, and not
+ * `test`: a verdict is reached by comparing values, and a matcher holding a
+ * renderer while deciding one is a matcher that can compare their text instead.
+ */
 export interface MatcherContext {
   log(message: string): void;
+  /**
+   * Write a value out the way the language itself writes it: the one definition
+   * behind `print`, `str` and `"${…}"`.
+   *
+   * Required, not optional, for the reason it is required on
+   * {@link ActionContext}: a failure message is the place a reader least
+   * deserves a second answer about what a value looks like, and an optional
+   * member reads as an invitation to write the fallback that becomes one.
+   *
+   * @param value Either side of the comparison the matcher made.
+   * @returns Its text. A map reads `{ name: "ada" }`, a list `[1, 2]`, a
+   * duration `300ms`, and nothing ever reads as `[object Object]`.
+   */
+  show(value: unknown): string;
 }
 
 /** The evaluated inputs handed to an action: positional args + validated opts. */

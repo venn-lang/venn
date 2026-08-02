@@ -244,6 +244,11 @@ string literals.
 `[1, 2]`, a map as `{ hits: 0, name: "ada" }`, a moment as its ISO text, a unit keeping its unit, and
 nothing at all for `null`. No value can read as `[object Object]`.
 
+`displayValue(value)` is the same definition for `print` and `str`, which is why `print x` and
+`"${x}"` cannot disagree about the same value. One rule differs, and only at the top: nothing reads
+as `null`, because `print x` asked what `x` is and deserves an answer, while `add ${name}` with no
+name reads better as `add ` than as `add null`.
+
 ### Formatting
 
 ```ts

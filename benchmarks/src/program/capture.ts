@@ -9,7 +9,7 @@ export interface Capture {
 /**
  * The console is bound once, when the runner is built, but each run needs its
  * own output. Reading the transcript's tail gives that without rebuilding the
- * runner — which would put registry setup inside the measurement.
+ * runner, which would put registry setup inside the measurement.
  */
 export function capture(): Capture {
   const memory = createMemoryConsole();

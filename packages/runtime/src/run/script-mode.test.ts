@@ -56,7 +56,7 @@ if 1 < 2 { io.print "yes" }`);
     expect(out).toEqual(["hi world"]);
   });
 
-  it("does not run a `flow` — declarations only run when called", async () => {
+  it("does not run a `flow`, declarations only run when called", async () => {
     const out = await runScript(`
 io.print "top"
 flow "not run" { step "s" { io.print "inside flow" } }`);

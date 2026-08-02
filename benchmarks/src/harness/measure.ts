@@ -22,7 +22,7 @@ export interface MeasureArgs {
  *
  * A thunk whose value nobody reads is a thunk an optimiser may delete. JSC does
  * exactly that: under Bun the TypeScript twins first measured five to ten times
- * faster than under Node, which is not an engine being better — it is a loop
+ * faster than under Node, which is not an engine being better, it is a loop
  * that never ran. Keeping the last value in a binding the module exports puts
  * it beyond the optimiser's reach.
  */

@@ -33,7 +33,7 @@ const LIST: Record<string, MemberDoc> = {
   sort: { doc: "Sorted by a comparator. For a key, `sortBy` reads better." },
   slice: { doc: "The items between two positions." },
   concat: { doc: "This list followed by another." },
-  push: { doc: "A new list with the item appended — the original is untouched." },
+  push: { doc: "A new list with the item appended, the original is untouched." },
   sum: { doc: "The numbers added up." },
   average: { doc: "The mean of the numbers, or 0 when empty." },
   min: { doc: "The smallest number." },
@@ -57,7 +57,7 @@ const LIST: Record<string, MemberDoc> = {
     example: "people.groupBy(fn (p) => p.team)",
   },
   countBy: { doc: "A map from key to how many items share it." },
-  keyBy: { doc: "A map from key to item — an index, last one wins." },
+  keyBy: { doc: "A map from key to item, an index, last one wins." },
   partition: { doc: "Two lists: what the function kept, and what it rejected." },
   chunk: { doc: "Split into runs of n.", example: "[1,2,3,4,5].chunk(2)  # [[1,2],[3,4],[5]]" },
   windows: { doc: "Every consecutive run of n.", example: "[1,2,3].windows(2)  # [[1,2],[2,3]]" },
@@ -184,7 +184,7 @@ const TASK: Record<string, MemberDoc> = {
   wait: { doc: "The value, once the work has finished.", example: "let page = job.wait" },
   done: { doc: "True once it has finished, either way." },
   failed: { doc: "True when it finished by failing." },
-  settle: { doc: "Wait without the failure spreading — the value, or nothing." },
+  settle: { doc: "Wait without the failure spreading, the value, or nothing." },
 };
 
 /** Documentation for every built-in member, by the kind of value it hangs off. */

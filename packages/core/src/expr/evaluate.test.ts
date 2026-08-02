@@ -46,7 +46,7 @@ describe("evaluate", () => {
   it("interpolates placeholders in strings", () => {
     const env = withRes({ email: "a@b.com", total: 99 });
     // biome-ignore lint/suspicious/noTemplateCurlyInString: Venn interpolation source under test
-    expect(evaluate(subjectExpr('"hi ${res.email} — ${res.total}"'), env)).toBe("hi a@b.com — 99");
+    expect(evaluate(subjectExpr('"hi ${res.email}, ${res.total}"'), env)).toBe("hi a@b.com, 99");
   });
 
   it("matches with the ~= operator", () => {

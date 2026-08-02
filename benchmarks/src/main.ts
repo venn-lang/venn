@@ -42,7 +42,7 @@ async function main(): Promise<void> {
 }
 
 /**
- * Langium builds its lexer and parser on first use — some 60 ms, paid once per
+ * Langium builds its lexer and parser on first use, some 60 ms, paid once per
  * process. Measured as part of the first case it would read as that case's
  * compile time, which it is not.
  */

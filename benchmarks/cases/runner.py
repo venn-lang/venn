@@ -1,6 +1,6 @@
 """Time the Python twins the same way the JavaScript harness times its own.
 
-Warmup, then repetitions, reported as the median — and every result is kept, so
+Warmup, then repetitions, reported as the median, and every result is kept, so
 nothing measured here can be optimised away as dead.
 
     python cases/runner.py

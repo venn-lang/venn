@@ -38,7 +38,7 @@ function header(width, height) {
   return chunk("IHDR", data);
 }
 
-/** Scanlines with filter byte 0 — the image is flat colour, so none pays off. */
+/** Scanlines with filter byte 0, the image is flat colour, so none pays off. */
 function scanlines(rgb, width, height) {
   const rows = [];
   for (let y = 0; y < height; y++) {

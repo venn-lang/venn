@@ -7,7 +7,7 @@ const CASES = resolve(import.meta.dirname, "../../cases");
 /**
  * The same workloads, timed by Python itself.
  *
- * Python does its own warmup, repetitions and median inside `runner.py` — the
+ * Python does its own warmup, repetitions and median inside `runner.py`, the
  * numbers come back already summarised, because timing an interpreter from
  * outside its process would measure the process instead.
  */

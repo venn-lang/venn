@@ -3,7 +3,7 @@ import { branchCount, counter, fib, loop, pipeline, records, reduceSum, strings 
 
 /**
  * Every workload, sized so one repetition takes tens of milliseconds on the
- * Venn side — long enough that the clock's resolution does not matter, short
+ * Venn side, long enough that the clock's resolution does not matter, short
  * enough that the whole suite finishes in under a minute.
  */
 export const CASES: readonly BenchCase[] = [

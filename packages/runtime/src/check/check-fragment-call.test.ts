@@ -55,7 +55,7 @@ describe("calling a fragment for a value", () => {
     expect(found[0]?.note).toContain("run entrar(");
   });
 
-  it("leaves `run` alone — that is how a fragment is invoked", () => {
+  it("leaves `run` alone, that is how a fragment is invoked", () => {
     expect(problems('flow "f" { run entrar("ada") }')).toEqual([]);
   });
 

@@ -119,7 +119,7 @@ describe("an option key the schema never declared", () => {
     );
   });
 
-  it("leaves a free-form map alone — a schema with no keys declares none", async () => {
+  it("leaves a free-form map alone, a schema with no keys declares none", async () => {
     const { seen, problem } = await attempt(source('t.call "x" { whatever: 1 }'));
 
     expect(problem).toBeUndefined();
@@ -150,7 +150,7 @@ describe("an option value the schema rejects", () => {
     const { problem } = await attempt(source('t.hash "abc" { algorithm: "sha5" }'));
 
     expect(problem?.code).toBe("VN3010");
-    expect(problem?.title).toBe('"algorithm" must be one of "sha1", "sha256" — not "sha5".');
+    expect(problem?.title).toBe('"algorithm" must be one of "sha1", "sha256", not "sha5".');
     expect(problem?.title).not.toContain("\n");
   });
 

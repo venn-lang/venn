@@ -18,7 +18,7 @@ function childrenOf(spec: TypeSpec): readonly TypeSpec[] {
 }
 
 describe("ws signatures", () => {
-  it("types every verb — a call with no signature stays dynamic", () => {
+  it("types every verb, a call with no signature stays dynamic", () => {
     const untyped = wsActions.filter((action) => !action.signature).map((a) => a.name);
 
     expect(untyped).toEqual([]);

@@ -64,7 +64,7 @@ function docFor(shape: CallShape, index: number): string | undefined {
 
 function optionLine(spec: ParamSpec): string {
   const required = spec.required ? " *(required)*" : "";
-  const doc = spec.doc ? ` — ${spec.doc}` : "";
+  const doc = spec.doc ? `, ${spec.doc}` : "";
   return `- \`${spec.name}\`: \`${spec.type}\`${required}${doc}`;
 }
 

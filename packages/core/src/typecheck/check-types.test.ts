@@ -50,7 +50,7 @@ describe("type inference", () => {
     ).toEqual([]);
   });
 
-  it("leaves the dynamic world alone — a plugin result never errors", () => {
+  it("leaves the dynamic world alone, a plugin result never errors", () => {
     // `http.get` and `res` are unknown to the checker, so they are dynamic.
     expect(check("const res = http.get 'https://x'\nconst n = res.status + 1")).toEqual([]);
   });

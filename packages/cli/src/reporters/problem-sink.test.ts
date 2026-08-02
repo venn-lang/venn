@@ -43,7 +43,7 @@ describe("createProblemSink", () => {
     expect(output).toContain("app.vn:1:1");
   });
 
-  it("leaves the rest of the stream alone — the program owns its output", () => {
+  it("leaves the rest of the stream alone, the program owns its output", () => {
     const output = capture((sink) => {
       sink.emit(envelope("log", { level: "info", message: "hello" }));
       sink.emit(envelope("run.finished", { passed: 1, failed: 0, durationMs: 1 }));

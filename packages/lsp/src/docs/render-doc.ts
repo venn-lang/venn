@@ -19,7 +19,7 @@ export function renderDoc(doc: DocBlock | undefined): string | undefined {
 }
 
 function deprecatedLine(deprecated: string | undefined): string | undefined {
-  return deprecated && `⚠️ **Deprecated** — ${deprecated}`;
+  return deprecated && `⚠️ **Deprecated**, ${deprecated}`;
 }
 
 function paramsSection(params: readonly DocParam[]): string | undefined {
@@ -29,11 +29,11 @@ function paramsSection(params: readonly DocParam[]): string | undefined {
 }
 
 function suffix(text: string): string {
-  return text ? ` — ${text}` : "";
+  return text ? `, ${text}` : "";
 }
 
 function returnsLine(returns: string | undefined): string | undefined {
-  return returns && `**Returns** — ${returns}`;
+  return returns && `**Returns**, ${returns}`;
 }
 
 function examplesSection(examples: readonly string[]): string | undefined {

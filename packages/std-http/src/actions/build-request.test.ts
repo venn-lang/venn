@@ -39,7 +39,7 @@ describe("buildRequest", () => {
     expect(request.headers?.["Content-Type"]).toBeUndefined();
   });
 
-  it("url-encodes the body when asked — the shape OAuth token endpoints want", () => {
+  it("url-encodes the body when asked, the shape OAuth token endpoints want", () => {
     const request = buildRequest({
       ...base,
       params: { body: { grant_type: "password", username: "a b" }, encode: "form" },

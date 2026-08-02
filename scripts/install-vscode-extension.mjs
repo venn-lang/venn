@@ -1,6 +1,6 @@
 // Install (or refresh) the Venn extension in the locally installed VS Code.
 //
-// VS Code keeps an index of installed extensions (`extensions.json`) — copying a
+// VS Code keeps an index of installed extensions (`extensions.json`), copying a
 // folder into `extensions/` is silently ignored. So we package a `.vsix` and let
 // the `code` CLI register it properly. Re-running replaces the previous build;
 // reload the window afterwards to pick it up.
@@ -43,7 +43,7 @@ function install() {
 requireCodeCli();
 if (process.argv.includes("--remove")) {
   run(`code --uninstall-extension ${ID}`, { tolerant: true });
-  console.log(`removed ${ID} — reload VS Code to finish.`);
+  console.log(`removed ${ID}, reload VS Code to finish.`);
 } else {
   install();
 }

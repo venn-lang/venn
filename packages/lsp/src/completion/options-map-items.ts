@@ -23,7 +23,7 @@ function wholeMap(options: readonly ParamSpec[], range: Range): CompletionItem {
   return {
     label: "{ … }",
     kind: ICON.key,
-    detail: `options of this call — ${options.map((spec) => spec.name).join(", ")}`,
+    detail: `options of this call, ${options.map((spec) => spec.name).join(", ")}`,
     insertText: `{ ${inner} }`,
     insertTextFormat: InsertTextFormat.Snippet,
     textEdit: { range, newText: `{ ${inner} }` },

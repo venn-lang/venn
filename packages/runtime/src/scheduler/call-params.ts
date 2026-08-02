@@ -113,7 +113,7 @@ function title(args: { key: string; issue: Issue; value: unknown }): string {
 /** `{ algorithm: "sha5" }` against a schema that lists the digests it knows. */
 function oneOf(key: string, values: readonly unknown[], value: unknown): string {
   const accepted = values.map((option) => shown(option)).join(", ");
-  return `"${key}" must be one of ${accepted} — not ${shown(value)}.`;
+  return `"${key}" must be one of ${accepted}, not ${shown(value)}.`;
 }
 
 /** A value as a message shows it: strings quoted, so `"soon"` reads as text. */

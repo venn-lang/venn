@@ -22,7 +22,7 @@ function refsIn(spec: TypeSpec): string[] {
 }
 
 describe("load signatures", () => {
-  it("types every verb — a namespace types all of itself or none of it", () => {
+  it("types every verb, a namespace types all of itself or none of it", () => {
     const untyped = loadActions.filter((action) => !action.signature);
 
     expect(untyped.map((action) => action.name)).toEqual([]);

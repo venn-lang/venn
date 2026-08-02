@@ -7,7 +7,7 @@ import { encodePng } from "./png.mjs";
  *
  * The same construction as the identity: two circles of equal radius whose
  * centres sit slightly more than one radius apart, drawn at partial opacity so
- * the lens where they meet is not a third shape someone had to draw — it is
+ * the lens where they meet is not a third shape someone had to draw, it is
  * what overlap does on its own. That is the whole argument of the name, and it
  * has to survive being 32 pixels wide in a sidebar, which is why nothing else
  * is in the frame.

@@ -87,7 +87,7 @@ function renderBinding(args: {
  */
 function waited(waits: boolean): string | undefined {
   if (!waits) return undefined;
-  return "**Waits** — it reaches for a plugin verb, so it hands back a value that is still arriving. Anything that binds it with `let` gets the value.";
+  return "**Waits**, it reaches for a plugin verb, so it hands back a value that is still arriving. Anything that binds it with `let` gets the value.";
 }
 
 function declaredName(node: AstNode): string | undefined {
@@ -130,7 +130,7 @@ function waiting(type: string | undefined, waits: boolean): string | undefined {
 function paramOwner(param: AstNode): string {
   const owner = param.$container?.$container;
   if (isFnDecl(owner)) return "Parameter of this `fn`.";
-  if (isFnExpr(owner)) return "Parameter of this function — typed by where it is called.";
+  if (isFnExpr(owner)) return "Parameter of this function, typed by where it is called.";
   if (isDecoDecl(owner)) return decoParam(param);
   return "Fragment parameter.";
 }
@@ -139,7 +139,7 @@ function paramOwner(param: AstNode): string {
 function decoParam(param: AstNode): string {
   const list = param.$container as ParamList | undefined;
   if (list?.params[0] !== param) return "Argument of this decorator, filled by `@name(…)`.";
-  return "What this decorator decorates — its type is the kind it may be written on.";
+  return "What this decorator decorates, its type is the kind it may be written on.";
 }
 
 function describe(binding: AstNode): string | undefined {

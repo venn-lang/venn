@@ -44,9 +44,10 @@ export interface RunFileArgs {
   /**
    * The variables the project declares, as `venn check` and the editor see them.
    *
-   * Absent where the caller injected an environment of its own and is therefore
-   * the declaration: an embedder with no manifest has nothing else to compare a
-   * read against.
+   * Absent means unknown, and then no `env.*` read is refused: that error is
+   * only worth raising when the list is trustworthy. Never derived from `env`
+   * below, which holds what a run resolved rather than what a project declared,
+   * and deriving it is how three commands came to give three verdicts.
    */
   declared?: readonly string[];
   io?: ModuleIo;
@@ -123,7 +124,7 @@ function inputsFor(pass: Pass): AnalyzeArgs {
     graph: pass.graph ?? NOTHING_IMPORTED,
     decos: resolved?.decos ?? new Map(),
     fragments: reachable(pass),
-    env: args.declared ?? (args.env ? Object.keys(args.env) : undefined),
+    env: args.declared,
     // Nothing yet: what an installed package publishes is read from `target/`,
     // which `venn check` does and a run has never needed.
     packages: new Map(),

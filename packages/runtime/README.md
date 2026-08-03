@@ -1,10 +1,12 @@
 # @venn-lang/runtime
 
-> Executes a parsed Venn document: the scheduler, the plugin registry, the event stream.
+> Checks and executes a parsed Venn document: the front end, the scheduler, the plugin registry, the
+> event stream.
 
-`@venn-lang/core` turns source into an AST. This package walks it. It builds the registry of verbs the
-loaded plugins contribute, expands decorators, opens the scopes, runs flows and steps in the order
-the language says, and emits one ordered stream of envelopes describing what happened.
+`@venn-lang/core` turns source into an AST. This package checks it and walks it. It builds the
+registry of verbs the loaded plugins contribute, runs every static pass over a file behind one
+`analyze`, expands decorators, opens the scopes, runs flows and steps in the order the language says,
+and emits one ordered stream of envelopes describing what happened.
 
 It performs no I/O of its own. Every effect leaves through a port the host bound at startup, so the
 package never imports `node:*` and runs unchanged in a Web Worker. The CLI and the language server
@@ -91,13 +93,50 @@ sink.envelopes.map((envelope) => envelope.kind); // run.started … run.finished
 | `matchesTitle(title, needle)` | Case-insensitive containment. Absent needle matches everything. |
 | `RunFilter` | `tags`, `flow`, `step`: which flows and steps a run includes. |
 
+### The front end
+
+Every pass a `.vn` file goes through, in one place. `venn run`, `venn test`, `venn check`,
+`venn build` and the editor all call this, and differ only in which severities they report and what
+they exit with. Assembling the list by hand is what let `venn run` skip type checking for a whole
+milestone.
+
+```ts
+import { createFrontEnd, NOTHING_IMPORTED } from "@venn-lang/runtime";
+
+const front = createFrontEnd({ plugins, caps: host.caps });
+
+const { problems, types } = front.analyze({
+  document: parse(source, { uri }).ast,
+  uri,
+  graph: NOTHING_IMPORTED, // or the one a resolver walked
+  decos: new Map(),
+  fragments: new Set(),
+  env: undefined, // undefined means "unknown", so no `env.*` read is refused
+  packages: new Map(),
+  unreadable: [],
+  cycles: [],
+});
+```
+
+| Export | What it does |
+| --- | --- |
+| `createFrontEnd({ plugins, caps })` | Settles the registry, the decorators, the type catalog and what the plugins publish once, and returns a `FrontEnd`. Throws `VN2010` when a plugin needs a capability the host does not offer. |
+| `FrontEnd` | `analyze(args)` runs every pass over one parsed file. |
+| `AnalyzeArgs` | The file, and everything only the caller can know: the module graph, the imported decos and fragments, the declared `env` names, what installed packages publish, and the unreadable imports and cycles a resolver found. Nothing here is optional. |
+| `Analysis` | `problems` (every pass's, loudest first), `types` (each expression's), `slots` (what each `${…}` parsed to). |
+| `NOTHING_IMPORTED` | The graph of a file that reaches nothing: an inline snippet, or a host with no way to read a neighbour. |
+
 ### Static checks
+
+The passes themselves. Call `analyze` rather than these: a pass added to one caller and not another
+is the bug the front end exists to make impossible.
 
 | Export | What it does |
 | --- | --- |
 | `checkDocument(args)` | Resolves every action, matcher, fragment and `env` read in a parsed document, returning `Problem`s with source spans instead of failures mid-run. |
-| `checkImports({ document, uri, graph })` | Every imported name checked against what the named file published, with `VN2009` and a note saying whether it is private or absent. |
+| `checkImports({ document, uri, graph, registry })` | Every imported name checked against what the named file or package published, with `VN2009` and a note saying whether it is private, absent, or a verb. |
 | `checkFragmentCall(call, ctx)` | Reports a `fragment` invoked for a value (`VN3013`), suggesting `run name(…)`. Used inside `checkDocument`. |
+| `loudestFirst(problems)` | Errors, then warnings, then hints, stably. |
 | `CheckArgs` | `document`, `registry`, `fragments`, plus optional `uri` and the `env` names `venn.toml` declares. |
 
 The codes `checkDocument` raises: `VN2003` unknown action, `VN2004` unknown matcher, `VN2005`

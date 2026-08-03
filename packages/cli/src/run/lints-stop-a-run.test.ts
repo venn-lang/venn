@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { type RunFileArgs, runFile } from "./run-file.js";
 
 const NEWLINE = String.fromCharCode(10);
+const lines = (...parts: readonly string[]): string => parts.join(NEWLINE);
 
 /** Every port a snippet needs, the console among them, since these ones print. */
 function ports(): Pick<RunFileArgs, "host" | "sink" | "httpClient" | "console" | "mode"> {
@@ -81,9 +82,26 @@ describe("a check error stops a run", () => {
     expect(outcome.result).toBeDefined();
   });
 
-  it("declares the environment it was given, so a name in it is not unknown", async () => {
+  it("accepts a name the caller said the project declares", async () => {
     const outcome = await runFile({
-      source: 'print "ran"',
+      source: lines('import { env } from "venn/env"', "print env.BASE"),
+      uri: "memory://lint.vn",
+      env: { BASE: "http://x" },
+      declared: ["BASE"],
+      ...ports(),
+    });
+
+    expect(outcome.problems).toEqual([]);
+  });
+
+  /**
+   * Unknown is not empty. A caller that injected an environment has said what a
+   * run can read, not what the project declares, and reading the one for the
+   * other is how `venn check` and `venn run` came to disagree about a `.env`.
+   */
+  it("refuses nothing when nobody said what the project declares", async () => {
+    const outcome = await runFile({
+      source: lines('import { env } from "venn/env"', "print env.ANYTHING"),
       uri: "memory://lint.vn",
       env: { BASE: "http://x" },
       ...ports(),

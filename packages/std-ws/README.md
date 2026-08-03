@@ -70,6 +70,8 @@ A matcher named `type` is registered against `Message`, but `type` is a grammar 
 be spelled after `expect` today. Read the field instead:
 
 ```ruby
+import { ws } from "venn/ws"
+
 const msg = ws.expect { type: "ack" }
 expect msg.type == "ack"
 ```

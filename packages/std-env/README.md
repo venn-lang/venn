@@ -3,7 +3,7 @@
 > The `env` namespace: the variables `venn.toml` declares, read as `env.NAME`.
 
 This plugin contributes no verbs. `env.NAME` is a read, not a call. What it contributes is the name
-itself, so a file that reads configuration has to say so with `use`, exactly like one that makes a
+itself, so a file that reads configuration has to say so with `import`, exactly like one that makes a
 request or an assertion. The reader should never have to know which names are magic.
 
 ## Install
@@ -30,7 +30,7 @@ BASE = "https://staging.example.com"
 # config.vn
 module demo.config
 
-import { assert } from "venn/assert"
+import { oneOf } from "venn/assert"
 import { env } from "venn/env"
 
 flow "Config" {

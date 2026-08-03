@@ -527,6 +527,7 @@ type User {
   credits?: int          # `?` marca opcional
   address:  { city: string, zip?: string }   # forma escrita onde é usada
 }
+```
 
 Uma forma pode ser escrita no lugar de um nome, em qualquer posição onde um tipo
 cabe: campo, parâmetro, retorno, binding, e dentro de um genérico.
@@ -541,6 +542,7 @@ serve onde se espera `{ city: string }`, e o contrário também. Nomear vale qua
 a forma se repete ou merece um nome; escrever inline vale quando ela é usada uma
 vez só.
 
+```venn
 const BASE_TIMEOUT = 30s
 ```
 
@@ -747,6 +749,7 @@ loop {
   if job.json.status == "done" { break }
   wait 2s
 }
+```
 
 ### match
 
@@ -854,6 +857,7 @@ flow em volta, que é o que a linguagem já promete.
 Qual escrever tem uma resposta só: `repeat` quando o número de vezes é conhecido,
 `forEach` quando há uma coleção, `loop` quando é nenhum dos dois.
 
+```venn
 # blocos concorrentes: nomes distintos, semânticas distintas
 parallel {
   step "Perfil GraphQL" { gql.query "{ me { id plan } }" { auth: bearer(token) } }

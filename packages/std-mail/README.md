@@ -18,7 +18,7 @@ import { mail } from "venn/mail"
 module demo.signup
 
 import { mail } from "venn/mail"
-import { assert } from "venn/assert"
+import { contains } from "venn/assert"
 
 flow "Signup sends a verification email" {
   step "wait for the message" {

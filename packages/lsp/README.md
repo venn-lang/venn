@@ -99,7 +99,7 @@ Each is registered by `createVennLspServices`; export them for direct use or for
 
 | Feature | Behaviour |
 | --- | --- |
-| **Diagnostics** | Syntax errors (`VN1xxx`), then the same static check `venn check` runs: `VN2003` unknown action, `VN2004` unknown matcher, `VN2005` unknown fragment, `VN2006` an `env` var no `venn.toml` declares, `VN2007` a namespace used without a `use`, `VN2008` a verb read as a value, `VN2009` a name the imported module does not publish, plus type errors (`VN3xxx`) and lint (`VN5xxx`). |
+| **Diagnostics** | Syntax errors (`VN1xxx`), then the same static check `venn check` runs: `VN2003` unknown action, `VN2004` unknown matcher, `VN2005` unknown fragment, `VN2006` an `env` var no `venn.toml` declares, `VN2007` a namespace used without importing it, `VN2008` a verb read as a value, `VN2009` a name the imported module does not publish, plus type errors (`VN3xxx`) and lint (`VN5xxx`). |
 | **Hover** | Action signature, docs, options and owning package; matchers; fragment signatures; what a `let` or a parameter binds; what a package contributes; what an annotation means; what an `env` variable holds. Inside `"${…}"` the name hovers as code, not as text. |
 | **Completion** | Verbs and published types after `namespace.`, members after any other dot, matchers once `expect` has a subject, fragments after `run`, decorators after `@`, packages inside `import { … } from "…"`, module paths after `from "`, published names inside `import { … }`, option keys inside a call's `{ … }`, type names after a `:`, and the names in scope anywhere else. |
 | **Go to definition** | `run <fragment>` lands on the declaration, following an `import` into another file; a name lands on the statement that binds it; a `@deco` lands on the `deco` that declares it; an import specifier opens the file. |
@@ -154,7 +154,7 @@ vim.lsp.enable("venn")
 
 ## Notes
 
-- Every namespace resolves regardless of which `use` lines a file has, because the server loads the whole stdlib. A missing `use` is reported as `VN2007` rather than as an unknown action.
+- Every namespace resolves regardless of which `import` lines a file has, because the server loads the whole stdlib. A missing import is reported as `VN2007` rather than as an unknown action.
 - Type inference is cached per parse in a shared `TypeService`, so diagnostics and hover read the same result and a keystroke re-checks only the edited file.
 - Import specifiers resolve like the CLI's: relative paths against the importing file, `#alias/…` through `[paths]` in the nearest `venn.toml`, searched upwards and cached per directory.
 - Cross-file rename reaches every document the server has indexed. A file it has never opened or scanned is not rewritten.

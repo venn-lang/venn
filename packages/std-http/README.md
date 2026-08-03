@@ -22,8 +22,7 @@ import { http } from "venn/http"
 ```ruby
 module demo.api
 
-import { http } from "venn/http"
-import { assert } from "venn/assert"
+import { header, http } from "venn/http"
 
 config { baseUrl: "https://api.test" }
 

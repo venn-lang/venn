@@ -52,6 +52,8 @@ unchecked, which is better than describing them wrongly. Both call spellings wor
 the bareword form and commas inside brackets:
 
 ```ruby
+import { artifacts } from "venn/artifacts"
+
 artifacts.save "trace" "video" "har"
 artifacts.save("trace", "video", "har")
 ```

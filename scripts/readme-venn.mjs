@@ -23,7 +23,22 @@ import { ROOT, slashed } from "./repo-sources.mjs";
 
 export const REFUSALS = join(ROOT, "scripts", "readme-venn-refusals.json");
 const BINARY = join(ROOT, "packages", "cli", "dist", "bin", "venn-run.mjs");
-const MANIFEST = '[package]\nname = "readme"\nversion = "0.0.0"\n';
+/**
+ * The project each block is checked inside.
+ *
+ * It declares an environment, because a README showing `env.BASE` is showing
+ * correct Venn: the variable is declared in `venn.toml`, and a manifest that
+ * declares none makes VN2006 the harness's answer rather than the block's.
+ */
+const MANIFEST = [
+  "[package]",
+  'name = "readme"',
+  'version = "0.0.0"',
+  "",
+  "[env.local]",
+  'BASE = "http://localhost:3000"',
+  "",
+].join("\n");
 
 /** One block checked on its own, in a project of its own. */
 async function checked(block) {

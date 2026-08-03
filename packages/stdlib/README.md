@@ -2,7 +2,7 @@
 
 > The one list of standard-library plugins, plus the fake port implementations the tooling runs them with.
 
-The Venn kernel knows no verbs. Every namespace a `.vn` file can `use` comes from a plugin, and this
+The Venn kernel knows no verbs. Every namespace a `.vn` file can import comes from a plugin, and this
 package is where the set of them is named. The CLI runs that list, and the language server reads it
 for completion, hover, highlighting and `venn check`. Adding a plugin to the standard library touches
 this package and nothing else.
@@ -30,7 +30,7 @@ const runner = createRunner({
 const result = await runner.run(ast);
 ```
 
-The flow being run is ordinary Venn source. It declares the namespaces it wants with `use`, and every
+The flow being run is ordinary Venn source. It declares the namespaces it wants with `import`, and every
 one of them resolves because the whole stdlib is loaded:
 
 ```ruby

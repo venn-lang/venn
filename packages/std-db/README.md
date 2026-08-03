@@ -9,7 +9,7 @@ port so the same flow runs against in-memory tables or a real connection without
 ## Install
 
 The package is part of the stdlib the `venn` CLI loads, so nothing to install. Reach it from a
-flow with a `use` line:
+flow with an `import` line:
 
 ```ruby
 import { db } from "venn/db"

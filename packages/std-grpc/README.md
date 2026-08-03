@@ -9,7 +9,7 @@ what a call returns is `dynamic`, and reflection is the only shape it can descri
 ## Install
 
 The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` file, bring the
-namespace in with `use`:
+namespace in with `import`:
 
 ```ruby
 import { grpc } from "venn/grpc"

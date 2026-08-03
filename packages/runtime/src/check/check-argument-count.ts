@@ -3,6 +3,7 @@ import {
   buildProblem,
   type Call,
   CODES,
+  callArgs,
   dottedPath,
   type Expr,
   isActionCall,
@@ -63,7 +64,7 @@ interface Written {
 
 function writtenCall(node: AstNode, ctx: CheckContext): Written | undefined {
   if (isMatcherClause(node)) return matcherCall(node.name, node.args.length, ctx);
-  if (isActionCall(node)) return verbCall({ target: node.target, args: node.args, ctx });
+  if (isActionCall(node)) return verbCall({ target: node.target, args: callArgs(node), ctx });
   if (isLetStmt(node)) return boundCall(node, ctx);
   if (isCall(node) && isMember(node.callee)) {
     return verbCall({ target: dottedPath(node.callee), args: bracketed(node), ctx });

@@ -1,4 +1,10 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn-lang/sdk";
+import {
+  type ActionDefinition,
+  type ActionInput,
+  defineAction,
+  optionalArg,
+  z,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import { DbClientPort, type SeedData } from "../port/index.js";
 
@@ -16,7 +22,9 @@ export const seedAction: ActionDefinition = defineAction({
   name: "seed",
   doc: "Load rows into the in-memory tables, grouped by table name.",
   params,
-  args: [arg("tables", t.ref("db.Tables"), "Rows to load, grouped by table name.")],
+  // Optional, because the same rows arrive either way: `db.seed baseline`
+  // passes them here and `db.seed { users: … }` passes them as options.
+  args: [optionalArg("tables", t.ref("db.Tables"), "Rows to load, grouped by table name.")],
   result: t.number,
   run: (ctx, input) => ctx.port(DbClientPort).seed(readSeedData(input)),
 });

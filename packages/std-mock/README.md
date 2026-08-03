@@ -10,7 +10,7 @@ record back from TypeScript.
 ## Install
 
 The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` file, bring the
-namespace in with `use`:
+namespace in with `import`:
 
 ```ruby
 import { mock } from "venn/mock"

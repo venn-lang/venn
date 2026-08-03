@@ -12,7 +12,7 @@ no clock.
 ## Install
 
 The package is part of the stdlib the `venn` CLI loads, so nothing to install. Reach it from a
-flow with a `use` line:
+flow with an `import` line:
 
 ```ruby
 import { data } from "venn/data"
@@ -23,7 +23,7 @@ import { data } from "venn/data"
 ```ruby
 module demo.signup
 
-import { assert } from "venn/assert"
+import { contains } from "venn/assert"
 import { data } from "venn/data"
 
 flow "A generated Brazilian signup" {
@@ -80,6 +80,8 @@ The other 96 are `data.faker.*`, grouped by what a form asks for:
 Ten of them read positional bounds; the rest take nothing.
 
 ```ruby
+import { data } from "venn/data"
+
 const pin      = data.faker.digits 4        # four decimal digits
 const quantity = data.faker.int 1 6         # inclusive on both ends
 const blurb    = data.faker.words 5

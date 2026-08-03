@@ -31,6 +31,7 @@
     "@changesets/cli": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "tsc-api": "npm:typescript@^5.9.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

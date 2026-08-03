@@ -83,6 +83,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.10(vitest@4.1.10)
+      tsc-api:
+        specifier: npm:typescript@^5.9.0
+        version: typescript@5.9.3
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

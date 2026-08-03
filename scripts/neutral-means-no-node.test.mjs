@@ -18,7 +18,63 @@ function reachableFrom(entry, source) {
   return seen;
 }
 
-const leaks = (text) => specifiers(text).filter((one) => one.startsWith("node:"));
+/**
+ * Node's own modules, by either spelling.
+ *
+ * `from "fs"` is the same import as `from "node:fs"` to Node and to tsdown, so a
+ * guard that only knew the prefixed one could be walked past by dropping four
+ * characters. `@venn-lang/contracts/node` is the one subpath the charter says
+ * carries `node:*`, so reaching it from a neutral entry is the same leak one
+ * package further along.
+ */
+const BARE = new Set([
+  "assert",
+  "async_hooks",
+  "buffer",
+  "child_process",
+  "cluster",
+  "console",
+  "constants",
+  "crypto",
+  "dgram",
+  "diagnostics_channel",
+  "dns",
+  "domain",
+  "events",
+  "fs",
+  "http",
+  "http2",
+  "https",
+  "inspector",
+  "module",
+  "net",
+  "os",
+  "path",
+  "perf_hooks",
+  "process",
+  "punycode",
+  "querystring",
+  "readline",
+  "repl",
+  "stream",
+  "string_decoder",
+  "timers",
+  "tls",
+  "trace_events",
+  "tty",
+  "url",
+  "util",
+  "v8",
+  "vm",
+  "wasi",
+  "worker_threads",
+  "zlib",
+]);
+
+const isNode = (one) =>
+  one.startsWith("node:") || BARE.has(one.split("/")[0]) || one === "@venn-lang/contracts/node";
+
+const leaks = (text) => specifiers(text).filter(isNode);
 
 /**
  * No `node:` anywhere a Web Worker can reach, which is the boundary the whole

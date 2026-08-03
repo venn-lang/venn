@@ -4,7 +4,7 @@ Every file here runs. They are checked in CI the same way you would run them, so
 if one stops working it is a bug in Venn, not in the example.
 
 ```bash
-venn check examples/                      # type-check all 77 at once
+venn check examples/                      # type-check all 78 at once
 venn run   examples/basics/01-hello.vn    # a program: statements, top to bottom
 venn test  examples/testing/01-first-flow.vn   # a test: runs the flow blocks
 ```
@@ -40,5 +40,8 @@ to the real PokeAPI, deliberately, and its tests do not. [`servers/`](servers)
 and the rest of [`programs/`](programs) only talk to themselves on localhost,
 binding to port 0 so the operating system picks a free one and nothing clashes.
 
-These files are documentation, not fixtures. Nothing in the test suite reads
-them, so they are free to change whenever a better example exists.
+These files are documentation and CI runs every one of them, through `run` or
+through `test`, comparing what each prints against
+[`scripts/examples-expected.json`](../scripts/examples-expected.json). A better
+example is still welcome: write it, then run `node scripts/examples-run.mjs
+--write` so the change lands with what it now prints.

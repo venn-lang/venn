@@ -106,16 +106,26 @@ jobs:
       # `check` was the only command the examples ever met, and it is the one
       # that was never broken: it type-checked while `run` and `test` did not,
       # so the two commands that execute code were the two nothing exercised.
-      - name: Run the example programs and their tests
+      #
+      # This drives all seventy-eight through `run` or `test` and compares the
+      # exit status, the assertion counts and both output streams against what
+      # is committed. Exit status alone is not enough and provably so: `venn
+      # test` on a file with no flows exits 0 saying `0 passed, 0 failed`.
+      # `node scripts/examples-run.mjs --write` re-records after a change.
+      - name: Run every example and compare what it printed
+        run: node scripts/examples-run.mjs --check
+
+      # A dash or an assistant's name in a commit subject is the one rule an
+      # agent breaks by default, and `no-dashes.test.mjs` reads `git ls-files`,
+      # which by construction never sees a commit message or a title.
+      - name: Check the commit subjects and the title
+        if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest'
         shell: bash
-        run: |
-          for name in gradebook ledger pokedex standup watchtower; do
-            node packages/cli/dist/bin/venn-run.mjs test "examples/programs/$name/tests.vn" \
-              --reporter dot
-          done
-          for name in gradebook ledger standup; do
-            node packages/cli/dist/bin/venn-run.mjs run "examples/programs/$name/main.vn" > /dev/null
-          done
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/subjects-are-clean.mjs "$BASE" "$HEAD" "$TITLE"
 
       # Only the built binary can answer this. The version is read from the
       # manifest by walking up from the running file, and the bundle sits at a

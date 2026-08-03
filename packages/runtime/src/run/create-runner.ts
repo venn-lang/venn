@@ -24,14 +24,6 @@ import {
 import type { Runner, RunnerArgs, RunOnceInput, RunResult } from "./runner.types.js";
 
 /**
- * Build a runner: negotiate plugins and wire ports once, then reuse them for
- * every run.
- *
- * @param args The host, the plugins, the event sink and the per-run options.
- * @returns A runner exposing test mode (`run`) and script mode (`script`).
- * @throws VennError `VN2010` when a plugin requires a capability the host lacks.
- */
-/**
  * The host's capabilities, as the ports a plugin reaches them by.
  *
  * Listed first, so anything the caller binds by hand wins: a test that wants its
@@ -46,6 +38,14 @@ function hostPorts(host: Host): PortBinding[] {
   ];
 }
 
+/**
+ * Build a runner: negotiate plugins and wire ports once, then reuse them for
+ * every run.
+ *
+ * @param args The host, the plugins, the event sink and the per-run options.
+ * @returns A runner exposing test mode (`run`) and script mode (`script`).
+ * @throws VennError `VN2010` when a plugin requires a capability the host lacks.
+ */
 export function createRunner(args: RunnerArgs): Runner {
   const registry = buildRegistry({ plugins: args.plugins, caps: args.host.caps });
   // The host's own capabilities are ports too, and binding them here is what

@@ -1,16 +1,16 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
+import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer } from "@venn-lang/http/node";
 import type { RunFilter } from "@venn-lang/runtime";
-import { loadEnv, loadManifest } from "../manifest/index.js";
+import { declaredEnv, loadEnv, loadManifest } from "../manifest/index.js";
 import type { Reporter, RunTotals } from "../reporters/index.js";
 import { pickReporter, reportProblems } from "../reporters/index.js";
 import { collectSourceFiles } from "../run/collect-files.js";
 import { createNodeModuleIo } from "../run/node-io.js";
 import { createNpmLoader } from "../run/npm-loader.js";
-import { type RunFileOutcome, runFile } from "../run/run-file.js";
+import { type RunFileArgs, type RunFileOutcome, runFile } from "../run/run-file.js";
 import { createShutdown, installHooks, type Shutdown } from "../shutdown/index.js";
 import { setProgramTitle } from "../title/index.js";
 
@@ -106,7 +106,7 @@ async function buildArgs(
   file: string,
   pass: RunPass,
   httpServer: ReturnType<typeof createNodeServer>,
-) {
+): Promise<RunFileArgs> {
   const found = await loadManifest(file);
   const manifest = found?.manifest;
   return {
@@ -116,6 +116,15 @@ async function buildArgs(
     sink: pass.reporter.sink,
     httpClient: createFetchClient(),
     httpServer,
+    // The real streams, as `venn run` has always had them. Without this every
+    // `print` in a flow wrote into a buffer nobody drained, so the reporter
+    // showed a passing step and none of the text under it.
+    //
+    // Under `venn test` the program writes to standard error, because standard
+    // output belongs to the reporter: a `print` among the envelopes is a line
+    // of NDJSON nobody can parse, and one before the XML prolog is not a JUnit
+    // file. Both streams reach the same terminal, so a person still sees it.
+    console: createNodeConsole({ argv: [], stdout: process.stderr }),
     filter: filterOf(pass.options),
     bail: pass.options.bail,
     env: await loadEnv({
@@ -123,6 +132,11 @@ async function buildArgs(
       name: pass.options.env ?? "local",
       dir: found?.dir ?? dirname(file),
     }),
+    declared: await declaredEnv(found),
+    // Where the project is, so a run reads what its packages published, which
+    // is what `venn check` reads. Two commands checking different worlds is how
+    // they came to disagree about a name that came from a package.
+    root: found?.dir,
     io: createNodeModuleIo({
       paths: manifest?.paths ?? {},
       rootDir: found?.dir ?? dirname(file),

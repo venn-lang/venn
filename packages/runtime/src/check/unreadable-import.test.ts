@@ -1,7 +1,11 @@
 import { parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
+import { buildRegistry } from "../registry/index.js";
 import { resolveImports } from "../run/index.js";
 import { checkImports } from "./check-imports.js";
+
+/** No plugins loaded: these files import each other, never a package. */
+const REGISTRY = buildRegistry({ plugins: [], caps: [] });
 
 const HERE = "/app/main.vn";
 
@@ -20,7 +24,7 @@ async function problems(source: string, files: Record<string, string> = {}) {
   const graphIo = io(files);
   const { modules, unreadable } = await resolveImports({ document, uri: HERE, io: graphIo });
   const graph = { modules, resolve: graphIo.resolve };
-  return checkImports({ document, uri: HERE, graph, unreadable });
+  return checkImports({ document, uri: HERE, graph, registry: REGISTRY, unreadable });
 }
 
 /**

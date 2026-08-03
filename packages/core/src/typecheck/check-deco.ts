@@ -1,9 +1,10 @@
 import { walkAst } from "../ast/index.js";
 import { buildProblem, CODES } from "../codes/index.js";
-import { acceptedKinds, readSignature, spanOf, wrongKind } from "../expand/index.js";
+import { acceptedKinds, readSignature, wrongKind } from "../expand/index.js";
 import type { Annotation, DecoDecl, Document, Expr, Param } from "../generated/ast.js";
 import { isAnnotation, isDecoDecl } from "../generated/ast.js";
 import type { Problem } from "../problem/index.js";
+import { spanOf } from "../span/index.js";
 import { checkBlock } from "./check-stmts.js";
 import { inferAgainst } from "./checked-against.js";
 import { expect, type Infer } from "./infer.js";

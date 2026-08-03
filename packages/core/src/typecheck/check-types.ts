@@ -3,7 +3,8 @@ import { buildProblem, CODES } from "../codes/index.js";
 import type { ImportedDeco } from "../expand/index.js";
 import type { Declaration, Document, Expr, FnDecl } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
-import type { Problem, Span } from "../problem/index.js";
+import type { Problem } from "../problem/index.js";
+import { spanOf } from "../span/index.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import { checkDecoBody, checkDecos, decosInReach } from "./check-deco.js";
 import { checkBlock, checkFragment, checkStatement } from "./check-stmts.js";
@@ -259,18 +260,4 @@ function titleOf(mismatch: TypeMismatch): string {
   if (mismatch.sentence) return mismatch.sentence;
   if (mismatch.note) return `Type ${showType(mismatch.expected)} ${mismatch.note}.`;
   return `Type mismatch: expected ${showType(mismatch.expected)}, found ${showType(mismatch.actual)}.`;
-}
-
-function spanOf(node: { $cstNode?: unknown }, uri: string): Span {
-  const cst = node.$cstNode as
-    | { offset: number; length: number; range?: { start: { line: number; character: number } } }
-    | undefined;
-  const start = cst?.range?.start;
-  return {
-    uri,
-    offset: cst?.offset ?? 0,
-    length: cst?.length ?? 0,
-    line: (start?.line ?? 0) + 1,
-    column: (start?.character ?? 0) + 1,
-  };
 }

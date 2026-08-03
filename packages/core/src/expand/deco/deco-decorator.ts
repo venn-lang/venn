@@ -1,9 +1,9 @@
 import { buildProblem, CODES } from "../../codes/index.js";
 import type { DecoDecl } from "../../generated/ast.js";
 import type { Problem } from "../../problem/index.js";
+import { spanOf } from "../../span/index.js";
 import type { DecoratorDefinition, ExpandContext } from "../expand.types.js";
 import { kindOf, makeHandle } from "../handles/index.js";
-import { spanOf } from "../node-span.js";
 import type { DecoSignature } from "./deco.types.js";
 import { DecoEnv } from "./deco-env.js";
 import { namesOutOfReach } from "./reach/index.js";

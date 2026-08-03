@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer, type NodeHttpServer } from "@venn-lang/http/node";
-import { envDirOf, loadEnv, loadManifest } from "../manifest/index.js";
+import { declaredEnv, envDirOf, loadEnv, loadManifest } from "../manifest/index.js";
 import { createProblemSink, errorLine, reportProblems } from "../reporters/index.js";
 import type { Ending } from "../run/ending.types.js";
 import { exitCodeOf } from "../run/exit-code.js";
@@ -91,6 +91,11 @@ async function scriptArgs(args: {
       name: options.env ?? "local",
       dir: found?.dir ?? envDirOf(uri),
     }),
+    declared: await declaredEnv(found),
+    // Where the project is, so a run reads what its packages published, which
+    // is what `venn check` reads. Two commands checking different worlds is how
+    // they came to disagree about a name that came from a package.
+    root: found?.dir,
     io: createNodeModuleIo({
       paths: manifest?.paths ?? {},
       rootDir: found?.dir ?? dirname(uri),

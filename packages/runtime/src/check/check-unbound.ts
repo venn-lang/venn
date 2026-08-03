@@ -1,4 +1,12 @@
-import { type AstNode, CODES, isAnnotation, isRef, type Problem, type Ref } from "@venn-lang/core";
+import {
+  type AstNode,
+  CODES,
+  isAnnotation,
+  isFnDecl,
+  isRef,
+  type Problem,
+  type Ref,
+} from "@venn-lang/core";
 import { isPrelude } from "@venn-lang/prelude";
 import type { CheckContext } from "./check.types.js";
 import { nearestName } from "./nearest-name.js";
@@ -18,8 +26,28 @@ const OF_THE_RUN = new Set(["matrix", "flow", "step", "env"]);
 
 export function checkUnbound(node: AstNode, ctx: CheckContext): Problem[] {
   if (!isRef(node) || insideAnnotation(node) || known(node.name, ctx)) return [];
+  if (underADecorator(node)) return [];
   const title = `Nothing is named "${node.name}" here.`;
   return [{ ...problemAt(node, ctx, CODES.VN2018_UNBOUND_NAME, title), help: help(node, ctx) }];
+}
+
+/**
+ * A `fn` a decorator rewrote may bind names nothing here can see.
+ *
+ * `@inject("who")` calls `target.addParam("who")`, and the body underneath is
+ * written expecting it. Expansion runs after this check, so the parameter is
+ * not in the tree yet, and no check can know what a `deco` body will do with
+ * the handle it was given: saying the name does not exist would be refusing a
+ * feature that works.
+ *
+ * @param node Any node, or the declaration a `${…}` was written inside.
+ * @returns True when a decorated `fn` encloses it.
+ */
+export function underADecorator(node: AstNode): boolean {
+  for (let at: AstNode | undefined = node; at; at = at.$container) {
+    if (isFnDecl(at) && at.annotations.length > 0) return true;
+  }
+  return false;
 }
 
 /**

@@ -1,33 +1,21 @@
 import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createNodeHost } from "@venn-lang/contracts/node";
+import { type Document, type Problem, parse } from "@venn-lang/core";
 import {
-  checkTypes,
-  type Document,
-  type FragmentDecl,
-  importedTypes,
-  isPackageSpecifier,
-  isValueImport,
-  type Problem,
-  parse,
-} from "@venn-lang/core";
-import {
-  buildRegistry,
-  checkDocument,
-  checkImports,
+  type AnalyzeArgs,
   collectFragments,
-  createDecoratorSource,
-  createTypeCatalog,
-  publishedValueTypes,
+  createFrontEnd,
+  type FrontEnd,
+  type ModuleIo,
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
-import type { TypeSpec } from "@venn-lang/types";
-import { loadManifest } from "../manifest/index.js";
+import { declaredEnv, type LoadedManifest, loadManifest } from "../manifest/index.js";
 import { reportProblems } from "../reporters/index.js";
 import { everySourceUnder } from "../run/collect-files.js";
 import { createNodeModuleIo } from "../run/node-io.js";
-import { loadDerivedTypes } from "../run/package-types.js";
+import { packageTypesFor } from "../run/package-types.js";
 
 /**
  * `venn check <file|folder>`: statically resolve actions, matchers, imports and
@@ -53,9 +41,10 @@ export async function checkCommand(args: { paths: readonly string[] }): Promise<
  *
  * A hint is something worth saying and not something worth stopping for: an
  * import nobody used is untidy, not wrong, and a check that fails on it is a
- * check people stop running.
+ * check people stop running. `venn build` reads the same rule, so a file that
+ * checks clean does not fail the release path over an untidy import.
  */
-function isError(problem: Problem): boolean {
+export function isError(problem: Problem): boolean {
   return problem.severity === "error";
 }
 
@@ -67,8 +56,11 @@ export async function checkProblems(
   paths: readonly string[],
 ): Promise<{ files: number; problems: Problem[] }> {
   const files = await everySourceUnder(paths);
+  // Built once for the whole walk: the registry, the decorators and the type
+  // catalog are the same answer for every file, and were rebuilt for each.
+  const front = createFrontEnd({ plugins: allPlugins, caps: createNodeHost().caps });
   const problems: Problem[] = [];
-  for (const file of files) problems.push(...(await problemsIn(file)));
+  for (const file of files) problems.push(...(await problemsIn(file, front)));
   return { files: files.length, problems: said(problems) };
 }
 
@@ -89,54 +81,39 @@ function said(problems: readonly Problem[]): Problem[] {
   });
 }
 
-async function problemsIn(uri: string): Promise<Problem[]> {
+async function problemsIn(uri: string, front: FrontEnd): Promise<Problem[]> {
   const { ast, problems } = parse(await readFile(uri, "utf8"), { uri });
   if (problems.length > 0) return problems;
+  return [...front.analyze(await inputsFor(ast, uri)).problems];
+}
+
+/** What the project this file belongs to says about the world around it. */
+async function inputsFor(document: Document, uri: string): Promise<AnalyzeArgs> {
   const project = await loadManifest(uri);
-  const manifest = project?.manifest;
-  // Anchored where the manifest lives, not where the file does: a member of a
-  // workspace reads the aliases its root declared.
-  const io = createNodeModuleIo({
-    paths: manifest?.paths ?? {},
+  const io = moduleIo(project, uri);
+  const found = await resolveImports({ document, uri, io });
+  return {
+    document,
+    uri,
+    graph: { modules: found.modules, resolve: io.resolve },
+    decos: found.decos,
+    fragments: names(document, found.fragments),
+    env: await declaredEnv(project),
+    packages: await packageTypesFor({ document, root: project?.dir }),
+    unreadable: found.unreadable,
+    cycles: found.cycles,
+  };
+}
+
+/**
+ * Anchored where the manifest lives, not where the file does: a member of a
+ * workspace reads the aliases its root declared.
+ */
+function moduleIo(project: LoadedManifest | undefined, uri: string): ModuleIo {
+  return createNodeModuleIo({
+    paths: project?.manifest.paths ?? {},
     rootDir: project?.dir ?? dirname(uri),
   });
-  const {
-    fragments: imported,
-    decos,
-    modules,
-    unreadable,
-    cycles,
-  } = await resolveImports({
-    document: ast,
-    uri,
-    io,
-  });
-  const registry = buildRegistry({ plugins: allPlugins, caps: createNodeHost().caps });
-  const found = checkDocument({
-    document: ast,
-    registry,
-    decorators: createDecoratorSource(allPlugins),
-    importedDecos: decos.keys(),
-    fragments: names(ast, imported),
-    env: declaredEnv(manifest),
-    uri,
-  });
-  const catalog = createTypeCatalog(allPlugins);
-  const graph = { modules, resolve: io.resolve };
-  // The imported names' types come from the files they were written in, so a
-  // wrong argument to an imported function is caught here rather than at run time.
-  const imports = importedTypes({
-    ...graph,
-    document: ast,
-    uri,
-    catalog,
-    packages: await importedFrom({ document: ast, root: project?.dir }),
-  });
-  return [
-    ...found,
-    ...checkImports({ document: ast, uri, graph, registry, unreadable, cycles }),
-    ...checkTypes(ast, { uri, catalog, decos, imports }).problems,
-  ];
 }
 
 /**
@@ -146,43 +123,8 @@ async function problemsIn(uri: string): Promise<Problem[]> {
  * has installed anything yet, so every imported name is `dynamic`, which is the
  * truth about it rather than a failure.
  */
-async function packageTypesFor(args: {
-  document: Document;
-  root?: string;
-}): Promise<Map<string, Record<string, TypeSpec>>> {
-  if (!args.root) return new Map();
-  const wanted = args.document.imports
-    .filter(isValueImport)
-    .map((decl) => decl.path)
-    .filter(isPackageSpecifier);
-  return wanted.length > 0 ? loadDerivedTypes({ root: args.root, packages: wanted }) : new Map();
-}
 
-/**
- * What the imported packages publish: the plugins' own values, and whatever an
- * install derived from a `.d.ts`. The derived ones are listed last, so a package
- * that is both keeps what was read from its types.
- */
-async function importedFrom(args: {
-  document: Document;
-  root?: string;
-}): Promise<Map<string, Record<string, TypeSpec>>> {
-  const derived = await packageTypesFor(args);
-  return new Map([...publishedValueTypes(allPlugins), ...derived]);
-}
-
-/**
- * Every variable any `[env.*]` section declares. Undefined without a manifest:
- * with nothing to compare against, every `env.*` read would look undeclared.
- */
-function declaredEnv(
-  manifest: { env: Record<string, Record<string, string>> } | undefined,
-): readonly string[] | undefined {
-  const sections = Object.values(manifest?.env ?? {});
-  return sections.length > 0 ? [...new Set(sections.flatMap(Object.keys))] : undefined;
-}
-
-function names(document: Document, imported: ReadonlyMap<string, FragmentDecl>): Set<string> {
+function names(document: Document, imported: ReadonlyMap<string, unknown>): Set<string> {
   return new Set([...collectFragments(document).keys(), ...imported.keys()]);
 }
 

@@ -112,10 +112,12 @@ describe("what an import of a package brings", () => {
     expect([...found.namespaces]).toEqual([["everything", "kit"]]);
   });
 
-  it("keeps what a package does not publish, to be reported", () => {
+  it("keeps what a package does not publish, and the import that asked", () => {
     const found = imported('import { nope } from "@t/kit"');
+    const { pkg, name, note, decl } = found.unknown[0] ?? {};
 
-    expect(found.unknown).toEqual([{ pkg: "@t/kit", name: "nope", note: undefined }]);
+    expect({ pkg, name, note }).toEqual({ pkg: "@t/kit", name: "nope", note: undefined });
+    expect(decl?.path).toBe("@t/kit");
   });
 
   /** The everyday mistake, and the one the note has to answer. */
@@ -212,13 +214,19 @@ describe("what a package does not publish", () => {
     expect(problems[0]?.title).toContain('"@t/kit" does not publish nope');
   });
 
-  /** Without a registry there are no packages, which is a Worker's whole world. */
+  /**
+   * With no plugin loaded there are no packages, which is a Worker's whole
+   * world. Said with an empty registry rather than with none: a caller that
+   * omits the registry is now a type error, because omitting it silently is
+   * how the editor lost this diagnostic entirely.
+   */
   it("says nothing when no plugin was loaded at all", () => {
     const { ast } = parse('import { nope } from "@t/kit"');
     const problems = checkImports({
       document: ast,
       uri: "memory://inline.vn",
       graph: { modules: new Map(), resolve: (_base, spec) => spec },
+      registry: buildRegistry({ plugins: [], caps: [] }),
     });
 
     expect(problems).toEqual([]);

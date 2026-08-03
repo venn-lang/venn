@@ -3,9 +3,13 @@ import { type Document, parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
 import { checkImports } from "../check/index.js";
 import { createMemorySink } from "../eventsink/index.js";
+import { buildRegistry } from "../registry/index.js";
 import { createRunner } from "../run/create-runner.js";
 
 const ENTRY = "file:///w/main.vn";
+
+/** No plugins loaded: these files import each other, never a package. */
+const REGISTRY = buildRegistry({ plugins: [], caps: [] });
 
 /** A set of files, as the import graph the runner and the checker both read. */
 function graph(files: Record<string, string>): {
@@ -98,6 +102,7 @@ describe("what a file can publish", () => {
       document: built.modules.get(ENTRY) as Document,
       uri: ENTRY,
       graph: built,
+      registry: REGISTRY,
     });
 
     expect(problems).toHaveLength(1);
@@ -115,6 +120,7 @@ describe("what a file can publish", () => {
       document: built.modules.get(ENTRY) as Document,
       uri: ENTRY,
       graph: built,
+      registry: REGISTRY,
     });
 
     expect(problems[0]?.note).toContain("not marked");
@@ -154,6 +160,7 @@ describe("what a file can publish", () => {
       document: built.modules.get(ENTRY) as Document,
       uri: ENTRY,
       graph: built,
+      registry: REGISTRY,
     });
 
     expect(problems).toEqual([]);

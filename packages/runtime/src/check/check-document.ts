@@ -43,6 +43,7 @@ import { checkUncalledAction } from "./check-uncalled.js";
 import { checkUnusedImport } from "./check-unused-import.js";
 import { checkVerbCall } from "./check-verb-call.js";
 import { everyBoundName } from "./every-bound-name.js";
+import { loudestFirst } from "./loudest-first.js";
 
 /**
  * Statically resolve every action, matcher and fragment reference in a parsed
@@ -81,20 +82,6 @@ export function checkDocument(args: CheckArgs): Problem[] {
   }
   return loudestFirst(problems);
 }
-
-/**
- * What stops the run, before what merely reads badly.
- *
- * A file with one error and one hint should open with the error: whoever is
- * reading wants the thing that broke, and an untidy import can wait. Stable, so
- * two of the same loudness stay in the order they were found.
- */
-function loudestFirst(problems: readonly Problem[]): Problem[] {
-  const rank = (problem: Problem): number => LOUDNESS.indexOf(problem.severity);
-  return [...problems].sort((one, other) => rank(one) - rank(other));
-}
-
-const LOUDNESS = ["error", "warning", "hint"];
 
 function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
   const removed = checkRemovedUse(node, ctx);

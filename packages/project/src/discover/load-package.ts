@@ -1,7 +1,6 @@
 import type { FileSystem, Manifest } from "@venn-lang/contracts";
 import type { Package } from "../model/project.types.js";
-import { reanchor } from "../paths/index.js";
-import { inherit } from "../workspace/index.js";
+import { asMember } from "../workspace/index.js";
 import { conventionalTargets } from "./conventional-targets.js";
 import { readManifest } from "./read-manifest.js";
 
@@ -24,8 +23,14 @@ export async function loadPackage(args: {
 }): Promise<Package | undefined> {
   const own = await readManifest({ fs: args.fs, dir: args.dir });
   if (!own) return undefined;
-  const merged = args.workspace ? inherit({ manifest: own, from: args.workspace }) : own;
-  const manifest = anchorPaths({ manifest: merged, own, args });
+  const manifest = args.workspace
+    ? asMember({
+        manifest: own,
+        dir: args.dir,
+        from: args.workspace,
+        fromDir: args.workspaceDir ?? args.dir,
+      })
+    : own;
   const targets = await conventionalTargets({
     fs: args.fs,
     dir: args.dir,
@@ -33,28 +38,4 @@ export async function loadPackage(args: {
     packageName: manifest.name,
   });
   return { dir: args.dir, manifest, targets };
-}
-
-/**
- * Inherited path aliases, rewritten to mean the same place from down here.
- *
- * An alias the member wrote itself is already anchored where it will be read,
- * so only the ones that came from above move. Hence the member's own table is
- * consulted rather than the merged one.
- */
-function anchorPaths(input: {
-  manifest: Manifest;
-  own: Manifest;
-  args: { dir: string; workspaceDir?: string };
-}): Manifest {
-  const root = input.args.workspaceDir;
-  if (root === undefined || root === input.args.dir) return input.manifest;
-  const paths: Record<string, string> = {};
-  for (const [alias, value] of Object.entries(input.manifest.paths)) {
-    const mine = input.own.paths[alias] !== undefined;
-    paths[alias] = mine
-      ? value
-      : reanchor({ path: value, declaredIn: root, usedIn: input.args.dir });
-  }
-  return { ...input.manifest, paths };
 }

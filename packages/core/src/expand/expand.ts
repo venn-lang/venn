@@ -3,11 +3,11 @@ import { walkAst } from "../ast/index.js";
 import { buildProblem, CODES } from "../codes/index.js";
 import type { Annotation, Document } from "../generated/ast.js";
 import type { Problem } from "../problem/index.js";
+import { spanOf } from "../span/index.js";
 import type { DocumentDecoArgs, ImportedDeco } from "./deco/index.js";
 import { withDocumentDecos } from "./deco/index.js";
 import type { DecoratorDefinition, DecoratorSource, ExpandResult } from "./expand.types.js";
 import { makeContext } from "./make-context.js";
-import { spanOf } from "./node-span.js";
 import { wrongKind, wrongTargetTitle } from "./wrong-kind.js";
 
 /** What one decorated node needs for its decorators to run. */

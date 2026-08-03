@@ -2,11 +2,13 @@ import { readFileSync } from "node:fs";
 import {
   createTomlManifest,
   dotenvFiles,
+  type Manifest,
   parseDotenv,
   resolveAlias,
   tomlDocs,
 } from "@venn-lang/contracts";
 import { moduleFileOf } from "@venn-lang/core";
+import { asMember, matchesMember, relativeTo } from "@venn-lang/project";
 import type { TypeSpec } from "@venn-lang/types";
 import { type URI, UriUtils } from "langium";
 
@@ -108,16 +110,81 @@ function findManifest(
   return found;
 }
 
+/**
+ * The project governing a directory, workspace inheritance applied.
+ *
+ * Applied here rather than skipped, because a member reads the `[env.*]` and
+ * the `[paths]` its root declared: without this the editor drew a `VN2006` over
+ * every root-declared variable and resolved every `#alias` to a path nothing is
+ * indexed at, on code `venn check` and `venn run` both accept.
+ */
 function search(start: URI): Manifested | undefined {
+  const found = nearest(start);
+  if (!found) return undefined;
+  const owner = owningWorkspace(found.dir);
+  const manifest = owner
+    ? asMember({
+        manifest: found.read.manifest,
+        dir: found.dir.fsPath,
+        from: owner.manifest,
+        fromDir: owner.dir.fsPath,
+      })
+    : found.read.manifest;
+  return settled({ dir: found.dir, manifest, docs: found.read.docs });
+}
+
+function settled(args: { dir: URI; manifest: Manifest; docs: Docs }): Manifested {
+  const reduced: Manifested0 = {
+    paths: args.manifest.paths,
+    format: args.manifest.format as Record<string, unknown>,
+    env: args.manifest.env,
+    files: args.manifest.envFiles,
+    docs: args.docs,
+  };
+  return { root: args.dir, ...reduced, env: withDotenv(args.dir, reduced) };
+}
+
+/** The nearest `venn.toml` at or above a directory, with where it sits. */
+function nearest(start: URI): { dir: URI; read: Read } | undefined {
   let dir = start;
   for (let depth = 0; depth < MAX_DEPTH; depth++) {
-    const manifest = read(UriUtils.resolvePath(dir, "venn.toml"));
-    if (manifest) return { root: dir, ...manifest, env: withDotenv(dir, manifest) };
+    const found = read(UriUtils.resolvePath(dir, "venn.toml"));
+    if (found) return { dir, read: found };
     const parent = UriUtils.dirname(dir);
     if (parent.toString() === dir.toString()) return undefined;
     dir = parent;
   }
   return undefined;
+}
+
+/**
+ * The nearest workspace above this package that lists it among its members.
+ *
+ * Matched against the patterns as text rather than by expanding them on disk:
+ * this runs on a keystroke, and whether `packages/*` would catch a directory
+ * does not need that directory read. The CLI expands them and drops a match
+ * holding no manifest, which changes nothing here: this one has one.
+ */
+function owningWorkspace(from: URI): { dir: URI; manifest: Manifest } | undefined {
+  let dir = UriUtils.dirname(from);
+  for (let depth = 0; depth < MAX_DEPTH; depth++) {
+    const found = read(UriUtils.resolvePath(dir, "venn.toml"));
+    if (claims(found?.manifest, from, dir)) return { dir, manifest: found.manifest };
+    const parent = UriUtils.dirname(dir);
+    if (parent.toString() === dir.toString()) return undefined;
+    dir = parent;
+  }
+  return undefined;
+}
+
+function claims(
+  manifest: Manifest | undefined,
+  member: URI,
+  root: URI,
+): manifest is Manifest & { workspace: { members: readonly string[] } } {
+  const patterns = manifest?.workspace?.members;
+  if (!patterns) return false;
+  return matchesMember({ path: relativeTo(member.fsPath, root.fsPath), patterns });
 }
 
 /**
@@ -155,20 +222,22 @@ function readText(uri: URI): string | undefined {
   }
 }
 
-/** What {@link read} returns, before the dotenv files are folded into it. */
+/** What the editor keeps of a manifest, before the dotenv files are folded in. */
 type Manifested0 = Omit<Manifested, "root"> & { files: readonly string[] };
 
-function read(uri: URI): Manifested0 | undefined {
+/** The comment written above each key, which `venn.toml` alone carries. */
+type Docs = Record<string, string>;
+
+/** One `venn.toml`, whole, because inheritance is applied over the whole thing. */
+interface Read {
+  manifest: Manifest;
+  docs: Docs;
+}
+
+function read(uri: URI): Read | undefined {
   try {
     const content = readFileSync(uri.fsPath, "utf8");
-    const manifest = createTomlManifest({ content }).load();
-    return {
-      paths: manifest.paths,
-      format: manifest.format as Record<string, unknown>,
-      env: manifest.env,
-      files: manifest.envFiles,
-      docs: tomlDocs(content),
-    };
+    return { manifest: createTomlManifest({ content }).load(), docs: tomlDocs(content) };
   } catch {
     return undefined;
   }

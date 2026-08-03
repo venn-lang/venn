@@ -1,97 +1,36 @@
-import { ALL_CAPABILITIES } from "@venn-lang/contracts";
-import type { Document, Problem, VennAstType } from "@venn-lang/core";
-import {
-  buildRegistry,
-  checkDocument,
-  checkImports,
-  collectFragments,
-  createDecoratorSource,
-  type Registry,
-} from "@venn-lang/runtime";
-import { allPlugins } from "@venn-lang/stdlib";
-import {
-  AstUtils,
-  type LangiumDocument,
-  type LangiumDocuments,
-  type ValidationAcceptor,
-} from "langium";
-import type { Range } from "vscode-languageserver";
-import { importedDecos } from "../deco/index.js";
-import { importedFragments, importedModules, type ModuleGraph } from "../document/index.js";
-import { envNames } from "../env/index.js";
+import type { Document, Problem, RelatedInfo, VennAstType } from "@venn-lang/core";
+import { AstUtils, type LangiumDocument, type ValidationAcceptor } from "langium";
+import type { DiagnosticRelatedInformation, Range } from "vscode-languageserver";
 import type { VennServices } from "../services/lsp.types.js";
 import type { TypeService } from "../types/index.js";
-import type { ImportResolver } from "../workspace/index.js";
 
-/** Wire the runtime's static check (VN2003/4/5) into the editor's diagnostics. */
+/**
+ * Wire the shared front end into the editor's diagnostics.
+ *
+ * Every pass the CLI runs, because it is the very same call: the analysis comes
+ * from the type service, which caches one `analyze` per parse, so the editor and
+ * `venn check` cannot disagree about which checks ran.
+ */
 export function registerVennChecks(services: VennServices): void {
-  const registry = buildRegistry({ plugins: allPlugins, caps: ALL_CAPABILITIES });
-  const imports = services.imports;
   const types = services.types;
-  const documents = services.shared.workspace.LangiumDocuments;
   services.validation.ValidationRegistry.register<VennAstType>({
-    Document: (document, accept) =>
-      report({ document, accept, registry, imports, types, documents }),
+    Document: (document, accept) => report({ document, accept, types }),
   });
 }
 
 function report(args: {
   document: Document;
   accept: ValidationAcceptor;
-  registry: Registry;
-  imports: ImportResolver;
   types: TypeService;
-  documents: LangiumDocuments;
 }): void {
   const langiumDocument = AstUtils.getDocument(args.document);
   const uri = langiumDocument.uri.toString();
-  const graph = importedModules({
-    root: args.document,
-    uri: langiumDocument.uri,
-    documents: args.documents,
-    imports: args.imports,
-  });
-  const fragments = knownFragments({ document: args.document, uri, graph });
-  const problems = checkDocument({
-    document: args.document,
-    registry: args.registry,
-    decorators: createDecoratorSource(allPlugins),
-    importedDecos: decoNames(args, langiumDocument),
-    fragments,
-    env: declaredEnv(args.imports, langiumDocument),
-    uri: langiumDocument.uri.toString(),
-  });
-  // Type errors come from the shared service, so a file is inferred once per
-  // change and hover reads the very same result.
-  const typed = args.types.of(langiumDocument).problems;
-  const imported = checkImports({ document: args.document, uri, graph });
-  for (const problem of [...problems, ...typed, ...imported]) emit(problem, args, langiumDocument);
-}
-
-/** The `pub deco`s this file imports, so one declared next door still resolves. */
-function decoNames(
-  args: { document: Document; imports: ImportResolver; documents: LangiumDocuments },
-  langiumDocument: LangiumDocument,
-): string[] {
-  const scope = {
-    root: args.document,
-    uri: langiumDocument.uri,
-    documents: args.documents,
-    imports: args.imports,
-  };
-  return [...importedDecos(scope).keys()];
-}
-
-/**
- * The variables `venn.toml` declares, or undefined when there is no manifest.
- * Without one, every `env.*` read would look undeclared.
- */
-function declaredEnv(
-  imports: ImportResolver,
-  document: LangiumDocument,
-): readonly string[] | undefined {
-  const sections = imports.env(document.uri);
-  return Object.keys(sections).length > 0 ? envNames(sections) : undefined;
+  for (const problem of args.types.of(langiumDocument).problems) {
+    // A problem may point at another file, as a cycle does at the one that
+    // closes it. Diagnostics are published per document, so one belonging to a
+    // neighbour is that neighbour's to draw.
+    if (problem.span.uri === uri) emit(problem, args, langiumDocument);
+  }
 }
 
 function emit(
@@ -99,10 +38,15 @@ function emit(
   args: { document: Document; accept: ValidationAcceptor },
   langiumDocument: LangiumDocument,
 ): void {
-  args.accept("error", said(problem), {
+  // The severity the catalogue declared, never a constant. `VN5005` is a hint
+  // because an import nobody used is untidy rather than wrong, and the CLI
+  // exits 0 on it; publishing it as an error drew a red line under code that
+  // passes, which is how people learn to ignore the editor.
+  args.accept(problem.severity, said(problem), {
     node: args.document,
     range: rangeOf(problem, langiumDocument),
     code: problem.code,
+    ...related(problem, langiumDocument),
   });
 }
 
@@ -118,23 +62,43 @@ function said(problem: Problem): string {
 }
 
 /**
- * A fragment is known if this file declares one or imported one.
+ * The other place, when a problem is about two places at once.
  *
- * Only real fragments count: the neighbouring files say which imported names
- * are fragments, so `run` cannot accept a `pub fn` by mistake.
+ * `VN2020` names the declaration this one collides with and `VN2021` names each
+ * file on the way round a cycle. A client renders these as a click that takes
+ * you there, and the editor is where such a click is worth having.
  */
-function knownFragments(args: {
-  document: Document;
-  uri: string;
-  graph: ModuleGraph;
-}): Set<string> {
-  return new Set([...collectFragments(args.document).keys(), ...importedFragments(args)]);
+function related(
+  problem: Problem,
+  document: LangiumDocument,
+): { relatedInformation?: DiagnosticRelatedInformation[] } {
+  const found = problem.related ?? [];
+  if (found.length === 0) return {};
+  return { relatedInformation: found.map((one) => elsewhere(one, document)) };
 }
 
+function elsewhere(one: RelatedInfo, document: LangiumDocument): DiagnosticRelatedInformation {
+  const here = one.span.uri === document.uri.toString();
+  return {
+    location: { uri: one.span.uri, range: here ? spanRange(one.span, document) : WHOLE_FILE },
+    message: one.label,
+  };
+}
+
+/** A span in another file, whose text this server may not have loaded. */
+const WHOLE_FILE: Range = {
+  start: { line: 0, character: 0 },
+  end: { line: 0, character: 0 },
+};
+
 function rangeOf(problem: Problem, document: LangiumDocument): Range {
+  return spanRange(problem.span, document);
+}
+
+function spanRange(span: { offset: number; length: number }, document: LangiumDocument): Range {
   const text = document.textDocument;
   return {
-    start: text.positionAt(problem.span.offset),
-    end: text.positionAt(problem.span.offset + problem.span.length),
+    start: text.positionAt(span.offset),
+    end: text.positionAt(span.offset + span.length),
   };
 }

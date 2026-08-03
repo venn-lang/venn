@@ -10,7 +10,7 @@ import {
 } from "@venn-lang/project";
 import { selectPackages, unknownPackage } from "../project/index.js";
 import { reportProblems } from "../reporters/index.js";
-import { checkProblems } from "./check.js";
+import { checkProblems, isError } from "./check.js";
 
 export interface BuildArgs {
   release?: boolean;
@@ -50,6 +50,7 @@ async function build(args: {
   profile: ProfileName;
 }): Promise<number> {
   const found = await checkProblems(args.packages.map((one) => one.dir));
+  const failed = found.problems.filter(isError).length;
   if (found.problems.length > 0) reportProblems([...found.problems]);
   if (found.problems.length > 0 && isStrict(args.project, args.profile)) return 1;
   const path = await writeBuildRecord({
@@ -62,7 +63,7 @@ async function build(args: {
       problems: found.problems.length,
     },
   });
-  return announce({ ...args, files: found.files, problems: found.problems.length, path });
+  return announce({ ...args, files: found.files, failed, path });
 }
 
 function builtTargets(packages: readonly Package[], root: string): BuiltTarget[] {
@@ -86,12 +87,13 @@ function announce(args: {
   packages: readonly Package[];
   profile: ProfileName;
   files: number;
-  problems: number;
+  /** Errors only, the same rule `venn check` exits by: a hint is not a failure. */
+  failed: number;
   path: string;
 }): number {
   const targets = args.packages.reduce((so, one) => so + one.targets.length, 0);
   process.stdout.write(
     `${args.profile}: ${targets} target(s), ${args.files} file(s) → ${args.path}\n`,
   );
-  return args.problems > 0 ? 1 : 0;
+  return args.failed > 0 ? 1 : 0;
 }

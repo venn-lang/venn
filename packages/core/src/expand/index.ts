@@ -38,7 +38,6 @@ export {
   verbsOfKind,
 } from "./handles/index.js";
 export { metaOf, readMeta, writeMeta } from "./node-meta.js";
-export { spanOf } from "./node-span.js";
 export { swapNode } from "./swap-node.js";
 export {
   everyKindWritten,

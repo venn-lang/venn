@@ -239,6 +239,7 @@ disagree about where a value lives.
 | `DOTENV_CONVENTION` | `.env`, `.env.${name}`, `.env.local`, `.env.${name}.local`, lowest precedence first |
 | `dotenvFiles({ configured?, name })` | Which files to read, in order, for one environment |
 | `parseDotenv(content)` | `NAME=value` per line, with comments, blanks, `export ` and quotes. No variable expansion |
+| `declaredEnvNames({ sections, dotenv? })` | Every variable a project declares, whichever environment runs: the union of every `[env.*]` section and the dotenv names, plus the built-in `name`. `undefined` where there is no manifest, which means "unknown", so no `env.*` read is refused. `venn check`, `venn run` and the editor all ask this |
 
 ## Logging
 

@@ -1,6 +1,7 @@
 ---
 "@venn-lang/contracts": minor
 "@venn-lang/core": minor
+"@venn-lang/project": minor
 "@venn-lang/runtime": minor
 "@venn-lang/stdlib": minor
 "@venn-lang/lsp": minor
@@ -44,4 +45,9 @@ What that closes on the way past:
 - one answer to what a project declares, dotenv files included, shared by every
   command. A token kept out of the repository used to fail the check and run
   fine.
+- a file inside a workspace member reads what its root declared. The editor took
+  the first `venn.toml` it found and used it verbatim, so every root-declared
+  `env.*` was a red squiggle and every `#alias` pointed nowhere.
+- `pub const`, `pub type`, `pub namespace` and `pub import` can be completed
+  inside `import { }`, which only `pub fn`, `pub fragment` and `pub deco` could.
 - `venn build` exits by the rule `venn check` exits by: a hint is not a failure.

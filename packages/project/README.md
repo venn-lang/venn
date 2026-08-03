@@ -59,6 +59,7 @@ folder is not membership. When nothing is found, `project` is absent and `proble
 | --- | --- |
 | `memberDirs({ fs, root, workspace })` | The directories the members occupy, exclusions applied, anything without a `venn.toml` dropped. |
 | `inherit({ manifest, from })` | A member manifest with what the root supplies filled in. |
+| `asMember({ manifest, dir, from, fromDir })` | The same, plus the inherited aliases rewritten to mean the same place from down here. What a member's manifest actually is: `loadPackage` reads it this way and so does the editor. |
 | `expandMembers({ fs, root, patterns })` | Expands `packages/*` against the disk. `*` is one segment; `**` is deliberately not read. |
 | `matchesMember({ path, patterns })` | Whether a path *would* be caught by the globs, without looking at the disk. Needed before the directory exists. |
 

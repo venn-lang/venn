@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type Document, isPackageSpecifier, isValueImport } from "@venn-lang/core";
+import { PROJECT_CODES } from "@venn-lang/project";
 import type { TypeSpec } from "@venn-lang/types";
 
 /** Where derived types are kept: derived, so under `target/` with the rest. */
@@ -19,9 +20,8 @@ export async function deriveTypes(args: {
   root: string;
   packages: readonly string[];
 }): Promise<{ name: string; total: number; typed: number }[]> {
-  // Loaded when it is needed and not before: it pulls in the TypeScript
-  // compiler, which is ten megabytes that `venn run` should never pay for.
-  const { readPackageTypes } = await import("@venn-lang/dts");
+  const readPackageTypes = await theReader();
+  if (!readPackageTypes) return [];
   const from = join(args.root, "target", "package.json");
   const dir = typesDir(args.root);
   await mkdir(dir, { recursive: true });
@@ -51,6 +51,30 @@ export async function loadDerivedTypes(args: {
     if (parsed) out.set(name, parsed.exports);
   }
   return out;
+}
+
+type ReadPackageTypes = typeof import("@venn-lang/dts")["readPackageTypes"];
+
+/**
+ * The deriver, or nothing when this build cannot reach it.
+ *
+ * Loaded when it is needed and not before: it pulls in the TypeScript compiler,
+ * which is ten megabytes that `venn run` should never pay for. It used to be
+ * outside the tarball as well as outside the engine, so `venn add` ended in a
+ * Node stack trace after the manifest was edited, the packages installed and
+ * the lock written. Types not derived is a smaller thing than that, and it is
+ * said as one: `venn check` reads what is in `target/types/` and treats an
+ * imported name it has nothing for as `dynamic`, which is the truth about it.
+ */
+async function theReader(): Promise<ReadPackageTypes | undefined> {
+  try {
+    return (await import("@venn-lang/dts")).readPackageTypes;
+  } catch {
+    process.stderr.write(
+      `${PROJECT_CODES.VN2108_NO_TYPE_DERIVATION} · types not derived: this build cannot load the TypeScript compiler.\n`,
+    );
+    return undefined;
+  }
 }
 
 /** A scope holds a slash and a file name cannot, so `@types/node` becomes `@types__node`. */

@@ -57,6 +57,12 @@ function watchPins(context: ExtensionContext, clients: Clients): void {
   context.subscriptions.push(watcher);
 }
 
+/**
+ * Close every language server the extension opened.
+ *
+ * @returns the promise VS Code waits on before unloading, or nothing when the
+ * extension never activated and there is no client to close.
+ */
 export function deactivate(): Promise<void> | undefined {
   return clients?.closeAll();
 }

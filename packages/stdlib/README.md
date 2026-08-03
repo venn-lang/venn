@@ -39,7 +39,6 @@ module demo.stdlib
 import { data } from "venn/data"
 import { auth } from "venn/auth"
 import { db } from "venn/db"
-import { assert } from "venn/assert"
 
 flow "Stdlib showcase" {
   step "auth builds a bearer header" {
@@ -53,7 +52,7 @@ flow "Stdlib showcase" {
   }
 
   step "in-memory database" {
-    db.seed { users: [{ id: 1 }, { id: 2 }] }
+    db.seed ({ users: [{ id: 1 }, { id: 2 }] })
     const rows = db.query "SELECT * FROM users"
     expect rows.len == 2
   }

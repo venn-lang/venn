@@ -83,6 +83,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.10(vitest@4.1.10)
+      tsc-api:
+        specifier: npm:typescript@^5.9.0
+        version: typescript@5.9.3
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -114,9 +117,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@venn-lang/assert':
-        specifier: workspace:*
-        version: link:../std-assert
       '@venn-lang/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -129,9 +129,6 @@ importers:
       '@venn-lang/http':
         specifier: workspace:*
         version: link:../std-http
-      '@venn-lang/io':
-        specifier: workspace:*
-        version: link:../std-io
       '@venn-lang/lsp':
         specifier: workspace:*
         version: link:../lsp
@@ -190,9 +187,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@venn-lang/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@venn-lang/prelude':
         specifier: workspace:*
         version: link:../prelude
@@ -758,9 +752,6 @@ importers:
 
   packages/std-mock:
     dependencies:
-      '@venn-lang/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -880,9 +871,6 @@ importers:
       '@venn-lang/browser':
         specifier: workspace:*
         version: link:../std-browser
-      '@venn-lang/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@venn-lang/crypto':
         specifier: workspace:*
         version: link:../std-crypto
@@ -943,16 +931,19 @@ importers:
       '@venn-lang/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@venn-lang/types':
-        specifier: workspace:*
-        version: link:../types
       '@venn-lang/ws':
         specifier: workspace:*
         version: link:../std-ws
     devDependencies:
+      '@venn-lang/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
+      '@venn-lang/types':
+        specifier: workspace:*
+        version: link:../types
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(typescript@7.0.2)

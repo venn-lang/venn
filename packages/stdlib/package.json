@@ -47,7 +47,6 @@
     "@venn-lang/assert": "workspace:*",
     "@venn-lang/auth": "workspace:*",
     "@venn-lang/browser": "workspace:*",
-    "@venn-lang/contracts": "workspace:*",
     "@venn-lang/crypto": "workspace:*",
     "@venn-lang/data": "workspace:*",
     "@venn-lang/date": "workspace:*",
@@ -68,11 +67,12 @@
     "@venn-lang/path": "workspace:*",
     "@venn-lang/runtime": "workspace:*",
     "@venn-lang/sdk": "workspace:*",
-    "@venn-lang/types": "workspace:*",
     "@venn-lang/ws": "workspace:*"
   },
   "devDependencies": {
+    "@venn-lang/contracts": "workspace:*",
     "@venn-lang/core": "workspace:*",
+    "@venn-lang/types": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

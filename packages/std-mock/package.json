@@ -42,7 +42,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn-lang/contracts": "workspace:*",
     "@venn-lang/sdk": "workspace:*",
     "@venn-lang/types": "workspace:*"
   },

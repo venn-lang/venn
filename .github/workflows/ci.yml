@@ -106,16 +106,22 @@ jobs:
       # `check` was the only command the examples ever met, and it is the one
       # that was never broken: it type-checked while `run` and `test` did not,
       # so the two commands that execute code were the two nothing exercised.
-      - name: Run the example programs and their tests
-        shell: bash
-        run: |
-          for name in gradebook ledger pokedex standup watchtower; do
-            node packages/cli/dist/bin/venn-run.mjs test "examples/programs/$name/tests.vn" \
-              --reporter dot
-          done
-          for name in gradebook ledger standup; do
-            node packages/cli/dist/bin/venn-run.mjs run "examples/programs/$name/main.vn" > /dev/null
-          done
+      #
+      # This drives all seventy-eight through `run` or `test` and compares the
+      # exit status, the assertion counts and both output streams against what
+      # is committed. Exit status alone is not enough and provably so: `venn
+      # test` on a file with no flows exits 0 saying `0 passed, 0 failed`.
+      # `node scripts/examples-run.mjs --write` re-records after a change.
+      - name: Run every example and compare what it printed
+        run: node scripts/examples-run.mjs --check
+
+      # The charter asks every package for a README with at least one example
+      # that runs, and twenty-seven of the sixty-six Venn blocks were refused by
+      # the checker that ships beside them. That rule is red now; the count of
+      # the rest is frozen and only goes down.
+      # `node scripts/readme-venn.mjs --write` re-records it.
+      - name: Check the Venn in every package README
+        run: node scripts/readme-venn.mjs --check
 
       # Only the built binary can answer this. The version is read from the
       # manifest by walking up from the running file, and the bundle sits at a
@@ -129,6 +135,31 @@ jobs:
           declared=$(node -p "require('./packages/cli/package.json').version")
           echo "binary says $built, manifest says $declared"
           test "$built" = "$declared"
+  # A dash or a credited tool in a commit message is the one rule a tool breaks
+  # by default, and `no-dashes.test.mjs` reads `git ls-files`, which by
+  # construction never sees a commit message or a pull request title.
+  #
+  # Its own job, because it is the one check that needs the whole history and
+  # none of the build. `fetch-depth: 0` on the shared checkout would slow both
+  # halves of the matrix down to answer a question neither of them asks.
+  messages:
+    name: Check the messages
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Read the range and the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/subjects-are-clean.mjs "$BASE" "$HEAD" "$TITLE"
+
   # The one check the branch rule requires, because it is the only one whose
   # name never moves. A skipped matrix job reports `verify (${{ matrix.os }})`,
   # not the expanded names, and a required check that never reports by the name
@@ -136,7 +167,7 @@ jobs:
   # answers for the rest.
   gate:
     name: CI
-    needs: [changes, verify]
+    needs: [changes, verify, messages]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -144,6 +175,7 @@ jobs:
         run: |
           echo "changes: ${{ needs.changes.result }}"
           echo "verify: ${{ needs.verify.result }}"
+          echo "messages: ${{ needs.messages.result }}"
           # A failure deciding is not a pass. Without this, an API error would
           # skip the tests and report success for having skipped them.
           test "${{ needs.changes.result }}" = "success" || {
@@ -151,4 +183,9 @@ jobs:
           case "${{ needs.verify.result }}" in
             success|skipped) echo "Nothing failed." ;;
             *) echo "::error::verify did not pass."; exit 1 ;;
+          esac
+          # Skipped is the push build, which has no pull request to read.
+          case "${{ needs.messages.result }}" in
+            success|skipped) echo "Every message is clean." ;;
+            *) echo "::error::a message or the title breaks a rule."; exit 1 ;;
           esac

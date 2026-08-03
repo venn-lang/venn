@@ -12,7 +12,7 @@ The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` f
 namespace in with `use`:
 
 ```ruby
-import { graphql } from "venn/graphql"
+import { gql } from "venn/graphql"
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ import { graphql } from "venn/graphql"
 ```ruby
 module demo.profile
 
-import { graphql } from "venn/graphql"
+import { gql, noGraphqlErrors } from "venn/graphql"
 
 flow "Profile" {
   step "read the profile" {
@@ -34,6 +34,8 @@ flow "Profile" {
 The document is the single positional argument. Everything else rides the options map:
 
 ```ruby
+import { gql } from "venn/graphql"
+
 let res = gql.mutate "mutation Rename($id: ID!, $name: String!) { rename(id: $id, name: $name) { id } }" {
   variables: { id: "u1", name: "Alice" }
   auth: "Bearer tok123"

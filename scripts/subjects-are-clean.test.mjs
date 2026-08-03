@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { complaints, wrongWith } from "./subjects-are-clean.mjs";
+import { baseThatExists, complaints, wrongWith } from "./subjects-are-clean.mjs";
 
 const EM = String.fromCharCode(0x2014);
 const EN = String.fromCharCode(0x2013);
@@ -45,8 +45,22 @@ describe("a commit message and the title it merges under", () => {
     expect(said).toContain("Rewrite the sentence");
   });
 
-  /** The commits this arrived on, held to the rule they exist to hold. */
-  it("passes over the branch that introduced it", () => {
+  /**
+   * The commits this arrived on, held to the rule they exist to hold.
+   *
+   * Skipped where the base is not fetched, which is the `verify` job: it clones
+   * shallow on purpose, and deepening it would slow every build for a rule that
+   * already has a job of its own. `Check the messages` in CI checks out with
+   * `fetch-depth: 0` and runs this over the real range, so the rule is enforced
+   * there rather than nowhere. Said out loud rather than passed over in silence,
+   * because a guard that quietly does nothing is the thing this epic is about.
+   */
+  it("passes over the branch that introduced it", (ctx) => {
+    if (!baseThatExists("main")) {
+      ctx.skip("no `main` to compare against here; `Check the messages` in CI does this");
+      return;
+    }
+
     expect(wrongWith({ base: "main", head: "HEAD" })).toEqual([]);
   });
 });

@@ -48,9 +48,42 @@ export function complaints(what, text) {
   return found;
 }
 
+/**
+ * A ref that exists, from the ones a caller might mean by "the base".
+ *
+ * `main` is a local branch on a developer's machine and is usually absent in
+ * CI, where the checkout is of the pull request and the base arrives as
+ * `origin/main` or as nothing at all. A guard that only runs in one of the two
+ * places is not a guard, and one that passes when it cannot compare is worse.
+ *
+ * @param base What the caller asked for.
+ * @returns The first ref that resolves, or `undefined` when none does.
+ */
+export function baseThatExists(base) {
+  for (const ref of [base, `origin/${base}`, `refs/remotes/origin/${base}`]) {
+    try {
+      execFileSync("git", ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      return ref;
+    } catch {
+      // The next spelling, or nothing.
+    }
+  }
+  return undefined;
+}
+
 /** Every commit message in the range, subject and body, newest last. */
 export function messagesIn(base, head) {
-  const said = execFileSync("git", ["log", "--format=%H%x00%B%x00", `${base}..${head}`], {
+  const from = baseThatExists(base);
+  if (!from) {
+    throw new Error(
+      `No ref named ${base} or origin/${base}, so there is nothing to compare ${head} against. ` +
+        "In CI, fetch the base branch: actions/checkout with fetch-depth: 0.",
+    );
+  }
+  const said = execFileSync("git", ["log", "--format=%H%x00%B%x00", `${from}..${head}`], {
     encoding: "utf8",
     maxBuffer: 1 << 26,
   });

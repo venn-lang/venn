@@ -71,6 +71,8 @@ export {
   slotValue,
 } from "./pattern/index.js";
 export * from "./problem/index.js";
+// Where a node is: one answer, `${…}` included.
+export * from "./span/index.js";
 // Static type inference (Hindley-Milner) + generics.
 export {
   BUILTIN_TYPES,

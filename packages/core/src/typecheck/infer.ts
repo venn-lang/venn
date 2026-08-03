@@ -19,8 +19,10 @@ import type {
   TypeRef,
   Unary,
 } from "../generated/ast.js";
+import type { InterpolationSlot } from "../interpolation/index.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
+import { markSlotIn } from "../span/index.js";
 import { callType } from "./action-signature.js";
 import { memberType } from "./builtins.js";
 import { argumentsFit } from "./call-arguments.js";
@@ -180,9 +182,22 @@ function parsedSlots(expr: StringLit, infer: Infer): Slot[] {
   const known = infer.parsed?.get(expr);
   if (known) return known;
   const text = expr.$cstNode?.text ?? expr.value;
-  const slots = scanInterpolations(text).map((slot) => slotExpr(slot.source));
+  const slots = scanInterpolations(text).map((slot) => placed(slotExpr(slot.source), slot, expr));
   infer.parsed?.set(expr, slots);
   return slots;
+}
+
+/**
+ * Tell the parsed expression where it was written.
+ *
+ * Without this its nodes carry the offsets of the little document the slot was
+ * parsed in, and every problem raised over one landed at that document's
+ * position rather than at the placeholder's: line 1, column 30, whatever the
+ * file said.
+ */
+function placed(slot: Slot, at: InterpolationSlot, host: StringLit): Slot {
+  if (slot.expr) markSlotIn({ expr: slot.expr, host, start: at.sourceStart });
+  return slot;
 }
 
 /** A dot with no name after it yet: what half-typed member access looks like. */

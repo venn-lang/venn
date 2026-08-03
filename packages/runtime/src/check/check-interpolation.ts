@@ -2,15 +2,21 @@ import {
   type AstNode,
   buildProblem,
   CODES,
+  type Expr,
   type InterpolationSlot,
+  isAnnotation,
   isStringLit,
+  markSlotIn,
   type Problem,
   parseExpression,
   type Span,
   scanInterpolations,
+  walkAst,
 } from "@venn-lang/core";
 import type { CheckContext } from "./check.types.js";
 import { envProblemsIn } from "./check-env.js";
+import { checkUnbound } from "./check-unbound.js";
+import { everyBoundName } from "./every-bound-name.js";
 
 /**
  * Check each `${…}` placeholder in a string literal and point at the placeholder
@@ -19,16 +25,58 @@ import { envProblemsIn } from "./check-env.js";
  */
 export function checkInterpolation(node: AstNode, ctx: CheckContext): Problem[] {
   const cst = node.$cstNode;
-  if (!isStringLit(node) || !cst) return [];
+  if (!isStringLit(node) || !cst || insideAnnotation(node)) return [];
   return scanInterpolations(cst.text).flatMap((slot) =>
-    inSlot(slot, spanOf(slot, { cst, uri: ctx.uri }), ctx),
+    inSlot({ slot, host: node, span: spanOf(slot, { cst, uri: ctx.uri }), ctx }),
   );
 }
 
-/** A URL is where `env` reads live, so they are checked here as well as in the AST. */
-function inSlot(slot: InterpolationSlot, span: Span, ctx: CheckContext): Problem[] {
-  if (!parseExpression(slot.source)) return [unreadable(slot, span)];
-  return envProblemsIn(slot.source, span, ctx);
+/**
+ * A bare name inside a decorator is a word, not a reference, so a string there
+ * is decorator arguments rather than code. The AST walk skips those for the
+ * same reason.
+ */
+function insideAnnotation(node: AstNode): boolean {
+  for (let at = node.$container; at; at = at.$container) if (isAnnotation(at)) return true;
+  return false;
+}
+
+/**
+ * A URL is where `env` reads live, and a placeholder is where a name is most
+ * often mistyped. Both are asked here, because the document's own tree stops at
+ * the string and neither would otherwise be asked at all.
+ */
+function inSlot(args: {
+  slot: InterpolationSlot;
+  host: AstNode;
+  span: Span;
+  ctx: CheckContext;
+}): Problem[] {
+  const expr = parsed(args.slot, args.host);
+  if (!expr) return [unreadable(args.slot, args.span)];
+  return [...envProblemsIn(args.slot.source, args.span, args.ctx), ...unbound(expr, args.ctx)];
+}
+
+/** The slot's expression, told where it was written so a problem points at it. */
+function parsed(slot: InterpolationSlot, host: AstNode): Expr | undefined {
+  const expr = parseExpression(slot.source);
+  if (expr) markSlotIn({ expr, host, start: slot.sourceStart });
+  return expr;
+}
+
+/**
+ * Names the slot reads and nothing binds.
+ *
+ * `"id=${noSuchName}"` used to interpolate as the empty string and survive into
+ * a passing assertion, while the same name outside the string was refused.
+ * Whatever the slot binds itself, a lambda's parameter above all, is added to
+ * what the file binds: the expression was parsed apart from the document, so
+ * the document cannot know about it.
+ */
+function unbound(expr: Expr, ctx: CheckContext): Problem[] {
+  const own = everyBoundName(expr);
+  const declared = own.size === 0 ? ctx.declared : new Set([...ctx.declared, ...own]);
+  return [expr, ...walkAst(expr)].flatMap((node) => checkUnbound(node, { ...ctx, declared }));
 }
 
 function unreadable(slot: InterpolationSlot, span: Span): Problem {

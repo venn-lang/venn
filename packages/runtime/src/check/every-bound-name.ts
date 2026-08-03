@@ -1,7 +1,6 @@
 import {
   type AstNode,
   boundNames,
-  type Document,
   isDecoDecl,
   isFnDecl,
   isForEachStmt,
@@ -33,13 +32,14 @@ import {
  * So this over-collects, and the check that reads it only ever asks "does this
  * name exist nowhere at all".
  *
- * @param document The parsed file.
+ * @param root The parsed file, or any subtree of one: an expression parsed out
+ * of a `${…}` binds names of its own that the file it sits in never saw.
  * @returns Every name bound by a binding, a parameter, a loop, a declaration,
  * an import, a catch, a `run … as`, or a pattern in any of them.
  */
-export function everyBoundName(document: Document): Set<string> {
+export function everyBoundName(root: AstNode): Set<string> {
   const names = new Set<string>();
-  for (const node of walkAst(document)) for (const name of namesOf(node)) names.add(name);
+  for (const node of [root, ...walkAst(root)]) for (const name of namesOf(node)) names.add(name);
   return names;
 }
 

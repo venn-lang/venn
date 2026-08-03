@@ -5,9 +5,9 @@ import { evaluate, invoke, memberValue } from "../../expr/index.js";
 import type { ActionCall, Block, IfStmt, LetStmt, Statement } from "../../generated/ast.js";
 import { patternSlots, slotValue } from "../../pattern/index.js";
 import { type Problem, ProblemError } from "../../problem/index.js";
+import { spanOf } from "../../span/index.js";
 import { truthy } from "../../value/index.js";
 import { handleSurface, missingVerb } from "../handles/index.js";
-import { spanOf } from "../node-span.js";
 import type { DecoBodyArgs } from "./deco.types.js";
 
 /**

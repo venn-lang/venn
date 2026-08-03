@@ -1,18 +1,19 @@
 import { type Console, ConsolePort, type Host } from "@venn-lang/contracts";
-import { type Problem, parse } from "@venn-lang/core";
+import { type Document, type Problem, parse } from "@venn-lang/core";
 import { type HttpClient, HttpClientPort, type HttpServer, HttpServerPort } from "@venn-lang/http";
 import { createNodeServer } from "@venn-lang/http/node";
 import {
-  buildRegistry,
+  type AnalyzeArgs,
   type CleanupSink,
-  checkDocument,
-  checkImports,
   collectFragments,
-  createDecoratorSource,
+  createFrontEnd,
   createRunner,
   type EventSink,
+  type ImportGraph,
   type ModuleIo,
+  NOTHING_IMPORTED,
   type NpmModules,
+  type ResolvedImports,
   type RunFilter,
   type RunResult,
   resolveImports,
@@ -23,7 +24,7 @@ import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
 export interface RunFileOutcome {
   /** Everything refused or reported. Empty when the file ran clean. */
   problems: Problem[];
-  /** Absent when nothing ran: the parse or the imports stopped it first. */
+  /** Absent when nothing ran: the parse or the checks stopped it first. */
   result?: RunResult;
 }
 
@@ -40,6 +41,14 @@ export interface RunFileArgs {
   filter?: RunFilter;
   bail?: boolean;
   env?: Record<string, unknown>;
+  /**
+   * The variables the project declares, as `venn check` and the editor see them.
+   *
+   * Absent where the caller injected an environment of its own and is therefore
+   * the declaration: an embedder with no manifest has nothing else to compare a
+   * read against.
+   */
+  declared?: readonly string[];
   io?: ModuleIo;
   /** How an installed package is loaded, when the host can load one. */
   npm?: NpmModules;
@@ -47,6 +56,15 @@ export interface RunFileArgs {
   cleanup?: CleanupSink;
   /** "test" runs the flows; "script" executes the file top to bottom. */
   mode?: "test" | "script";
+}
+
+/** One file, once the imports have been walked: what every step below reads. */
+interface Pass {
+  document: Document;
+  args: RunFileArgs;
+  resolved: ResolvedImports | undefined;
+  /** Undefined where the host has no way to read a neighbour. */
+  graph: ImportGraph | undefined;
 }
 
 /**
@@ -65,31 +83,65 @@ export interface RunFileArgs {
 export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
   const { ast, problems } = parse(args.source, { uri: args.uri });
   if (problems.length > 0) return { problems };
-  const io = args.io;
-  const resolved = io
-    ? await resolveImports({ document: ast, uri: args.uri, io, npm: args.npm })
+  const resolved = args.io
+    ? await resolveImports({ document: ast, uri: args.uri, io: args.io, npm: args.npm })
     : undefined;
-  const graph =
-    resolved && io
-      ? { modules: resolved.modules, resolve: io.resolve, npm: resolved.npm }
-      : undefined;
-  // Refused before anything runs. An import that names something the other file
-  // never published would otherwise surface halfway through, as a value that
-  // was quietly `undefined` until something called it.
-  const registry = buildRegistry({ plugins: allPlugins, caps: args.host.caps });
-  const bad = graph
-    ? checkImports({
-        document: ast,
-        uri: args.uri,
-        graph,
-        registry,
-        unreadable: resolved?.unreadable,
-        cycles: resolved?.cycles,
-      })
-    : [];
-  if (bad.length > 0) return { problems: bad };
-  const refused = refusedBefore({ ast, args, registry, resolved });
+  const pass: Pass = { document: ast, args, resolved, graph: graphOf(args, resolved) };
+  const refused = refusedBefore(pass);
   if (refused.length > 0) return { problems: refused };
+  const result = await execute(pass);
+  // The result carries its own problems, a decorator that refused the program
+  // among them, so both travel back together rather than one replacing the other.
+  return { problems: result.problems ?? [], result };
+}
+
+/**
+ * What the front end refuses, before anything runs.
+ *
+ * Every pass, which for a long time was neither every nor any. `venn check` ran
+ * the document check and `venn run` did not, so a lint was something you only
+ * met if you happened to ask twice; then `venn check` grew type checking and
+ * this did not follow, so a declared `: number` holding a string ran clean and
+ * printed the string. Both because the list of what to check lived in two
+ * functions in two files. There is one now.
+ *
+ * Errors only. A warning or a hint is `venn check`'s business: a run already
+ * stops for a parse error and for an import that names nothing, and printing an
+ * untidy import on every run would teach people to stop reading them.
+ */
+function refusedBefore(pass: Pass): Problem[] {
+  const front = createFrontEnd({ plugins: allPlugins, caps: pass.args.host.caps });
+  return front.analyze(inputsFor(pass)).problems.filter((one) => one.severity === "error");
+}
+
+/** What this run knows about the world outside the file. */
+function inputsFor(pass: Pass): AnalyzeArgs {
+  const { args, resolved } = pass;
+  return {
+    document: pass.document,
+    uri: args.uri,
+    graph: pass.graph ?? NOTHING_IMPORTED,
+    decos: resolved?.decos ?? new Map(),
+    fragments: reachable(pass),
+    env: args.declared ?? (args.env ? Object.keys(args.env) : undefined),
+    // Nothing yet: what an installed package publishes is read from `target/`,
+    // which `venn check` does and a run has never needed.
+    packages: new Map(),
+    unreadable: resolved?.unreadable ?? [],
+    cycles: resolved?.cycles ?? [],
+  };
+}
+
+function graphOf(
+  args: RunFileArgs,
+  resolved: ResolvedImports | undefined,
+): ImportGraph | undefined {
+  if (!args.io || !resolved) return undefined;
+  return { modules: resolved.modules, resolve: args.io.resolve, npm: resolved.npm };
+}
+
+function execute(pass: Pass): Promise<RunResult> {
+  const { args, resolved } = pass;
   const runner = createRunner({
     host: args.host,
     plugins: allPlugins,
@@ -100,14 +152,11 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
     bail: args.bail,
     env: args.env,
     moduleFragments: resolved?.fragments,
-    modules: graph,
+    modules: pass.graph,
     moduleDecos: resolved?.decos,
     cleanup: args.cleanup,
   });
-  const result = args.mode === "script" ? await runner.script(ast) : await runner.run(ast);
-  // The result carries its own problems, a decorator that refused the program
-  // among them, so both travel back together rather than one replacing the other.
-  return { problems: result.problems ?? [], result };
+  return args.mode === "script" ? runner.script(pass.document) : runner.run(pass.document);
 }
 
 function bindings(args: RunFileArgs) {
@@ -121,41 +170,8 @@ function bindings(args: RunFileArgs) {
   ];
 }
 
-/**
- * What the document check refuses, before anything runs.
- *
- * `venn check` ran this and `venn run` did not, so a lint was something you only
- * met if you happened to ask twice. `print { a: 1 }` was the worst of it: the
- * check says the map was swallowed as an options block, and the run printed an
- * empty line and said nothing.
- *
- * Errors only. A run already stops for a parse error and for an import that
- * names nothing, and a lint error is the same thing said later: a line that
- * cannot mean what it says. A warning or a hint is `venn check`'s business, and
- * printing one on every run would teach people to stop reading them.
- */
-function refusedBefore(input: {
-  ast: Parameters<typeof collectFragments>[0];
-  args: RunFileArgs;
-  registry: ReturnType<typeof buildRegistry>;
-  resolved: Awaited<ReturnType<typeof resolveImports>> | undefined;
-}): Problem[] {
-  const found = checkDocument({
-    document: input.ast,
-    registry: input.registry,
-    decorators: createDecoratorSource(allPlugins),
-    importedDecos: input.resolved?.decos.keys(),
-    fragments: reachable(input.ast, input.resolved),
-    env: input.args.env ? Object.keys(input.args.env) : undefined,
-    uri: input.args.uri,
-  });
-  return found.filter((problem) => problem.severity === "error");
-}
-
 /** Every fragment this file can call: its own, and the ones it imported. */
-function reachable(
-  ast: Parameters<typeof collectFragments>[0],
-  resolved: Awaited<ReturnType<typeof resolveImports>> | undefined,
-): Set<string> {
-  return new Set([...collectFragments(ast).keys(), ...(resolved?.fragments.keys() ?? [])]);
+function reachable(pass: Pass): Set<string> {
+  const own = collectFragments(pass.document).keys();
+  return new Set([...own, ...(pass.resolved?.fragments.keys() ?? [])]);
 }

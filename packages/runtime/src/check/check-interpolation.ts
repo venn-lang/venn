@@ -15,7 +15,7 @@ import {
 } from "@venn-lang/core";
 import type { CheckContext } from "./check.types.js";
 import { envProblemsIn } from "./check-env.js";
-import { checkUnbound } from "./check-unbound.js";
+import { checkUnbound, underADecorator } from "./check-unbound.js";
 import { everyBoundName } from "./every-bound-name.js";
 
 /**
@@ -26,8 +26,11 @@ import { everyBoundName } from "./every-bound-name.js";
 export function checkInterpolation(node: AstNode, ctx: CheckContext): Problem[] {
   const cst = node.$cstNode;
   if (!isStringLit(node) || !cst || insideAnnotation(node)) return [];
+  // The slot is parsed apart from the file, so the walk out of it never reaches
+  // the declaration it sits in. Asked here, where the string still knows.
+  const decorated = underADecorator(node);
   return scanInterpolations(cst.text).flatMap((slot) =>
-    inSlot({ slot, host: node, span: spanOf(slot, { cst, uri: ctx.uri }), ctx }),
+    inSlot({ slot, host: node, span: spanOf(slot, { cst, uri: ctx.uri }), ctx, decorated }),
   );
 }
 
@@ -51,10 +54,12 @@ function inSlot(args: {
   host: AstNode;
   span: Span;
   ctx: CheckContext;
+  decorated: boolean;
 }): Problem[] {
   const expr = parsed(args.slot, args.host);
   if (!expr) return [unreadable(args.slot, args.span)];
-  return [...envProblemsIn(args.slot.source, args.span, args.ctx), ...unbound(expr, args.ctx)];
+  const env = envProblemsIn(args.slot.source, args.span, args.ctx);
+  return args.decorated ? env : [...env, ...unbound(expr, args.ctx)];
 }
 
 /** The slot's expression, told where it was written so a problem points at it. */

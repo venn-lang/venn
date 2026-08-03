@@ -1,3 +1,5 @@
+import type { ValueImport } from "@venn-lang/core";
+
 /** What a file brought in by name, and what each of those names turned out to be. */
 export interface Imported {
   /**
@@ -22,6 +24,8 @@ export interface Imported {
 export interface UnknownImport {
   readonly pkg: string;
   readonly name: string;
+  /** The import that asked, so the problem lands on it rather than on the file. */
+  readonly decl: ValueImport;
   /** What it is, when the package has it as something a name cannot reach. */
   readonly note?: string;
 }

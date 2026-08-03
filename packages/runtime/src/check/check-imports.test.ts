@@ -1,6 +1,10 @@
 import { type Document, parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
+import { buildRegistry } from "../registry/index.js";
 import { checkImports } from "./check-imports.js";
+
+/** No plugins loaded: these files import each other, never a package. */
+const REGISTRY = buildRegistry({ plugins: [], caps: [] });
 
 const LIB = `fn privado(x: number) -> number => x
 pub fn publico(x: number) -> number => x
@@ -13,7 +17,7 @@ function graphOf(): { modules: Map<string, Document>; resolve: () => string } {
 
 function problems(source: string): string[] {
   const { ast } = parse(source, { uri: "/main.vn" });
-  return checkImports({ document: ast, uri: "/main.vn", graph: graphOf() }).map(
+  return checkImports({ document: ast, uri: "/main.vn", graph: graphOf(), registry: REGISTRY }).map(
     (problem) => `${problem.code} ${problem.title}`,
   );
 }
@@ -35,7 +39,12 @@ describe("a name that is not published", () => {
   /** Kept private and never written are different mistakes with different fixes. */
   it("says which of the two mistakes it is", () => {
     const { ast } = parse('import { privado } from "./lib.vn"', { uri: "/main.vn" });
-    const found = checkImports({ document: ast, uri: "/main.vn", graph: graphOf() });
+    const found = checkImports({
+      document: ast,
+      uri: "/main.vn",
+      graph: graphOf(),
+      registry: REGISTRY,
+    });
 
     expect(found[0]?.note).toContain("not marked");
     expect(found[0]?.note).not.toContain("Nothing of that name");
@@ -43,7 +52,12 @@ describe("a name that is not published", () => {
 
   it("says so plainly when nothing of the name is there", () => {
     const { ast } = parse('import { seja } from "./lib.vn"', { uri: "/main.vn" });
-    const found = checkImports({ document: ast, uri: "/main.vn", graph: graphOf() });
+    const found = checkImports({
+      document: ast,
+      uri: "/main.vn",
+      graph: graphOf(),
+      registry: REGISTRY,
+    });
 
     expect(found[0]?.note).toContain("Nothing of that name");
   });
@@ -57,6 +71,6 @@ describe("a name that is not published", () => {
     const { ast } = parse('import { x } from "./ausente.vn"', { uri: "/main.vn" });
     const graph = { modules: new Map<string, Document>(), resolve: () => "/ausente.vn" };
 
-    expect(checkImports({ document: ast, uri: "/main.vn", graph })).toEqual([]);
+    expect(checkImports({ document: ast, uri: "/main.vn", graph, registry: REGISTRY })).toEqual([]);
   });
 });

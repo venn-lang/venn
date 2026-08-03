@@ -55,12 +55,13 @@ function take(decl: ValueImport, plugin: PluginDefinition, into: Mutable): void 
   // namespace: there is one bag of verbs, and this is what to call it.
   if (decl.wildcard) return void into.namespaces.set(decl.wildcard, plugin.namespace);
   for (const one of decl.names)
-    place({ local: one.alias ?? one.name, name: one.name, plugin, into });
+    place({ local: one.alias ?? one.name, name: one.name, decl, plugin, into });
 }
 
 function place(args: {
   local: string;
   name: string;
+  decl: ValueImport;
   plugin: PluginDefinition;
   into: Mutable;
 }): void {
@@ -80,7 +81,7 @@ function place(args: {
   if (plugin.values?.some((value) => value.name === name)) {
     return void into.values.set(local, `${plugin.namespace}.${name}`);
   }
-  into.unknown.push({ pkg: plugin.name, name, note: whatItIs(name, plugin) });
+  into.unknown.push({ pkg: plugin.name, name, decl: args.decl, note: whatItIs(name, plugin) });
 }
 
 /**

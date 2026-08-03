@@ -2,7 +2,12 @@
 // Worker-safe. Implementations backed by `node:*` live behind the "./node"
 // subpath, conformance suites behind "./testing".
 export * from "./capabilities/index.js";
-export { DOTENV_CONVENTION, dotenvFiles, parseDotenv } from "./dotenv/index.js";
+export {
+  DOTENV_CONVENTION,
+  declaredEnvNames,
+  dotenvFiles,
+  parseDotenv,
+} from "./dotenv/index.js";
 export * from "./errors/index.js";
 export * from "./host/index.js";
 export * from "./logger/index.js";

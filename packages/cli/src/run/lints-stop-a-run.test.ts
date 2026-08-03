@@ -1,32 +1,37 @@
-import { createTestHost } from "@venn-lang/contracts";
+import { createMemoryConsole, createTestHost } from "@venn-lang/contracts";
 import { createFakeClient } from "@venn-lang/http";
 import { createMemorySink } from "@venn-lang/runtime";
 import { describe, expect, it } from "vitest";
-import { runFile } from "./run-file.js";
+import { type RunFileArgs, runFile } from "./run-file.js";
 
 const NEWLINE = String.fromCharCode(10);
 
-async function refusals(...lines: readonly string[]) {
-  const outcome = await runFile({
-    source: lines.join(NEWLINE),
-    uri: "memory://lint.vn",
+/** Every port a snippet needs, the console among them, since these ones print. */
+function ports(): Pick<RunFileArgs, "host" | "sink" | "httpClient" | "console" | "mode"> {
+  return {
     host: createTestHost(),
     sink: createMemorySink(),
     httpClient: createFakeClient({ responses: {} }),
+    console: createMemoryConsole(),
     mode: "script",
-  });
-  return outcome;
+  };
+}
+
+async function refusals(...lines: readonly string[]) {
+  return runFile({ source: lines.join(NEWLINE), uri: "memory://lint.vn", ...ports() });
 }
 
 /**
- * A lint that only `venn check` reads is a lint nobody reads.
+ * A check that only `venn check` reads is a check nobody reads.
  *
- * The document check ran under `venn check` and in the editor and not here, so
+ * It happened twice. The document check ran under `venn check` and not here, so
  * `print { a: 1 }` was refused by one command and printed an empty line under
- * the other. A run already stops for a parse error and for an import that names
- * nothing; a lint error is the same thing said later.
+ * the other. That was fixed, and type checking was left behind the same way, so
+ * a declared `: number` holding a string ran clean and printed the string. Both
+ * because the list of what to check lived in more than one place. There is one
+ * front end now, and this is what says so.
  */
-describe("a lint error stops a run", () => {
+describe("a check error stops a run", () => {
   it("refuses a value a verb swallowed as its options, and never runs", async () => {
     const outcome = await refusals("print { a: 1 }");
 
@@ -50,6 +55,21 @@ describe("a lint error stops a run", () => {
     expect(outcome.result).toBeUndefined();
   });
 
+  /** The pass `venn check` had and this did not, which is the whole of #255. */
+  it("refuses a value that is not the type it was declared to be", async () => {
+    const outcome = await refusals('const count: number = "seven"', "print count");
+
+    expect(outcome.problems.map((one) => one.code)).toEqual(["VN3010"]);
+    expect(outcome.result).toBeUndefined();
+  });
+
+  it("refuses a member the type does not have, wherever it is written", async () => {
+    const outcome = await refusals("const xs = [1, 2, 3]", 'print "n=${xs.length}"');
+
+    expect(outcome.problems.map((one) => one.code)).toEqual(["VN3010"]);
+    expect(outcome.result).toBeUndefined();
+  });
+
   /**
    * A hint is untidiness rather than a mistake, and a run that stopped for one,
    * or even mentioned one, would teach people to stop reading them.
@@ -65,11 +85,8 @@ describe("a lint error stops a run", () => {
     const outcome = await runFile({
       source: 'print "ran"',
       uri: "memory://lint.vn",
-      host: createTestHost(),
-      sink: createMemorySink(),
-      httpClient: createFakeClient({ responses: {} }),
       env: { BASE: "http://x" },
-      mode: "script",
+      ...ports(),
     });
 
     expect(outcome.problems).toEqual([]);

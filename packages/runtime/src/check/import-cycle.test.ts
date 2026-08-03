@@ -1,7 +1,11 @@
 import { parse } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
+import { buildRegistry } from "../registry/index.js";
 import { resolveImports } from "../run/index.js";
 import { checkImports } from "./check-imports.js";
+
+/** No plugins loaded: these files import each other, never a package. */
+const REGISTRY = buildRegistry({ plugins: [], caps: [] });
 
 /** A file system of source, keyed by path, and nothing else on it. */
 function io(files: Record<string, string>) {
@@ -18,7 +22,7 @@ async function problems(entry: string, files: Record<string, string>) {
   const graphIo = io(files);
   const found = await resolveImports({ document, uri: entry, io: graphIo });
   const graph = { modules: found.modules, resolve: graphIo.resolve };
-  return checkImports({ document, uri: entry, graph, cycles: found.cycles });
+  return checkImports({ document, uri: entry, graph, registry: REGISTRY, cycles: found.cycles });
 }
 
 const TWO = {

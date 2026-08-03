@@ -1,52 +1,18 @@
+import { ALL_CAPABILITIES } from "@venn-lang/contracts";
+import { type Document, isPackageSpecifier, isValueImport } from "@venn-lang/core";
 import {
-  type AstNode,
-  checkTypes,
-  type Document,
-  type Expr,
-  type ImportedDeco,
-  importedTypes,
-  isPackageSpecifier,
-  isValueImport,
-  type Problem,
-  type Type,
-  type TypeCatalog,
-} from "@venn-lang/core";
-import { createTypeCatalog } from "@venn-lang/runtime";
+  type AnalyzeArgs,
+  collectFragments,
+  createFrontEnd,
+  type FrontEnd,
+} from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
-import type { TypeSpec } from "@venn-lang/types";
 import type { LangiumDocument } from "langium";
 import { importedDecos } from "../deco/index.js";
-import { importedModules, type ModuleGraph } from "../document/index.js";
+import { importedFragments, importedModules, type ModuleGraph } from "../document/index.js";
+import { declaredEnv } from "../env/index.js";
 import type { VennServices } from "../services/lsp.types.js";
-
-/** What inference found for one document: its type errors and every node's type. */
-export interface DocumentTypes {
-  problems: readonly Problem[];
-  types: ReadonlyMap<AstNode, Type>;
-  /**
-   * Per string literal, the expression inference parsed from each `${…}`. The
-   * document's own tree stops at the string, so these are the only nodes the
-   * editor can reach for code written inside one.
-   */
-  slots: ReadonlyMap<AstNode, readonly (Expr | undefined)[]>;
-}
-
-/**
- * Type information for the workspace, computed once per parse of a document.
- *
- * Inference walks a whole file, and several features want its result:
- * diagnostics on every edit, hover on every mouse move. Without a shared cache
- * the same file is re-checked many times per keystroke; with it, a file is
- * checked once when it changes and every reader is served from memory.
- */
-export interface TypeService {
-  /** Everything inference knows about this document, cached until it is reparsed. */
-  of(document: LangiumDocument): DocumentTypes;
-  /** What is already cached, or undefined, for readers that must not block. */
-  peek(document: LangiumDocument): DocumentTypes | undefined;
-  /** Forget a document: it was deleted, or its folder was closed. */
-  forget(uri: string): void;
-}
+import type { DocumentTypes, TypeService } from "./type-service.types.js";
 
 const EMPTY: DocumentTypes = { problems: [], types: new Map(), slots: new Map() };
 
@@ -58,17 +24,29 @@ interface Entry {
   result: DocumentTypes;
 }
 
+/**
+ * The editor's analysis cache: one front end, one result per parse.
+ *
+ * Every capability there is, deliberately. An editor describes the language
+ * rather than one run of it, so a verb some host could not supply is still a
+ * verb, and refusing it here would draw a red line under correct code.
+ *
+ * @param services The Langium services, for the workspace index and the
+ * project resolver.
+ * @returns The service the validator, hover, completion and signature help all
+ * read a document's analysis from.
+ */
 export function createTypeService(services: VennServices): TypeService {
   const cache = new Map<string, Entry>();
   // Built once: reading every plugin's published types on each keystroke would
   // be work the answer never changes for.
-  const catalog = createTypeCatalog(allPlugins);
+  const front = createFrontEnd({ plugins: allPlugins, caps: ALL_CAPABILITIES });
   return {
     of(document) {
       const cached = hit(cache, document);
       if (cached) return cached;
       const root = document.parseResult?.value;
-      const result = compute({ document, catalog, ...outside(document, services) });
+      const result = compute(document, services, front);
       if (root) cache.set(document.uri.toString(), { root, result });
       return result;
     },
@@ -77,34 +55,61 @@ export function createTypeService(services: VennServices): TypeService {
   };
 }
 
-/**
- * The `pub deco`s this file imports.
- *
- * Read here rather than in {@link compute} because the services are resolved
- * lazily: touching them while the module is still being built would close a
- * loop that only opens once everything is constructed.
- */
-function outside(
+function hit(cache: Map<string, Entry>, document: LangiumDocument): DocumentTypes | undefined {
+  const entry = cache.get(document.uri.toString());
+  return entry && entry.root === document.parseResult?.value ? entry.result : undefined;
+}
+
+function compute(
   document: LangiumDocument,
   services: VennServices,
-): {
-  decos?: Map<string, ImportedDeco>;
-  graph?: ModuleGraph;
-  packages?: Map<string, Record<string, TypeSpec>>;
-} {
+  front: FrontEnd,
+): DocumentTypes {
   const root = document.parseResult?.value as Document | undefined;
-  if (!root) return {};
+  return root ? front.analyze(inputsFor(root, document, services)) : EMPTY;
+}
+
+/**
+ * What the workspace knows about this file's surroundings.
+ *
+ * Read here rather than when the service is built, because the services are
+ * resolved lazily: touching them while the module is still being constructed
+ * would close a loop that only opens once everything is.
+ */
+function inputsFor(root: Document, document: LangiumDocument, services: VennServices): AnalyzeArgs {
+  const uri = document.uri.toString();
   const scope = {
     root,
     uri: document.uri,
     documents: services.shared.workspace.LangiumDocuments,
     imports: services.imports,
   };
+  const graph = importedModules(scope);
   return {
+    document: root,
+    uri,
+    graph,
     decos: importedDecos(scope),
-    graph: importedModules(scope),
+    fragments: knownFragments(root, uri, graph),
+    env: declaredEnv(services.imports, document),
     packages: services.imports.packageTypes(document.uri, packagesNamed(root)),
+    // Both empty on purpose. A neighbour the workspace has not indexed yet is
+    // not a file that is missing, and drawing an error over one still loading
+    // is worse than saying nothing until the next build.
+    unreadable: [],
+    cycles: [],
   };
+}
+
+/**
+ * A fragment is known if this file declares one or imported one.
+ *
+ * Only real fragments count: the neighbouring files say which imported names
+ * are fragments, so `run` cannot accept a `pub fn` by mistake.
+ */
+function knownFragments(document: Document, uri: string, graph: ModuleGraph): Set<string> {
+  const imported = importedFragments({ document, uri, graph });
+  return new Set([...collectFragments(document).keys(), ...imported]);
 }
 
 /** The bare specifiers this file imports: the ones that name a package. */
@@ -113,32 +118,4 @@ function packagesNamed(root: Document): string[] {
     .filter(isValueImport)
     .map((decl) => decl.path)
     .filter(isPackageSpecifier);
-}
-
-function hit(cache: Map<string, Entry>, document: LangiumDocument): DocumentTypes | undefined {
-  const entry = cache.get(document.uri.toString());
-  return entry && entry.root === document.parseResult?.value ? entry.result : undefined;
-}
-
-function compute(args: {
-  document: LangiumDocument;
-  catalog: TypeCatalog;
-  decos?: Map<string, ImportedDeco>;
-  graph?: ModuleGraph;
-  packages?: Map<string, Record<string, TypeSpec>>;
-}): DocumentTypes {
-  const { document, catalog, decos, graph } = args;
-  const root = document.parseResult?.value as Document | undefined;
-  if (!root) return EMPTY;
-  const uri = document.uri.toString();
-  // What the imported names are, worked out from the files they were written
-  // in, so an imported function has a hover and its arguments are checked.
-  const imports =
-    graph && importedTypes({ ...graph, document: root, uri, catalog, packages: args.packages });
-  const checked = checkTypes(root, { uri, catalog, decos, imports });
-  return {
-    problems: checked.problems,
-    types: checked.types as ReadonlyMap<AstNode, Type>,
-    slots: checked.slots as ReadonlyMap<AstNode, readonly (Expr | undefined)[]>,
-  };
 }

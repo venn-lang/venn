@@ -144,8 +144,12 @@ const ports = [
 ];
 ```
 
-That is exactly what the CLI does. `venn test` runs with a real HTTP client, a real Node server and a
-real console, and every other port on its fake, which is why the stdlib example above runs offline.
+That is exactly what the CLI does. `venn test` and `venn run` bind a real HTTP client, a real Node
+server and the real streams behind `ConsolePort`, and leave every other port on its fake, which is
+why the stdlib example above runs offline.
+
+There is no console in `stdlibPortBindings`. A host that prints has to say where to, and one that
+forgets hears `VN7002` rather than writing into a buffer nobody reads.
 
 ## See also
 

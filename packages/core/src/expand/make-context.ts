@@ -4,9 +4,9 @@ import { evaluate } from "../expr/index.js";
 import type { Annotation } from "../generated/ast.js";
 import { isRef } from "../generated/ast.js";
 import type { Problem } from "../problem/index.js";
+import { spanOf } from "../span/index.js";
 import type { ExpandContext } from "./expand.types.js";
 import { writeMeta } from "./node-meta.js";
-import { spanOf } from "./node-span.js";
 import { swapNode } from "./swap-node.js";
 
 /**

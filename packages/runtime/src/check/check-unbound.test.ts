@@ -104,3 +104,57 @@ describe("a name something binds", () => {
     expect(codes("fn early() => later()\nfn later() => 1\nprint early()")).toEqual([]);
   });
 });
+
+/**
+ * The document's own tree stops at the string, so nothing used to look inside
+ * one: `"id=${noSuchName}"` interpolated as the empty string and survived into a
+ * passing assertion, while the same name one character to the left was refused.
+ */
+describe("a name nothing binds, written inside a placeholder", () => {
+  it("is the same problem it is outside the string", () => {
+    expect(codes('print "unknown is ${nobodyBoundThis}"')).toEqual(["VN2018"]);
+  });
+
+  it("is reported at the placeholder rather than at the string", () => {
+    const [found] = problems('const total = 1\nprint "n is ${totl}"');
+
+    expect(`${found?.span.line}:${found?.span.column}`).toBe("2:15");
+  });
+
+  it("says nothing about a name the file binds", () => {
+    expect(codes('const total = 1\nprint "n is ${total}"')).toEqual([]);
+  });
+
+  it("says nothing about a name the placeholder binds itself", () => {
+    expect(codes('const xs = [1]\nprint "${xs.map(fn (n) => n + 1)}"')).toEqual([]);
+  });
+});
+
+/**
+ * A decorator can add a parameter, and the body underneath is written expecting
+ * it. Expansion runs after this check, so nothing here can see the binding, and
+ * no check can know what a `deco` body does with the handle it was given.
+ */
+describe("a name a decorator binds", () => {
+  const DECORATED = [
+    "deco inject(target: Fn, name: string) {",
+    "  target.addParam(name)",
+    "}",
+    '@inject("who")',
+  ];
+
+  it("is not refused when it is read inside a placeholder", () => {
+    expect(codes([...DECORATED, 'fn greet() => "hello ${who}"'].join("\n"))).toEqual([]);
+  });
+
+  it("is not refused when it is read as a bare name either", () => {
+    expect(codes([...DECORATED, "fn greet() => who"].join("\n"))).toEqual([]);
+  });
+
+  /** Only the declaration a decorator could rewrite: everything else is still checked. */
+  it("is still refused in a function nothing decorates", () => {
+    expect(codes([...DECORATED, "fn greet() => 1", "fn other() => who"].join("\n"))).toEqual([
+      "VN2018",
+    ]);
+  });
+});

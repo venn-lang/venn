@@ -6,7 +6,6 @@ import {
   createNonePreviewProvider,
   PreviewProviderPort,
 } from "@venn-lang/browser";
-import { ConsolePort, createMemoryConsole } from "@venn-lang/contracts";
 import { CryptoEnginePort, createWebCryptoEngine } from "@venn-lang/crypto";
 import { createFakeDbClient, DbClientPort } from "@venn-lang/db";
 import { createFakeClient as createFakeGqlClient, GqlClientPort } from "@venn-lang/graphql";
@@ -43,7 +42,10 @@ export const stdlibPortBindings: PortBinding[] = [
   { port: PreviewProviderPort, impl: createNonePreviewProvider() },
   { port: LoadRunnerPort, impl: createFakeLoadRunner() },
   { port: ArtifactStorePort, impl: createMemoryArtifactStore() },
-  // A recording console, so a run without the CLI still has somewhere to write.
-  // The CLI binds the real streams over this one.
-  { port: ConsolePort, impl: createMemoryConsole() },
 ];
+
+// No console here on purpose. A recording one used to stand in, and `venn test`
+// never bound over it, so every `print` in a flow went into a buffer nobody
+// drained: a passing step with none of the text under it, in every reporter. A
+// host that writes has to say where, and one that forgets now hears VN7002
+// rather than nothing at all.

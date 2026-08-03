@@ -17,7 +17,7 @@ import {
   isRef,
   isStringLit,
 } from "../../../generated/ast.js";
-import { spanOf } from "../../node-span.js";
+import { spanOf } from "../../../span/index.js";
 import type { NameRead } from "./reach.types.js";
 import { slotReads } from "./slot-reads.js";
 

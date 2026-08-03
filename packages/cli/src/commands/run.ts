@@ -1,16 +1,16 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
+import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer } from "@venn-lang/http/node";
 import type { RunFilter } from "@venn-lang/runtime";
-import { loadEnv, loadManifest } from "../manifest/index.js";
+import { declaredEnv, loadEnv, loadManifest } from "../manifest/index.js";
 import type { Reporter, RunTotals } from "../reporters/index.js";
 import { pickReporter, reportProblems } from "../reporters/index.js";
 import { collectSourceFiles } from "../run/collect-files.js";
 import { createNodeModuleIo } from "../run/node-io.js";
 import { createNpmLoader } from "../run/npm-loader.js";
-import { type RunFileOutcome, runFile } from "../run/run-file.js";
+import { type RunFileArgs, type RunFileOutcome, runFile } from "../run/run-file.js";
 import { createShutdown, installHooks, type Shutdown } from "../shutdown/index.js";
 import { setProgramTitle } from "../title/index.js";
 
@@ -106,7 +106,7 @@ async function buildArgs(
   file: string,
   pass: RunPass,
   httpServer: ReturnType<typeof createNodeServer>,
-) {
+): Promise<RunFileArgs> {
   const found = await loadManifest(file);
   const manifest = found?.manifest;
   return {
@@ -116,6 +116,10 @@ async function buildArgs(
     sink: pass.reporter.sink,
     httpClient: createFetchClient(),
     httpServer,
+    // The real streams, as `venn run` has always had them. Without this every
+    // `print` in a flow wrote into a buffer nobody drained, so the reporter
+    // showed a passing step and none of the text under it.
+    console: createNodeConsole({ argv: [] }),
     filter: filterOf(pass.options),
     bail: pass.options.bail,
     env: await loadEnv({
@@ -123,6 +127,7 @@ async function buildArgs(
       name: pass.options.env ?? "local",
       dir: found?.dir ?? dirname(file),
     }),
+    declared: await declaredEnv(found),
     io: createNodeModuleIo({
       paths: manifest?.paths ?? {},
       rootDir: found?.dir ?? dirname(file),

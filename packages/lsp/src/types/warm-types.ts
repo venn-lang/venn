@@ -1,6 +1,6 @@
 import { DocumentState, type LangiumDocument, type URI } from "langium";
 import type { LangiumSharedServices } from "langium/lsp";
-import type { TypeService } from "./type-service.js";
+import type { TypeService } from "./type-service.types.js";
 
 /**
  * Keep the workspace's types warm.

@@ -103,6 +103,20 @@ jobs:
       - name: Check the examples
         run: node packages/cli/dist/bin/venn-run.mjs check examples/
 
+      # `check` was the only command the examples ever met, and it is the one
+      # that was never broken: it type-checked while `run` and `test` did not,
+      # so the two commands that execute code were the two nothing exercised.
+      - name: Run the example programs and their tests
+        shell: bash
+        run: |
+          for name in gradebook ledger pokedex standup watchtower; do
+            node packages/cli/dist/bin/venn-run.mjs test "examples/programs/$name/tests.vn" \
+              --reporter dot
+          done
+          for name in gradebook ledger standup; do
+            node packages/cli/dist/bin/venn-run.mjs run "examples/programs/$name/main.vn" > /dev/null
+          done
+
       # Only the built binary can answer this. The version is read from the
       # manifest by walking up from the running file, and the bundle sits at a
       # different depth than the source it was built from, so a test running

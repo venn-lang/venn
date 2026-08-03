@@ -34,8 +34,15 @@ export function checkImports(args: {
   document: Document;
   uri: string;
   graph: ImportGraph;
-  /** Absent where no plugin was loaded, and then a package publishes nothing. */
-  registry?: Registry;
+  /**
+   * What the loaded plugins publish, for the names asked of a package.
+   *
+   * Required, and not because every caller has one to spare. It was optional,
+   * the editor's validator quietly did not pass it, and the one diagnostic
+   * whose note tells you the fix never reached the one surface where it would
+   * be read.
+   */
+  registry: Registry;
   /**
    * Imports whose path was tried and answered nothing.
    *
@@ -66,12 +73,14 @@ export function checkImports(args: {
  * a verb were a value, and it is not. The note says what to write instead, since
  * the answer is one line away and nobody should have to guess it.
  */
-function fromPackages(args: { document: Document; uri: string; registry?: Registry }): Problem[] {
-  if (!args.registry) return [];
+function fromPackages(args: { document: Document; uri: string; registry: Registry }): Problem[] {
   return readImports(args.document, args.registry).unknown.map((one) =>
     buildProblem({
       spec: CODES.VN2009_NOT_EXPORTED,
-      span: nodeSpan(args.document, args.uri),
+      // The import that asked, not the file that holds it: in a terminal the
+      // whole document reads as 1:1 and nobody notices, and in an editor it is
+      // every line underlined.
+      span: nodeSpan(one.decl, args.uri),
       title: `"${one.pkg}" does not publish ${one.name}.`,
       ...(one.note ? { note: one.note } : {}),
     }),

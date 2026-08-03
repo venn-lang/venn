@@ -19,6 +19,7 @@ import {
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
+import { packageTypesFor } from "./package-types.js";
 
 /** What one `.vn` file amounted to. */
 export interface RunFileOutcome {
@@ -53,6 +54,14 @@ export interface RunFileArgs {
   io?: ModuleIo;
   /** How an installed package is loaded, when the host can load one. */
   npm?: NpmModules;
+  /**
+   * Where the project lives, for reading what its installed packages published.
+   *
+   * `venn check` read those and a run did not, so the two commands type-checked
+   * different worlds and disagreed about a name that came from a package.
+   * Absent means there is no project, never "do not look".
+   */
+  root?: string;
   /** Where the program registers what it opened, so the host can close it. */
   cleanup?: CleanupSink;
   /** "test" runs the flows; "script" executes the file top to bottom. */
@@ -88,7 +97,7 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
     ? await resolveImports({ document: ast, uri: args.uri, io: args.io, npm: args.npm })
     : undefined;
   const pass: Pass = { document: ast, args, resolved, graph: graphOf(args, resolved) };
-  const refused = refusedBefore(pass);
+  const refused = await refusedBefore(pass);
   if (refused.length > 0) return { problems: refused };
   const result = await execute(pass);
   // The result carries its own problems, a decorator that refused the program
@@ -110,13 +119,14 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
  * stops for a parse error and for an import that names nothing, and printing an
  * untidy import on every run would teach people to stop reading them.
  */
-function refusedBefore(pass: Pass): Problem[] {
+async function refusedBefore(pass: Pass): Promise<Problem[]> {
   const front = createFrontEnd({ plugins: allPlugins, caps: pass.args.host.caps });
-  return front.analyze(inputsFor(pass)).problems.filter((one) => one.severity === "error");
+  const analysis = front.analyze(await inputsFor(pass));
+  return analysis.problems.filter((one) => one.severity === "error");
 }
 
 /** What this run knows about the world outside the file. */
-function inputsFor(pass: Pass): AnalyzeArgs {
+async function inputsFor(pass: Pass): Promise<AnalyzeArgs> {
   const { args, resolved } = pass;
   return {
     document: pass.document,
@@ -125,9 +135,11 @@ function inputsFor(pass: Pass): AnalyzeArgs {
     decos: resolved?.decos ?? new Map(),
     fragments: reachable(pass),
     env: args.declared,
-    // Nothing yet: what an installed package publishes is read from `target/`,
-    // which `venn check` does and a run has never needed.
-    packages: new Map(),
+    // The same derived types `venn check` reads. Hardcoding an empty map here
+    // was the last place the two commands still checked different worlds: a
+    // name imported from an installed package was type-checked by `check` and
+    // by the editor, and not by the command that ran it.
+    packages: await packageTypesFor({ document: pass.document, root: args.root }),
     unreadable: resolved?.unreadable ?? [],
     cycles: resolved?.cycles ?? [],
   };

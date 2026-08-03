@@ -89,19 +89,34 @@ describe("what a project declares", () => {
  * `print` under `venn test` wrote into a buffer nobody drained, so the natural
  * next step after a red test produced no information and no error. It is a
  * prelude verb, available everywhere, and it is how a person debugs a flow.
+ *
+ * It goes to standard error, because standard output belongs to the reporter: a
+ * `print` among the NDJSON envelopes is a line nobody can parse, and one before
+ * the XML prolog is not a JUnit file. Both streams reach the same terminal, so
+ * a person still sees it, and a pipe still gets a clean report.
  */
 describe("what a flow prints", () => {
-  it("reaches stdout under venn test", async () => {
+  it("reaches the person under venn test, without touching the report", async () => {
     await write("flow.vn", lines('flow "F" {', '  step "s" { print "no meio" }', "}"));
-    const written: string[] = [];
-    const spy = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
-      written.push(String(chunk));
+    const out: string[] = [];
+    const err: string[] = [];
+    const onOut = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+      out.push(String(chunk));
+      return true;
+    });
+    const onErr = vi.spyOn(process.stderr, "write").mockImplementation((chunk) => {
+      err.push(String(chunk));
       return true;
     });
 
-    await runCommand({ file: join(root, "flow.vn"), reporter: "dot" });
-    spy.mockRestore();
+    await runCommand({ file: join(root, "flow.vn"), reporter: "ndjson" });
+    onOut.mockRestore();
+    onErr.mockRestore();
 
-    expect(written.join("")).toContain("no meio");
+    expect(err.join("")).toContain("no meio");
+    expect(out.join("")).not.toContain("no meio");
+    for (const line of out.join("").split(NEWLINE).filter(Boolean)) {
+      expect(() => JSON.parse(line)).not.toThrow();
+    }
   });
 });

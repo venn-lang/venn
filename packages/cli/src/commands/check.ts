@@ -1,13 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createNodeHost } from "@venn-lang/contracts/node";
-import {
-  type Document,
-  isPackageSpecifier,
-  isValueImport,
-  type Problem,
-  parse,
-} from "@venn-lang/core";
+import { type Document, type Problem, parse } from "@venn-lang/core";
 import {
   type AnalyzeArgs,
   collectFragments,
@@ -17,12 +11,11 @@ import {
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
-import type { TypeSpec } from "@venn-lang/types";
 import { declaredEnv, type LoadedManifest, loadManifest } from "../manifest/index.js";
 import { reportProblems } from "../reporters/index.js";
 import { everySourceUnder } from "../run/collect-files.js";
 import { createNodeModuleIo } from "../run/node-io.js";
-import { loadDerivedTypes } from "../run/package-types.js";
+import { packageTypesFor } from "../run/package-types.js";
 
 /**
  * `venn check <file|folder>`: statically resolve actions, matchers, imports and
@@ -130,17 +123,6 @@ function moduleIo(project: LoadedManifest | undefined, uri: string): ModuleIo {
  * has installed anything yet, so every imported name is `dynamic`, which is the
  * truth about it rather than a failure.
  */
-async function packageTypesFor(args: {
-  document: Document;
-  root?: string;
-}): Promise<Map<string, Record<string, TypeSpec>>> {
-  if (!args.root) return new Map();
-  const wanted = args.document.imports
-    .filter(isValueImport)
-    .map((decl) => decl.path)
-    .filter(isPackageSpecifier);
-  return wanted.length > 0 ? loadDerivedTypes({ root: args.root, packages: wanted }) : new Map();
-}
 
 function names(document: Document, imported: ReadonlyMap<string, unknown>): Set<string> {
   return new Set([...collectFragments(document).keys(), ...imported.keys()]);

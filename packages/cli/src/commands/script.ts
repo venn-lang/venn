@@ -92,6 +92,10 @@ async function scriptArgs(args: {
       dir: found?.dir ?? envDirOf(uri),
     }),
     declared: await declaredEnv(found),
+    // Where the project is, so a run reads what its packages published, which
+    // is what `venn check` reads. Two commands checking different worlds is how
+    // they came to disagree about a name that came from a package.
+    root: found?.dir,
     io: createNodeModuleIo({
       paths: manifest?.paths ?? {},
       rootDir: found?.dir ?? dirname(uri),

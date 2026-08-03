@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { type Document, isPackageSpecifier, isValueImport } from "@venn-lang/core";
 import type { TypeSpec } from "@venn-lang/types";
 
 /** Where derived types are kept: derived, so under `target/` with the rest. */
@@ -63,4 +64,27 @@ function parse(text: string): { exports: Record<string, TypeSpec> } | undefined 
   } catch {
     return undefined;
   }
+}
+
+/**
+ * The types the packages this document imports published, from `target/types/`.
+ *
+ * One definition, because `venn check` read them and `venn run` did not, so the
+ * two commands type-checked different worlds and disagreed about a name that
+ * came from a package. A caller with no project root reads none, which is the
+ * honest answer rather than a decision not to look.
+ *
+ * @param args The document whose imports decide what to load, and the project root.
+ * @returns What each imported package publishes, empty when there is nothing to read.
+ */
+export async function packageTypesFor(args: {
+  document: Document;
+  root?: string;
+}): Promise<Map<string, Record<string, TypeSpec>>> {
+  if (!args.root) return new Map();
+  const wanted = args.document.imports
+    .filter(isValueImport)
+    .map((decl) => decl.path)
+    .filter(isPackageSpecifier);
+  return wanted.length > 0 ? loadDerivedTypes({ root: args.root, packages: wanted }) : new Map();
 }

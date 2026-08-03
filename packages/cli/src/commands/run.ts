@@ -119,7 +119,12 @@ async function buildArgs(
     // The real streams, as `venn run` has always had them. Without this every
     // `print` in a flow wrote into a buffer nobody drained, so the reporter
     // showed a passing step and none of the text under it.
-    console: createNodeConsole({ argv: [] }),
+    //
+    // Under `venn test` the program writes to standard error, because standard
+    // output belongs to the reporter: a `print` among the envelopes is a line
+    // of NDJSON nobody can parse, and one before the XML prolog is not a JUnit
+    // file. Both streams reach the same terminal, so a person still sees it.
+    console: createNodeConsole({ argv: [], stdout: process.stderr }),
     filter: filterOf(pass.options),
     bail: pass.options.bail,
     env: await loadEnv({
@@ -128,6 +133,10 @@ async function buildArgs(
       dir: found?.dir ?? dirname(file),
     }),
     declared: await declaredEnv(found),
+    // Where the project is, so a run reads what its packages published, which
+    // is what `venn check` reads. Two commands checking different worlds is how
+    // they came to disagree about a name that came from a package.
+    root: found?.dir,
     io: createNodeModuleIo({
       paths: manifest?.paths ?? {},
       rootDir: found?.dir ?? dirname(file),

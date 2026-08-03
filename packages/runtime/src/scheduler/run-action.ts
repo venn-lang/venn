@@ -12,7 +12,7 @@ import {
 import type { ActionDefinition, ActionInput } from "@venn-lang/sdk";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";
-import { takes } from "./declared-arity.js";
+import { optionNames, takes } from "./declared-arity.js";
 import type { Engine } from "./engine.types.js";
 import { failError } from "./fail-error.js";
 import type { Invocation } from "./invocation.js";
@@ -81,7 +81,11 @@ async function buildInput(args: {
   // The trailing `{ … }` is the options in both spellings, but only the bareword
   // one puts it where the parser can label it. Splitting by declared arity is
   // what stops `http.get(url, { headers })` sending no headers at all.
-  const split = splitCall(args.call.args, takes(args.action));
+  const split = splitCall({
+    args: args.call.args,
+    takes: takes(args.action),
+    options: optionNames(args.action),
+  });
   const opts = args.call.opts ?? split.opts;
   const positional = await Promise.all(
     split.args.map((expr) => settle(evaluate(expr, args.scope))),

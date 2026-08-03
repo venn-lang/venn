@@ -10,7 +10,7 @@ port, whose real implementation is the platform's WebCrypto, so the package stay
 ## Install
 
 The package is part of the stdlib the `venn` CLI loads, so nothing to install. Reach it from a
-flow with a `use` line:
+flow with an `import` line:
 
 ```ruby
 import { crypto } from "venn/crypto"
@@ -23,7 +23,7 @@ The plugin requires no host capability: cryptography here is computation, not I/
 ```ruby
 module demo.session
 
-import { assert } from "venn/assert"
+import { contains } from "venn/assert"
 import { crypto } from "venn/crypto"
 
 flow "A session token round-trips" {

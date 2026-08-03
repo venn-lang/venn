@@ -90,6 +90,7 @@ function buildEngine(input: RunOnceInput, run: RunId): Engine {
   const { args, registry } = input;
   return {
     registry,
+    plugins: args.plugins,
     emitter: createEmitter({ sink: args.sink, run, clock: args.host.clock }),
     clock: args.host.clock,
     lock: args.host.lock,

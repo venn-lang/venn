@@ -261,7 +261,7 @@ formatText(source, { indentWidth: 4 });
 formatText(source, formatOptionsFrom(manifest.format)); // the [format] table of venn.toml
 ```
 
-`formatText` re-indents by bracket depth and, by default, moves every `use` above every `import`. It
+`formatText` re-indents by bracket depth and, by default, gathers every `import` into one block. It
 never joins or splits lines, and it is idempotent. `organizeHeader` and `reindent` are the two steps
 on their own.
 

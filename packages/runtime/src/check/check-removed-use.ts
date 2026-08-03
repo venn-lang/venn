@@ -10,13 +10,20 @@ import { problemAt } from "./problem-at.js";
  * That is true and useless. This says what it was and what to write instead.
  */
 export function checkRemovedUse(node: AstNode, ctx: CheckContext): Problem[] {
-  if (!isActionCall(node) || node.target !== "use" || !onlyAString(node)) return [];
+  if (!isActionCall(node) || node.target !== "use" || !looksLikeAUse(node)) return [];
   const title = "`use` was removed: write `import` for what the package publishes.";
   const help = 'Write `import { … } from "…"` for the names you want.';
   return [{ ...problemAt(node, ctx, CODES.VN5001_REMOVED_KEYWORD, title), help }];
 }
 
-/** What a `use` line looked like, and nothing else: one string and no options. */
-function onlyAString(node: ActionCall): boolean {
-  return node.args.length === 1 && node.args[0]?.$type === "StringLit" && !node.opts;
+/**
+ * What a `use` line looked like, and nothing else: one name and no options.
+ *
+ * Both spellings it ever had. `use "venn/http"` names the package and `use http`
+ * names the namespace, and thirteen READMEs taught the second one, which was
+ * reported as an unknown action nobody provides: true, and useless.
+ */
+function looksLikeAUse(node: ActionCall): boolean {
+  const written = node.args[0]?.$type;
+  return node.args.length === 1 && !node.opts && (written === "StringLit" || written === "Ref");
 }

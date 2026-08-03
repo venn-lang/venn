@@ -1,10 +1,10 @@
-import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { dataActions } from "./actions/index.js";
 import { dataPlugin } from "./plugin.js";
-import { resetRng } from "./rng/index.js";
+import { seededContext } from "./seeded-context.stub.js";
 
-const ctx = {} as ActionContext;
+let ctx = seededContext();
 
 function find(name: string): ActionDefinition {
   const action = dataActions.find((candidate) => candidate.name === name);
@@ -30,14 +30,14 @@ describe("data plugin", () => {
 
 describe("data oneOf / range", () => {
   it("oneOf only ever returns one of the given args", () => {
-    resetRng();
+    ctx = seededContext();
     for (let i = 0; i < 25; i += 1) {
       expect(["free", "pro"]).toContain(run("oneOf", "free", "pro"));
     }
   });
 
   it("range stays within the inclusive bounds and is integral", () => {
-    resetRng();
+    ctx = seededContext();
     for (let i = 0; i < 50; i += 1) {
       const n = Number(run("range", 1, 10));
       expect(n).toBeGreaterThanOrEqual(1);
@@ -49,7 +49,7 @@ describe("data oneOf / range", () => {
 
 describe("data shuffle", () => {
   it("preserves the elements and does not mutate the input", () => {
-    resetRng();
+    ctx = seededContext();
     const input = [1, 2, 3, 4, 5];
     const out = run("shuffle", input) as number[];
     expect([...out].sort((a, b) => a - b)).toEqual(input);
@@ -57,9 +57,9 @@ describe("data shuffle", () => {
   });
 
   it("is deterministic across a reset", () => {
-    resetRng();
+    ctx = seededContext();
     const first = run("shuffle", [1, 2, 3, 4, 5, 6, 7, 8]);
-    resetRng();
+    ctx = seededContext();
     const second = run("shuffle", [1, 2, 3, 4, 5, 6, 7, 8]);
     expect(second).toEqual(first);
   });

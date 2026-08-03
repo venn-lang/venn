@@ -19,7 +19,11 @@ import { math } from "venn/math"
 ```ruby
 import { math } from "venn/math"
 
+const radius = 3
 const area = math.pi * radius.pow(2)
+
+const x = 1
+const y = 1
 const angle = math.atan2(y, x)
 const degrees = math.degrees(angle)
 
@@ -64,10 +68,10 @@ included.
 `abs`, `floor`, `ceil`, `round`, `sign`, `sqrt`, `pow` and `clamp` are **members of a number**:
 
 ```ruby
-(-3).abs        # 3
-2.sqrt          # 1.4142135623730951
-3.7.round(0)    # 4
-x.clamp(0, 100)
+print (-3).abs        # 3
+print 2.sqrt          # 1.4142135623730951
+print 3.7.round(0)    # 4
+print 140.clamp(0, 100)
 ```
 
 They read better that way, and a second spelling would be a second way to say one thing. A test in

@@ -46,3 +46,7 @@ overrides:
   # Reached only through vite, so it never ships, but a scanner reads the
   # lockfile and not the dependency kind.
   postcss: ">=8.5.23"
+  # The fix, not the next major: an advisory is a reason to raise a patch,
+  # never a reason to take a version nothing here was written against.
+  fast-uri: ">=3.1.5 <4"
+  undici: ">=7.29.0 <8"

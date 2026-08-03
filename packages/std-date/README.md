@@ -4,6 +4,8 @@
 
 What a moment answers **about itself** is a member of it, in UTC, and lives in the kernel:
 
+<!-- venn-check: a catalogue of members, not a program -->
+
 ```ruby
 at.year        at.date        at.plus(2h)      at.until(other)      at.isBefore(other)
 ```
@@ -30,7 +32,8 @@ const deadline = started.plus(30m)
 print date.format(started, "YYYY-MM-DD HH:mm")
 print date.format(started, "HH:mm", "America/Sao_Paulo")
 
-const parsed = date.parse(res.body.created_at)
+const sent = "2026-07-23T12:00:00Z"
+const parsed = date.parse(sent)
 if parsed == null {
   fail "the server sent something that is not a date"
 }
@@ -61,9 +64,13 @@ Everything a moment answers about itself is UTC, and every verb here that could 
 takes the place as an argument:
 
 ```ruby
-date.format(at, "HH:mm")                        # 12:00
-date.format(at, "HH:mm", "America/Sao_Paulo")   # 09:00
-date.format(at, "HH:mm", "Asia/Tokyo")          # 21:00
+import { date } from "venn/date"
+
+const at = date.parse("2026-07-23T12:00:00Z")
+
+print date.format(at, "HH:mm")                        # 12:00
+print date.format(at, "HH:mm", "America/Sao_Paulo")   # 09:00
+print date.format(at, "HH:mm", "Asia/Tokyo")          # 21:00
 ```
 
 Reading a date in the machine's own zone is how a suite passes in one office and fails in another.

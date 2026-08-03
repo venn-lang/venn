@@ -1,4 +1,11 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn-lang/sdk";
+import {
+  type ActionDefinition,
+  type ActionInput,
+  arg,
+  defineAction,
+  optionalArg,
+  z,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import { getMockState, type Interceptor, type MockResponse } from "../state/index.js";
 
@@ -37,11 +44,14 @@ export const respond: ActionDefinition = defineAction({
   name: "respond",
   doc: "Build a canned response for an interceptor.",
   params: z.object({ status: z.number().optional(), body: z.unknown().optional() }).optional(),
-  // Status and body may arrive positionally or by name, and `run` reads
-  // whichever came. The name wins for the body, the position wins for the status.
+  // Both may arrive positionally or by name, and `run` reads whichever came, so
+  // both are optional as arguments: `mock.respond { status: 201, body: … }`
+  // passes none of them positionally and is the spelling the README shows first.
+  // Declaring them required made the argument count refuse the verb's own
+  // documentation.
   args: [
-    arg("status", t.number, "The status code to answer with."),
-    arg("body", t.dynamic, "What to answer with. A map or list is sent as JSON."),
+    optionalArg("status", t.number, "The status code to answer with."),
+    optionalArg("body", t.dynamic, "What to answer with. A map or list is sent as JSON."),
   ],
   result: t.ref("mock.Response"),
   run: (_ctx, input) => buildResponse(input),

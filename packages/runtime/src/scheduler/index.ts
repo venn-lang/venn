@@ -4,6 +4,7 @@ export { bindImports, type ImportGraph } from "./bind-imports.js";
 export type { Cleanup, CleanupList, CleanupSink } from "./cleanup.types.js";
 export { collectConfig, collectFragments, collectOn } from "./collect.js";
 export { createCleanupList } from "./create-cleanup-list.js";
+export { optionNames, takes } from "./declared-arity.js";
 export type { Engine, RunCounters } from "./engine.types.js";
 export { matchesTitle } from "./filter.js";
 export type { RunFilter } from "./filter.types.js";

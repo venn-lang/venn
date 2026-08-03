@@ -24,7 +24,7 @@ reported by `venn check`, before anything runs.
 ```ruby
 module demo.matchers
 
-import { assert } from "venn/assert"
+import { closeTo, contains, equals, oneOf } from "venn/assert"
 
 flow "Bareword matchers" {
   step "checks" {
@@ -40,7 +40,7 @@ flow "Bareword matchers" {
 ```
 
 Matchers are barewords: they resolve by name alone, not through the `assert.` prefix. The namespace
-is what `use` brings into the file.
+is what the `import` line brings into the file.
 
 ## Matchers
 

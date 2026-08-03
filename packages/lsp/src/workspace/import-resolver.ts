@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import {
+  ancestorsOf,
   createTomlManifest,
   dotenvFiles,
   type Manifest,
@@ -10,7 +11,7 @@ import {
 import { moduleFileOf } from "@venn-lang/core";
 import { asMember, matchesMember, relativeTo } from "@venn-lang/project";
 import type { TypeSpec } from "@venn-lang/types";
-import { type URI, UriUtils } from "langium";
+import { URI, UriUtils } from "langium";
 
 /**
  * Reads the nearest `venn.toml` and answers the project-level questions that
@@ -45,8 +46,6 @@ interface Manifested {
   env: Record<string, Record<string, string>>;
   docs: Record<string, string>;
 }
-
-const MAX_DEPTH = 12;
 
 /**
  * Relative specifiers resolve against the importing file; `#alias/…` resolves
@@ -144,15 +143,19 @@ function settled(args: { dir: URI; manifest: Manifest; docs: Docs }): Manifested
   return { root: args.dir, ...reduced, env: withDotenv(args.dir, reduced) };
 }
 
-/** The nearest `venn.toml` at or above a directory, with where it sits. */
+/**
+ * The nearest `venn.toml` at or above a directory, with where it sits.
+ *
+ * Walked over the path rather than over the URI, through the same `ancestorsOf`
+ * the CLI walks, so a project root the runner finds is a project root the
+ * editor finds. It used to stop after twelve directories, which made a root
+ * thirteen above an open file invisible here and visible there.
+ */
 function nearest(start: URI): { dir: URI; read: Read } | undefined {
-  let dir = start;
-  for (let depth = 0; depth < MAX_DEPTH; depth++) {
+  for (const at of ancestorsOf(start.fsPath)) {
+    const dir = URI.file(at);
     const found = read(UriUtils.resolvePath(dir, "venn.toml"));
     if (found) return { dir, read: found };
-    const parent = UriUtils.dirname(dir);
-    if (parent.toString() === dir.toString()) return undefined;
-    dir = parent;
   }
   return undefined;
 }
@@ -166,13 +169,10 @@ function nearest(start: URI): { dir: URI; read: Read } | undefined {
  * holding no manifest, which changes nothing here: this one has one.
  */
 function owningWorkspace(from: URI): { dir: URI; manifest: Manifest } | undefined {
-  let dir = UriUtils.dirname(from);
-  for (let depth = 0; depth < MAX_DEPTH; depth++) {
+  for (const at of ancestorsOf(from.fsPath).slice(1)) {
+    const dir = URI.file(at);
     const found = read(UriUtils.resolvePath(dir, "venn.toml"));
     if (claims(found?.manifest, from, dir)) return { dir, manifest: found.manifest };
-    const parent = UriUtils.dirname(dir);
-    if (parent.toString() === dir.toString()) return undefined;
-    dir = parent;
   }
   return undefined;
 }

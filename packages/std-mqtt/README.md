@@ -22,7 +22,7 @@ import { mqtt } from "venn/mqtt"
 module demo.inventory
 
 import { mqtt } from "venn/mqtt"
-import { assert } from "venn/assert"
+import { topic } from "venn/mqtt"
 
 flow "Inventory" {
   step "the broker relays the stock change" {

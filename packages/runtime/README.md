@@ -54,8 +54,8 @@ sink.envelopes.map((envelope) => envelope.kind); // run.started … run.finished
 | `Runner` | `run(document)` runs every `flow` (test mode); `script(document)` executes the top-level statements top to bottom (script mode). Both return a `RunResult`. |
 | `RunnerArgs` | `host`, `plugins`, `sink`, plus optional `ports`, `uri`, `filter`, `bail`, `env`, `cleanup`, and the import-graph fields `modules`, `moduleFragments`, `moduleDecos`. |
 | `RunResult` | `run` (the run id), `passed`, `failed`, `problems` (what decorators refused before anything ran) and `exitCode` when the program called `exit`. |
-| `resolveImports(args)` | Walks the import graph from one document, parsing each `.vn` file it reaches. Returns the exported fragments and decos, every `use`d package, the loaded npm modules and the parsed modules themselves. Cycles are skipped, not looped. |
-| `collectUses(document, into)` | Adds the packages a document `use`s to a set. |
+| `resolveImports(args)` | Walks the import graph from one document, parsing each `.vn` file it reaches. Returns the exported fragments and decos, every imported package, the loaded npm modules and the parsed modules themselves. Cycles are skipped, not looped. |
+| `collectUses(document, into)` | Adds the packages a document imports to a set. |
 | `ModuleIo`, `NpmModules`, `ResolvedImports` | How a host reads source (`read`, `resolve`), how it loads an installed package, and what the walk produced. |
 
 ### Plugins and types
@@ -140,7 +140,7 @@ is the bug the front end exists to make impossible.
 | `CheckArgs` | `document`, `registry`, `fragments`, plus optional `uri` and the `env` names `venn.toml` declares. |
 
 The codes `checkDocument` raises: `VN2003` unknown action, `VN2004` unknown matcher, `VN2005`
-unknown fragment, `VN2006` undeclared `env` variable, `VN2007` namespace used without `use`,
+unknown fragment, `VN2006` undeclared `env` variable, `VN2007` namespace used without importing it,
 `VN2008` a verb named but never called, `VN3013` a fragment called for a value, plus unknown option
 keys from the action's own parameter schema.
 

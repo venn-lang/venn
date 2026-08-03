@@ -28,6 +28,8 @@ export const CODES = {
   /** A name inside a `deco` body that expansion time cannot reach yet. */
   VN2023_OUT_OF_REACH: { code: "VN2023", severity: "error" },
   VN3001_UNKNOWN_OPTION: { code: "VN3001", severity: "error" },
+  /** A verb or matcher handed more positional arguments than it takes, or fewer. */
+  VN3002_ARGUMENT_COUNT: { code: "VN3002", severity: "error" },
   VN3010_TYPE_MISMATCH: { code: "VN3010", severity: "error" },
   VN3012_UNIT_MISMATCH: { code: "VN3012", severity: "error" },
   VN3013_NOT_CALLABLE: { code: "VN3013", severity: "error" },

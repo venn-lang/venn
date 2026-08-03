@@ -1,5 +1,4 @@
 interface Entry {
-  kind: "use" | "import";
   comments: string[];
   line: string;
 }
@@ -12,17 +11,17 @@ interface Header {
 }
 
 /**
- * Put every `use` above every `import`. A comment sitting directly on top of a
- * line travels with it; a comment separated by a blank line is left where the
- * header begins, so nothing is silently re-attached to the wrong statement.
+ * Gather the `import` lines into one block under `module`. A comment sitting
+ * directly on top of a line travels with it; a comment separated by a blank
+ * line is left where the header begins, so nothing is silently re-attached to
+ * the wrong statement.
  */
 export function organizeHeader(lines: readonly string[], sort: boolean): string[] {
   const header = split(lines);
   if (header.entries.length === 0) return [...lines];
   const head = header.head.length > 0 ? [...header.head, ""] : [];
-  const uses = group(header.entries, "use", sort);
-  const imports = group(header.entries, "import", sort);
-  return [...head, ...uses, ...imports, ...header.floating, ...header.rest];
+  const imports = group(header.entries, sort);
+  return [...head, ...imports, ...header.floating, ...header.rest];
 }
 
 function split(lines: readonly string[]): Header {
@@ -31,9 +30,8 @@ function split(lines: readonly string[]): Header {
   let index = 0;
   for (; index < lines.length; index++) {
     const line = (lines[index] ?? "").trim();
-    const kind = kindOf(line);
-    if (kind) {
-      header.entries.push({ kind, comments: pending, line });
+    if (isImport(line)) {
+      header.entries.push({ comments: pending, line });
       pending = [];
     } else if (/^module\s/.test(line)) {
       header.head.push(...pending, line);
@@ -53,14 +51,12 @@ function park(header: Header, pending: string[]): string[] {
   return [];
 }
 
-function group(entries: readonly Entry[], kind: Entry["kind"], sort: boolean): string[] {
-  const picked = entries.filter((entry) => entry.kind === kind);
-  const ordered = sort ? [...picked].sort((a, b) => a.line.localeCompare(b.line)) : picked;
+function group(entries: readonly Entry[], sort: boolean): string[] {
+  const ordered = sort ? [...entries].sort((a, b) => a.line.localeCompare(b.line)) : entries;
   if (ordered.length === 0) return [];
   return [...ordered.flatMap((entry) => [...entry.comments, entry.line]), ""];
 }
 
-function kindOf(line: string): Entry["kind"] | undefined {
-  if (/^use\s/.test(line)) return "use";
-  return /^(pub\s+)?import\s/.test(line) ? "import" : undefined;
+function isImport(line: string): boolean {
+  return /^(pub\s+)?import\s/.test(line);
 }

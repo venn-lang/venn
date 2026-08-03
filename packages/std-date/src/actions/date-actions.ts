@@ -25,14 +25,20 @@ const number = (value: unknown, fallback = 0): number => {
 };
 
 /** The shape `date.of` takes and `date.in` gives back. */
-export const PARTS_TYPE: TypeSpec = t.record({
-  year: t.number,
-  month: t.number,
-  day: t.number,
-  hour: t.number,
-  minute: t.number,
-  second: t.number,
-});
+export const PARTS_TYPE: TypeSpec = t.record(
+  {
+    year: t.number,
+    month: t.number,
+    day: t.number,
+    hour: t.number,
+    minute: t.number,
+    second: t.number,
+  },
+  // All six were declared required while `fromParts` defaults every one of
+  // them, so the declaration and the doc string said opposite things and the
+  // checker enforced neither.
+  { optional: ["year", "month", "day", "hour", "minute", "second"] },
+);
 
 /**
  * The verbs of the `date` namespace: building a moment, writing one out, and

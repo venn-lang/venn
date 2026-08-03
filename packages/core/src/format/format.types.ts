@@ -3,7 +3,7 @@ export interface FormatOptions {
   /** Spaces per indent level. Ignored when {@link useTabs} is on. */
   indentWidth: number;
   useTabs: boolean;
-  /** Move every `use` above every `import`. */
+  /** Gather the `import` lines into one block under `module`. */
   organizeHeader: boolean;
   /** Sort each header group alphabetically. */
   sortHeader: boolean;

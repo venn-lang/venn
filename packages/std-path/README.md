@@ -19,6 +19,7 @@ import { path } from "venn/path"
 ```ruby
 import { path } from "venn/path"
 
+const name = "cart.json"
 const fixture = path.join(path.cwd(), "fixtures", name)
 
 print path.basename(fixture)          # cart.json
@@ -27,7 +28,8 @@ print path.extension(fixture)         # .json
 print path.withExtension(fixture, "csv")
 
 # A name that came from outside is checked before it is used, not after.
-if not path.isInside("uploads", requested) {
+const requested = "../etc/passwd"
+if !path.isInside("uploads", requested) {
   fail "that name leaves the upload directory"
 }
 ```
@@ -74,9 +76,11 @@ Everything else, what `..` means, where a name ends, the walk between two places
 ## A path that leaves is answerable before it is used
 
 ```ruby
-path.isInside("uploads", "uploads/report.pdf")     # true
-path.isInside("uploads", "uploads/../etc/passwd")  # false
-path.isInside("uploads", "/etc/passwd")            # false
+import { path } from "venn/path"
+
+print path.isInside("uploads", "uploads/report.pdf")     # true
+print path.isInside("uploads", "uploads/../etc/passwd")  # false
+print path.isInside("uploads", "/etc/passwd")            # false
 ```
 
 `..` is worked out first, so a name that climbs out is caught wherever the climb was written, and a

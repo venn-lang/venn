@@ -21,7 +21,7 @@ PRELUDE.range.doc;      // "A list of numbers, counting up or down. …"
 | --- | --- |
 | values | `regex` `spawn` `range` `str` `typeOf` `pretty` |
 | verbs | `print` `log` `wait` `skip` `fail` `exit` |
-| types | `regex` |
+| types | `error` `regex` |
 
 A **value** may be written anywhere a value goes, including inside an
 expression: `xs.take(range(3).len)`. A **verb** is a statement the runtime
@@ -32,7 +32,7 @@ is nothing to read back from it.
 
 - **`PRELUDE`**: every name, with its signature as a `TypeSpec`, its
   documentation and its arguments one by one.
-- **`PRELUDE_TYPES`**: the named types the language brings, which is `regex`.
+- **`PRELUDE_TYPES`**: the named types the language brings: `error`, which is what a `catch` binds, and `regex`.
 - **`isPrelude(name)`**, **`preludeValues()`**, **`preludeVerbs()`**: the
   questions the compiler and the runtime actually ask.
 

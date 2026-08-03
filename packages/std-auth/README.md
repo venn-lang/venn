@@ -59,7 +59,8 @@ flow "Signed in" {
 
 **`hmac`** takes the secret first and the payload second, so `auth.hmac "s3cret" "payload"` keys the
 HMAC with `s3cret`. The `algo` option accepts `sha1`, `sha256`, `sha384` and `sha512`, case and
-dashes ignored, and anything it does not recognise falls back to SHA-256.
+dashes ignored. A name it does not recognise is refused with VN7005: signing a typo with SHA-256
+produces a signature nothing verifies and says nothing about why.
 
 **`totp`** computes an RFC 6238 code and is deterministic for a fixed `at`, which makes it usable in
 a test. `at` is the time to compute at and `period` the step, both in seconds; `digits` defaults

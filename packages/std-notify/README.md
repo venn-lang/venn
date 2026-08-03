@@ -48,6 +48,8 @@ Each verb takes its destination as the one positional argument, the channel for 
 webhook, the recipient for an email, and everything else as options:
 
 ```ruby
+import { notify } from "venn/notify"
+
 const posted  = notify.slack "#builds" { mention: "@oncall" }
 const hooked  = notify.webhook "https://hook.test/build" { json: { status: "green" } }
 const mailed  = notify.email "qa@example.com" { subject: "Nightly", body: "All green." }

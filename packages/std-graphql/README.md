@@ -9,7 +9,7 @@ against a live server or against canned responses depending only on what the hos
 ## Install
 
 The package ships with the stdlib, so the CLI already loads it. Inside a `.vn` file, bring the
-namespace in with `use`:
+namespace in with `import`:
 
 ```ruby
 import { gql } from "venn/graphql"

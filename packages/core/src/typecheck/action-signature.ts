@@ -28,7 +28,7 @@ export function callType(site: CallSite, env: TypeEnv, infer: Infer): Type {
   // The trailing `{ … }` is the options in both spellings, so it is told apart
   // here too. Otherwise `http.get(url, { … })` would line the map up against the
   // URL's parameter and the checker would disagree with the runtime.
-  const split = splitCall(site.args, signature?.params.length ?? 0);
+  const split = splitCall({ args: site.args, takes: signature?.params.length ?? 0 });
   const args = split.args.map((arg) => inferExpr(arg, env, infer));
   const opts = site.opts ?? split.opts;
   if (opts) inferExpr(opts, env, infer);

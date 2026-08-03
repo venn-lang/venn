@@ -15,7 +15,7 @@ project already runs on. See [Which version answers](#which-version-answers).
 - **Go to definition**: `run <fragment>`, variables, and imported files
   (including `#alias/…` paths from `venn.toml`).
 - **Completion**: actions after `namespace.`, matchers after an `expect`
-  subject, fragments after `run`, annotations after `@`, packages inside `use`.
+  subject, fragments after `run`, annotations after `@`, packages inside `import`.
 - **Rename (F2)**, **signature help**, **formatting**, and the **outline**.
 
 ## Which version answers
@@ -85,7 +85,7 @@ editor and `venn fmt` produce identical output:
 [format]
 indent = 2        # spaces per level
 tabs = false      # indent with tabs instead
-organize = true   # every `use` above every `import`
+organize = true   # every `import` in one block
 sort = false      # sort each group alphabetically
 ```
 

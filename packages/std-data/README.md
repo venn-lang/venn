@@ -3,14 +3,16 @@
 > The `data` namespace: 96 deterministic faker verbs, plus picking, shuffling and parsing.
 
 Test data that changes between runs makes a failure impossible to reproduce. Every value this
-package draws comes from one seeded PRNG (mulberry32, seed 1) held at module level, so the same
-flow replays the same person, the same card number, the same CPF. The plugin declares no
-capability and rides no port: `data` is pure computation, no network and no clock.
+package draws comes from the run's own `Random`, the stream `math.random` draws from, which the
+runner hands back at the start of every flow. So a flow replays the same person, the same card
+number and the same CPF whether it ran alone, after another flow or under `--flow`. That stream
+is a port, so `data` asks the host for the `random` capability and nothing else: no network and
+no clock.
 
 ## Install
 
 The package is part of the stdlib the `venn` CLI loads, so nothing to install. Reach it from a
-flow with a `use` line:
+flow with an `import` line:
 
 ```ruby
 import { data } from "venn/data"
@@ -21,7 +23,7 @@ import { data } from "venn/data"
 ```ruby
 module demo.signup
 
-import { assert } from "venn/assert"
+import { contains } from "venn/assert"
 import { data } from "venn/data"
 
 flow "A generated Brazilian signup" {
@@ -78,6 +80,8 @@ The other 96 are `data.faker.*`, grouped by what a form asks for:
 Ten of them read positional bounds; the rest take nothing.
 
 ```ruby
+import { data } from "venn/data"
+
 const pin      = data.faker.digits 4        # four decimal digits
 const quantity = data.faker.int 1 6         # inclusive on both ends
 const blurb    = data.faker.words 5
@@ -102,8 +106,7 @@ passes mod-97, and `br.cpf` and `br.cnpj` carry the digits a Brazilian form vali
 | `dataPlugin` (also the default export) | The `PluginDefinition` for the `data` namespace. |
 | `dataActions` | The `ActionDefinition[]` behind it, faker verbs included. |
 | `allFakerSpecs`, `FakerSpec` | The catalogue as data: `name`, `doc`, a `TypeSpec` result, optional `args`, and `make(rng, args)`. |
-| `rng`, `resetRng()` | The shared PRNG and the reset that rewinds it to the seed. |
-| `mulberry32(seed)`, `Rng` | The generator itself, for an independent stream. |
+| `rngFrom(ctx)`, `Rng` | The run's stream, read from `ctx.port(RandomPort)`, as the draw every generator takes. |
 | `shuffleWith(items, rng)` | Fisher-Yates against a given PRNG. Returns a new array. |
 | `parseCsv(content)`, `CsvRow` | The splitter behind `data.csv`. |
 | `uuid`, `email`, `firstName`, `lastName`, `fullName` | Single generators, each taking an `Rng`. |
@@ -115,18 +118,20 @@ The plugin publishes one named type, `data.Row`: a map of string to string, whic
 
 ## Determinism
 
-`rng` is a module-level mulberry32 seeded with `1`. Draws advance one shared stream, so the
-sequence of calls a flow makes is what determines the values, not the wall clock. `resetRng()`
-rewinds it, which is how the tests here assert that a whole catalogue replays identically:
+Every verb draws from the run's `Random`, which the host seeds and the runner restarts at the
+start of every flow. So the sequence of calls *a flow* makes is what determines its values, not
+the wall clock and not what another flow drew before it. Driving the catalogue by hand takes any
+`Random`, which is how the tests here assert that the whole of it replays identically:
 
 ```ts
-import { allFakerSpecs, resetRng, rng } from "@venn-lang/data";
+import { createSeededRandom } from "@venn-lang/contracts";
+import { allFakerSpecs } from "@venn-lang/data";
 
-resetRng();
-const first = allFakerSpecs.map((spec) => spec.make(rng, []));
-resetRng();
-const again = allFakerSpecs.map((spec) => spec.make(rng, []));
-// `again` equals `first`: the same 96 values, in the same order
+const draw = () => {
+  const random = createSeededRandom({ seed: 1 });
+  return allFakerSpecs.map((spec) => spec.make(() => random.next(), []));
+};
+// `draw()` equals `draw()`: the same 96 values, in the same order
 ```
 
 Dates are drawn around `ANCHOR` rather than `Date.now()`, for the same reason.

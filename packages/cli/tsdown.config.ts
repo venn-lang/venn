@@ -26,13 +26,20 @@ export default defineConfig([
     entry: { cli: "src/cli.ts" },
     format: ["esm"],
     platform: "node",
-    // Everything except the TypeScript compiler, which is only reached when a
-    // package's types are being derived. It is CommonJS built for a world with
-    // `__filename` in it, so bundling it into an ES module produced a file that
-    // threw on load, and it is 10 MB that every `venn run` would have paid
-    // for to do something almost no command does.
+    // Everything, the TypeScript compiler included. The tarball is unpacked on
+    // its own with no install step, so a package left outside it is a package
+    // the shipped binary cannot load: `venn add` died on `@venn-lang/dts` with
+    // a Node stack trace for every user who installed the documented way.
+    //
+    // The compiler is ten megabytes that almost no command needs, so it is not
+    // in the engine: `deriveTypes` reaches it through `await import`, which
+    // rolldown keeps as a chunk of its own beside the engine. `venn run` opens
+    // one file, and the one command that derives types opens two.
     deps: { alwaysBundle: [/.*/] },
-    external: ["tsc-api", "@venn-lang/dts"],
+    // The compiler is CommonJS and reads `__filename`, `__dirname` and
+    // `require` to find its own lib files. In an ES module those are not
+    // defined at all, so without the shims the chunk throws on load.
+    shims: true,
     dts: false,
   },
   // The launcher that turns on V8's compile cache before loading the engine.

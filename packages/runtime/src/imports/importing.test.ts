@@ -160,6 +160,13 @@ flow "f" { step "s" { kit.shout "hi" } }`;
     expect(found[0]).toContain("VN5001 `use` was removed");
   });
 
+  /** Thirteen READMEs taught `use kit`, and it was reported as an unknown verb. */
+  it("says the same about the spelling that names the namespace", () => {
+    const source = 'use kit\nflow "f" { step "s" { kit.shout "hi" } }';
+
+    expect(said(source)[0]).toContain("VN5001 `use` was removed");
+  });
+
   it("leaves a name the file binds alone", () => {
     const source = 'let kit = { shout: fn (x) => x }\nprint kit.shout("hi")';
 

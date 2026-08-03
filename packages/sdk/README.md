@@ -75,6 +75,8 @@ export default uptimePlugin;
 
 The namespace, the verb and the matcher are then ordinary Venn:
 
+<!-- venn-check: `@acme/uptime` is the plugin this page is teaching you to write -->
+
 ```ruby
 import { uptime } from "@acme/uptime"
 
@@ -144,6 +146,8 @@ still a working plugin.
 `run(ctx, input)` receives `input.args` (the evaluated positional values) and `input.params` (the
 options, already parsed by the schema). Validation happens before `run` is entered, and it fails in
 the user's words:
+
+<!-- venn-check: two diagnostics, shown as the calls that raise them -->
 
 ```ruby
 crypto.hash "abc" { algorithmm: "sha512" }   # VN3001, did you mean "algorithm"

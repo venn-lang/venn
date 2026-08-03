@@ -21,16 +21,20 @@ the editor included.
 ## Usage
 
 ```ruby
+import { io } from "venn/io"
 import { json } from "venn/json"
 
 type Order { id: number, total: number }
 
+const body = "{ \"id\": 7, \"total\": 99.0 }"
+
 # What comes back is `dynamic`: text says nothing about its own shape. The
 # annotation is what gives it one, and what makes `order.totl` a compile error.
-const order: Order = json.parse(res.body)
+const order: Order = json.parse(body)
 print order.total
 
 # For text nobody promised was JSON.
+const line = "not json at all"
 const maybe = json.tryParse(line)
 if maybe == null {
   io.eprint "that line was not JSON"

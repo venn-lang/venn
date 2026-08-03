@@ -1,10 +1,4 @@
-import {
-  type ActionContext,
-  type ActionDefinition,
-  arg,
-  defineAction,
-  restArg,
-} from "@venn-lang/sdk";
+import { type ActionContext, type ActionDefinition, defineAction, restArg } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import { ConsolePort } from "../port/index.js";
 
@@ -38,14 +32,14 @@ export const consoleActions: ActionDefinition[] = [
   defineAction({
     name: "write",
     doc: "Write to standard output with no trailing newline.",
-    args: [arg("value", t.dynamic, "What to write. Nothing is added after it.")],
+    args: [restArg("values", t.dynamic, "Anything, as many as you like. Nothing follows them.")],
     result: t.void,
     run: (ctx, input) => ctx.port(ConsolePort).write(line(ctx, input.args)),
   }),
   defineAction({
     name: "eprint",
     doc: "Write to standard error, followed by a newline.",
-    args: [arg("value", t.dynamic, "What to write to stderr.")],
+    args: [restArg("values", t.dynamic, "Anything, as many as you like.")],
     result: t.void,
     run: (ctx, input) => ctx.port(ConsolePort).writeError(`${line(ctx, input.args)}\n`),
   }),

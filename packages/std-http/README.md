@@ -122,8 +122,8 @@ arrives early gets an answer instead of hanging.
 ## Matchers and types
 
 `header` is the one matcher: `expect res header "content-type"` passes when the response carries that
-header. It declares an optional second argument for the expected value, but the check today is
-presence only.
+header, and `expect res header "content-type" "application/json"` passes when it says exactly that.
+The name is read in whatever case the far end sent it; the value is compared exactly.
 
 The plugin publishes four types to the checker: `http.Response` (`status`, `ok`, `headers`, `body`
 as raw text, `json` as that text parsed, `time`), `http.Request`, `http.Reply` and `http.Server`.

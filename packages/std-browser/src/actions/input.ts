@@ -1,4 +1,11 @@
-import { type ActionDefinition, type ActionInput, arg, defineAction, z } from "@venn-lang/sdk";
+import {
+  type ActionDefinition,
+  type ActionInput,
+  arg,
+  defineAction,
+  optionalArg,
+  z,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import type { PressArgs } from "../port/index.js";
 import { arg0, arg1, browserDriver } from "./support.js";
@@ -81,9 +88,12 @@ export const hover: ActionDefinition = defineAction({
 export const press: ActionDefinition = defineAction({
   name: "press",
   doc: "Press a key, optionally focused on a selector.",
+  // Selector first, which is what `pressArgs` reads when two arrive and what
+  // the doc block above has always said. Declared the other way round, hover
+  // labelled the selector slot `key` and the key slot `selector`.
   args: [
+    optionalArg("selector", t.string, "What to focus first. Omit it and the page has focus."),
     arg("key", t.string, "The key to press: `Enter`, `Escape`, `Control+A`."),
-    arg("selector", t.string, "What to focus first. Omit it and the page has focus."),
   ],
   result: t.void,
   run: (ctx, input) => browserDriver(ctx).press(pressArgs(input)),

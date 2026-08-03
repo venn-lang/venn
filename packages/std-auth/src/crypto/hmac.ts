@@ -1,3 +1,5 @@
+import { VennError } from "@venn-lang/contracts";
+import { PLUGIN_CODES } from "@venn-lang/sdk";
 import { encodeUtf8, toHex } from "./bytes.js";
 
 const ALGOS: Record<string, string> = {
@@ -10,11 +12,23 @@ const ALGOS: Record<string, string> = {
 /**
  * Map whatever the script wrote (`sha256`, `SHA-256`) to a WebCrypto hash name.
  *
- * An unknown label falls back to SHA-256 rather than throwing.
+ * A name nothing here answers to is refused. It used to sign with SHA-256
+ * instead, so `{ algo: "sha51" }` produced a signature the far end rejects and
+ * nothing said why, while `crypto.hash` in the same stdlib refused the same
+ * typo before the run started. One primitive, one policy.
+ *
+ * @param algo What the script wrote, or nothing for the default.
+ * @returns The WebCrypto hash name.
+ * @throws VennError `VN7005` when the label names no hash.
  */
 export function normalizeHash(algo?: string): string {
   const key = (algo ?? "sha256").toLowerCase().replace(/-/g, "");
-  return ALGOS[key] ?? "SHA-256";
+  const found = ALGOS[key];
+  if (found) return found;
+  throw new VennError({
+    code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
+    message: `No hash is called "${algo}". Accepted: ${Object.keys(ALGOS).join(", ")}.`,
+  });
 }
 
 /** Raw HMAC bytes over `message`, keyed by `secret`, using the global Web Crypto. */

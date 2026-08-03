@@ -57,12 +57,17 @@ function advanceClock(input: ActionInput<unknown>): number {
   return next;
 }
 
+/**
+ * How far to move, read from the one place the verb declares it.
+ *
+ * It used to fall back to an option named `by` that no `params` schema ever
+ * declared, so `mock.clock.advance { by: "1h" }` worked when its result was
+ * bound and was VN5007 when it was not: two answers to one call.
+ */
 function durationMs(input: ActionInput<unknown>): number {
-  const params = (input.params ?? {}) as { by?: unknown };
-  const given = input.args[0] ?? params.by;
-  const ms = durationValue(given);
+  const ms = durationValue(input.args[0]);
   if (ms !== undefined) return ms;
-  const parsed = Duration.safeParse(given);
+  const parsed = Duration.safeParse(input.args[0]);
   return parsed.success ? parsed.data : 0;
 }
 

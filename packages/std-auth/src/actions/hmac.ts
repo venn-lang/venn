@@ -9,7 +9,11 @@ export const hmac: ActionDefinition = defineAction({
   name: "hmac",
   doc: "Compute a hex HMAC over a payload using a secret.",
   params,
-  args: [arg("payload", t.string, "What to sign."), arg("secret", t.string, "The shared secret.")],
+  // Secret first, which is the order `run` reads and the order the README and
+  // the doc string always described. The declaration said the opposite, so
+  // hover, completion and the node graph told every caller to key the signature
+  // with the payload, and a signature keyed by the payload never verifies.
+  args: [arg("secret", t.string, "The shared secret."), arg("payload", t.string, "What to sign.")],
   result: t.string,
   run: (_ctx, input) =>
     hmacHex({

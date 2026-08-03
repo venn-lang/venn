@@ -21,6 +21,7 @@ import {
   nodeSpan,
 } from "../scheduler/index.js";
 import type { CheckArgs, CheckContext } from "./check.types.js";
+import { checkArgumentCount } from "./check-argument-count.js";
 import { checkAssign } from "./check-assign.js";
 import { checkAction, checkCapture, checkLet } from "./check-calls.js";
 import { checkInsideDeco } from "./check-deco-body.js";
@@ -98,6 +99,7 @@ function structuralChecks(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
     ...checkVerbCall(node, ctx),
+    ...checkArgumentCount(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];
 }

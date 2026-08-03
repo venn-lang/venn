@@ -1,4 +1,4 @@
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { type ActionDefinition, arg, defineAction, optionalArg } from "@venn-lang/sdk";
 import { type TypeSpec, t } from "@venn-lang/types";
 import { ConsolePort } from "../port/index.js";
 
@@ -25,7 +25,7 @@ export const screenActions: ActionDefinition[] = [
   defineAction({
     name: "isTerminal",
     doc: 'Whether a stream is a terminal: "in", "out" or "err". Decides colour and questions.',
-    args: [arg("stream", t.string, 'Which one: "in", "out" or "err". Defaults to "out".')],
+    args: [optionalArg("stream", t.string, 'Which one: "in", "out" or "err". Defaults to "out".')],
     result: t.bool,
     run: (ctx, input) => ctx.port(ConsolePort).isTerminal(streamOf(input.args[0])),
   }),

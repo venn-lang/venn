@@ -15,5 +15,9 @@ import type { Engine } from "./engine.types.js";
  */
 export function beginFlow(engine: Engine): void {
   engine.ctx.port(RandomPort).restart();
+  // A plugin may ask to be told, but nothing in the stdlib does. `mock` did, and
+  // it wiped what `setup` had arranged: `setup` runs once before every flow, so
+  // a per-flow reset threw away the interceptors and the flags a suite had put
+  // in place, and every flow after the first ran against nothing.
   for (const plugin of engine.plugins ?? []) plugin.atFlowStart?.();
 }

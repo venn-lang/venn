@@ -1,6 +1,5 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { mockActions } from "./actions/index.js";
-import { resetMockState } from "./state/index.js";
 import { mockTypeDefs } from "./types.js";
 
 /**
@@ -18,7 +17,6 @@ export const mockPlugin: PluginDefinition = definePlugin({
   name: "venn/mock",
   version: "0.0.0",
   namespace: "mock",
-  atFlowStart: resetMockState,
   actions: mockActions,
   typeDefs: mockTypeDefs,
 });

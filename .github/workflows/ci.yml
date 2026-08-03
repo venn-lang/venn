@@ -115,6 +115,14 @@ jobs:
       - name: Run every example and compare what it printed
         run: node scripts/examples-run.mjs --check
 
+      # The charter asks every package for a README with at least one example
+      # that runs, and twenty-seven of the sixty-six Venn blocks were refused by
+      # the checker that ships beside them. That rule is red now; the count of
+      # the rest is frozen and only goes down.
+      # `node scripts/readme-venn.mjs --write` re-records it.
+      - name: Check the Venn in every package README
+        run: node scripts/readme-venn.mjs --check
+
       # A dash or an assistant's name in a commit subject is the one rule an
       # agent breaks by default, and `no-dashes.test.mjs` reads `git ls-files`,
       # which by construction never sees a commit message or a title.

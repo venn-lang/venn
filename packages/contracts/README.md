@@ -85,7 +85,7 @@ typed without variance friction.
 | --- | --- | --- | --- | --- | --- |
 | `FileSystem` | `venn.port.filesystem` | `fs` | `read` `write` `exists` `remove` `list` | `createNodeFs` (`/node`) | `createMemoryFs` |
 | `Clock` | `venn.port.clock` | `clock` | `now` `sleep` | `createSystemClock` | `createVirtualClock` |
-| `Random` | `venn.port.random` | `random` | `next` `int` | `createSeededRandom` | `createFixedRandom` |
+| `Random` | `venn.port.random` | `random` | `next` `int` `restart` | `createSeededRandom` | `createFixedRandom` |
 | `SecretProvider` | `venn.port.secrets` | `secrets` | `get` `has` | `createEnvSecrets` | `createMemorySecrets` |
 | `ProcessProvider` | `venn.port.process` | `process` | `spawn` | `createNodeSpawn` (`/node`) | `createFakeProcess` |
 | `Console` | `venn.port.console` | `io` | `write` `writeError` `readLine` `args` | `createNodeConsole` (`/node`) | `createMemoryConsole` |
@@ -122,6 +122,15 @@ parsing. Neither touches the outside world.
 - **ManifestProvider.** `createTomlManifest({ content })` parses a `venn.toml` into a `Manifest`:
   `[package]`, `[lib]` and `[[bin]]` targets, dependencies, `[patch]`, profiles, `[tooling]`,
   `[workspace]`, `[env.*]`, `[paths]` and `[format]`.
+
+### Walking up a tree of directories
+
+`ancestorsOf(path)` is the one upward walk in the repository: a directory and every directory
+above it, nearest first, as text and with no `node:path`, so the editor's Web Worker walks what
+the CLI walks. It ends at `/` for a unix path, `c:/` for a Windows one and `""` for a relative
+one, and an absolute walk never yields a relative step: falling off the drive root is how a file
+outside every project used to be governed by whatever directory the shell was standing in.
+`parentDirOf(path)` is one step of it and `normalisePath(path)` is how both spell a path.
 
 ### Manifest helpers
 

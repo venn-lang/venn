@@ -1,6 +1,7 @@
 import { type FlowDecl, isLifecycleDecl, type LifecycleDecl, ProblemError } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { hasAnnotation, readLock } from "./annotations.js";
+import { beginFlow } from "./begin-flow.js";
 import type { Engine } from "./engine.types.js";
 import { recordFlaky } from "./flaky.js";
 import { runAround } from "./run-around.js";
@@ -11,6 +12,7 @@ import { ExitSignal, isControlSignal } from "./signals.js";
 
 /** Run a flow: body, then its `on failure`/`on success` handlers, then finish. */
 export async function runFlow(engine: Engine, flow: FlowDecl, scope: Scope): Promise<void> {
+  beginFlow(engine);
   engine.emitter.emit({ kind: "flow.started", data: { title: flow.title } });
   const before = engine.result.failed;
   const handlers = flow.body.stmts.filter(isOnHandler);

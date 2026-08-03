@@ -2,9 +2,10 @@
 
 > The `mock` namespace: named mocks, HTTP interceptors, feature flags and a virtual clock.
 
-Eight verbs writing to one in-process state object. There is no port and no network here: the whole
-package is a typed way to record what a run should pretend is true, and a way to read that record
-back from TypeScript.
+Eight verbs writing to one in-process state object, which the runner hands back at the start of
+every flow, so what a flow pretends is true belongs to that flow. There is no port and no network
+here: the whole package is a typed way to record what a run should pretend, and a way to read that
+record back from TypeScript.
 
 ## Install
 
@@ -80,8 +81,8 @@ Notes that matter in practice:
 
 ## Reading the state back
 
-Every verb reads and writes one process-wide `MockState`. A test that drives the plugin from
-TypeScript inspects it directly:
+Every verb reads and writes one `MockState`, replaced at the start of every flow. A test that
+drives the plugin from TypeScript inspects it directly:
 
 ```ts
 import { getMockState, resetMockState } from "@venn-lang/mock";
@@ -94,8 +95,9 @@ state.intercepts[0]?.respond; // { status: 201, body: { id: "ch_1" } }
 state.frozenInstant; // epoch ms, or undefined while the clock is live
 ```
 
-`resetMockState()` replaces the shared state with a fresh one, which is exactly what the
-`mock.reset` verb does. Call it in a `beforeEach` so one test's flags never reach the next.
+`resetMockState()` replaces the state with a fresh one, which is exactly what the `mock.reset`
+verb does and what the plugin hands the runner as its `atFlowStart`. Call it in a `beforeEach` so
+one test's flags never reach the next.
 
 ## API
 
@@ -103,7 +105,7 @@ state.frozenInstant; // epoch ms, or undefined while the clock is live
 | --- | --- |
 | `mockPlugin` (also the default export) | The `PluginDefinition`: namespace `mock`, no required capability, eight actions. |
 | `mockActions` | The action list, in registration order. |
-| `getMockState()` | The process-wide `MockState` the verbs read and write. |
+| `getMockState()` | The live `MockState` the verbs read and write, one flow at a time. |
 | `resetMockState()` | Replaces it with a fresh, empty state. |
 | `createMockState()` | Builds a fresh, empty state without touching the shared one. |
 | `MockState`, `NamedMock`, `Interceptor`, `MockResponse` | Types only. |

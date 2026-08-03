@@ -22,5 +22,14 @@ export function randomConformance(spec: ConformanceSpec<Random>): void {
         expect(value).toBeLessThanOrEqual(7);
       }
     });
+
+    /** What a flow is given at its start, and the whole of reproducibility. */
+    it("restart() hands the stream back from the beginning", async () => {
+      const random = await spec.factory();
+      const first = [random.next(), random.next(), random.int(1, 1000)];
+      random.restart();
+
+      expect([random.next(), random.next(), random.int(1, 1000)]).toEqual(first);
+    });
   });
 }

@@ -1,8 +1,9 @@
-import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { dataActions } from "./actions/index.js";
+import { seededContext } from "./seeded-context.stub.js";
 
-const ctx = {} as ActionContext;
+const ctx = seededContext();
 
 function run(name: string, ...args: unknown[]): unknown {
   const action = dataActions.find((candidate: ActionDefinition) => candidate.name === name);

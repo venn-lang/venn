@@ -8,9 +8,9 @@ import {
   restArg,
 } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
-import { rng, shuffleWith } from "../rng/index.js";
+import { type Rng, rngFrom, shuffleWith } from "../rng/index.js";
 
-/** `data.oneOf("free", "pro")`: pick one of the given values via the shared PRNG. */
+/** `data.oneOf("free", "pro")`: pick one of the given values from the run's stream. */
 export const oneOf: ActionDefinition = defineAction({
   name: "oneOf",
   doc: "Pick one of the given values deterministically.",
@@ -18,7 +18,7 @@ export const oneOf: ActionDefinition = defineAction({
   // is a string to the checker rather than something it knows nothing about.
   args: [restArg("choices", t.param("T"), "The candidates. One of them comes back.")],
   result: t.param("T"),
-  run: (_ctx, input) => picked(input.args),
+  run: (ctx, input) => picked(input.args, rngFrom(ctx)),
 });
 
 /** `data.range(1, 10)`: a deterministic integer in the inclusive range [min, max]. */
@@ -30,7 +30,7 @@ export const range: ActionDefinition = defineAction({
     arg("max", t.number, "The highest it may be, included."),
   ],
   result: t.number,
-  run: (_ctx, input) => integerInRange(input),
+  run: (ctx, input) => integerInRange(input, rngFrom(ctx)),
 });
 
 /**
@@ -40,7 +40,7 @@ export const range: ActionDefinition = defineAction({
  * asked for: it is the call being impossible, and that is a mistake in the
  * program rather than a result.
  */
-function picked(choices: readonly unknown[]): unknown {
+function picked(choices: readonly unknown[], rng: Rng): unknown {
   if (choices.length === 0) throw refuses("`data.oneOf` needs something to choose from.");
   return choices[Math.floor(rng() * choices.length)];
 }
@@ -50,7 +50,7 @@ function picked(choices: readonly unknown[]): unknown {
  * number outside both ends, silently, which is the worst of the three answers a
  * verb can give.
  */
-function integerInRange(input: ActionInput<unknown>): number {
+function integerInRange(input: ActionInput<unknown>, rng: Rng): number {
   const min = Math.trunc(Number(input.args[0] ?? 0));
   const max = Math.trunc(Number(input.args[1] ?? 0));
   if (max < min) throw refuses(`There is no range from ${min} to ${max}.`);
@@ -69,7 +69,7 @@ export const shuffle: ActionDefinition = defineAction({
   // shuffled `list<string>` is still a `list<string>`.
   args: [arg("values", t.list(t.param("T")), "What to shuffle. The original is left alone.")],
   result: t.list(t.param("T")),
-  run: (_ctx, input) => shuffleWith(toArray(input.args[0]), rng),
+  run: (ctx, input) => shuffleWith(toArray(input.args[0]), rngFrom(ctx)),
 });
 
 function toArray(value: unknown): readonly unknown[] {

@@ -6,5 +6,7 @@ export function createFixedRandom(args: { value?: number } = {}): Random {
   return {
     next: () => value,
     int: (min) => min,
+    // A stream that never moves is already at its beginning.
+    restart: () => {},
   };
 }

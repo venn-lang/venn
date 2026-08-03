@@ -1,11 +1,10 @@
-import type { ActionContext } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { dataActions } from "../actions/index.js";
-import { resetRng } from "../rng/index.js";
+import { seededContext } from "../seeded-context.stub.js";
 import { allFakerSpecs } from "./index.js";
 import { pick } from "./primitives.js";
 
-const ctx = {} as ActionContext;
+let ctx = seededContext();
 const fakerActions = dataActions.filter((action) => action.name.startsWith("faker."));
 
 function run(name: string, ...args: unknown[]): unknown {
@@ -103,7 +102,7 @@ describe("faker catalogue", () => {
   });
 
   it("draws every verb without throwing, honouring its declared return type", () => {
-    resetRng();
+    ctx = seededContext();
     for (const spec of allFakerSpecs) {
       const value = run(spec.name);
       const declared = spec.result.kind === "prim" ? spec.result.name : "dynamic";
@@ -114,16 +113,16 @@ describe("faker catalogue", () => {
   });
 
   it("replays the whole catalogue identically after a reset", () => {
-    resetRng();
+    ctx = seededContext();
     const first = allFakerSpecs.map((spec) => run(spec.name));
-    resetRng();
+    ctx = seededContext();
     expect(allFakerSpecs.map((spec) => run(spec.name))).toEqual(first);
   });
 });
 
 describe("faker shapes", () => {
   it("produces well-formed identity and network values", () => {
-    resetRng();
+    ctx = seededContext();
     expect(String(run("email"))).toMatch(/^[a-z-]+\.[a-z-]+@[a-z.]+$/);
     expect(String(run("uuid"))).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -133,7 +132,7 @@ describe("faker shapes", () => {
   });
 
   it("produces well-formed dates and times", () => {
-    resetRng();
+    ctx = seededContext();
     expect(String(run("date"))).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(String(run("time"))).toMatch(/^\d{2}:\d{2}:\d{2}$/);
     expect(String(run("dateTime"))).toMatch(/^\d{4}-\d{2}-\d{2}T/);
@@ -142,12 +141,12 @@ describe("faker shapes", () => {
   });
 
   it("keeps the credit-card grouping callers already depend on", () => {
-    resetRng();
+    ctx = seededContext();
     expect(String(run("creditCard"))).toMatch(/^\d{4} \d{4} \d{4} \d{4}$/);
   });
 
   it("honours positional arguments", () => {
-    resetRng();
+    ctx = seededContext();
     expect(String(run("hex", 32))).toHaveLength(32);
     expect(String(run("nanoid", 10))).toHaveLength(10);
     expect(String(run("digits", 4))).toMatch(/^\d{4}$/);
@@ -159,7 +158,7 @@ describe("faker shapes", () => {
   });
 
   it("stays inside geographic bounds", () => {
-    resetRng();
+    ctx = seededContext();
     for (let index = 0; index < 20; index += 1) {
       expect(Math.abs(Number(run("latitude")))).toBeLessThanOrEqual(90);
       expect(Math.abs(Number(run("longitude")))).toBeLessThanOrEqual(180);
@@ -169,28 +168,28 @@ describe("faker shapes", () => {
 
 describe("faker check digits", () => {
   it("generates card numbers that pass Luhn", () => {
-    resetRng();
+    ctx = seededContext();
     for (let index = 0; index < 30; index += 1) {
       expect(passesLuhn(String(run("creditCard")))).toBe(true);
     }
   });
 
   it("generates barcodes that pass the EAN-13 check", () => {
-    resetRng();
+    ctx = seededContext();
     for (let index = 0; index < 30; index += 1) {
       expect(passesEan(String(run("barcode")))).toBe(true);
     }
   });
 
   it("generates IBANs that pass mod-97", () => {
-    resetRng();
+    ctx = seededContext();
     for (let index = 0; index < 30; index += 1) {
       expect(passesIban(String(run("iban")))).toBe(true);
     }
   });
 
   it("generates CPFs a Brazilian form would accept", () => {
-    resetRng();
+    ctx = seededContext();
     for (let index = 0; index < 30; index += 1) {
       const cpf = String(run("br.cpf"));
       expect(cpf).toMatch(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/);
@@ -199,7 +198,7 @@ describe("faker check digits", () => {
   });
 
   it("generates CNPJs a Brazilian form would accept", () => {
-    resetRng();
+    ctx = seededContext();
     for (let index = 0; index < 30; index += 1) {
       const cnpj = String(run("br.cnpj"));
       expect(cnpj).toMatch(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/);
@@ -208,7 +207,7 @@ describe("faker check digits", () => {
   });
 
   it("generates Mercosul plates, CEPs and mobile numbers", () => {
-    resetRng();
+    ctx = seededContext();
     expect(String(run("br.plate"))).toMatch(/^[A-Z]{3}\d[A-Z]\d{2}$/);
     expect(String(run("br.cep"))).toMatch(/^\d{5}-\d{3}$/);
     expect(String(run("br.phone"))).toMatch(/^\(\d{2}\) 9\d{4}-\d{4}$/);

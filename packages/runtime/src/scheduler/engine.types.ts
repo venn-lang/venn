@@ -1,6 +1,6 @@
 import type { Clock, LockProvider } from "@venn-lang/contracts";
 import type { FragmentDecl } from "@venn-lang/core";
-import type { ActionContext } from "@venn-lang/sdk";
+import type { ActionContext, PluginDefinition } from "@venn-lang/sdk";
 import type { Emitter } from "../emit/index.js";
 import type { Registry } from "../registry/index.js";
 import type { Scope } from "../scope/index.js";
@@ -18,6 +18,8 @@ export interface RunCounters {
 /** The shared state every `run-*` step reads from. */
 export interface Engine {
   registry: Registry;
+  /** What this run loaded, so a flow can give each plugin its state back. */
+  plugins?: readonly PluginDefinition[];
   emitter: Emitter;
   ctx: ActionContext;
   clock: Clock;

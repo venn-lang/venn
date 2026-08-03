@@ -9,5 +9,5 @@ export const RandomPort: Port<Random> = {
   id: "venn.port.random",
   version: 1,
   requires: ["random"],
-  methods: ["next", "int"],
+  methods: ["next", "int", "restart"],
 };

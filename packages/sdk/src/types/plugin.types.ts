@@ -14,6 +14,15 @@ export interface PluginDefinition {
   namespace: string;
   /** Host capabilities without which loading fails, with a diagnostic, before any run. */
   requires?: readonly HostCapability[];
+  /**
+   * Whatever this plugin keeps between calls, given back before every flow.
+   *
+   * State that outlives a flow makes the flow's answers depend on which flows
+   * ran before it: a frozen clock, an interceptor or a feature flag left
+   * standing is a lie the next flow reads back. A plugin that keeps nothing
+   * leaves this out, which is most of them.
+   */
+  atFlowStart?: () => void;
   actions?: readonly ActionDefinition[];
   /**
    * The constants this namespace publishes: `math.pi`, and anything else that is

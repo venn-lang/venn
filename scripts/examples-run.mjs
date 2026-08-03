@@ -74,8 +74,15 @@ export async function everyExample(dir = EXAMPLES) {
  * Every other file is a program, including the modules the programs import,
  * which print nothing and are here so that a module that starts throwing on
  * load is a failure rather than a silence.
+ *
+ * The decorator line is `@[^
+]+` and not `@\w+[^
+]*`, because the two halves
+ * of the second overlap: a line of `@` and then anything can be split between
+ * them in as many ways as it is long, and a scanner reading every example is
+ * exactly where that costs something.
  */
-const HAS_A_FLOW = /^(?:@\w+[^\n]*\n)*flow\s/m;
+const HAS_A_FLOW = /^(?:@[^\n]+\n)*flow\s/m;
 
 export async function commandFor(path) {
   const text = await readFile(join(ROOT, path), "utf8");

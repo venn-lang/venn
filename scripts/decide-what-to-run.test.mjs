@@ -33,12 +33,23 @@ describe("deciding what a change is worth running", () => {
     expect(await decide({ files })).toBe(true);
   });
 
-  it("skips a README", async () => {
-    expect(await decide({ files: ["README.md"] })).toBe(false);
+  /**
+   * Markdown is not prose to this repository. A README carries a Venn block
+   * that has to check, every package is required to have one, and no file may
+   * carry a dash or credit a tool. Those are guards, they live in `verify`, and
+   * skipping them on a change to the very files they are about was a guard
+   * anybody could walk past by editing one line.
+   */
+  it("runs for a README, because a README is what several guards read", async () => {
+    expect(await decide({ files: ["README.md"] })).toBe(true);
   });
 
-  it("skips the language specification and the issue templates", async () => {
-    const files = ["docs/venn-language.md", ".github/ISSUE_TEMPLATE/bug.yml", "LICENSE"];
+  it("runs for the language specification, whose fences are checked", async () => {
+    expect(await decide({ files: ["docs/venn-language.md"] })).toBe(true);
+  });
+
+  it("skips the issue templates and the licence, which nothing reads", async () => {
+    const files = [".github/ISSUE_TEMPLATE/bug.yml", "LICENSE"];
     expect(await decide({ files })).toBe(false);
   });
 
@@ -64,7 +75,6 @@ describe("deciding what a change is worth running", () => {
     it("runs for a changeset, which is prose to everybody else", async () => {
       const files = [".changeset/toolchain-catalogue.md"];
       expect(await decide({ files, also: CHANGESETS })).toBe(true);
-      expect(await decide({ files })).toBe(false);
     });
 
     it("runs for the version pull request, which consumes them", async () => {
@@ -76,12 +86,17 @@ describe("deciding what a change is worth running", () => {
       expect(await decide({ files, also: CHANGESETS })).toBe(true);
     });
 
-    it("still skips a README", async () => {
-      expect(await decide({ files: ["README.md"], also: CHANGESETS })).toBe(false);
+    it("still runs for a README", async () => {
+      expect(await decide({ files: ["README.md"], also: CHANGESETS })).toBe(true);
     });
 
-    it("skips a changelog on its own, which releases nothing", async () => {
-      expect(await decide({ files: ["packages/cli/CHANGELOG.md"], also: CHANGESETS })).toBe(false);
+    /**
+     * A changelog releases nothing, but it is Markdown in a package, and the
+     * guards that read Markdown do not know the difference. Running them on it
+     * costs one job and is the price of not having a way to walk past them.
+     */
+    it("runs for a changelog, because the Markdown guards read it too", async () => {
+      expect(await decide({ files: ["packages/cli/CHANGELOG.md"], also: CHANGESETS })).toBe(true);
     });
   });
 });

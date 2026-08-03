@@ -1,0 +1,17 @@
+{
+  "packages/sdk/README.md": 2,
+  "packages/std-artifacts/README.md": 1,
+  "packages/std-assert/README.md": 1,
+  "packages/std-crypto/README.md": 1,
+  "packages/std-data/README.md": 2,
+  "packages/std-date/README.md": 3,
+  "packages/std-env/README.md": 1,
+  "packages/std-http/README.md": 1,
+  "packages/std-json/README.md": 1,
+  "packages/std-mail/README.md": 1,
+  "packages/std-math/README.md": 2,
+  "packages/std-mqtt/README.md": 1,
+  "packages/std-notify/README.md": 1,
+  "packages/std-path/README.md": 2,
+  "packages/std-ws/README.md": 1
+}

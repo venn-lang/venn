@@ -42,4 +42,7 @@ allowBuilds:
 # update its own minimatch. GHSA-mh99-v99m-4gvg: unbounded expansion crashes
 # the process.
 overrides:
-  brace-expansion: ">=5.0.8"
+  brace-expansion: ">=5.0.9"
+  # Reached only through vite, so it never ships, but a scanner reads the
+  # lockfile and not the dependency kind.
+  postcss: ">=8.5.23"

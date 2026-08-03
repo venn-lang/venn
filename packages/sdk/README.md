@@ -253,6 +253,8 @@ const rampParams = z.object({ over: Duration.optional(), hold: Duration.optional
 ```
 
 ```ruby
+import { load } from "venn/load"
+
 load.ramp 0 200 { over: "30s", hold: "5m" }
 ```
 

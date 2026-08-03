@@ -47,12 +47,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@venn-lang/assert": "workspace:*",
     "@venn-lang/contracts": "workspace:*",
     "@venn-lang/core": "workspace:*",
     "@venn-lang/dts": "workspace:*",
     "@venn-lang/http": "workspace:*",
-    "@venn-lang/io": "workspace:*",
     "@venn-lang/lsp": "workspace:*",
     "@venn-lang/project": "workspace:*",
     "@venn-lang/runtime": "workspace:*",

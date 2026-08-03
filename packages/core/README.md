@@ -220,9 +220,12 @@ arguments as syntax in `written`, the `parent`, and four verbs: `replace`, `remo
 A number literal may carry a unit, and the unit survives arithmetic.
 
 ```ruby
-expect res.duration < 300ms
-expect res.size <= 2mb
+const took = 250ms
+const body = 1mb
 const rate = 99.9%
+
+expect took < 300ms
+expect body <= 2mb
 ```
 
 `parseNumber` turns a NUMBER lexeme into a plain number or a `UnitValue`; `parseInstant` turns an

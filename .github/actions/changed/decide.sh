@@ -9,7 +9,13 @@ set -euo pipefail
 # By exclusion: a path counts as code unless it is named here, so anything new
 # is built and tested until someone decides otherwise. The other way round, a
 # path nobody thought of would go out untested.
-PROSE='^(docs/|\.github/ISSUE_TEMPLATE/|LICENSE$|.*\.md$)'
+#
+# Markdown is not prose to this repository. A README carries a Venn block that
+# has to check, a package README is required to exist, and no file of any kind
+# may carry a dash or credit a tool, and all three of those are guards that live
+# in `verify`. Skipping them on a change to the very files they are about is a
+# guard anybody can walk past by editing one line of a README.
+PROSE='^(\.github/ISSUE_TEMPLATE/|LICENSE$)'
 # Matches nothing unless the caller asked for something.
 ALSO="${ALSO:-\$^}"
 OUT="${GITHUB_OUTPUT:-/dev/stdout}"

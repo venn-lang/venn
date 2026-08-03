@@ -38,7 +38,8 @@ export async function newCommand(args: NewArgs): Promise<number> {
   const files = scaffold({
     kind: args.kind,
     name: args.name,
-    insideWorkspace: args.kind === "workspace" ? false : await insideWorkspace(dir),
+    insideWorkspace:
+      args.kind === "workspace" ? false : await insideWorkspace({ fs: createNodeFs(), dir }),
   });
   if (args.dryRun) return describe(files, dir);
   const encoder = new TextEncoder();

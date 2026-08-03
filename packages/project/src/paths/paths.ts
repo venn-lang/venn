@@ -5,17 +5,22 @@
  * as text with forward slashes. A Windows path arrives with backslashes and is
  * normalised on the way in, which is the one place the difference is allowed to
  * exist.
+ *
+ * The upward walk itself is not written here: `contracts` holds the one copy,
+ * because the editor and the toolchain walk the same directories and three
+ * copies of it disagreed about where a Windows path stops.
  */
+import { ancestorsOf, normalisePath, parentDirOf } from "@venn-lang/contracts";
 
 /**
  * One path, written the one way the rest of this package understands.
  *
  * @returns The path with backslashes turned into forward slashes, runs of
- * separators collapsed, and any trailing separator dropped. `"/"` stays `"/"`.
+ * separators collapsed, and any trailing separator dropped. A root keeps its
+ * slash: `"/"` stays `"/"` and `"c:"` becomes `"c:/"`.
  */
 export function normalise(path: string): string {
-  const flat = path.replaceAll("\\", "/").replace(/\/+/g, "/");
-  return flat.length > 1 ? flat.replace(/\/$/, "") : flat;
+  return normalisePath(path);
 }
 
 /**
@@ -38,11 +43,7 @@ export function join(...parts: readonly string[]): string {
  * from `packages/api` never reaching the workspace root beside it.
  */
 export function parentOf(path: string): string | undefined {
-  const flat = normalise(path);
-  if (flat === "" || flat === "/") return undefined;
-  const slash = flat.lastIndexOf("/");
-  if (slash < 0) return "";
-  return slash === 0 ? "/" : flat.slice(0, slash);
+  return parentDirOf(path);
 }
 
 /** The last segment of a path, which is the file or directory's own name. */
@@ -54,17 +55,11 @@ export function baseName(path: string): string {
 /**
  * Every directory from `path` up to the top, `path` itself first.
  *
- * @returns The chain, ending in `""` for a relative path and `"/"` for an
- * absolute one.
+ * @returns The chain, ending in `""` for a relative path, `"/"` for a unix one
+ * and `"c:/"` for a Windows one.
  */
 export function ancestors(path: string): string[] {
-  const found: string[] = [];
-  // Tested against undefined, not for truth: the top of a relative walk is the
-  // empty string, which is falsy but is still a directory to look in.
-  for (let at: string | undefined = normalise(path); at !== undefined; at = parentOf(at)) {
-    found.push(at);
-  }
-  return found;
+  return ancestorsOf(path);
 }
 
 /** Whether `path` is `base` or sits inside it. */

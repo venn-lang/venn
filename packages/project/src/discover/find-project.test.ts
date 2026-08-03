@@ -23,6 +23,18 @@ license = "MIT"
 [workspace.dependencies]
 zod = "^4.2.0"`;
 
+/** The same disk, remembering every path the walk asked about. */
+function watching(fs: FileSystem): { fs: FileSystem; probed: string[] } {
+  const probed: string[] = [];
+  const exists = (path: string): Promise<boolean> => {
+    probed.push(path);
+    return fs.exists(path);
+  };
+  return { fs: { ...fs, exists }, probed };
+}
+
+const PROBED = ["C:/isolated/src/venn.toml", "C:/isolated/venn.toml", "C:/venn.toml"];
+
 const WORKSPACE = {
   "venn.toml": ROOT,
   "packages/api/venn.toml": '[package]\nname = "api"\n\n[dependencies]\nzod = { workspace = true }',
@@ -75,6 +87,22 @@ describe("finding the project a path belongs to", () => {
 
     expect(names).not.toContain("antigo");
     expect(names).not.toContain("dist");
+  });
+
+  /**
+   * The walk used to fall off the drive root into the empty string, which is
+   * where the memory filesystem keeps its root and where a real one keeps the
+   * directory the shell was standing in. An isolated file then ran with a
+   * stranger's `[env]` and a stranger's `[paths]`, and said nothing.
+   */
+  it("never reads a manifest below the root of the path it started from", async () => {
+    const disk = watching(await diskOf(WORKSPACE));
+
+    const { project, problems } = await findProject({ fs: disk.fs, from: "C:/isolated/src" });
+
+    expect(project).toBeUndefined();
+    expect(problems[0]?.code).toBe("VN2101");
+    expect(disk.probed).toEqual(PROBED);
   });
 
   /** Sitting inside someone's folder is not membership. */

@@ -33,6 +33,13 @@ describe("path arithmetic without node:path", () => {
     expect(ancestors("/a/b")).toEqual(["/a/b", "/a", "/"]);
   });
 
+  /** A walk that starts somewhere absolute has to end somewhere absolute. */
+  it("stops at the drive root instead of falling off it", () => {
+    expect(parentOf("c:/a")).toBe("c:/");
+    expect(parentOf("c:/")).toBeUndefined();
+    expect(ancestors("C:\\work\\api")).toEqual(["C:/work/api", "C:/work", "C:/"]);
+  });
+
   it("tells what sits inside what, and is not fooled by a shared prefix", () => {
     expect(isInside("a/b", "a")).toBe(true);
     expect(isInside("a", "a")).toBe(true);

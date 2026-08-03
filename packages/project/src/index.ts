@@ -65,4 +65,4 @@ export {
   targetDir,
   writeBuildRecord,
 } from "./target/index.js";
-export { inherit, memberDirs } from "./workspace/index.js";
+export { asMember, inherit, memberDirs } from "./workspace/index.js";

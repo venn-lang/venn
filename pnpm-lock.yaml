@@ -246,6 +246,9 @@ importers:
       '@venn-lang/core':
         specifier: workspace:*
         version: link:../core
+      '@venn-lang/project':
+        specifier: workspace:*
+        version: link:../project
       '@venn-lang/runtime':
         specifier: workspace:*
         version: link:../runtime

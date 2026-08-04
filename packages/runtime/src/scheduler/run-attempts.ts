@@ -6,6 +6,7 @@ import type { Scope } from "../scope/index.js";
 import { reportAbandoned } from "./abandoned.js";
 import { type RetrySpec, readRetry, readTimeout } from "./annotations.js";
 import { branchEngine } from "./branch-engine.js";
+import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
 import type { Scoped, TimeoutArgs } from "./run-attempts.types.js";
@@ -91,14 +92,47 @@ function timeoutScope(engine: Engine, ms: number): CancelScope {
  * body at once, handed a named lock to a second holder while the first was
  * still writing, and let a step's assertions land after the run was tallied.
  * What still cannot be made to stop is named rather than waited on for ever.
+ *
+ * The wait for the body and the grace for it to unwind are two waits, in that
+ * order. Written as one, the grace ran from where the body started rather than
+ * from where it was called off, so a `@timeout` longer than the grace gave up
+ * watching before its own deadline arrived and never enforced it at all.
  */
 async function bounded(args: TimeoutArgs, scope: CancelScope): Promise<void> {
   const body = args.run(branchEngine(args.engine, scope));
-  const stopped = await unwind({ work: [body] });
-  const ended = scope.stopped();
+  const settled = body.then(done, done);
+  await Promise.race([settled, calledOff(scope)]);
+  const ended = scope.stopped() ?? overran(args.engine, scope);
   if (ended === undefined) return body;
-  if (!stopped) reportAbandoned({ engine: args.engine, title: LEFT_RUNNING, where: args.where });
+  if (!(await unwind({ work: [settled] })))
+    reportAbandoned({ engine: args.engine, title: LEFT_RUNNING, where: args.where });
   throw ended;
+}
+
+function done(): void {}
+
+/** Resolves the moment the scope ends, so the grace starts from there. */
+function calledOff(scope: CancelScope): Promise<void> {
+  return new Promise((resolve) => {
+    if (scope.signal.aborted) return resolve();
+    scope.signal.addEventListener("abort", () => resolve(), { once: true });
+  });
+}
+
+/**
+ * The deadline, read from the clock rather than sampled.
+ *
+ * A body that never yields is stopped at a back edge, where the clock is read
+ * once every so many of them, and one with fewer boundaries than that ran to its
+ * end with the deadline long past and nobody to say so: the timer that would
+ * have said it never got a turn either. Asked here, once, where the cost of
+ * reading a clock is nothing against the run that just finished.
+ */
+function overran(engine: Engine, scope: CancelScope): unknown {
+  const expiry = scope.expiry;
+  if (!expiry || engine.clock.now() < expiry.at) return undefined;
+  scope.cancel(expiry.raise());
+  return scope.stopped();
 }
 
 const LEFT_RUNNING = "This ran out of the time it was given, and did not stop.";
@@ -130,8 +164,7 @@ async function withRetry(args: {
  */
 async function backoffPause(engine: Engine, ms: number): Promise<void> {
   await engine.clock.sleep(ms, engine.cancel?.signal);
-  const stop = engine.cancel?.stopped();
-  if (stop !== undefined) throw stop;
+  checkpoint(engine);
 }
 
 interface AttemptOutcome {

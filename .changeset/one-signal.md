@@ -1,5 +1,6 @@
 ---
 "@venn-lang/contracts": minor
+"@venn-lang/core": minor
 "@venn-lang/runtime": minor
 "@venn-lang/project": minor
 "@venn-lang/cli": minor
@@ -45,12 +46,32 @@ scope, 3.61ns inside one, 4.50ns when the scope carries a deadline, which is
 read from the clock once every 64 boundaries. A two million pass loop is
 unchanged.
 
-**Where cancellation stops, said rather than left to a stopwatch.** The deadline
-covers work the event loop never gets a turn away from, which is why a
-synchronous `loop` now ends instead of hanging. A `fn` that recurses has no back
-edge to read it at, and an action that ignores its `ctx.signal` cannot be
-stopped by anyone. Both are given a bounded while and then reported as `VN8002`
-naming what is still running.
+A loop written inside a `fn` is reached too. That body is compiled into thunks
+and runs synchronously, so there is no scheduler between two passes and no
+scope it could ask; `@timeout` around the step that called it did nothing, and
+the process had to be killed. The runtime now leaves the question at the one
+place the compiler can read it, and every compiled `loop`, `forEach` and
+`repeat` asks it once per pass. Five million passes take 82.5ms with nothing
+in force and 96.0ms under a `@timeout`, which is 2.7ns a pass for being able to
+stop.
+
+A `finally { … }` runs when the scope it is in was called off, which is the case
+it is written for and the one it did not survive: the walk refuses to take a step
+under an ended scope, and the block's first statement was that step, so a
+cancelled `try` gave nothing back. It runs detached now, as `defer` already did.
+
+A step that overran without ever yielding is reported. The deadline is sampled
+at boundaries and a body with fewer than sixty-four of them passed none, while
+the timer that would have said so never got a turn either: the step ran five
+times its `@timeout` and reported as having passed. The deadline is now read
+once, straight, when the body settles.
+
+**Where cancellation stops, said rather than left to a stopwatch.** A `fn` that
+recurses has no back edge to read the deadline at, and an action that ignores
+its `ctx.signal` cannot be stopped by anyone. Both are given a bounded while and
+then reported as `VN8002` naming what is still running. That grace runs from
+where the work was called off rather than from where it started, so a `@timeout`
+longer than the grace is enforced rather than given up on.
 
 `Clock.sleep(ms, signal)` ends early when the signal aborts and the real clock
 drops its timer, so a cancelled wait does not hold the process open. The

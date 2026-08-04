@@ -1,3 +1,4 @@
+let doubled = "outer"
 let made = []
 forEach n in [1, 2, 3] {
   let doubled = n * 2
@@ -6,4 +7,4 @@ forEach n in [1, 2, 3] {
 let a = made[0]()
 let b = made[1]()
 let c = made[2]()
-seen = "${a} ${b} ${c}"
+seen = "${a} ${b} ${c} outer=${doubled}"

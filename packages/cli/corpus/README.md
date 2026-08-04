@@ -33,6 +33,28 @@ and names the issue. The last two are opposites and are spelled apart on purpose
 a corpus with no word for a defect nobody is fixing today either goes red or,
 worse, files that defect under "meant to".
 
+## What has no case
+
+`constructs-baseline.json` is every construct of the grammar that no case
+writes. The list comes from the grammar itself, through the AST reflection
+Langium generates, so a rule added to `venn.langium` appears in it with no edit
+anywhere and fails by name in the commit that adds it. It only shrinks: a
+construct that gains a case has to leave the file, which is a line in a diff
+somebody reads.
+
+A case counts as writing a construct when a node of that kind sits inside the
+case's own body. Inside, because the four wrappers write `run`, `fragment`,
+`fn`, a `let`, a `return` and a call of their own, and crediting those to the
+bodies would certify fourteen constructs nobody wrote. Matching the keyword in
+the text cannot do it either: `#` opens a comment, so a header saying "no `try`
+case yet" would satisfy a `try` rule for ever, and every keyword is a legal
+member name, so `res.try` holds one too.
+
+The unit is the construct and not the construct in each placement. Eleven
+statements a `fn` refuses, and two of those a file refuses as well, so a case for
+one of them says which placements it is not legal in and why, in its own
+`excludes` header.
+
 ## Running it
 
 `pnpm --filter @venn-lang/cli test` drives every case and compares it with
@@ -43,7 +65,14 @@ as it existed.
 
 `VENN_WRITE_CORPUS=1 pnpm --filter @venn-lang/cli test` records what the tree
 does now, the way `node scripts/examples-run.mjs --write` does, and `pnpm format`
-after it puts the file back the way Biome wants it. The comparison is over the
-parsed answers, not the text, so the formatting of the file is nobody's business
-but Biome's. Every change to `expected.json` is a reviewed diff, and one nobody
-can explain is what it is for.
+after it puts the file back the way Biome wants it. It writes
+`constructs-baseline.json` too. The comparison is over the parsed answers, not
+the text, so the formatting of the file is nobody's business but Biome's. Every
+change to `expected.json` is a reviewed diff, and one nobody can explain is what
+it is for.
+
+An answer holds what the body printed, what running it refused with, and every
+problem the front end found as `CODE severity@column title`. The sentence is
+compared, not only the code: the charter makes a title the product's voice in
+the user's own domain, and a message that changed to something wrong read here
+as no change at all.

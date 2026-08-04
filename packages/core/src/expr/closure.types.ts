@@ -24,8 +24,18 @@ export interface Closure {
   readonly env: EvalEnv;
   /**
    * A cell per free name of the body, resolved when this value was made.
-   * Absent when the defining environment does not address bindings by cell: a
-   * function nested inside another, whose free names live in its frame.
+   *
+   * Absent for a body with no free names. An entry is absent for the one name
+   * that cannot be resolved where the `fn` is written: a name the body around
+   * it binds further down, which is asked for by name at call time instead.
    */
-  readonly up?: readonly Cell[];
+  readonly up?: readonly (Cell | undefined)[];
+}
+
+/** A function value whose free names are already resolved. */
+export interface ClosureParts {
+  readonly params: readonly string[];
+  readonly body: CompiledBody;
+  readonly env: EvalEnv;
+  readonly up: readonly (Cell | undefined)[];
 }

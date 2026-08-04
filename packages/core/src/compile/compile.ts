@@ -13,7 +13,7 @@ import type { EvalEnv } from "../expr/eval-env.types.js";
 import type { Frame } from "../expr/frame.js";
 import type { Expr, FnDecl } from "../generated/ast.js";
 import type { Compile, Thunk } from "./compile.types.js";
-import { freeSlot, type LexScope, rootOf, rootScope, slotOf } from "./lex-scope.js";
+import { boxed, freeSlot, type LexScope, rootOf, rootScope, slotOf } from "./lex-scope.js";
 import {
   closureIn,
   compileBinary,
@@ -92,9 +92,11 @@ function dispatch(expr: Expr, scope: LexScope): Thunk {
       return compileRef(expr.name, scope);
     case "FnExpr":
       // A function made here captures this environment to reach the names
-      // around it, so there has to be one for it to capture.
+      // around it, so there has to be one for it to capture. Compiled with the
+      // scope, because which binding each free name meant is settled by where
+      // the `fn` sits and nowhere else.
       rootOf(scope).dynamic = true;
-      return compileFnExpr(expr, compileIn);
+      return compileFnExpr(expr, scope, compileIn);
     // Compiled with the scope rather than only with a way to compile: what an
     // arm binds needs a slot, and slots belong to the scope.
     case "MatchExpr":
@@ -111,8 +113,6 @@ function operation(expr: Expr, compile: Compile): Thunk {
   switch (expr.$type) {
     case "Member":
       return compileMember(expr, compile);
-    case "FnExpr":
-      return compileFnExpr(expr, compileIn);
     case "Call":
       return compileCall(expr, compile);
     case "Index":
@@ -141,28 +141,27 @@ function operation(expr: Expr, compile: Compile): Thunk {
  * (a top-level binding, a namespace, the prelude) is a cell the closure
  * resolved when it was built, which is an index too.
  *
- * The lookup fallback stays for environments that hand out no cells: a function
- * nested inside another reads its parent's frame, and an expression compiled at
- * the root has no closure at all.
+ * The lookup fallback stays for the names neither can answer: an expression
+ * compiled at the root has no closure at all, and a closure written above the
+ * `let` that binds the name it reads has no cell to be given.
  */
 function compileRef(name: string, scope: LexScope): Thunk {
   const body = rootOf(scope);
   const slot = slotOf(scope, name);
   // The one name a bare body binds is the value it was handed, unwrapped.
   if (slot === 0 && body.bare) return (env) => env;
-  if (slot !== -1) return slotThunk(slot);
+  if (slot !== -1) return boxed(scope, slot) ? cellThunk(slot) : slotThunk(slot);
   // One closure owns this body, so the cell can be held right here: no frame to
   // carry it, and no chain to walk.
   const own = body.cellOf?.(name);
   if (own) return () => own.value;
   const up = freeSlot(scope, name);
-  // A slot is only ever made for a name the compiler resolved, so reading one
-  // needs no check. The fallback is the other case, where a name may not be
-  // bound at all, and an unbound name is the language's one nothing.
+  // An unbound name is the language's one nothing, which is what the fallback
+  // answers, and the same for a name whose cell did not exist yet.
   if (up === undefined) return (env) => named(env, name);
   return (env) => {
-    const cells = (env as Frame).up;
-    return cells === undefined ? named(env, name) : (cells[up] as Cell).value;
+    const cell = (env as Frame).up?.[up];
+    return cell === undefined ? named(env, name) : cell.value;
   };
 }
 
@@ -185,4 +184,16 @@ function slotThunk(slot: number): Thunk {
   if (slot === 2) return (env) => (env as Frame).s2;
   const at = slot - 3;
   return (env) => ((env as Frame).rest as unknown[])[at];
+}
+
+/**
+ * The same for a slot a closure captured, which holds the cell the binding
+ * minted rather than the value.
+ *
+ * Nothing there at all is a block that never ran, and the answer to that is the
+ * same nothing an unbound name gives.
+ */
+function cellThunk(slot: number): Thunk {
+  const read = slotThunk(slot);
+  return (env) => (read(env) as Cell | undefined)?.value;
 }

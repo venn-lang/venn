@@ -1,0 +1,11 @@
+let x = "outer"
+if true {
+  let x = "inner"
+  let setIt = fn () {
+    x = "written"
+    return "ran"
+  }
+  let done = setIt()
+  seen = "${done} inner=${x}"
+}
+seen = "${seen} outer=${x}"

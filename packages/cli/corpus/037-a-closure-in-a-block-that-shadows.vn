@@ -1,0 +1,6 @@
+let x = "outer"
+if true {
+  let x = "inner"
+  let seeIt = fn () => x
+  seen = seeIt()
+}

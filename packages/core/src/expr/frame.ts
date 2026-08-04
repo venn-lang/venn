@@ -1,5 +1,6 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import { ProblemError } from "../problem/index.js";
+import type { Cell } from "./cell.types.js";
 import { hasCells } from "./cell.types.js";
 import type { Closure } from "./closure.types.js";
 import type { EvalEnv } from "./eval-env.types.js";
@@ -19,17 +20,20 @@ export const INLINE_SLOTS = 3;
  * function binds three names or fewer, and a frame plus an array is two
  * allocations per call. Beyond three, `rest` holds the remainder.
  *
- * `lookup` stays because a name can still arrive as text: an expression inside
- * `"${…}"` is compiled apart from the body that holds it, so it asks by name.
- * Scanning a handful of parameters beats walking a chain of maps.
+ * `lookup` stays for the one name the compiler cannot place: a closure written
+ * above the `let` that binds the name it reads. Scanning a handful of names
+ * beats walking a chain of maps, and everything else is an index by then.
  */
 export class Frame implements EvalEnv {
   s0: unknown;
   s1: unknown;
   s2: unknown;
   rest: unknown[] | undefined;
-  /** The cells this function's free names resolved to, in compile order. */
-  readonly up: readonly { value: unknown }[] | undefined;
+  /**
+   * The cells this function's free names resolved to, in compile order. An
+   * entry is absent for a name that had no cell yet where the `fn` was written.
+   */
+  readonly up: readonly (Cell | undefined)[] | undefined;
   /** What a `return` left, for the caller to pick up. Untouched by a body with none. */
   left: unknown;
 
@@ -44,20 +48,21 @@ export class Frame implements EvalEnv {
   }
 
   /**
-   * The outermost slot with this name, which is the one a closure made in this
-   * body was written against unless it was made inside a block that shadowed it.
+   * The outermost slot with this name, or the same question one frame out.
    *
-   * That last case is not resolved here and cannot be: this asks by name at call
-   * time, and which slot a closure meant is a question about where it was
-   * written. `lastIndexOf` was tried and is worse: it reads the innermost slot
-   * whoever calls, so a closure made before a shadowing block read the shadow,
-   * and one made where the block never ran read nothing at all. The answer is to
-   * resolve a free name when the closure is built, which is issue #265's
-   * remaining half.
+   * Which slot a closure meant is a question about where it was written, and
+   * this asks by name at call time, so it cannot answer it. It is no longer
+   * asked to: a closure resolves its free names where it is written and reaches
+   * them through `up`. What is left over is a closure written above the `let`
+   * that binds the name it reads, where the binding has no cell yet and the
+   * outermost slot of that spelling is the answer the source gives.
    */
   lookup(name: string): unknown {
-    const at = this.closure.body.names.indexOf(name);
-    return at === -1 ? this.closure.env.lookup(name) : readSlot(this, at);
+    const body = this.closure.body;
+    const at = body.names.indexOf(name);
+    if (at === -1) return this.closure.env.lookup(name);
+    const held = readSlot(this, at);
+    return body.boxed?.has(at) ? (held as Cell | undefined)?.value : held;
   }
 }
 
@@ -99,13 +104,30 @@ export function writeNamed(frame: Frame, name: string, value: unknown): void {
     // name in one frame must reach one slot, whichever is the right one.
     const at = env.closure.body.names.indexOf(name);
     if (at !== -1) {
-      writeSlot(env, at, value);
+      intoSlot(env, at, value);
       return;
     }
     env = env.closure.env;
   }
   if (!hasCells(env)) throw nowhere(name);
   env.cell(name).value = value;
+}
+
+/**
+ * A captured slot holds a cell, and a write goes through it rather than over
+ * it, so the closures already holding it see the new value.
+ *
+ * A cell that is not there yet is the block that never ran: the slot takes one,
+ * which is what the binding would have done had it been reached.
+ */
+function intoSlot(frame: Frame, at: number, value: unknown): void {
+  if (!frame.closure.body.boxed?.has(at)) {
+    writeSlot(frame, at, value);
+    return;
+  }
+  const cell = readSlot(frame, at) as Cell | undefined;
+  if (cell) cell.value = value;
+  else writeSlot(frame, at, { value });
 }
 
 /**

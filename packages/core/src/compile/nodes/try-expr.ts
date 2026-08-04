@@ -1,10 +1,10 @@
 import { childEnv } from "../../expr/closure.js";
 import type { EvalEnv } from "../../expr/eval-env.types.js";
 import type { Frame } from "../../expr/frame.js";
-import { writeSlot } from "../../expr/frame.js";
 import { isWaiting } from "../../expr/pending.js";
 import type { TryExpr } from "../../generated/ast.js";
 import { caughtValue, isFailure } from "../../problem/index.js";
+import { slotBinder } from "../box.js";
 import type { Thunk } from "../compile.types.js";
 import { type LexScope, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
@@ -25,6 +25,7 @@ export function compileTry(expr: TryExpr, scope: LexScope, compileIn: CompileIn)
   const fallback = compileIn(expr.fallback, scope);
   // -1 outside a function body, where there is no frame to write the name into.
   const slot = expr.error ? slotOf(scope, expr.error) : -1;
+  const write = slotBinder(scope, slot);
   const name = expr.error;
   return (env) => {
     try {
@@ -49,7 +50,7 @@ export function compileTry(expr: TryExpr, scope: LexScope, compileIn: CompileIn)
   function bound(env: EvalEnv, failure: unknown): EvalEnv {
     const value = caughtValue(failure);
     if (slot === -1) return childEnv(env, { [name as string]: value });
-    writeSlot(env as Frame, slot, value);
+    write(env as Frame, value);
     return env;
   }
 }

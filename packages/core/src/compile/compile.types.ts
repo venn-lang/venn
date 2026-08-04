@@ -1,5 +1,6 @@
 import type { EvalEnv } from "../expr/eval-env.types.js";
 import type { Frame } from "../expr/frame.js";
+import type { Cell } from "../expr/index.js";
 import type { Expr } from "../generated/ast.js";
 
 /**
@@ -25,6 +26,15 @@ export type Compile = (expr: Expr) => Thunk;
  */
 export type Step = (frame: Frame) => number;
 
+/**
+ * Where one free name of a closure lives, worked out where the closure is
+ * written and answered when it is made.
+ *
+ * `undefined` for the one name a closure cannot be told about at that point: a
+ * name its own body binds further down, which is still asked for by name.
+ */
+export type Capture = (env: EvalEnv) => Cell | undefined;
+
 /** A function body, compiled: its local bindings in order, then its result. */
 export interface CompiledBody {
   /** Every name that gets a slot: the parameters first, then the locals. */
@@ -33,6 +43,12 @@ export interface CompiledBody {
   readonly extra: number;
   /** Every name the body reads but does not bind, in cell order. */
   readonly free: readonly string[];
+  /**
+   * The slots holding a cell rather than the value, because a closure written
+   * in the body captured them. Absent for the bodies that capture nothing,
+   * which is most of them.
+   */
+  readonly boxed?: ReadonlySet<number>;
   /**
    * The body binds one name, reads nothing else, and asks for nothing by text,
    * so a call hands the argument straight to `result` with no frame between.

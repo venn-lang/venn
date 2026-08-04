@@ -26,6 +26,8 @@ export {
   readInheritable,
 } from "./read/index.js";
 export { type AliasTarget, resolveAlias } from "./resolve-alias.js";
+export { strayManifestKeys } from "./stray-keys.js";
+export type { StrayKey } from "./stray-keys.types.js";
 export { parseToml } from "./toml/index.js";
 export { tomlDocs } from "./toml-docs.js";
 export { createTomlManifest } from "./toml-manifest.js";

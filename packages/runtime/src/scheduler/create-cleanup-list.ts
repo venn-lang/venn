@@ -1,3 +1,4 @@
+import { closeAll } from "../cleanup/index.js";
 import type { Cleanup, CleanupList } from "./cleanup.types.js";
 
 /**
@@ -10,8 +11,6 @@ export function createCleanupList(): CleanupList {
   const pending: Cleanup[] = [];
   return {
     add: (cleanup) => pending.push(cleanup),
-    close: async () => {
-      for (const cleanup of pending.splice(0).reverse()) await cleanup().catch(() => {});
-    },
+    close: () => closeAll(pending.splice(0).reverse()),
   };
 }

@@ -5,6 +5,7 @@ import {
   type FragmentDecl,
   type Problem,
   type RunId,
+  setStopCheck,
 } from "@venn-lang/core";
 import { createActionContext } from "../context/index.js";
 import { createDecoratorSource } from "../decorators/index.js";
@@ -74,12 +75,21 @@ type Walk = (engine: Engine, document: Document) => Promise<void>;
 async function runOnce(input: RunOnceInput, walk: Walk, problems: Problem[]): Promise<RunResult> {
   const run = newRunId({ clock: input.args.host.clock, random: input.args.host.random });
   const engine = buildEngine(input, run);
+  // A compiled body asks an ambient check whether it may go on, and a run that
+  // ended cancelled leaves a cancelled one behind. This run answers for itself
+  // from here, so nothing it compiles inherits a verdict passed on it before.
+  setStopCheck(undefined);
   // The walk absorbs an `exit` of its own so the run still ends tidily; this is
   // the backstop for one thrown where no walk was left to absorb it.
   await absorbExit(engine, () => walk(engine, input.document));
+  return resultOf({ engine, run, problems });
+}
+
+function resultOf(args: { engine: Engine; run: RunId; problems: Problem[] }): RunResult {
+  const { engine } = args;
   return {
-    run,
-    problems,
+    run: args.run,
+    problems: args.problems,
     passed: engine.result.passed,
     failed: engine.result.failed,
     exitCode: engine.exit,

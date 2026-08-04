@@ -35,14 +35,16 @@ export function checkPureConcurrency(node: AstNode, ctx: CheckContext): Problem[
   ];
 }
 
-/** The `concurrency` entry a `forEach`'s options carry, if they carry one. */
+/**
+ * The `concurrency` entry a `forEach`'s options carry, if they carry one.
+ *
+ * A written key is a plain string with its quotes already stripped, whether it
+ * was spelled `concurrency` or `"concurrency"`, so this compares to one the way
+ * every other reader of an options map does. A spread entry carries no key at
+ * all, which is why `find` and not a cast.
+ */
 function concurrencyEntry(stmt: ForEachStmt): AstNode | undefined {
-  return stmt.opts?.entries.find((entry) => keyName(entry.key) === "concurrency");
-}
-
-function keyName(key: unknown): string | undefined {
-  if (typeof key === "string") return key.replace(/^["']|["']$/g, "");
-  return (key as { name?: string } | undefined)?.name;
+  return stmt.opts?.entries.find((entry) => entry.key === "concurrency");
 }
 
 /** Whether this node sits inside a `fn`'s body, the one place `forEach` compiles. */

@@ -41,7 +41,11 @@ export function registerEnding(args: { engine: Engine; doc: Document; scope: Sco
   const teardown = collectHooks(args.doc).teardown;
   args.engine.cleanup.add(async () => {
     await runHooks({ engine: args.engine, hooks: teardown, scope: args.scope });
-    await runTeardowns(ending.deferred);
+    // Raised rather than kept, so the host hears it: a program that could not
+    // hand back what it was holding has not ended well, and by this point the
+    // run's own tally has already been reported.
+    const failures = await runTeardowns(ending.deferred);
+    if (failures.length > 0) throw failures[0];
   });
   return ending;
 }

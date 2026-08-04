@@ -46,6 +46,8 @@ export const CODES = {
   VN3020_UNREACHABLE_CASE: { code: "VN3020", severity: "error" },
   VN3021_NOT_A_PLACE: { code: "VN3021", severity: "error" },
   VN3022_RESERVED_CODE: { code: "VN3022", severity: "error" },
+  /** A `race` or a `parallel` with no branches in it, which can decide nothing. */
+  VN4001_NOTHING_TO_RUN: { code: "VN4001", severity: "error" },
   VN5001_REMOVED_KEYWORD: { code: "VN5001", severity: "error" },
   /**
    * Retired: folded into VN5007, which says the same sentence about any verb

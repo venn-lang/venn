@@ -13,10 +13,25 @@ export function createVirtualClock(args: { start?: number } = {}): VirtualClock 
   };
   return {
     now: () => time,
-    sleep: async (ms) => advance(ms),
+    sleep: (ms, signal) => sleep({ ms, signal, advance }),
     advance,
     setTime: (epochMs) => {
       time = epochMs;
     },
   };
+}
+
+/**
+ * Yields once before advancing, so a signal aborted in the same turn as the
+ * call is seen. Advancing first would make a cancelled sleep spend its whole
+ * duration here and nowhere else, which is the one thing the real clock does
+ * not do.
+ */
+async function sleep(args: {
+  ms: number;
+  signal: AbortSignal | undefined;
+  advance: (ms: number) => void;
+}): Promise<void> {
+  await Promise.resolve();
+  if (!args.signal?.aborted) args.advance(args.ms);
 }

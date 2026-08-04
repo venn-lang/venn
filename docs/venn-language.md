@@ -848,6 +848,19 @@ Nada limita um `loop`: um programa que pretende rodar para sempre, um jogo entre
 eles, pode. O que encerra um que devia ter encerrado é o timeout do step ou do
 flow em volta, que é o que a linguagem já promete.
 
+**Até onde o cancelamento chega.** `@timeout`, `race`, `parallel` e `forEach`
+cancelam pelo mesmo mecanismo: um escopo por nível, composto com o de cima. Ele
+alcança toda fronteira de statement, o topo de cada passo de `loop` e de
+`forEach`, o `wait`, e o `ctx.signal` que uma ação recebe. Um escopo que foi
+encerrado espera o que ele cancelou parar antes de reportar um veredito.
+
+Duas coisas ficam de fora, e a linguagem diz isso em vez de deixar para o
+cronômetro descobrir. Uma `fn` que recursa não tem topo de laço onde ler o
+prazo, e uma ação que ignora o `ctx.signal` que recebeu não pode ser
+interrompida por ninguém. Nos dois casos o escopo espera um tempo limitado e
+então reporta `VN8002` nomeando o que continuou rodando: o que vier depois disso
+chega depois do fim do run.
+
 > **Por que não há `while`.** Ele respondia à mesma pergunta que `loop` e numa
 > linguagem sem atribuição sua condição nunca podia ser movida pelo próprio
 > corpo: todo `while` que alguém escrevia precisava de um `break` para não
@@ -1333,43 +1346,83 @@ Um parâmetro sem parênteses não leva tipo: `f(x: number => …)` já signific
 
 Um projeto é uma pasta com manifesto. O manifesto é o que o LSP lê para saber quais capacidades oferecer no autocomplete.
 
+Toda tabela e toda chave abaixo é lida por alguém. O que não está aqui, `venn check` reporta como `VN2109`: uma tabela que ninguém lê não muda nada, e aceitá-la em silêncio é o que faz alguém escrever uma configuração e acreditar nela pelo resto da vida do projeto.
+
 ****venn.toml**TOML**
 
 ```toml
 [package]
-name    = "acme-checkout"
-version = "1.4.0"
-flowlang = "^0.1"          # versão da linguagem, habilita migrações automáticas
+name        = "acme-checkout"
+version     = "1.4.0"
+description = "Checkout end to end"
+license     = "MIT"
+authors     = ["Acme"]
+edition     = "2026"
+
+# O que este pacote constrói. `[lib]` é o que outros pacotes importam,
+# `[[bin]]` é um programa. Sem nenhum dos dois valem os caminhos por
+# convenção: src/lib.vn e src/main.vn.
+[lib]
+name = "acme-checkout"
+path = "src/lib.vn"
+
+[[bin]]
+name = "seed"
+path = "src/bin/seed.vn"
 
 [dependencies]
 "@venn-lang/http"    = "0.1"
 "@venn-lang/browser" = "0.1"
-"@venn-lang/mqtt"    = "0.1"
-"@acme/stripe"   = "1.2"
+"@acme/stripe"       = "1.2"
+
+[dev-dependencies]
+"@venn-lang/assert" = "0.1"
+
+# Uma versão que este projeto impõe, onde quer que ela seja pedida.
+[patch]
+"@acme/stripe" = "1.2.3"
+
+# `dev` reporta e segue; `release` se recusa a construir sobre um problema.
+[profile.release]
+strict = true
+
+[workspace]
+members         = ["packages/*"]
+exclude         = ["packages/legacy"]
+default-members = ["packages/api"]
+
+[workspace.package]
+version = "1.4.0"
+license = "MIT"
+
+[tooling]
+manager = "pnpm"        # pnpm | npm | bun | yarn
 
 [paths]
-"#shared" = "./src/shared"
+"#shared"   = "./src/shared"
 "#fixtures" = "./test/fixtures"
+
+# `files` diz quais dotenv ler, em ordem; `${name}` é o ambiente escolhido.
+# Toda outra chave em `[env]` nomeia um ambiente.
+[env]
+files = [".env", ".env.${name}"]
 
 [env.staging]
 BASE_URL     = "https://staging.acme.dev"
 DATABASE_URL = "${env:STAGING_DB}"
-MQTT_BROKER  = "mqtt://staging.acme.dev:1883"
 
 [env.local]
 BASE_URL     = "http://localhost:3000"
 DATABASE_URL = "postgres://localhost/acme_test"
 
-[secrets]
-provider = "vault"
-path     = "kv/acme/test"
-redact   = "always"          # nunca aparece em log, trace ou HAR
-
-[runner]
-workers  = 4
-retries  = 1
-reporters = ["junit", "html", "trace"]
+[format]
+indent   = 2
+tabs     = false
+organize = true
+sort     = true
 ```
+
+Segredos não moram aqui. Eles chegam pela porta `SecretProvider`, montada pelo host, e um valor que veio dela já carrega a marca que o torna `‹redigido›` antes de ser serializado (§16). Escrever `[secrets] provider = "vault"` no manifesto não configura nada.
 
 
 ---

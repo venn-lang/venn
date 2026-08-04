@@ -109,7 +109,9 @@ parsing. Neither touches the outside world.
   relative paths against `root` and leaves absolute paths alone.
 - **Clock.** `createVirtualClock` makes `sleep` advance internal time and resolve at once. Its
   `advance` and `setTime` sit outside `ClockPort.methods` on purpose: they are test controls, not
-  part of the negotiated contract.
+  part of the negotiated contract. `sleep(ms, signal)` takes an optional signal (contract version
+  2): an aborted sleep resolves early instead of rejecting, and the real clock drops its timer, so
+  a cancelled wait does not hold the process open.
 - **SecretProvider.** `makeSecret({ reveal })` wraps a raw value so that `toString()` and
   `toJSON()` both collapse to `REDACTED`. `reveal()` is the only way out, and it is deliberately
   explicit. Redaction happens at the producer, so anything reaching a reporter is already marked.

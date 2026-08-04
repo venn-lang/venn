@@ -1,6 +1,7 @@
 import { evaluate, isContinueStmt, type LoopStmt, type Statement, truthy } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { planOf } from "./block-plan.js";
+import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
 import { runSteps } from "./run-block.js";
@@ -107,9 +108,16 @@ class LoopState {
     return this.finish();
   }
 
-  /** The condition, or `true` when there is none, which is what `loop` means. */
+  /**
+   * The condition, or `true` when there is none, which is what `loop` means.
+   *
+   * The back edge is where a loop that never yields can still be stopped: the
+   * scope is read here on every pass, and a deadline it carries is read from
+   * the clock every so often, because a timer needs the event loop this loop is
+   * holding.
+   */
   private holds(): boolean | Promise<boolean> {
-    if (this.engine.signal?.aborted) return false;
+    checkpoint(this.engine);
     if (!this.stmt.cond) return true;
     const value = evaluate(this.stmt.cond, this.scope);
     return isPending(value) ? settle(value).then(truthy) : truthy(value);

@@ -24,10 +24,12 @@ import type { CheckArgs, CheckContext } from "./check.types.js";
 import { checkArgumentCount } from "./check-argument-count.js";
 import { checkAssign } from "./check-assign.js";
 import { checkAction, checkCapture, checkLet } from "./check-calls.js";
+import { checkConstructOptions } from "./check-construct-options.js";
 import { checkInsideDeco } from "./check-deco-body.js";
 import { checkDecoReach } from "./check-deco-reach.js";
 import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
 import { checkDuplicateKey } from "./check-duplicate-key.js";
+import { checkEmptyConcurrency } from "./check-empty-concurrency.js";
 import { checkEnv } from "./check-env.js";
 import { checkFailCode } from "./check-fail-code.js";
 import { checkFragmentCall } from "./check-fragment-call.js";
@@ -114,7 +116,9 @@ function styleChecks(node: AstNode, ctx: CheckContext): Problem[] {
     ...checkMixedOperators(node, ctx),
     ...checkFailCode(node, ctx),
     ...checkSwallowedArgument(node, ctx),
+    ...checkConstructOptions(node, ctx),
     ...checkDuplicateKey(node, ctx),
+    ...checkEmptyConcurrency(node, ctx),
     ...checkPureConcurrency(node, ctx),
     ...checkLifecycleEvent(node, ctx),
     ...checkDecoratorName(node, ctx),

@@ -8,7 +8,7 @@ import { isFnDecl } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
 import { closureOfDecl } from "./compile.js";
 import { rootScope } from "./lex-scope.js";
-import { compileStep, RAN } from "./nodes/body-steps.js";
+import { compileStep, RAN } from "./nodes/index.js";
 
 const NEWLINE = String.fromCharCode(10);
 

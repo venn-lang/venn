@@ -1,4 +1,5 @@
 export { compileBinary, compileUnary } from "./binary.js";
+export { compileStep } from "./body-steps.js";
 export { compileCall } from "./call.js";
 export { compileList, compileMap, compileTernary } from "./collection.js";
 export { constLit, constThunk } from "./const-lit.js";
@@ -7,4 +8,7 @@ export { closureIn, compileFnExpr } from "./fn.js";
 export { compileInstant, compileNumber, compileString, constant } from "./literal.js";
 export { compileMatch } from "./match.js";
 export { compileIndex, compileMember } from "./member.js";
+export { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 export { compileTry } from "./try-expr.js";
+export { overCount, overItems, overPasses, runSteps } from "./walk-steps.js";
+export type { OverCount, OverItems, OverPasses, Passes } from "./walk-steps.types.js";

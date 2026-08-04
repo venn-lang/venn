@@ -3,6 +3,7 @@ export { collectAliases, collectBoundNames, collectNamespaces } from "./aliases.
 export { bindImports, type ImportGraph } from "./bind-imports.js";
 export type { Cleanup, CleanupList, CleanupSink } from "./cleanup.types.js";
 export { collectConfig, collectFragments, collectOn } from "./collect.js";
+export { CONSTRUCT_OPTIONS } from "./construct-options.js";
 export { createCleanupList } from "./create-cleanup-list.js";
 export { optionNames, takes } from "./declared-arity.js";
 export type { Engine, RunCounters } from "./engine.types.js";
@@ -12,7 +13,8 @@ export type { Invocation } from "./invocation.js";
 export { actionTarget, invocationOf } from "./invocation.js";
 export { heldByANamespace, wordFor } from "./namespace-member.js";
 export { nodeSource, nodeSpan } from "./node-span.js";
+export { outsideItsDomain } from "./option-domain.js";
 export { runDocument } from "./run-document.js";
 export { runScript } from "./run-script.js";
 export { PRELUDE, resolveTarget, splitTarget } from "./target.js";
-export { unknownOptions } from "./unknown-option.js";
+export { strayKeyTitle, unknownOptions } from "./unknown-option.js";

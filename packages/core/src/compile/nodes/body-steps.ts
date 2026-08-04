@@ -5,7 +5,7 @@ import type { Statement } from "../../generated/ast.js";
 import * as ast from "../../generated/ast.js";
 import { truthy } from "../../value/index.js";
 import { boundValue, slotBinder } from "../box.js";
-import type { Step, Thunk } from "../compile.types.js";
+import type { Step } from "../compile.types.js";
 import { allocate, blockScope, boxed, declare, type LexScope, slotOf } from "../lex-scope.js";
 import { unpack } from "../unpack.js";
 import { assignStep } from "./assign-step.js";
@@ -13,6 +13,7 @@ import type { CompileIn } from "./fn.js";
 import { checkedCount, checkedList } from "./loop-bound.js";
 import { refuseACall } from "./pure-body.js";
 import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
+import { overCount, overItems, overPasses, runSteps } from "./walk-steps.js";
 
 /**
  * One statement of a function body, compiled.
@@ -39,17 +40,6 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   // block: a statement nobody compiled must not be able to end the body, which
   // is what made a verb inside an `if` answer `null` and print nothing.
   return () => RAN;
-}
-
-export { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
-
-/** Run a block's steps until one of them stops. */
-export function runSteps(steps: readonly Step[], frame: Frame): number {
-  for (const step of steps) {
-    const stopped = step(frame);
-    if (stopped !== RAN) return stopped;
-  }
-  return RAN;
 }
 
 /**
@@ -137,15 +127,7 @@ function forEachStep(stmt: ast.ForEachStmt, scope: LexScope, compile: CompileIn)
   const inner = blockScope(scope);
   const bind = binder(stmt, inner);
   const body = stepsIn(stmt.body, inner, compile);
-  return (frame) => {
-    for (const item of listed(source(frame))) {
-      bind(frame, item);
-      const stopped = runSteps(body, frame);
-      if (stopped === LEFT) return LEFT;
-      if (stopped === BROKE) break;
-    }
-    return RAN;
-  };
+  return (frame) => overItems({ items: listed(source(frame)), bind, body }, frame);
 }
 
 /** What a `forEach` calls each item, written as a name or as a pattern. */
@@ -173,16 +155,7 @@ function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): 
   const inner = blockScope(scope);
   const bind = stmt.index ? slotBinder(inner, declare(inner, stmt.index)) : undefined;
   const body = stepsIn(stmt.body, inner, compile);
-  return (frame) => {
-    const times = counted(count(frame));
-    for (let at = 1; at <= times; at += 1) {
-      if (bind) bind(frame, at);
-      const stopped = runSteps(body, frame);
-      if (stopped === LEFT) return LEFT;
-      if (stopped === BROKE) break;
-    }
-    return RAN;
-  };
+  return (frame) => overCount({ times: counted(count(frame)), bind, body }, frame);
 }
 
 /**
@@ -213,28 +186,13 @@ function loopStep(stmt: ast.LoopStmt, scope: LexScope, compile: CompileIn): Step
   const body = blockSteps(stmt.body, scope, compile);
   return (frame) => {
     if (initial) start(frame, initial(frame));
-    return passes({ body, condition, fresh }, frame);
+    return overPasses({ body, condition, fresh }, frame);
   };
 }
 
 /** What a pass starts from: the value the one before it left, in a new cell. */
 function reboxer(state: number): (frame: Frame) => void {
   return (frame) => writeSlot(frame, state, { value: (readSlot(frame, state) as Cell).value });
-}
-
-/** Round and round until the condition stops holding, or something stops it. */
-function passes(
-  args: { body: readonly Step[]; condition: Thunk | undefined; fresh?: (frame: Frame) => void },
-  frame: Frame,
-): number {
-  const { body, condition, fresh } = args;
-  while (!condition || truthy(condition(frame))) {
-    if (fresh) fresh(frame);
-    const stopped = runSteps(body, frame);
-    if (stopped === LEFT) return LEFT;
-    if (stopped === BROKE) break;
-  }
-  return RAN;
 }
 
 /**

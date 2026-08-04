@@ -12,8 +12,14 @@ export type Unregister = () => void;
  */
 export interface Shutdown {
   add(closer: Closer): Unregister;
-  /** Close everything. Runs once; later callers await the same pass. */
-  close(): Promise<void>;
+  /**
+   * Close everything. Runs once; later callers await the same pass.
+   *
+   * @returns What each failing closer threw. A program still holding something
+   * it meant to hand back has not ended cleanly, and the command that is leaving
+   * is the only one left who can say so.
+   */
+  close(): Promise<readonly unknown[]>;
 }
 
 /** How the program leaves, once there is nothing left to give back. */

@@ -1,6 +1,6 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import type { CompiledBody, Thunk } from "../compile/compile.types.js";
-import { LEFT, runSteps } from "../compile/nodes/body-steps.js";
+import { LEFT, runSteps } from "../compile/nodes/index.js";
 import { ProblemError } from "../problem/index.js";
 import { isClosure } from "./closure.js";
 import type { Closure } from "./closure.types.js";

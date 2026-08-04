@@ -66,8 +66,10 @@ function execute(
       node: step,
       scope: scopes.parent,
       title: scopes.title,
+      // The body takes the engine rather than closing over it: a `@timeout`
+      // makes a scope for the body, and one closed over here would never see it.
       // The caller wants a promise; a block that never suspended returns none.
-      run: () => runAround(step, () => runBlock(engine, step.body, scopes.scope)),
+      run: (scoped) => runAround(step, () => runBlock(scoped, step.body, scopes.scope)),
     }),
   );
 }

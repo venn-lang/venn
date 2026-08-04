@@ -1,6 +1,7 @@
 export { collectSourceFiles, everySourceUnder } from "./collect-files.js";
 export type { Ending } from "./ending.types.js";
 export { exitCodeOf } from "./exit-code.js";
+export { watchForAStuckRun } from "./never-finished.js";
 export { createNodeModuleIo } from "./node-io.js";
 export { createNpmLoader } from "./npm-loader.js";
 export { deriveTypes, loadDerivedTypes, packageTypesFor, typesDir } from "./package-types.js";

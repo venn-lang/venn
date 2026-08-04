@@ -52,6 +52,27 @@ export interface LexScope {
   /** The body asks for some name as text, so it needs a real environment. */
   dynamic?: boolean;
   /**
+   * A `fn` is written somewhere in this body, so which of its slots a closure
+   * captured is known only once the whole body has been compiled once.
+   */
+  nested?: boolean;
+  /**
+   * The slots a closure captured, as the pass before this one found them. Each
+   * holds a cell rather than the value, so a binding made again (a `let` in a
+   * loop, the item of a pass) gives that pass a place of its own.
+   */
+  boxes?: ReadonlySet<number>;
+  /** The slots this pass finds captured, which is what the next one boxes. */
+  captures?: Set<number>;
+  /**
+   * Every name the body binds anywhere, as the pass before this one left it.
+   *
+   * A closure reading a name this body binds but has not bound yet is the one
+   * question the source cannot answer where the closure is written, so it keeps
+   * asking by name at call time.
+   */
+  binds?: ReadonlySet<string>;
+  /**
    * The cell a free name resolves to, when this body belongs to exactly one
    * closure and so may hold cells of its own. Absent for a `fn (…) => …`, whose
    * compiled body is shared by every closure the expression produces.
@@ -74,7 +95,13 @@ export function rootScope(): LexScope {
  * of a file: not at all.
  */
 export function scopeOf(params: ParamList | undefined, body: FnBody): LexScope {
-  const scope: LexScope = { names: [], visible: new Map(), cache: new WeakMap(), free: [] };
+  const scope: LexScope = {
+    names: [],
+    visible: new Map(),
+    cache: new WeakMap(),
+    free: [],
+    captures: new Set(),
+  };
   const params_ = params?.params ?? [];
   // The parameters first, one slot each and in order, because that is where the
   // caller writes them. What their patterns bind comes after all of them.
@@ -164,6 +191,37 @@ export function slotOf(scope: LexScope, name: string): number {
 export function stayedBare(scope: LexScope): boolean {
   const body = rootOf(scope);
   return Boolean(body.bare) && !body.dynamic && (body.free?.length ?? 0) === 0;
+}
+
+/**
+ * Whether this slot holds a cell rather than the value, because a closure
+ * written in this body captured it.
+ *
+ * @param scope Any block of the body the slot belongs to.
+ * @param at The slot in question.
+ */
+export function boxed(scope: LexScope, at: number): boolean {
+  return rootOf(scope).boxes?.has(at) === true;
+}
+
+/**
+ * Record that a closure captured this slot, for the pass that decides boxing.
+ *
+ * @param scope The block the closure is written in.
+ * @param at The slot it captured.
+ */
+export function capture(scope: LexScope, at: number): void {
+  rootOf(scope).captures?.add(at);
+}
+
+/**
+ * Whether the body binds this name somewhere, which is known only after a pass.
+ *
+ * @param scope Any block of the body.
+ * @param name The name a closure written here reads.
+ */
+export function bindsName(scope: LexScope, name: string): boolean {
+  return rootOf(scope).binds?.has(name) === true;
 }
 
 /** Where a free name sits in this body's cell list, adding it if new. */

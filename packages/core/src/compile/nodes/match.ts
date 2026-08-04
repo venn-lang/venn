@@ -1,7 +1,6 @@
 import { childEnv } from "../../expr/closure.js";
 import type { EvalEnv } from "../../expr/eval-env.types.js";
 import type { Frame } from "../../expr/frame.js";
-import { writeSlot } from "../../expr/frame.js";
 import type { MatchArm, MatchExpr, Pattern } from "../../generated/ast.js";
 import type { PatternSlot } from "../../pattern/index.js";
 import {
@@ -12,6 +11,7 @@ import {
   slotValue,
 } from "../../pattern/index.js";
 import { truthy } from "../../value/index.js";
+import { slotBinder } from "../box.js";
 import type { Thunk } from "../compile.types.js";
 import { type LexScope, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
@@ -36,6 +36,8 @@ interface Bound {
   readonly of: PatternSlot;
   /** -1 where there are no slots, which is anywhere outside a function body. */
   readonly slot: number;
+  /** How the slot is filled: in a cell of its own where a closure took it. */
+  readonly write: (frame: Frame, value: unknown) => void;
 }
 
 /**
@@ -73,10 +75,10 @@ function armOf(arm: MatchArm, scope: LexScope, compileIn: CompileIn): Arm {
 }
 
 function wayOf(pattern: Pattern, scope: LexScope): Way {
-  const binds = patternSlots(pattern).map((bound) => ({
-    of: bound,
-    slot: slotOf(scope, bound.name),
-  }));
+  const binds = patternSlots(pattern).map((bound) => {
+    const slot = slotOf(scope, bound.name);
+    return { of: bound, slot, write: slotBinder(scope, slot) };
+  });
   return { tests: patternTests(pattern), binds };
 }
 
@@ -93,7 +95,7 @@ const NOTHING: Thunk = () => null;
 function bind(env: EvalEnv, binds: readonly Bound[], value: unknown): EvalEnv {
   if (binds.length === 0) return env;
   if (binds[0]?.slot === -1) return childEnv(env, held(binds, value));
-  for (const bound of binds) writeSlot(env as Frame, bound.slot, slotValue(value, bound.of));
+  for (const bound of binds) bound.write(env as Frame, slotValue(value, bound.of));
   return env;
 }
 

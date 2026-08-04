@@ -1,0 +1,11 @@
+let build = fn (base) {
+  let out = []
+  repeat 2 as i {
+    out = out.push(fn () => base * i)
+  }
+  return out
+}
+let got = build(10)
+let a = got[0]()
+let b = got[1]()
+seen = "${a} ${b}"

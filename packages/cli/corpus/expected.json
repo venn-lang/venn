@@ -830,10 +830,10 @@
       "problems": [],
       "out": null,
       "refused": {
-        "code": "",
+        "code": "VN6002",
         "title": "the guard fired",
         "help": null,
-        "column": -1
+        "column": 1
       }
     },
     "fnDecl": {
@@ -864,10 +864,10 @@
       "problems": [],
       "out": null,
       "refused": {
-        "code": "",
+        "code": "VN6002",
         "title": "the guard fired",
         "help": null,
-        "column": -1
+        "column": 1
       }
     }
   },
@@ -880,9 +880,9 @@
     "fnDecl": {
       "problems": [
         "VN1002 error@10 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
-        "VN1002 error@1 Expecting token of type '}' but found `seen`.",
-        "VN1002 error@1 Expecting token of type 'EOF' but found `return`.",
-        "VN1002 error@1 Expecting token of type 'EOF' but found `}`.",
+        "VN1002 error@1 Expected a closing brace here, found `seen`.",
+        "VN1002 error@1 Expected the end of the file here, found `return`.",
+        "VN1002 error@1 Expected the end of the file here, found a closing brace.",
         "VN2008 error@1 `io.print` is a verb, not a value: write `io.print()` to call it."
       ],
       "out": null,
@@ -895,9 +895,9 @@
     },
     "fnExpr": {
       "problems": [
-        "VN1002 error@10 Expecting token of type '}' but found `\"the verb ran\"`.",
-        "VN1002 error@1 Expecting token of type 'EOF' but found `return`.",
-        "VN1002 error@1 Expecting token of type 'EOF' but found `}`.",
+        "VN1002 error@10 Expected a closing brace here, found `\"the verb ran\"`.",
+        "VN1002 error@1 Expected the end of the file here, found `return`.",
+        "VN1002 error@1 Expected the end of the file here, found a closing brace.",
         "VN2003 error@1 This is not an action to call.",
         "VN2008 error@1 `io.print` is a verb, not a value: write `io.print()` to call it."
       ],

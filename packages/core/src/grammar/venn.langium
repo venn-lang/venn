@@ -242,9 +242,19 @@ ShapePattern:
 // to. The same nodes an expression is made of, so what they mean is decided once.
 LiteralValue infers Expr:
     {infer StringLit} value=STRING
-  | {infer NumberLit} raw=NUMBER
+  | {infer NumberLit} raw=SignedNumber
   | {infer BoolLit} value=('true' | 'false')
   | {infer NullLit} 'null';
+
+// A negative number is one value, not an operator applied to one, so a pattern
+// takes it whole. Status codes, exit codes and deltas are what people match on,
+// and half of those are below zero.
+//
+// This is a data type rule, so it joins the images of the tokens it matched and
+// the whitespace between them is gone by the time the AST has it: `- 1` and `-1`
+// both arrive as "-1". A space after the `-` is the same mistake here as it is
+// in an argument, and the check that follows the parse says so for both.
+SignedNumber returns string: '-'? NUMBER;
 
 // `{ id }` binds the field to its own name, `{ id: orderId }` to another one,
 // and `{ user: { name } }` goes on taking it apart.
@@ -450,15 +460,17 @@ QualifiedName returns string: ID ('.' Word)*;
 RefName returns string: ID | 'matrix' | 'flow' | 'step';
 
 // A name in member / map-key / qualified-tail position: ID or ANY keyword.
-// Safe because none of these positions can start a statement.
+// Safe because none of these positions can start a statement. Every keyword the
+// grammar has belongs here, and a test derives that set from the grammar itself
+// rather than trusting this list to have kept up.
 Word returns string:
     ID | 'module' | 'as' | 'pub' | 'import' | 'from' | 'flow'
   | 'fragment' | 'fn' | 'deco' | 'return' | 'const' | 'let' | 'config'
-  | 'matrix' | 'type' | 'setup' | 'teardown'
+  | 'matrix' | 'type' | 'namespace' | 'setup' | 'teardown'
   | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'
-  | 'else' | 'forEach' | 'in' | 'repeat' | 'while' | 'parallel' | 'race' | 'try'
+  | 'else' | 'forEach' | 'in' | 'repeat' | 'loop' | 'parallel' | 'race' | 'try'
   | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
-  | 'all' | 'soft' | 'not' | 'match';
+  | 'all' | 'soft' | 'not' | 'match' | 'true' | 'false' | 'null';
 
 // A statement terminator: one or more newlines or `;`, plus adjacent blanks.
 // Not hidden, because the parser consumes it. The lexer drops it inside ( ) and [ ].

@@ -82,8 +82,15 @@ describe("an argument holding an operator", () => {
     expect(said[0]).not.toContain("after");
   });
 
-  it("leaves every other syntax error in the parser's words", () => {
-    expect(titles("const = 1")[0]).toContain("Expecting");
+  /**
+   * Every other syntax error is still the parser's, and is still said as a line
+   * about the file rather than in the names a parser generator has for its own
+   * token types.
+   */
+  it("says what could have gone there for every other syntax error", () => {
+    expect(titles("const = 1")[0]).toBe(
+      "Expected a name, an opening brace or an opening square bracket here, found an equals sign.",
+    );
   });
 
   /**
@@ -125,11 +132,60 @@ describe("an argument holding an operator", () => {
     expect(titles(long)[0]).not.toContain("Write `");
   });
 
-  /** The end of the file carries no position, and used to be reported as NaN. */
-  it("points somewhere real when the file just stops", () => {
+  /**
+   * The line the operator is on has to be a call before a bracket can go round
+   * anything on it. `CALLED` admitted every statement keyword, so `let in = 1`
+   * was answered with "write `let (in= 1)`", which is not a call, and is
+   * missing a space besides.
+   */
+  describe("a line that is not a call at all", () => {
+    it("says nothing about a binding whose name was a keyword", () => {
+      const said = titles("let in = 1")[0] ?? "";
+
+      expect(said).not.toContain("has to be bracketed");
+      expect(said).not.toContain("let (in");
+      expect(said).toBe(
+        "Expected a name, an opening brace or an opening square bracket here, found `in`.",
+      );
+    });
+
+    it("says nothing about an import, and never swallows its `from`", () => {
+      const said = titles('import a + b from "x"').join("\n");
+
+      expect(said).not.toContain("has to be bracketed");
+      expect(said).not.toContain('from "x")');
+    });
+
+    /** The statement inside the block is judged on its own words, not the
+     * block's, so a call written in one still gets its explanation. */
+    it("still explains a call written inside a block", () => {
+      const said = titles('flow "f" { print a + b }');
+
+      expect(said[0]).toContain("so `+` has to be bracketed");
+    });
+
+    it("stops the suggestion where the next clause begins", () => {
+      expect(titles("print a + b as c")[0]).toBe(
+        "An argument is one value, so `+` has to be bracketed. Write `print (a + b)`.",
+      );
+    });
+
+    /** A value may hold a keyword, so the cut is only for the ones that open a
+     * clause of their own. */
+    it("keeps a word that is part of the value it stops at", () => {
+      expect(titles("print a + true")[0]).toContain("Write `print (a + true)`");
+    });
+  });
+
+  /**
+   * The end of the file carries no position. It was reported as NaN, then as the
+   * top of the file, which read as a claim about line one however far down the
+   * file actually stopped.
+   */
+  it("points at the end of the file when the file just stops", () => {
     const problems = parse('flow "f" {').problems;
 
     expect(problems[0]?.span.line).toBe(1);
-    expect(problems[0]?.span.column).toBe(1);
+    expect(problems[0]?.span.column).toBe(11);
   });
 });

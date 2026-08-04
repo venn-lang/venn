@@ -96,7 +96,6 @@ export type VennKeywordNames =
     | "true"
     | "try"
     | "type"
-    | "while"
     | "{"
     | "|"
     | "||"
@@ -1068,7 +1067,7 @@ export function isNullType(item: unknown): item is NullType {
 export interface NumberLit extends langium.AstNode {
     readonly $container: ActionCall | Arg | AssignStmt | Binary | Call | CaptureStmt | ContinueStmt | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListItem | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReturnStmt | Ternary | TryExpr | Unary;
     readonly $type: 'NumberLit';
-    raw: string;
+    raw: SignedNumber | string;
 }
 
 export const NumberLit = {
@@ -1263,6 +1262,12 @@ export const ShapeType = {
 
 export function isShapeType(item: unknown): item is ShapeType {
     return reflection.isInstance(item, ShapeType.$type);
+}
+
+export type SignedNumber = string;
+
+export function isSignedNumber(item: unknown): item is SignedNumber {
+    return typeof item === 'string';
 }
 
 export type SingleType = LiteralType | NamedType | NullType | ShapeType;
@@ -1474,10 +1479,10 @@ export function isValueImport(item: unknown): item is ValueImport {
     return reflection.isInstance(item, ValueImport.$type);
 }
 
-export type Word = 'afterEach' | 'all' | 'as' | 'beforeEach' | 'break' | 'capture' | 'catch' | 'config' | 'const' | 'continue' | 'deco' | 'defer' | 'else' | 'expect' | 'finally' | 'flow' | 'fn' | 'forEach' | 'fragment' | 'from' | 'group' | 'if' | 'import' | 'in' | 'let' | 'match' | 'matrix' | 'module' | 'not' | 'on' | 'parallel' | 'pub' | 'race' | 'repeat' | 'return' | 'run' | 'setup' | 'soft' | 'step' | 'teardown' | 'try' | 'type' | 'while' | string;
+export type Word = 'afterEach' | 'all' | 'as' | 'beforeEach' | 'break' | 'capture' | 'catch' | 'config' | 'const' | 'continue' | 'deco' | 'defer' | 'else' | 'expect' | 'false' | 'finally' | 'flow' | 'fn' | 'forEach' | 'fragment' | 'from' | 'group' | 'if' | 'import' | 'in' | 'let' | 'loop' | 'match' | 'matrix' | 'module' | 'namespace' | 'not' | 'null' | 'on' | 'parallel' | 'pub' | 'race' | 'repeat' | 'return' | 'run' | 'setup' | 'soft' | 'step' | 'teardown' | 'true' | 'try' | 'type' | string;
 
 export function isWord(item: unknown): item is Word {
-    return item === 'module' || item === 'as' || item === 'pub' || item === 'import' || item === 'from' || item === 'flow' || item === 'fragment' || item === 'fn' || item === 'deco' || item === 'return' || item === 'const' || item === 'let' || item === 'config' || item === 'matrix' || item === 'type' || item === 'setup' || item === 'teardown' || item === 'beforeEach' || item === 'afterEach' || item === 'defer' || item === 'on' || item === 'step' || item === 'group' || item === 'if' || item === 'else' || item === 'forEach' || item === 'in' || item === 'repeat' || item === 'while' || item === 'parallel' || item === 'race' || item === 'try' || item === 'catch' || item === 'finally' || item === 'capture' || item === 'run' || item === 'break' || item === 'continue' || item === 'expect' || item === 'all' || item === 'soft' || item === 'not' || item === 'match' || (typeof item === 'string' && (/[_a-zA-Z]\w*/.test(item)));
+    return item === 'module' || item === 'as' || item === 'pub' || item === 'import' || item === 'from' || item === 'flow' || item === 'fragment' || item === 'fn' || item === 'deco' || item === 'return' || item === 'const' || item === 'let' || item === 'config' || item === 'matrix' || item === 'type' || item === 'namespace' || item === 'setup' || item === 'teardown' || item === 'beforeEach' || item === 'afterEach' || item === 'defer' || item === 'on' || item === 'step' || item === 'group' || item === 'if' || item === 'else' || item === 'forEach' || item === 'in' || item === 'repeat' || item === 'loop' || item === 'parallel' || item === 'race' || item === 'try' || item === 'catch' || item === 'finally' || item === 'capture' || item === 'run' || item === 'break' || item === 'continue' || item === 'expect' || item === 'all' || item === 'soft' || item === 'not' || item === 'match' || item === 'true' || item === 'false' || item === 'null' || (typeof item === 'string' && (/[_a-zA-Z]\w*/.test(item)));
 }
 
 export type VennAstType = {

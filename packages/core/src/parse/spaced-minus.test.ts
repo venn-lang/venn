@@ -73,3 +73,49 @@ print a -a -p.age -xs[0]`;
     expect(titles('const conn = { close: fn () => "x" }\nprint conn.close()')).toEqual([]);
   });
 });
+
+/** What a pattern is told, since there is nothing there to subtract from. */
+const TIGHT = "A negative number is written `-1`, with no space after the `-`.";
+
+/**
+ * The same rule where a pattern goes.
+ *
+ * `SignedNumber` is a data type rule, so it joins the images of the tokens it
+ * matched across the whitespace between them: `- 1` and `-1` both arrive as
+ * `"-1"`, and the nine tests above could not see any of it, because none of it
+ * ever reached the check. The one spelling that is a hard error everywhere else
+ * in the language was accepted here.
+ */
+describe("a minus where a pattern goes", () => {
+  it("takes a negative number written against the digits", () => {
+    expect(titles("const it = match 1 {\n  -1 => 1\n}")).toEqual([]);
+  });
+
+  it("refuses one written a space apart, the way an argument is", () => {
+    expect(titles("const it = match 1 {\n  - 1 => 1\n}")).toEqual([TIGHT]);
+    expect(titles("print - 1")).toHaveLength(1);
+  });
+
+  it("refuses one inside a list pattern and inside a map pattern", () => {
+    expect(titles("const it = match 1 {\n  [- 1] => 1\n}")).toEqual([TIGHT]);
+    expect(titles("const it = match 1 {\n  { a: - 1 } => 1\n}")).toEqual([TIGHT]);
+  });
+
+  it("refuses one written as an alternative of an arm", () => {
+    expect(titles("const it = match 1 {\n  -1 | - 2 => 1\n}")).toEqual([TIGHT]);
+  });
+
+  it("points at the `-` and not at the number it was written apart from", () => {
+    const found = parse("const it = match 1 {\n  - 1 => 1\n}").problems;
+
+    expect(found[0]?.span.line).toBe(2);
+    expect(found[0]?.span.column).toBe(3);
+  });
+
+  /** A newline is not hidden, so the parser refuses it before this check runs. */
+  it("leaves a `-` with a newline after it to the parser", () => {
+    expect(titles("const it = match 1 {\n  -\n1 => 1\n}")).toEqual([
+      "Expected a number here, found the end of the line.",
+    ]);
+  });
+});

@@ -48,7 +48,16 @@ function toName(name: string, value: Thunk, scope: LexScope): Step {
   return up === undefined ? outward(name, value) : intoUp(up, name, value);
 }
 
-/** A captured slot holds a cell, and the write goes through it, not over it. */
+/**
+ * A captured slot holds a cell, and the write goes through it, not over it, so
+ * the closures already holding it see the new value.
+ *
+ * A cell that is not there yet is the block that never ran: the slot takes one,
+ * which is what the binding would have done had it been reached. A name a
+ * `match` arm or a `try … catch` declares is in view from the body's first line
+ * while its cell is minted only when the arm runs, so this is reachable from
+ * source, and without it the write was a host TypeError.
+ */
 function intoSlot(slot: number, value: Thunk, box: boolean): Step {
   if (!box) {
     return (frame) => {
@@ -57,7 +66,9 @@ function intoSlot(slot: number, value: Thunk, box: boolean): Step {
     };
   }
   return (frame) => {
-    (readSlot(frame, slot) as Cell).value = value(frame);
+    const cell = readSlot(frame, slot) as Cell | undefined;
+    if (cell) cell.value = value(frame);
+    else writeSlot(frame, slot, { value: value(frame) });
     return RAN;
   };
 }

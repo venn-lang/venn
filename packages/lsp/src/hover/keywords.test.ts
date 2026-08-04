@@ -1,68 +1,37 @@
+import { KEYWORDS } from "@venn-lang/core";
 import { describe, expect, it } from "vitest";
-import { isKeyword, keywordHover } from "./keywords.js";
+import { documentedWords, isKeyword, keywordHover } from "./keywords.js";
 
-// Every word the fixed grammar defines, plus the two it removed and still
-// explains: somebody reading an old file hovers `use` and `capture` and should
-// be told what to write instead. If the kernel grows a keyword, this list fails
-// until it is documented, and a word the grammar drops leaves both.
-const KERNEL = [
-  "module",
-  "use",
-  "import",
-  "from",
-  "as",
-  "pub",
-  "flow",
-  "step",
-  "group",
-  "fragment",
-  "fn",
-  "deco",
-  "run",
-  "expect",
-  "not",
-  "all",
-  "soft",
-  "let",
-  "const",
-  "capture",
-  "config",
-  "matrix",
-  "type",
-  "if",
-  "else",
-  "forEach",
-  "in",
-  "repeat",
-  "loop",
-  "parallel",
-  "race",
-  "try",
-  "catch",
-  "finally",
-  "defer",
-  "setup",
-  "teardown",
-  "beforeEach",
-  "afterEach",
-  "on",
-  "return",
-  "break",
-  "continue",
-  "true",
-  "false",
-  "null",
-];
+/**
+ * The words the table documents that the grammar does not reserve.
+ *
+ * `env` is an ordinary name the kernel provides rather than a keyword, and it
+ * is the one thing here worth hovering that the grammar has never heard of.
+ */
+const NOT_KEYWORDS = ["env"];
 
+/**
+ * The kernel is small enough that this table is the whole language, so the set
+ * it documents is derived from the grammar rather than typed out again. There
+ * were six hand-written copies of that set and this was a seventh: it still
+ * documented `use`, which the language removed, and had never heard of
+ * `namespace`, which it gained.
+ */
 describe("keyword documentation", () => {
-  it("documents every keyword of the kernel", () => {
-    const undocumented = KERNEL.filter((word) => !isKeyword(word));
+  const kernel = [...KEYWORDS];
 
-    expect(undocumented).toEqual([]);
+  it("documents every keyword of the kernel", () => {
+    expect(kernel.filter((word) => !isKeyword(word))).toEqual([]);
+  });
+
+  it("documents nothing the grammar no longer has", () => {
+    const extra = documentedWords().filter((word) => !KEYWORDS.has(word));
+
+    expect(extra.sort()).toEqual([...NOT_KEYWORDS].sort());
   });
 
   it("renders a signature and a summary for each", () => {
-    for (const word of KERNEL) {
+    for (const word of kernel) {
       const markdown = keywordHover(word) ?? "";
       expect(markdown, word).toContain(`\`\`\`venn\n${word}\n\`\`\``);
       expect(markdown.length, word).toBeGreaterThan(word.length + 20);
@@ -78,6 +47,18 @@ describe("keyword documentation", () => {
   it("says nothing about a word it does not define", () => {
     expect(keywordHover("banana")).toBeUndefined();
     expect(isKeyword("banana")).toBe(false);
+  });
+
+  /**
+   * The table was looked up with `word in KEYWORDS` on an object literal, so
+   * `isKeyword("toString")` was true and hovering it rendered the source of a
+   * function off `Object.prototype`.
+   */
+  it("says nothing about a member of Object.prototype", () => {
+    for (const word of Object.getOwnPropertyNames(Object.prototype)) {
+      expect(isKeyword(word), word).toBe(false);
+      expect(keywordHover(word), word).toBeUndefined();
+    }
   });
 });
 

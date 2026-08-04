@@ -17,6 +17,7 @@ import {
   isLifecycleDecl,
   isLoopStmt,
   isMatrixDecl,
+  isNamespaceDecl,
   isParallelStmt,
   isRaceStmt,
   isRepeatStmt,
@@ -33,7 +34,7 @@ import { SemanticTokenModifiers, SemanticTokenTypes } from "vscode-languageserve
 
 // §23: `keyword.declaration` is the LSP `keyword` type plus the `declaration`
 // modifier, for the words that introduce a name. The rest are plain keywords.
-const DECLARING = new Set(["module", "use", "import", "fn", "deco", "fragment", "type"]);
+const DECLARING = new Set(["module", "import", "fn", "deco", "fragment", "type", "namespace"]);
 
 /** Emit a keyword token for each literal keyword this node owns. */
 export function highlightKeywords(node: AstNode, acceptor: SemanticTokenAcceptor): void {
@@ -59,6 +60,7 @@ function declarations(node: AstNode): string[] | undefined {
   if (isFnDecl(node)) return ["fn", "return"];
   if (isDecoDecl(node)) return ["deco"];
   if (isTypeDecl(node)) return ["type"];
+  if (isNamespaceDecl(node)) return ["namespace"];
   return undefined;
 }
 

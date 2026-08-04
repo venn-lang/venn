@@ -3,6 +3,7 @@ import { AstUtils, type LangiumDocument, type ValidationAcceptor } from "langium
 import type { DiagnosticRelatedInformation, Range } from "vscode-languageserver";
 import type { VennServices } from "../services/lsp.types.js";
 import type { TypeService } from "../types/index.js";
+import { saidProblem, spanRange } from "./said-problem.js";
 
 /**
  * Wire the shared front end into the editor's diagnostics.
@@ -42,23 +43,12 @@ function emit(
   // because an import nobody used is untidy rather than wrong, and the CLI
   // exits 0 on it; publishing it as an error drew a red line under code that
   // passes, which is how people learn to ignore the editor.
-  args.accept(problem.severity, said(problem), {
+  args.accept(problem.severity, saidProblem(problem), {
     node: args.document,
-    range: rangeOf(problem, langiumDocument),
+    range: spanRange(problem.span, langiumDocument),
     code: problem.code,
     ...related(problem, langiumDocument),
   });
-}
-
-/**
- * The title, and what the check worked out beneath it.
- *
- * A diagnostic is one string in the protocol, and the editor shows all of it on
- * hover. Dropping the help means the fix a check already knows never reaches
- * the one place it would be acted on.
- */
-function said(problem: Problem): string {
-  return [problem.title, problem.help, problem.note].filter(Boolean).join("\n");
 }
 
 /**
@@ -90,15 +80,3 @@ const WHOLE_FILE: Range = {
   start: { line: 0, character: 0 },
   end: { line: 0, character: 0 },
 };
-
-function rangeOf(problem: Problem, document: LangiumDocument): Range {
-  return spanRange(problem.span, document);
-}
-
-function spanRange(span: { offset: number; length: number }, document: LangiumDocument): Range {
-  const text = document.textDocument;
-  return {
-    start: text.positionAt(span.offset),
-    end: text.positionAt(span.offset + span.length),
-  };
-}

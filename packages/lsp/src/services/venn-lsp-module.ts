@@ -20,7 +20,7 @@ import { VennSemanticTokenProvider } from "../semantic/index.js";
 import { VennSignatureHelpProvider } from "../signature/index.js";
 import { VennDocumentSymbolProvider } from "../symbols/index.js";
 import { createTypeService, warmTypes } from "../types/index.js";
-import { registerVennChecks } from "../validation/index.js";
+import { registerVennChecks, VennDocumentValidator } from "../validation/index.js";
 import { createImportResolver } from "../workspace/index.js";
 import type { VennAddedServices, VennServices } from "./lsp.types.js";
 
@@ -29,6 +29,7 @@ const VennModule: Module<VennServices, PartialLangiumServices & VennAddedService
   imports: () => createImportResolver(),
   types: (services) => createTypeService(services),
   parser: { Lexer: (services) => new VennLexer(services) },
+  validation: { DocumentValidator: (services) => new VennDocumentValidator(services) },
   lsp: {
     SemanticTokenProvider: (services) => new VennSemanticTokenProvider(services),
     HoverProvider: (services) => new VennHoverProvider(services),

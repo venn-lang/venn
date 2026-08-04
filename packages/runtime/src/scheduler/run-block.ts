@@ -3,6 +3,7 @@ import { closeAll } from "../cleanup/index.js";
 import type { Scope } from "../scope/index.js";
 import { type BlockPlan, planOf, type Step } from "./block-plan.js";
 import { branchEngine } from "./branch-engine.js";
+import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
 import { keepExit, runCleanup } from "./run-cleanup.js";
@@ -21,8 +22,7 @@ export function runBlock(engine: Engine, block: Block, scope: Scope): Pending {
 /** The walk over a plan, reusable by a loop that hoists `planOf` out of it. */
 export function runSteps(engine: Engine, steps: readonly Step[], scope: Scope): Pending {
   for (let at = 0; at < steps.length; at += 1) {
-    const stop = engine.cancel?.stopped();
-    if (stop !== undefined) throw stop;
+    checkpoint(engine);
     const pending = (steps[at] as Step)(engine, scope);
     if (pending) return resume(engine, steps, at + 1, scope, pending);
   }
@@ -38,8 +38,7 @@ async function resume(
 ): Promise<void> {
   await pending;
   for (let at = from; at < steps.length; at += 1) {
-    const stop = engine.cancel?.stopped();
-    if (stop !== undefined) throw stop;
+    checkpoint(engine);
     const next = (steps[at] as Step)(engine, scope);
     if (next) await next;
   }

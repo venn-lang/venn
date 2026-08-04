@@ -8,6 +8,7 @@ import {
   typeName,
 } from "@venn-lang/core";
 import { binderFor, type Scope } from "../scope/index.js";
+import { checkpoint } from "./checkpoint.js";
 import { runPool } from "./concurrency.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
@@ -86,8 +87,7 @@ function sequential(
   scope: Scope,
 ): Pending {
   for (let at = 0; at < items.length; at += 1) {
-    const stop = engine.cancel?.stopped();
-    if (stop !== undefined) throw stop;
+    checkpoint(engine);
     try {
       const pending = onePass({ engine, stmt, item: items[at], scope });
       if (pending) return resume({ engine, stmt, items, from: at + 1, scope, pending });
@@ -112,8 +112,7 @@ async function resume(args: {
   const { engine, stmt, items, scope } = args;
   if (await stopped(args.pending)) return;
   for (let at = args.from; at < items.length; at += 1) {
-    const stop = engine.cancel?.stopped();
-    if (stop !== undefined) throw stop;
+    checkpoint(engine);
     try {
       await onePass({ engine, stmt, item: items[at], scope });
     } catch (error) {

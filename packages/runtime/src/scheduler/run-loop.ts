@@ -1,6 +1,7 @@
 import { evaluate, isContinueStmt, type LoopStmt, type Statement, truthy } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { planOf } from "./block-plan.js";
+import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
 import { runSteps } from "./run-block.js";
@@ -116,8 +117,7 @@ class LoopState {
    * holding.
    */
   private holds(): boolean | Promise<boolean> {
-    const stop = this.engine.cancel?.stopped();
-    if (stop !== undefined) throw stop;
+    checkpoint(this.engine);
     if (!this.stmt.cond) return true;
     const value = evaluate(this.stmt.cond, this.scope);
     return isPending(value) ? settle(value).then(truthy) : truthy(value);

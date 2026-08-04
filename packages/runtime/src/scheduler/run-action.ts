@@ -12,6 +12,7 @@ import {
 import type { ActionDefinition, ActionInput } from "@venn-lang/sdk";
 import type { Scope } from "../scope/index.js";
 import { callParams } from "./call-params.js";
+import { checkpoint } from "./checkpoint.js";
 import { optionNames, takes } from "./declared-arity.js";
 import type { Engine } from "./engine.types.js";
 import { failError } from "./fail-error.js";
@@ -178,8 +179,7 @@ function skipLog(engine: Engine, message: string): void {
  */
 async function waitFor(engine: Engine, ms: number): Promise<void> {
   await engine.clock.sleep(ms, engine.cancel?.signal);
-  const stop = engine.cancel?.stopped();
-  if (stop !== undefined) throw stop;
+  checkpoint(engine);
 }
 
 function waitMs(value: unknown): number {

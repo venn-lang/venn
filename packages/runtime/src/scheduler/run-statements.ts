@@ -21,6 +21,7 @@ import type {
 } from "@venn-lang/core";
 import { evaluate } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
+import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
 import { runActionStatement } from "./run-action.js";
@@ -62,8 +63,7 @@ export async function runStatements(
  * node carries, so one switch answers what thirteen questions would.
  */
 export function runStatement(engine: Engine, stmt: Statement, scope: Scope): Pending {
-  const stop = engine.cancel?.stopped();
-  if (stop !== undefined) throw stop;
+  checkpoint(engine);
   switch (stmt.$type) {
     case "LetStmt":
       return runLet(engine, stmt as LetStmt, scope);

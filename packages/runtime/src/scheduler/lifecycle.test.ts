@@ -3,7 +3,7 @@ import { createTestHost } from "@venn-lang/contracts";
 import { type Problem, parse } from "@venn-lang/core";
 import { defineAction, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
-import { createMemorySink } from "../eventsink/index.js";
+import { createMemorySink, type MemorySink } from "../eventsink/index.js";
 import { createRunner } from "../run/create-runner.js";
 
 /** Prints what a hook saw, opens a named handle, and fails when asked to. */
@@ -44,11 +44,17 @@ async function suite(source: string) {
   return { out, sink, result: await runner.run(ast) };
 }
 
-/** Every Problem the run reported, in order. */
-function problemsIn(sink: ReturnType<typeof createMemorySink>): Problem[] {
-  return sink.envelopes
-    .filter((envelope) => envelope.kind === "expect.failed")
-    .map((envelope) => (envelope.data as { problem: Problem }).problem);
+/**
+ * Every Problem the run reported, in order.
+ *
+ * Read by what the envelope carries rather than by its kind: a hook that failed
+ * is not an assertion, so it travels on `failure`, and an assertion beside it on
+ * `expect.failed`.
+ */
+function problemsIn(sink: MemorySink): Problem[] {
+  return sink.envelopes.flatMap((envelope) =>
+    "problem" in envelope.data ? [envelope.data.problem] : [],
+  );
 }
 
 describe("lifecycle hooks · the scope they run in", () => {

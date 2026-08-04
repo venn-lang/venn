@@ -10,6 +10,8 @@
  * is the message, which is what this is.
  */
 
+import { CUTS_A_VALUE, KEYWORDS } from "./keywords.js";
+
 /** Operators that cannot begin a value, so the reading is never in doubt. */
 const JOINING = new Set([
   "+",
@@ -43,6 +45,9 @@ const TOO_LONG = 60;
 /** What can be called: a name, or a dotted one such as `http.get`. */
 const CALLED = /^[A-Za-z_][\w.]*$/;
 
+/** A bare word in the operand, which may be where the argument has to stop. */
+const A_WORD = /[A-Za-z_]\w*/g;
+
 const RULE = "An argument is one value, so";
 
 /**
@@ -59,10 +64,28 @@ export function bracketTheArgument(args: {
 }): string | undefined {
   const { operator } = args;
   if (operator !== NEGATES && !JOINING.has(operator)) return undefined;
+  if (!calls(args)) return undefined;
   const lead = `${RULE} \`${operator}\` has to be bracketed.`;
   const parts = readLine(args);
   if (!parts) return `${lead} Put brackets around the whole argument.`;
   return `${lead} ${advice({ parts, operator })}`;
+}
+
+/**
+ * Whether there is a call in front of the operator at all.
+ *
+ * A bracket goes around the argument of something being called, and a statement
+ * keyword is not that: `let in = 1` was answered with "write `let (in= 1)`",
+ * which is neither a call nor a line that parses. The word is read from the
+ * last `{` on the line rather than from its start, so a statement written
+ * inside a block is still judged on its own words.
+ */
+function calls(args: { text: string; offset: number }): boolean {
+  const start = args.text.lastIndexOf("\n", args.offset) + 1;
+  const opened = args.text.lastIndexOf("{", args.offset);
+  const from = Math.max(start, opened + 1);
+  const called = args.text.slice(from, args.offset).trim().split(/[\s(]/)[0] ?? "";
+  return !KEYWORDS.has(called);
 }
 
 /** What the line is made of, or nothing when no suggestion can be trusted. */
@@ -104,8 +127,33 @@ function readLine(args: { text: string; offset: number; operator: string }): Par
   const at = line.indexOf(" ");
   const called = at > 0 ? line.slice(0, at) : "";
   if (!CALLED.test(called)) return undefined;
-  const operator = args.offset - start;
-  const before = line.slice(at, operator).trim();
-  const operand = line.slice(operator + args.operator.length).trim();
-  return operand === "" ? undefined : { called, before, operand };
+  const cut = args.offset - start;
+  const before = line.slice(at, cut).trim();
+  const operand = upToAClause(line.slice(cut + args.operator.length).trim());
+  return usable({ called, before, operand }, args.operator);
+}
+
+/**
+ * The operand, stopped where the next clause begins.
+ *
+ * `import a + b from "x"` was read as a call taking the whole rest of the line,
+ * `from` clause and all, and that was offered back as the line to write.
+ */
+function upToAClause(operand: string): string {
+  for (const word of operand.matchAll(A_WORD)) {
+    const joined = operand[word.index - 1] === ".";
+    if (!joined && CUTS_A_VALUE.has(word[0])) return operand.slice(0, word.index).trim();
+  }
+  return operand;
+}
+
+/**
+ * The parts, when a line built from them would read as the one somebody meant.
+ *
+ * Nothing before the operator leaves nothing to join it to, unless the operator
+ * is the `-` that negates, which is a value on its own.
+ */
+function usable(parts: Parts, operator: string): Parts | undefined {
+  if (parts.operand === "" || (parts.before === "" && operator !== NEGATES)) return undefined;
+  return parts;
 }

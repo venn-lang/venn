@@ -5,6 +5,7 @@ import {
   type CaptureStmt,
   CODES,
   isDocument,
+  isNamespaceDecl,
   type LetStmt,
   type MapLit,
   type Problem,
@@ -35,15 +36,21 @@ export function checkLet(stmt: LetStmt, ctx: CheckContext): Problem[] {
 }
 
 /**
- * `pub` on a binding that is not at the top of a file.
+ * `pub` on a binding that is somewhere nobody can import it from.
  *
- * A file publishes what another file can import, and only its top level is
- * reachable from outside. A `pub` inside a step or a function did nothing at all,
+ * A file publishes what another file can import, and a namespace publishes what
+ * a name in front of a dot reaches. Everywhere else a `pub` did nothing at all,
  * which is the kind of silence somebody spends an afternoon on.
+ *
+ * The two places are the ones the scope builder already reads: a `pub let`
+ * inside a namespace is a member of it, exactly as a `pub fn` is, so refusing
+ * one and taking the other made `const` mean something `fn` did not.
  */
 function checkPub(stmt: LetStmt, ctx: CheckContext): Problem | undefined {
-  if (!stmt.export || isDocument(stmt.$container)) return undefined;
-  const title = "`pub` only publishes at the top of a file, and this one is inside something.";
+  const held = stmt.$container;
+  if (!stmt.export || isDocument(held) || isNamespaceDecl(held)) return undefined;
+  const title =
+    "`pub` publishes at the top of a file or inside a `namespace`, and this one is somewhere else.";
   return problem(stmt, ctx, CODES.VN2009_NOT_EXPORTED, title);
 }
 

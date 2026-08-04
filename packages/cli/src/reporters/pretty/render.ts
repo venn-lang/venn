@@ -1,12 +1,19 @@
 import { relative } from "node:path";
-import type { Problem } from "@venn-lang/core";
-import { bold, cyan, dim, green, inverse, red } from "../colors.js";
+import type { Problem, Status } from "@venn-lang/core";
+import { bold, cyan, dim, green, inverse, red, yellow } from "../colors.js";
 import { problemDetail } from "../problem-detail.js";
 import { diffLines } from "./diff-lines.js";
 import type { Failure } from "./pretty.types.js";
 
 const PASS = "✓";
 const FAIL = "✗";
+/** Neither verdict: a `break`, `return` or `exit` cut the step short. */
+const CUT = "-";
+
+/** Where a step's verdict starts, one branch in from its flow. */
+const BESIDE_STEPS = "   ";
+/** Where a step's own lines start, one branch in from its verdict. */
+const UNDER_STEP = "     ";
 
 /** The banner naming the file under test. Flows add their own leading blank line. */
 export function header(file: string): string {
@@ -18,22 +25,45 @@ export function flowLine(title: string): string {
   return `\n ${dim("❯")} ${bold(title)}`;
 }
 
-/** A step closes with its verdict and how long it took. */
-export function stepLine(args: { title: string; passed: boolean; ms: number }): string {
-  const mark = args.passed ? green(PASS) : red(FAIL);
-  return `   ${mark} ${args.title} ${dim(`${args.ms}ms`)}`;
+/**
+ * A step closes with its verdict and how long it took. One that was cut short
+ * reached no verdict, so it gets neither a tick nor a cross.
+ */
+export function stepLine(args: { title: string; status: Status; ms: number }): string {
+  const mark = verdict(args.status);
+  return `${BESIDE_STEPS}${mark} ${args.title} ${dim(`${args.ms}ms`)}`;
 }
 
-/** Why a step failed, shown inline right under it. */
+function verdict(status: Status): string {
+  if (status === "passed") return green(PASS);
+  if (status === "cancelled") return dim(CUT);
+  return red(FAIL);
+}
+
+/**
+ * Why a step failed, shown inline right under it. A soft one says so: the step
+ * asked to record it and carry on, and it did.
+ */
 export function reasonLine(failure: Failure): string {
-  return `     ${red("→")} ${failure.title}`;
+  const arrow = failure.soft ? yellow("→") : red("→");
+  const kept = failure.soft ? ` ${dim("(recorded, the step carried on)")}` : "";
+  return `${UNDER_STEP}${arrow} ${failure.title}${kept}`;
 }
 
-/** A `log` line the flow emitted, shown under its step like console output. */
-export function logLine(message: string): string {
-  const [first = "", ...rest] = message.split("\n");
-  const head = `     ${dim("›")} ${first}`;
-  return [head, ...rest.map((line) => `       ${line}`)].join("\n");
+/**
+ * A `log` line the flow emitted, shown like console output in vitest.
+ *
+ * @param args.message What the program said, however many lines it runs to.
+ * @param args.inStep Whether a step said it. One written between two steps
+ * belongs to neither, so it sits where the steps sit: printed under one, it read
+ * as that step's own output.
+ * @returns The line, and an indented continuation for every line after the first.
+ */
+export function logLine(args: { message: string; inStep: boolean }): string {
+  const indent = args.inStep ? UNDER_STEP : BESIDE_STEPS;
+  const [first = "", ...rest] = args.message.split("\n");
+  const head = `${indent}${dim("›")} ${first}`;
+  return [head, ...rest.map((line) => `${indent}  ${line}`)].join("\n");
 }
 
 export function failuresBlock(failures: readonly Failure[]): string {

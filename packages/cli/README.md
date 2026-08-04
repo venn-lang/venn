@@ -214,13 +214,24 @@ several `bin` targets with no `--bin` prints the names to pick from.
 
 | Name | Output |
 | --- | --- |
-| `pretty` | A live tree: a banner per file, a branch per flow, a verdict per step, then every failure repeated at the end with its `VNxxxx` code and source location. |
+| `pretty` | A live tree: a banner per file, a branch per flow, a verdict per step, then every failure repeated at the end with its `VNxxxx` code and source location. Each step's logs and failures print under that step, whether or not another step was running beside it. A `log` written between two steps belongs to the flow, so it sits where the steps sit rather than under the one before it. An attempt `@retry` threw away takes its failures and its logs with it. |
 | `ndjson` | One event envelope per line on stdout. |
-| `dot` | One character per assertion, then a summary line. |
-| `junit` | A JUnit XML document, emitted on `run.finished`. |
+| `dot` | One character per verdict, then a summary line. |
+| `junit` | One JUnit XML document for the whole invocation, written when the run ends: a `<testsuite>` per file inside a `<testsuites>` root, one `<testcase>` per step under its flow as the `classname`, with a `<failure message type>` carrying the problem's title, its code and everything it knows beneath. A step `@retry` brought to green carries none: the attempts it threw away go with them. |
 
 With no `--reporter`, a terminal gets `pretty` and anything piped gets `ndjson`, so scripts and CI
 keep a stream they can parse.
+
+### What a `dot` character means
+
+| Character | What happened |
+| --- | --- |
+| `.` | An assertion held. |
+| `F` | An assertion failed and stopped its step. |
+| `S` | A soft assertion failed and the step carried on. |
+| `!` | Something failed that was never an assertion: a hook, a verb, a timeout. |
+
+An `F` stood for all four, so a stream of dots claimed expectations that nothing ever expected.
 
 ## Environments
 

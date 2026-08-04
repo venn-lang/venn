@@ -55,3 +55,75 @@ describe("digit separators", () => {
     expect(decl?.value?.$type).toBe("Ref");
   });
 });
+
+/**
+ * A file names what it brings in at the top, above everything that uses it.
+ * The parser's whole account of breaking that rule was "Expecting token of type
+ * 'EOF' but found `import`", which states a fact about the grammar and no rule
+ * anybody could follow.
+ */
+describe("an import written out of place", () => {
+  it("says where every import goes", () => {
+    const found = parse('flow "f" {}\nimport { a } from "./b.vn"').problems;
+
+    expect(found[0]?.title).toBe(
+      "Every `import` goes at the top of the file, above the first declaration.",
+    );
+    expect(found[0]?.span.line).toBe(2);
+  });
+
+  it("counts a `module` line and another import as still being the top", () => {
+    const found = parse(
+      'module a\nimport { b } from "./b.vn"\nimport { c } from "./c.vn"',
+    ).problems;
+
+    expect(found).toEqual([]);
+  });
+
+  /** One the parser refuses on line one is written wrong, not written late. */
+  it("says the shape of an import it could not read at all", () => {
+    const found = parse('import a + b from "x"').problems;
+
+    expect(found[0]?.title).toBe(
+      'An `import` names what it brings in: `import { one, two } from "./file.vn"`.',
+    );
+  });
+
+  /**
+   * Three problems came out of `import a + b from "x"`, and the second and the
+   * third said the file should have ended before the very thing the first had
+   * just said where to put. After a refused `import` the grammar only ever
+   * wants the end of the file, so all of that is the wake of one mistake.
+   */
+  it("reports one mistake once", () => {
+    expect(parse('import a + b from "x"').problems).toHaveLength(1);
+    expect(parse('flow "f" {}\nimport { a } from "./b.vn"').problems).toHaveLength(1);
+  });
+});
+
+/**
+ * A file the parser ran off the end of.
+ *
+ * The token for the end of the file carries `NaN` for its position, which fell
+ * back to the top of the file, so a five-line file with an unclosed `{` on line
+ * four was told about its closing brace at `1:1`. The words are new and true,
+ * and pointing them at line one made them read as a claim.
+ */
+describe("a brace nobody closed", () => {
+  it("points at the end of the file it says it found", () => {
+    const source = 'flow "F" {\n  step "s" {\n    print 1\n  }\n  step "t" foo\n';
+    const found = parse(source).problems;
+    const ended = found.find((problem) => problem.title.includes("end of the file"));
+
+    expect(ended?.title).toBe("Expected a closing brace here, found the end of the file.");
+    expect(ended?.span.line).toBe(6);
+    expect(ended?.span.column).toBe(1);
+  });
+
+  it("still points at a token when there is one to point at", () => {
+    const found = parse('flow "x" constructor').problems;
+
+    expect(found[0]?.span.line).toBe(1);
+    expect(found[0]?.span.column).toBe(10);
+  });
+});

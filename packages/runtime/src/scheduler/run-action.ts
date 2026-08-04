@@ -7,6 +7,7 @@ import {
   display,
   evaluate,
   invoke,
+  type Span,
   splitCall,
 } from "@venn-lang/core";
 import type { ActionDefinition, ActionInput } from "@venn-lang/sdk";
@@ -38,7 +39,8 @@ export async function runAction(engine: Engine, call: Invocation, scope: Scope):
   if (callee !== undefined) return callMethod(callee, call, scope);
   const { namespace, name } = resolveTarget(call.target, engine.aliases);
   const resolved = engine.registry.action({ namespace, name });
-  if (!resolved) throw unknownAction(call.target);
+  if (!resolved)
+    throw unknownAction({ target: call.target, where: nodeSpan(siteOf(call), engine.uri) });
   engine.emitter.emit({ kind: "action.started", data: { namespace, action: name } });
   const start = engine.clock.now();
   const value = await resolved.action.run(
@@ -109,11 +111,19 @@ function siteOf(call: Invocation): AstNode {
   return call.node ?? (call as unknown as AstNode);
 }
 
-function unknownAction(target: string): VennError {
+/**
+ * `VN2003` at run time, where a check could not see it: `s.nope()` on a value
+ * the checker only knows as dynamic.
+ *
+ * The span travels in `detail.where`, which is where a `VennError` says where it
+ * happened: script mode has no step frame to supply one, so without it the
+ * failure reached the terminal as a line with no location at all.
+ */
+function unknownAction(args: { target: string; where: Span }): VennError {
   return new VennError({
     code: CODES.VN2003_UNKNOWN_ACTION.code,
-    message: `Unknown action "${target}".`,
-    detail: { target },
+    message: `Unknown action "${args.target}".`,
+    detail: { target: args.target, where: args.where },
   });
 }
 

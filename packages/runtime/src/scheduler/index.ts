@@ -14,6 +14,8 @@ export { actionTarget, invocationOf } from "./invocation.js";
 export { heldByANamespace, wordFor } from "./namespace-member.js";
 export { nodeSource, nodeSpan } from "./node-span.js";
 export { outsideItsDomain } from "./option-domain.js";
+export { claim, release, reportFailure, reportProblem, unclaimed } from "./report-failure.js";
+export type { FailureKind } from "./report-failure.types.js";
 export { runDocument } from "./run-document.js";
 export { runScript } from "./run-script.js";
 export { PRELUDE, resolveTarget, splitTarget } from "./target.js";

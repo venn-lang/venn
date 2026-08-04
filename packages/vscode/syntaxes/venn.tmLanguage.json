@@ -115,7 +115,7 @@
       }
     },
     "declaration": {
-      "match": "\\b(module|use|import|from|as|pub|flow|fragment|fn|deco|type|factory|dataset|resource|config|matrix|report|const|let)\\b",
+      "match": "\\b(module|import|from|as|pub|flow|fragment|fn|deco|type|namespace|config|matrix|const|let)\\b",
       "name": "storage.type.venn"
     },
     "lifecycle": {
@@ -123,7 +123,7 @@
       "name": "keyword.control.lifecycle.venn"
     },
     "control": {
-      "match": "\\b(if|else|match|forEach|in|repeat|while|parallel|race|try|catch|finally|break|continue|return|run|expect|capture|step|group|not|all|soft)\\b",
+      "match": "\\b(if|else|match|forEach|in|repeat|loop|parallel|race|try|catch|finally|break|continue|return|run|expect|capture|step|group|not|all|soft)\\b",
       "name": "keyword.control.venn"
     },
     "constant": {

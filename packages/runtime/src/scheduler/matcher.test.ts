@@ -62,22 +62,29 @@ async function run(source: string) {
 }
 
 function failure(sink: MemorySink): Problem {
-  const event = sink.envelopes.find((envelope) => envelope.kind === "expect.failed");
-  if (!event) throw new Error("no expect.failed event");
-  return (event.data as { problem: Problem }).problem;
+  const problems = sink.envelopes.flatMap((envelope) =>
+    "problem" in envelope.data ? [envelope.data.problem] : [],
+  );
+  const first = problems[0];
+  if (!first) throw new Error("no failure was reported");
+  return first;
 }
 
 describe("bareword matchers", () => {
-  it("passes and fails a registry matcher (oneOf)", async () => {
-    const { result } = await run(`flow "F" {
+  it("passes a registry matcher, and stops the step on the one that fails", async () => {
+    const { result, sink } = await run(`flow "F" {
   step "s" {
     let plan = "pro"
     expect plan oneOf ["free", "pro"]
     expect plan oneOf ["a", "b"]
+    expect plan oneOf ["c", "d"]
   }
 }`);
+    // The third check never ran: after the second failed, the rest of the step
+    // would be working against a state already known to be wrong.
     expect(result.passed).toBe(1);
     expect(result.failed).toBe(1);
+    expect(failure(sink).title).toBe("expected pro to be listed");
   });
 
   it("validates matcher opts and applies them (closeTo)", async () => {

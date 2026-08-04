@@ -96,3 +96,62 @@ describe("a bracket that drops newlines", () => {
     expect(map.entries).toHaveLength(2);
   });
 });
+
+const BOM = "\ufeff";
+
+/**
+ * Windows editors, PowerShell's `Set-Content` and `Out-File`, and several CI
+ * checkout paths all write a byte-order mark at the top of a file by default.
+ * One made the whole file unreadable: `VN1001 . unexpected character: -><- at
+ * offset: 0, skipped 1 characters.`, and nothing else in the file was reported.
+ */
+describe("a file that starts with a byte-order mark", () => {
+  it("parses as the same file without one", () => {
+    const source = 'flow "F" {\n  step "s" {\n    print 1\n  }\n}\n';
+
+    expect(parse(BOM + source).problems).toEqual([]);
+    expect(ast(BOM + source).decls).toHaveLength(1);
+  });
+
+  /**
+   * Written over rather than cut out, so a span still points at the character
+   * it means: the mark is one character of the file the editor has open, and a
+   * report that skipped it would land one place to the left of the mistake.
+   */
+  it("points at the same character the file without one points at", () => {
+    const source = "const a = 1\nprint a +\n";
+    const marked = BOM + source;
+    const span = parse(marked).problems[0]?.span;
+
+    expect(marked[span?.offset ?? 0]).toBe("+");
+    expect(span?.line).toBe(parse(source).problems[0]?.span.line);
+    expect(span?.column).toBe(parse(source).problems[0]?.span.column);
+  });
+});
+
+/**
+ * A newline is dropped inside `(` and `[`, so one nobody closed runs the rest
+ * of the file into a single statement: every other mistake in it stops being
+ * reportable, and what came out was one line about the end of the file.
+ */
+describe("a bracket nobody closed", () => {
+  it("says which bracket it was, where it was opened", () => {
+    const found = parse("print (1\nprint 2\nprint 3\n").problems;
+
+    expect(found).toHaveLength(1);
+    expect(found[0]?.code).toBe("VN1001");
+    expect(found[0]?.title).toBe(
+      "This `(` is never closed, so the rest of the file is read as part of it.",
+    );
+    expect(found[0]?.span.line).toBe(1);
+    expect(found[0]?.span.column).toBe(7);
+  });
+
+  it("says the same for a list nobody closed", () => {
+    expect(parse("print a[1\n").problems[0]?.title).toContain("`[` is never closed");
+  });
+
+  it("leaves a file whose brackets all close alone", () => {
+    expect(parse("print (1)\nprint [2]\n").problems).toEqual([]);
+  });
+});

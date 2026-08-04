@@ -7,14 +7,14 @@ interface KeywordDoc {
 
 // What every word of the kernel does. The grammar is fixed and small, so this
 // table is the whole language: a newcomer can learn it by hovering.
-const KEYWORDS: Record<string, KeywordDoc> = {
+const KEYWORD_DOCS: Record<string, KeywordDoc> = {
   module: {
     summary: "Name this file. Purely documentation; imports resolve by path, not by module name.",
     example: "module checkout.payment",
   },
-  use: {
-    summary: "Load a plugin package, making its namespace available as verbs.",
-    example: 'use "venn/http"\nuse "venn/browser" as b',
+  namespace: {
+    summary: "Group declarations under one name, reached through a dot. `pub` publishes a member.",
+    example: "namespace cart {\n  pub const empty = []\n  pub fn total(items) => 0\n}",
   },
   import: {
     summary: "Bring `pub` fragments and functions from another `.vn` file into this one.",
@@ -160,9 +160,16 @@ const KEYWORDS: Record<string, KeywordDoc> = {
   null: { summary: "The absence of a value." },
 };
 
+/**
+ * The same table, keyed the way a word out of a source file has to be looked
+ * up: `KEYWORD_DOCS["toString"]` answered with a function off `Object`, so
+ * `isKeyword` said yes to every member of the prototype.
+ */
+const KEYWORDS = new Map<string, KeywordDoc>(Object.entries(KEYWORD_DOCS));
+
 /** Hover for a keyword of the kernel: what it does, and how it reads. */
 export function keywordHover(word: string): string | undefined {
-  const doc = KEYWORDS[word];
+  const doc = KEYWORDS.get(word);
   if (!doc) return undefined;
   const example = doc.example ? sections(["**Example**", fence(doc.example)]) : undefined;
   return rule([fence(word), sections([doc.summary, example])]);
@@ -170,5 +177,10 @@ export function keywordHover(word: string): string | undefined {
 
 /** Whether the kernel documents this word at all. */
 export function isKeyword(word: string): boolean {
-  return word in KEYWORDS;
+  return KEYWORDS.has(word);
+}
+
+/** Every word the hover table documents, for the test that keeps it in step. */
+export function documentedWords(): string[] {
+  return [...KEYWORDS.keys()];
 }

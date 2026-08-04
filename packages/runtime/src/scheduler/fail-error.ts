@@ -1,5 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
-import { CODES, type Span } from "@venn-lang/core";
+import { CODES, type Problem, type Span } from "@venn-lang/core";
 import { RUN_CODES } from "../codes.js";
 
 /**
@@ -16,12 +16,33 @@ export function failError(args: {
 }): VennError {
   const code = codeOf(args.opts.code);
   if (code === undefined) return reservedCode(String(args.opts.code));
-  return new VennError({
-    code,
-    message: args.message || "fail",
-    // Where it was raised, which the runtime knows and a `VennError` has
-    // nowhere else to put: it carries a code and a message and no span.
-    detail: { data: args.opts.data ?? null, where: args.where },
+  const data = args.opts.data ?? null;
+  return raised({ code, message: args.message || "fail", data, where: args.where });
+}
+
+/**
+ * The failure, carrying the problem it reports as rather than leaving it to be
+ * worked out later.
+ *
+ * `pay.declined` is a code the program chose and `ENOENT` is one that escaped
+ * from Node, and no predicate tells those apart: neither begins with `VN`,
+ * because VN3022 refuses that from user code. So `problemOf` reports an
+ * uncatalogued code only where the throw vouched for it by carrying a whole
+ * problem, and this is the one raiser that can. Without it the flagship code of
+ * the error model reached the reporter as `VN7000`.
+ */
+function raised(args: { code: string; message: string; data: unknown; where: Span }): VennError {
+  const problem: Problem = {
+    code: args.code,
+    severity: "error",
+    title: args.message,
+    span: args.where,
+  };
+  // Where it was raised, which the runtime knows and a `VennError` has nowhere
+  // else to put: it carries a code and a message and no span.
+  const detail = { data: args.data, where: args.where };
+  return Object.assign(new VennError({ code: args.code, message: args.message, detail }), {
+    problem,
   });
 }
 

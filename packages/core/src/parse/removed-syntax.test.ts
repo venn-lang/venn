@@ -68,6 +68,46 @@ describe("a word the language used to have", () => {
   it("takes `capture` at the top of a file, to refuse it properly", () => {
     expect(parse("capture x = 1").problems).toEqual([]);
   });
+
+  /** The word itself, not wherever error recovery happened to come to rest. */
+  it("points at the word, not at the statement the parser gave up on", () => {
+    const found = parse('flow "F" {\n  step "s" {\n    while true {\n      break\n    }\n  }\n}')
+      .problems[0];
+
+    expect(found?.span.line).toBe(3);
+    expect(found?.span.column).toBe(5);
+  });
+
+  /**
+   * The table was an object literal, so `REMOVED[word]` answered for every
+   * member of `Object.prototype` as well, and what came back was a function or
+   * an object where a title is typed `string`. `flow "x" constructor` reported
+   * `VN5001 . function Object() { [native code] }`, and a real syntax error was
+   * replaced by a lint-family one.
+   */
+  it("says nothing about a word that is only a member of Object.prototype", () => {
+    for (const word of Object.getOwnPropertyNames(Object.prototype)) {
+      const found = parse(`${word} true {${NEWLINE}  print 1${NEWLINE}}`).problems;
+
+      expect(
+        found.map((problem) => problem.code),
+        word,
+      ).not.toContain("VN5001");
+      for (const problem of found) expect(typeof problem.title, word).toBe("string");
+    }
+  });
+
+  it("leaves a real syntax error as one, whatever the word is called", () => {
+    const said = parse('flow "x" constructor').problems[0];
+
+    expect(said?.code).toBe("VN1002");
+    expect(said?.title).toBe("Expected an opening brace here, found `constructor`.");
+  });
+
+  /** A name somebody bound is a name, wherever the word came from. */
+  it("says nothing about a removed word used as something else", () => {
+    expect(parse("const m = { a: 1 }\nprint m.while").problems).toEqual([]);
+  });
 });
 
 describe("what the removals left alone", () => {

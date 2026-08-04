@@ -6,6 +6,11 @@
  * almost certainly one subtraction nobody bracketed. The two are told apart the
  * way Swift tells them apart: `-1` tight against the value negates, `- 1` with
  * air on both sides is an operator, and an operator is not part of an argument.
+ *
+ * A pattern spells a negative number the same way, and the grammar cannot see
+ * the difference: `SignedNumber` is a data type rule, so it joins the images of
+ * the tokens it matched and the whitespace between them disappears. `- 1` and
+ * `-1` both arrive as `"-1"`, and only the source says which was written.
  */
 
 import { buildProblem, CODES } from "../codes/index.js";
@@ -22,25 +27,47 @@ interface Placed {
 }
 
 /**
- * Report every argument written as `- x`, with the words the parser used to.
+ * Report every `-` written apart from what follows it, with the words the
+ * parser used to.
  *
  * @param args The parsed document and the source it came from.
- * @returns One problem per loose `-`, empty when every argument holds together.
+ * @returns One problem per loose `-`, empty when every one of them holds
+ * together with the value it belongs to.
  */
 export function spacedMinus(args: { ast: Document; text: string; uri: string }): Problem[] {
-  const found: Problem[] = [];
+  return [...looseArgs(args), ...loosePatterns(args)];
+}
+
+/** Every argument written as `- x`, with the words the parser used to. */
+function* looseArgs(args: { ast: Document; text: string; uri: string }): Generator<Problem> {
   for (const node of bareArgs(args.ast)) {
     const loose = looseMinus(node, args.text);
-    if (loose) found.push(problem({ ...args, at: loose }));
+    if (loose) yield problem({ ...args, at: loose });
   }
-  return found;
+}
+
+/** A `-`, then air on the same line, then the number it was written apart from. */
+const SPACED = /^-[ \t]+[0-9]/;
+
+/** Every pattern written as `- 1`, which the same rule refuses for the same reason. */
+function* loosePatterns(args: { ast: Document; text: string; uri: string }): Generator<Problem> {
+  for (const node of walk(args.ast)) {
+    if (!ast.isNumberLit(node) || !node.raw.startsWith(MINUS)) continue;
+    const at = placed(node);
+    // Read from the source, because the AST cannot tell the two apart: a data
+    // type rule joins the images it matched and the air between them is gone.
+    // A newline is a token of its own, so a `-` with its number on the next line
+    // is a parse error the parser has already reported.
+    if (!at || !SPACED.test(args.text.slice(at.offset, at.end))) continue;
+    yield buildProblem({ spec: CODES.VN1002_PARSE, span: spanOf({ ...args, at }), title: TIGHT });
+  }
 }
 
 /** Every argument written without brackets, wherever the language takes one. */
 function* bareArgs(document: Document): Generator<ast.Unary> {
   for (const node of walk(document)) {
     const args = ast.isActionCall(node) || ast.isMatcherClause(node) ? node.args : [];
-    for (const arg of args) if (ast.isUnary(arg) && arg.operator === "-") yield arg;
+    for (const arg of args) if (ast.isUnary(arg) && arg.operator === MINUS) yield arg;
   }
 }
 
@@ -76,15 +103,27 @@ function placed(node: unknown): Placed | undefined {
 }
 
 function problem(args: { at: Placed; text: string; uri: string }): Problem {
-  const span: Span = {
+  const title = bracketTheArgument({ operator: MINUS, text: args.text, offset: args.at.offset });
+  const span = spanOf(args);
+  return buildProblem({ spec: CODES.VN1002_PARSE, span, title: title ?? UNBRACKETED });
+}
+
+/** The `-` itself: one character, wherever the node it opens happens to end. */
+function spanOf(args: { at: Placed; uri: string }): Span {
+  return {
     uri: args.uri,
     offset: args.at.offset,
     length: 1,
     line: (args.at.range?.start.line ?? 0) + 1,
     column: (args.at.range?.start.character ?? 0) + 1,
   };
-  const title = bracketTheArgument({ operator: "-", text: args.text, offset: args.at.offset });
-  return buildProblem({ spec: CODES.VN1002_PARSE, span, title: title ?? UNBRACKETED });
 }
 
+/** The operator this is about, which is also how a negative number begins. */
+const MINUS = "-";
+
 const UNBRACKETED = "An argument is one value, so `-` has to be bracketed.";
+
+/** What a pattern is told, where there is no operator to bracket and nothing to
+ * subtract from: the only thing `- 1` can have meant there is `-1`. */
+const TIGHT = "A negative number is written `-1`, with no space after the `-`.";

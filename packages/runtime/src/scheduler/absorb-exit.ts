@@ -1,4 +1,5 @@
 import type { Engine } from "./engine.types.js";
+import { release } from "./report-failure.js";
 import { ExitSignal } from "./signals.js";
 
 /**
@@ -14,6 +15,9 @@ export async function absorbExit(engine: Engine, body: () => Promise<void>): Pro
     await body();
   } catch (error) {
     if (!(error instanceof ExitSignal)) throw error;
+    // The propagation ends here, so a later throw of the same object is a
+    // failure of its own rather than a repeat of this one.
+    release(error);
     engine.exit = error.code;
   }
 }

@@ -8,4 +8,3 @@ export { deriveTypes, loadDerivedTypes, packageTypesFor, typesDir } from "./pack
 export type { RunFileArgs, RunFileOutcome } from "./run-file.js";
 export { runFile } from "./run-file.js";
 export { shouldLeave } from "./should-leave.js";
-export { stepTitlesOf } from "./step-titles.js";

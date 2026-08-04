@@ -10,6 +10,8 @@
  * which is sometimes a keyword recovery landed on rather than the word that was
  * actually refused.
  */
+import type { Explained } from "./explained.types.js";
+import { KEYWORDS } from "./keywords.js";
 
 /** Everything before the token the parser stopped at, when it is one name. */
 const VERB_ALONE = /^[ \t]*([A-Za-z_][\w.]*)[ \t]*$/;
@@ -23,71 +25,9 @@ const OPENS_A_TRY = /^[ \t]*try\b/;
 /** A line that closes a block, whatever else it goes on to do. */
 const CLOSES = /^[ \t]*}/;
 
-/**
- * Every word the grammar reserves, so one found where a verb should be is a
- * keyword recovery stopped on, never a call nobody wrote.
- */
-const KEYWORDS = new Set([
-  "afterEach",
-  "all",
-  "as",
-  "beforeEach",
-  "break",
-  "capture",
-  "catch",
-  "config",
-  "const",
-  "continue",
-  "deco",
-  "defer",
-  "else",
-  "expect",
-  "false",
-  "finally",
-  "flow",
-  "fn",
-  "forEach",
-  "fragment",
-  "from",
-  "group",
-  "if",
-  "import",
-  "in",
-  "let",
-  "loop",
-  "match",
-  "matrix",
-  "module",
-  "namespace",
-  "not",
-  "null",
-  "on",
-  "parallel",
-  "pub",
-  "race",
-  "repeat",
-  "return",
-  "run",
-  "setup",
-  "soft",
-  "step",
-  "teardown",
-  "true",
-  "try",
-  "type",
-  "while",
-]);
-
 /** What a `try` inside a `fn` is told as, wherever recovery happened to land. */
 const TRY_TITLE =
   "A `fn` is pure, so it cannot hold a `try` block. Write `try ... else ...`, the expression, instead.";
-
-/** What `verbInAFn` answers with: the title, and where to point it when that is
- * not where the parser itself stopped. */
-export interface VerbInAFn {
-  readonly title: string;
-  readonly offset?: number;
-}
 
 /**
  * A title in the language's own words, when this is that error.
@@ -97,7 +37,7 @@ export interface VerbInAFn {
  * line is not a verb or a `try` written inside a `fn`, which is the only shape
  * this can explain.
  */
-export function verbInAFn(args: { text: string; offset: number }): VerbInAFn | undefined {
+export function verbInAFn(args: { text: string; offset: number }): Explained | undefined {
   const start = args.text.lastIndexOf("\n", args.offset) + 1;
   const end = args.text.indexOf("\n", args.offset);
   if (emptyLine(args.text, args.offset, end)) return undefined;

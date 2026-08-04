@@ -44,6 +44,13 @@ flow "F" {
   defer { expect true }
 }`;
 
+/**
+ * `step "r"` fails and says so under its own name, and the `try` around it
+ * catches the unwind rather than un-saying the verdict: a run reporting 0 over
+ * a stream carrying `step.finished status:"failed"` contradicts itself.
+ * `try { expect … } catch` is still the expected-failure idiom, because an
+ * assertion nobody reports is an assertion nobody counts.
+ */
 describe("control flow", () => {
   it("runs if/forEach/repeat/fragment/try/parallel/defer to completion", async () => {
     const { ast, problems } = parse(SOURCE);
@@ -54,7 +61,7 @@ describe("control flow", () => {
     const result = await runner.run(ast);
 
     // 1(if) + 3(forEach) + 3(repeat) + 1(fragment) + 1(catch) + 1(finally) + 2(parallel) + 1(defer)
-    expect(result.failed).toBe(0);
+    expect(result.failed).toBe(1);
     expect(result.passed).toBe(13);
   });
 });

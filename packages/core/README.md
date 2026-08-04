@@ -58,6 +58,7 @@ a syntax error still produces a tree the editor can work with.
 | `format/` | `formatText`, shared by `venn fmt` and the language server so both agree on the result. |
 | `graph/` | `toGraph`: a pure AST transform into nodes and edges for the visual editor. |
 | `events/` | The event envelope the runner emits and the UI consumes. Types only, no runtime. |
+| `plan/` | `stepTitlesOf`: every step title a flow can reach, so a reporter can draw the tree before anything runs. |
 | `module/` | Which of the three kinds an import specifier is: relative, alias or package. |
 
 ## API
@@ -67,6 +68,7 @@ a syntax error still produces a tree the editor can work with.
 | Export | What it gives you |
 | --- | --- |
 | `parse(text, { uri? })` | `ParseOutput`: the `Document` AST and the VN1xxx problems. |
+| `parseProblems({ result, uri, text })` | The same VN1xxx problems for a parse somebody else ran, so the language server publishes what `venn check` prints instead of Chevrotain's own words. |
 | `parseExpression(source)` | An `Expr` for a standalone expression, or `undefined` when it is not one. |
 | `EXPRESSION_OFFSET` | How far `parseExpression` shifts CST offsets, so a caller can map back onto the `${…}` it came from. |
 | `vennServices()` / `createVennServices()` | The Langium services, cached and fresh respectively. |
@@ -115,7 +117,9 @@ throw new ProblemError(
 | `VN7xxx` | Actions and protocols, at run time. |
 | `VN8xxx` | Timeouts and resource limits. |
 
-`CODES` holds the codes the kernel itself raises, from `VN1001_LEX` to `VN8002_LOOP_LIMIT`. Plugins
+`CODES` holds the codes the kernel itself raises, from `VN1001_LEX` to `VN7004_HOOK_FAILED`. The
+`VN8xxx` family is numbered above but raised elsewhere: `RUN_CODES.VN8002_STILL_RUNNING` is the
+runner's, in [`@venn-lang/runtime`](../runtime), and grepping the number here finds nothing. Plugins
 add their own in the same families. `buildDiff` turns two compared values into a structured `Diff`,
 walking them field by field when they line up, so a failure names the field that moved instead of
 printing two renderings side by side. `formatValue` renders a single value for a report.
@@ -265,7 +269,7 @@ formatText(source, formatOptionsFrom(manifest.format)); // the [format] table of
 never joins or splits lines, and it is idempotent. `organizeHeader` and `reindent` are the two steps
 on their own.
 
-### Graph and events
+### Graph, events and plans
 
 `toGraph(document)` derives the node graph from the AST: a `flow` contains its steps, a step contains
 its actions and expectations, and sequential edges run between siblings. Pure, with no runtime state.
@@ -274,6 +278,19 @@ The `events/` module is types only: `Envelope` is the single contract between ru
 carrying a monotonic `seq`, a timestamp, a `RunId`, a kind and its payload. `EventKind` is derived
 from the keys of `EventData`, so adding an event is one edit. `RunPlan` is what the UI draws in grey
 before anything executes.
+
+`node` says which step an envelope is about; `Envelope.step` says which RUN of it. A step inside a
+`forEach` has one `NodePath` and a `StepId` per pass, and `parallel` opens two at once by design, so
+a reporter with two openings and one later failure has no way to attribute it without the second id,
+and attributing by arrival order is wrong exactly when it matters.
+
+`Status` has five values, not four: `cancelled` is neither verdict. A `break`, `return` or `exit` cut
+the step short, so it reached no verdict at all, and calling that `passed` counted work nobody did.
+
+`stepTitlesOf(flow, document)` in `plan/` is every step title a flow can reach: nested in groups,
+loops, branches and `try`, and followed through `run <fragment>` into the fragments of the same file.
+It lived in the CLI, which meant the plan a reporter drew and the plan the runner walked were two
+readings of one tree.
 
 ### Modules
 

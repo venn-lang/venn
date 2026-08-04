@@ -4,8 +4,7 @@ import type { Scope } from "../scope/index.js";
 import { branchEngine } from "./branch-engine.js";
 import { runPool } from "./concurrency.js";
 import type { Engine } from "./engine.types.js";
-import { optsNumber } from "./opts.js";
-import { optsText } from "./opts-text.js";
+import { readOptions } from "./read-options.js";
 import { runStatement } from "./run-statements.js";
 import { CancelSignal, isControlSignal } from "./signals.js";
 
@@ -19,10 +18,12 @@ import { CancelSignal, isControlSignal } from "./signals.js";
  * `@timeout` reaches every branch here too.
  */
 export async function runParallel(engine: Engine, stmt: ParallelStmt, scope: Scope): Promise<void> {
+  const kind = "ParallelStmt";
+  const opts = await readOptions({ opts: stmt.opts, kind, scope, uri: engine.uri });
   const cancel = createCancelScope({ parent: engine.cancel, clock: engine.clock });
   const failures: unknown[] = [];
   try {
-    await dispatch({ engine, stmt, scope, cancel, failures });
+    await dispatch({ engine, stmt, scope, cancel, failures, opts });
   } finally {
     cancel.release();
   }
@@ -35,18 +36,23 @@ interface DispatchArgs {
   scope: Scope;
   cancel: CancelScope;
   failures: unknown[];
+  opts: Record<string, unknown>;
 }
 
 /** Every child statement, at most `concurrency` of them in flight. */
 function dispatch(args: DispatchArgs): Promise<void> {
   const stmts = args.stmt.body.stmts;
-  const onError = optsText(args.stmt.opts, "onError", args.scope) ?? "cancel";
   return runPool({
     items: stmts,
-    limit: optsNumber(args.stmt.opts, "concurrency", args.scope) ?? stmts.length,
+    limit: (args.opts.concurrency as number | undefined) ?? stmts.length,
     stop: () => args.cancel.stopped() !== undefined,
-    task: (child) => branch({ ...args, child, onError }),
+    task: (child) => branch({ ...args, child, onError: onErrorOf(args.opts) }),
   });
+}
+
+/** `cancel` unless the block asked for `collect`, which is the documented default. */
+function onErrorOf(opts: Record<string, unknown>): string {
+  return (opts.onError as string | undefined) ?? "cancel";
 }
 
 interface BranchArgs extends DispatchArgs {

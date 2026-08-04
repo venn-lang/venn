@@ -11,7 +11,12 @@ import {
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
-import { declaredEnv, type LoadedManifest, loadManifest } from "../manifest/index.js";
+import {
+  declaredEnv,
+  type LoadedManifest,
+  loadManifest,
+  manifestProblems,
+} from "../manifest/index.js";
 import { reportProblems } from "../reporters/index.js";
 import { everySourceUnder } from "../run/collect-files.js";
 import { createNodeModuleIo } from "../run/node-io.js";
@@ -61,7 +66,18 @@ export async function checkProblems(
   const front = createFrontEnd({ plugins: allPlugins, caps: createNodeHost().caps });
   const problems: Problem[] = [];
   for (const file of files) problems.push(...(await problemsIn(file, front)));
+  problems.push(...(await manifestProblems(await projectsOf(files))));
   return { files: files.length, problems: said(problems) };
+}
+
+/** The projects these files belong to, since a manifest governs them all. */
+async function projectsOf(files: readonly string[]): Promise<string[]> {
+  const dirs: string[] = [];
+  for (const file of files) {
+    const project = await loadManifest(file);
+    if (project) dirs.push(project.dir);
+  }
+  return dirs;
 }
 
 /**

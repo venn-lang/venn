@@ -18,4 +18,6 @@ export const PROJECT_CODES = {
   VN2106_NO_LOCK: "VN2106",
   VN2107_LOCK_DISAGREES: "VN2107",
   VN2108_NO_TYPE_DERIVATION: "VN2108",
+  /** A table or a key in `venn.toml` that nothing reads. */
+  VN2109_UNKNOWN_MANIFEST_KEY: "VN2109",
 } as const;

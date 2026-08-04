@@ -3,17 +3,22 @@ import { type CancelScope, createCancelScope, unwind } from "../cancel/index.js"
 import type { Scope } from "../scope/index.js";
 import { reportAbandoned } from "./abandoned.js";
 import { branchEngine } from "./branch-engine.js";
+import { durationMs } from "./duration-ms.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
+import { readOptions } from "./read-options.js";
+import { withTimeout } from "./run-attempts.js";
 import { runStatement } from "./run-statements.js";
 import { CancelSignal } from "./signals.js";
 
 /**
- * `race { … }`: the first branch to settle wins, and the losers are cancelled.
+ * `race { timeout: 10s } { … }`: the first branch to settle wins, the losers are
+ * cancelled, and the block waits for them to stop before it returns.
  *
- * The block waits for the losers to actually stop before it returns. Aborting
- * and walking away is what let a loser's `defer` run after `teardown` had closed
- * what it depended on, and its assertions land after the run was tallied.
+ * `timeout` is the same mechanism `@timeout` is, and not a second one: the
+ * branches run inside a scope with that deadline on it. The option is written in
+ * the specification twice and was read by nobody, so a race somebody had bounded
+ * was not bounded at all.
  *
  * An empty body settles here rather than in `Promise.race([])`, which is pending
  * for ever: everything after it was silently deleted from the run, no
@@ -22,14 +27,26 @@ import { CancelSignal } from "./signals.js";
  */
 export async function runRace(engine: Engine, stmt: RaceStmt, scope: Scope): Promise<void> {
   if (stmt.body.stmts.length === 0) return;
+  const kind = "RaceStmt";
+  const opts = await readOptions({ opts: stmt.opts, kind, scope, uri: engine.uri });
+  await withTimeout({
+    engine,
+    timeoutMs: durationMs(opts.timeout),
+    where: nodeSpan(stmt, engine.uri),
+    run: (scoped) => branches(scoped, stmt, scope),
+  });
+}
+
+/** The branches, under a scope of their own, and the wait for the losers to stop. */
+async function branches(engine: Engine, stmt: RaceStmt, scope: Scope): Promise<void> {
   const cancel = createCancelScope({ parent: engine.cancel, clock: engine.clock });
-  const branches = stmt.body.stmts.map((child) =>
+  const running = stmt.body.stmts.map((child) =>
     Promise.resolve(runStatement(branchEngine(engine, cancel), child, scope.child())),
   );
   try {
-    await Promise.race(branches);
+    await Promise.race(running);
   } finally {
-    await settleLosers({ engine, stmt, cancel, branches });
+    await settleLosers({ engine, stmt, cancel, branches: running });
   }
 }
 

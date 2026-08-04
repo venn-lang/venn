@@ -119,6 +119,25 @@ describe("a loop that never yields", () => {
   });
 });
 
+/**
+ * `race { timeout: … }` is written verbatim in the specification twice and was
+ * read by nobody, so a race somebody had bounded was not bounded at all.
+ */
+const BOUNDED_RACE = `flow "F" {
+  race { timeout: 40ms } {
+    step "a" { wait 5s }
+    step "b" { wait 5s }
+  }
+}`;
+
+describe("a race carrying the timeout it is documented to take", () => {
+  it("is bounded by it", async () => {
+    const events = await ran(BOUNDED_RACE, harness().plugin);
+
+    expect(JSON.stringify(events)).toContain("Timed out after 40ms");
+  });
+});
+
 const LOCKED = `flow "F" {
   parallel { onError: "collect" } {
     @lock("db") @timeout(30ms)

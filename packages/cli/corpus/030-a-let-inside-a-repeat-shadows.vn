@@ -1,0 +1,5 @@
+let x = "outer"
+repeat 1 {
+  let x = "inner"
+}
+seen = x

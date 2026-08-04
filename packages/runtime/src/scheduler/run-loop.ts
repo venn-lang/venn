@@ -50,8 +50,15 @@ class LoopState {
    */
   private readonly tail: Statement | undefined;
   private readonly name: string | undefined;
-  /** One child scope for the whole loop, rewritten per pass rather than rebuilt. */
-  private readonly child: Scope;
+  /**
+   * The scope of the pass in flight, built fresh for each one.
+   *
+   * One child for the whole loop was cheaper and meant a pass could read what
+   * the pass before it bound, and a closure made in a pass captured whatever the
+   * last pass left. `repeat` and `forEach` bind once per pass, and a loop is not
+   * a third kind of loop.
+   */
+  private child: Scope;
   private carried: unknown;
 
   constructor(
@@ -113,6 +120,7 @@ class LoopState {
    * it suspended on.
    */
   private onePass(): unknown {
+    this.child = this.scope.child();
     if (this.name) this.child.set(this.name, this.carried);
     try {
       const pending = runSteps(this.engine, this.steps as never, this.child);

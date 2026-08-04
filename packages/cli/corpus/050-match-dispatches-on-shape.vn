@@ -1,0 +1,10 @@
+let describe = fn (e) => match e {
+  { user: { name } } => name
+  [a, b] => a
+  other => 0
+}
+let mapped = describe({ user: { name: 5 } })
+let paired = describe([1, 2])
+let plain = describe(42)
+let longer = describe([1, 2, 3])
+seen = "${mapped} ${paired} ${plain} ${longer}"

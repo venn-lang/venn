@@ -35,8 +35,10 @@ import { checkInterpolation } from "./check-interpolation.js";
 import { checkLifecycleEvent } from "./check-lifecycle-event.js";
 import { checkMixedOperators } from "./check-mixed-operators.js";
 import { checkNameTaken } from "./check-name-taken.js";
+import { checkNamespaceBody } from "./check-namespace-body.js";
 import { checkNamespaceUse } from "./check-namespace-use.js";
 import { checkPureConcurrency } from "./check-pure-concurrency.js";
+import { checkPureVerb } from "./check-pure-verb.js";
 import { checkRemovedUse } from "./check-removed-use.js";
 import { checkSwallowedArgument } from "./check-swallowed-argument.js";
 import { checkUnbound } from "./check-unbound.js";
@@ -94,11 +96,13 @@ function everyCheck(node: AstNode, ctx: CheckContext): Problem[] {
 function structuralChecks(node: AstNode, ctx: CheckContext): Problem[] {
   return [
     ...checkNode(node, ctx),
+    ...checkNamespaceBody(node, ctx),
     ...checkNamespaceUse(node, ctx),
     ...checkEnv(node, ctx),
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
     ...checkVerbCall(node, ctx),
+    ...checkPureVerb(node, ctx),
     ...checkArgumentCount(node, ctx),
     ...one(checkUncalledAction(node, ctx)),
   ];

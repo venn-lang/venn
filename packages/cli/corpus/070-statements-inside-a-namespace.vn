@@ -1,0 +1,7 @@
+# excludes fnDecl a `namespace` is a declaration, and a pure body holds statements
+# excludes fnExpr a `namespace` is a declaration, and a pure body holds statements
+# excludes fragment a `namespace` is a declaration, and a fragment body holds statements
+namespace grouped {
+  seen = "${seen}inside "
+}
+seen = "${seen}end"

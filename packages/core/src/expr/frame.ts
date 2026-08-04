@@ -1,3 +1,6 @@
+import { buildProblem, CODES } from "../codes/index.js";
+import { ProblemError } from "../problem/index.js";
+import { hasCells } from "./cell.types.js";
 import type { Closure } from "./closure.types.js";
 import type { EvalEnv } from "./eval-env.types.js";
 
@@ -40,6 +43,18 @@ export class Frame implements EvalEnv {
     this.left = undefined;
   }
 
+  /**
+   * The outermost slot with this name, which is the one a closure made in this
+   * body was written against unless it was made inside a block that shadowed it.
+   *
+   * That last case is not resolved here and cannot be: this asks by name at call
+   * time, and which slot a closure meant is a question about where it was
+   * written. `lastIndexOf` was tried and is worse: it reads the innermost slot
+   * whoever calls, so a closure made before a shadowing block read the shadow,
+   * and one made where the block never ran read nothing at all. The answer is to
+   * resolve a free name when the closure is built, which is issue #265's
+   * remaining half.
+   */
   lookup(name: string): unknown {
     const at = this.closure.body.names.indexOf(name);
     return at === -1 ? this.closure.env.lookup(name) : readSlot(this, at);
@@ -51,6 +66,7 @@ export function readSlot(frame: Frame, at: number): unknown {
   if (at === 0) return frame.s0;
   if (at === 1) return frame.s1;
   if (at === 2) return frame.s2;
+  if (at < 0) throw noSlot();
   return (frame.rest as unknown[])[at - INLINE_SLOTS];
 }
 
@@ -59,5 +75,62 @@ export function writeSlot(frame: Frame, at: number, value: unknown): void {
   if (at === 0) frame.s0 = value;
   else if (at === 1) frame.s1 = value;
   else if (at === 2) frame.s2 = value;
+  else if (at < 0) throw noSlot();
   else (frame.rest as unknown[])[at - INLINE_SLOTS] = value;
+}
+
+/**
+ * Write a name the compiled body does not bind, wherever it is bound.
+ *
+ * The same binding a closure captured, which is what an assignment writes
+ * everywhere else: `runAssign` reaches it through `scope.cell`, and a body
+ * nested in another reaches it through the frame that holds the slot. Kept off
+ * the slot path because it is the uncommon one, and the common one is an index.
+ *
+ * @param frame The frame the assignment is written in.
+ * @param name The name being written.
+ * @param value What to write.
+ * @throws ProblemError `VN3021` when nothing anywhere binds the name.
+ */
+export function writeNamed(frame: Frame, name: string, value: unknown): void {
+  let env: EvalEnv = frame;
+  while (env instanceof Frame) {
+    // The outermost, to match what `lookup` reads. A write and a read of one
+    // name in one frame must reach one slot, whichever is the right one.
+    const at = env.closure.body.names.indexOf(name);
+    if (at !== -1) {
+      writeSlot(env, at, value);
+      return;
+    }
+    env = env.closure.env;
+  }
+  if (!hasCells(env)) throw nowhere(name);
+  env.cell(name).value = value;
+}
+
+/**
+ * A slot number no name has.
+ *
+ * Only an inconsistency inside the compiler produces one, and the point is that
+ * it arrives as a Problem: `rest[-4]` was a host `TypeError` on a body with four
+ * locals and a discarded write on a body with five.
+ */
+function noSlot(): ProblemError {
+  return new ProblemError(
+    buildProblem({
+      spec: CODES.VN3021_NOT_A_PLACE,
+      span: { uri: "", offset: 0, length: 0, line: 1, column: 1 },
+      title: "There is nothing here to write to.",
+    }),
+  );
+}
+
+function nowhere(name: string): ProblemError {
+  return new ProblemError(
+    buildProblem({
+      spec: CODES.VN3021_NOT_A_PLACE,
+      span: { uri: "", offset: 0, length: 0, line: 1, column: 1 },
+      title: `Nothing here binds "${name}", so there is nowhere to write it.`,
+    }),
+  );
 }

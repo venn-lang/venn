@@ -1,0 +1,6 @@
+let at = 1
+loop {
+  if at > 3 { break }
+  seen = "${seen}${at} "
+  at = at + 1
+}

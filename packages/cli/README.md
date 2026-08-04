@@ -290,6 +290,16 @@ outcome.result?.passed; // 1
 `mode: "script"` runs the file top to bottom instead of running its flows. `filter`, `bail`, `env`,
 `io`, `npm` and `cleanup` are the rest of what the commands pass in.
 
+## The corpus
+
+[`corpus/`](./corpus) holds one body per file and runs each of them in the four
+places the language compiles a statement: the top of a file, a `fn` declaration,
+a `fn` expression and a `fragment`. Two of those compile the body and two
+interpret it, so it is where the two halves of the language are held to meaning
+the same thing. It lives here rather than beside either of them because the cases
+are files on disk, and the CLI is the package the charter lets read one. Nothing
+in it ships.
+
 ## See also
 
 - [`@venn-lang/runtime`](../runtime) for the scheduler, the plugin registry and the event stream.

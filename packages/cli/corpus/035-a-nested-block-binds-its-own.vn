@@ -1,0 +1,10 @@
+let x = "outer"
+repeat 1 {
+  let x = "middle"
+  repeat 1 {
+    let x = "inner"
+    seen = "${seen}${x} "
+  }
+  seen = "${seen}${x} "
+}
+seen = "${seen}${x}"

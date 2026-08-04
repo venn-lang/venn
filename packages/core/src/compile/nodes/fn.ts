@@ -14,9 +14,10 @@ import {
   type ParamList,
 } from "../../generated/ast.js";
 import type { CompiledBody, CompiledLocal, Thunk } from "../compile.types.js";
-import { type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
-import { paramLocals, paramSlotName, unpack, wholeValueName } from "../unpack.js";
+import { allocate, declare, type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
+import { paramLocals, paramSlotName, unpack } from "../unpack.js";
 import { compileStep } from "./body-steps.js";
+import { refuseACall } from "./pure-body.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
 export type CompileIn = (expr: Expr, scope: LexScope) => Thunk;
@@ -75,6 +76,11 @@ function scoped(args: BodyArgs): LexScope {
   return scope;
 }
 
+/** Every slot the body ended up with, which is only known once it is compiled. */
+function extraSlots(scope: LexScope): number {
+  return Math.max(0, scope.names.length - INLINE_SLOTS);
+}
+
 function compileInScope(
   scope: LexScope,
   args: BodyArgs,
@@ -88,14 +94,13 @@ function compileInScope(
   const rest = body.stmts.slice(firstStatement(body));
   const locals = [
     ...paramLocals(params, scope),
-    ...leading.flatMap((local, at) => localsOf({ local: local as LetStmt, at, scope, compileIn })),
+    ...leading.flatMap((local) => localsOf({ local: local as LetStmt, scope, compileIn })),
   ];
   const steps = rest.map((stmt) => compileStep(stmt, scope, compileIn));
   const result = body.result ? compileIn(body.result, scope) : undefined;
   const bare = stayedBare(scope);
-  const extra = Math.max(0, scope.names.length - INLINE_SLOTS);
   const free = scope.free ?? [];
-  const compiled = { names: scope.names, extra, free, locals, result, bare };
+  const compiled = { names: scope.names, extra: extraSlots(scope), free, locals, result, bare };
   return {
     compiled: steps.length === 0 ? compiled : { ...compiled, steps, bare: false },
     bare,
@@ -125,13 +130,13 @@ function firstStatement(body: FnBody): number {
  */
 function localsOf(args: {
   local: LetStmt;
-  at: number;
   scope: LexScope;
   compileIn: CompileIn;
 }): CompiledLocal[] {
-  const { local, at, scope, compileIn } = args;
+  const { local, scope, compileIn } = args;
+  refuseACall(local);
   const value = compileIn(local.value, scope);
-  if (!local.pattern) return [{ slot: scope.names.indexOf(local.name as string), value }];
-  const whole = scope.names.indexOf(wholeValueName("let", at));
+  if (!local.pattern) return [{ slot: declare(scope, local.name as string), value }];
+  const whole = allocate(scope);
   return [{ slot: whole, value }, ...unpack(local.pattern, scope, whole)];
 }

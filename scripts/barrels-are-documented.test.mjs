@@ -54,8 +54,14 @@ describe("every symbol a package barrel publishes", () => {
     expect(undocumented).toEqual([]);
   });
 
-  /** A resolver that resolved nothing would report nothing, in the same words. */
-  it("is found through a chain that really resolves", async () => {
+  /**
+   * A resolver that resolved nothing would report nothing, in the same words.
+   *
+   * The same room as the assertion above it, and for the same reason: it reads
+   * the same thousand files, and five seconds is what one test is given, not
+   * what a walk of the whole tree takes with three hundred beside it.
+   */
+  it("is found through a chain that really resolves", { timeout: 30_000 }, async () => {
     const found = await published();
     const resolved = found.filter((one) => one.at && !one.at.outside);
 

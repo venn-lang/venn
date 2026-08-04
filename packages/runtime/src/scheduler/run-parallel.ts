@@ -22,9 +22,11 @@ export async function runParallel(engine: Engine, stmt: ParallelStmt, scope: Sco
   const onError = optsText(stmt.opts, "onError", scope) ?? "cancel";
   const controller = new AbortController();
   const failures: unknown[] = [];
-  await runPool(stmt.body.stmts, Math.max(1, limit), (child) =>
-    branch({ engine, child, scope, controller, failures, onError }),
-  );
+  await runPool({
+    items: stmt.body.stmts,
+    limit,
+    task: (child) => branch({ engine, child, scope, controller, failures, onError }),
+  });
   report(failures);
 }
 

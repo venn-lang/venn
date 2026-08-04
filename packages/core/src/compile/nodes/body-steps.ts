@@ -3,11 +3,14 @@ import { writeSlot } from "../../expr/frame.js";
 import type { Statement } from "../../generated/ast.js";
 import * as ast from "../../generated/ast.js";
 import { truthy } from "../../value/index.js";
-import type { Step } from "../compile.types.js";
-import type { LexScope } from "../lex-scope.js";
-import { unpack, wholeValueName } from "../unpack.js";
+import type { Step, Thunk } from "../compile.types.js";
+import { allocate, blockScope, declare, type LexScope, slotOf } from "../lex-scope.js";
+import { unpack } from "../unpack.js";
+import { assignStep } from "./assign-step.js";
 import type { CompileIn } from "./fn.js";
 import { checkedCount, checkedList } from "./loop-bound.js";
+import { refuseACall } from "./pure-body.js";
+import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 
 /**
  * One statement of a function body, compiled.
@@ -36,17 +39,7 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   return () => RAN;
 }
 
-/**
- * Why a block stopped, when it did.
- *
- * Numbers rather than thrown signals: a `break` in a loop of fifty thousand
- * would otherwise build fifty thousand stack traces, and the whole reason a
- * body is compiled is that a call is cheap.
- */
-export const RAN = 0;
-export const LEFT = 1;
-export const BROKE = 2;
-export const WENT_ON = 3;
+export { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 
 /** Run a block's steps until one of them stops. */
 export function runSteps(steps: readonly Step[], frame: Frame): number {
@@ -57,55 +50,50 @@ export function runSteps(steps: readonly Step[], frame: Frame): number {
   return RAN;
 }
 
-/** The block a control-flow statement holds, compiled once. */
+/**
+ * The block a control-flow statement holds, compiled once, in a scope of its own.
+ *
+ * Its bindings are slots of the function like every other, because a call has
+ * one frame and not a chain of them. What the block gives them is a name in view
+ * for its own statements and gone afterwards, which is what `let` means at the
+ * top of a file and what it did not mean here: every block was flattened into
+ * one list, so a `let` inside a loop overwrote the outer name of the same
+ * spelling and a loop's own binding outlived its loop.
+ */
 function blockSteps(
   block: { stmts: Statement[] } | undefined,
   scope: LexScope,
   compile: CompileIn,
 ): Step[] {
-  return (block?.stmts ?? []).map((stmt) => compileStep(stmt, scope, compile));
+  return stepsIn(block, blockScope(scope), compile);
+}
+
+/** The same, in a scope the caller already made because it bound a name in it. */
+function stepsIn(
+  block: { stmts: Statement[] } | undefined,
+  inner: LexScope,
+  compile: CompileIn,
+): Step[] {
+  return (block?.stmts ?? []).map((stmt) => compileStep(stmt, inner, compile));
 }
 
 function letStep(stmt: ast.LetStmt, scope: LexScope, compile: CompileIn): Step {
+  refuseACall(stmt);
+  // The value first and the name after, so `let x = x` reads the one already in
+  // view, which is what the same line does everywhere else.
   const value = compile(stmt.value, scope);
   if (!stmt.pattern) {
-    const slot = scope.names.indexOf(stmt.name as string);
+    const slot = declare(scope, stmt.name as string);
     return (frame) => {
       writeSlot(frame, slot, value(frame));
       return RAN;
     };
   }
-  const whole = scope.names.indexOf(wholeValueName("let", positionOf(stmt)));
+  const whole = allocate(scope);
   const parts = unpack(stmt.pattern, scope, whole);
   return (frame) => {
     writeSlot(frame, whole, value(frame));
     for (const part of parts) writeSlot(frame, part.slot, part.value(frame));
-    return RAN;
-  };
-}
-
-/** Where this `let` sits among the ones the body holds, for its whole-value slot. */
-function positionOf(stmt: ast.LetStmt): number {
-  const body = stmt.$container as { stmts?: Statement[] };
-  return (body.stmts ?? []).indexOf(stmt as Statement);
-}
-
-function assignStep(stmt: ast.AssignStmt, scope: LexScope, compile: CompileIn): Step {
-  const value = compile(stmt.value, scope);
-  const target = stmt.target;
-  if (ast.isRef(target)) {
-    const slot = scope.names.indexOf(target.name);
-    return (frame) => {
-      writeSlot(frame, slot, value(frame));
-      return RAN;
-    };
-  }
-  const into = compile((target as { receiver: ast.Expr }).receiver, scope);
-  const key = ast.isIndex(target) ? compile(target.index, scope) : undefined;
-  const named = ast.isIndex(target) ? undefined : (target as { member: string }).member;
-  return (frame) => {
-    const holder = into(frame) as Record<string, unknown>;
-    holder[named ?? String(key?.(frame))] = value(frame);
     return RAN;
   };
 }
@@ -139,8 +127,11 @@ function elseSteps(
 function forEachStep(stmt: ast.ForEachStmt, scope: LexScope, compile: CompileIn): Step {
   const source = compile(stmt.source, scope);
   const listed = checkedList(stmt.source);
-  const body = blockSteps(stmt.body, scope, compile);
-  const bind = binder(stmt, scope);
+  // The item belongs to the body rather than to whoever wrote the loop, so it is
+  // bound in the body's own scope and is gone once the loop ends.
+  const inner = blockScope(scope);
+  const bind = binder(stmt, inner);
+  const body = stepsIn(stmt.body, inner, compile);
   return (frame) => {
     for (const item of listed(source(frame))) {
       bind(frame, item);
@@ -155,10 +146,10 @@ function forEachStep(stmt: ast.ForEachStmt, scope: LexScope, compile: CompileIn)
 /** What a `forEach` calls each item, written as a name or as a pattern. */
 function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: unknown) => void {
   if (stmt.item) {
-    const slot = scope.names.indexOf(stmt.item);
+    const slot = declare(scope, stmt.item);
     return (frame, item) => writeSlot(frame, slot, item);
   }
-  const whole = scope.names.indexOf(wholeValueName("each", 0));
+  const whole = allocate(scope);
   const parts = stmt.pattern ? unpack(stmt.pattern, scope, whole) : [];
   return (frame, item) => {
     writeSlot(frame, whole, item);
@@ -177,8 +168,9 @@ function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: un
 function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): Step {
   const count = compile(stmt.count, scope);
   const counted = checkedCount(stmt.count);
-  const body = blockSteps(stmt.body, scope, compile);
-  const slot = stmt.index ? scope.names.indexOf(stmt.index) : -1;
+  const inner = blockScope(scope);
+  const slot = stmt.index ? declare(inner, stmt.index) : -1;
+  const body = stepsIn(stmt.body, inner, compile);
   return (frame) => {
     const times = counted(count(frame));
     for (let at = 1; at <= times; at += 1) {
@@ -203,19 +195,26 @@ function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): 
  * timeout around it, and a program that means to run forever is allowed to.
  */
 function loopStep(stmt: ast.LoopStmt, scope: LexScope, compile: CompileIn): Step {
-  const body = blockSteps(stmt.body, scope, compile);
-  const condition = stmt.cond ? compile(stmt.cond, scope) : undefined;
-  const state = stmt.state ? scope.names.indexOf(stmt.state.name) : -1;
   const initial = stmt.state ? compile(stmt.state.initial, scope) : undefined;
+  // The state outlives the loop, so it belongs to the block the loop is written
+  // in rather than to the body: `loop n = 1 { … }` leaves `n` readable after it.
+  const state = stmt.state ? declare(scope, stmt.state.name) : -1;
+  const condition = stmt.cond ? compile(stmt.cond, scope) : undefined;
+  const body = blockSteps(stmt.body, scope, compile);
   return (frame) => {
     if (initial) writeSlot(frame, state, initial(frame));
-    while (!condition || truthy(condition(frame))) {
-      const stopped = runSteps(body, frame);
-      if (stopped === LEFT) return LEFT;
-      if (stopped === BROKE) break;
-    }
-    return RAN;
+    return passes(body, condition, frame);
   };
+}
+
+/** Round and round until the condition stops holding, or something stops it. */
+function passes(body: readonly Step[], condition: Thunk | undefined, frame: Frame): number {
+  while (!condition || truthy(condition(frame))) {
+    const stopped = runSteps(body, frame);
+    if (stopped === LEFT) return LEFT;
+    if (stopped === BROKE) break;
+  }
+  return RAN;
 }
 
 /**
@@ -243,7 +242,7 @@ function carriedSlot(stmt: ast.ContinueStmt, scope: LexScope): number {
   while (up) {
     if (ast.isFnExpr(up) || ast.isFnDecl(up)) return -1;
     if (ast.isForEachStmt(up) || ast.isRepeatStmt(up)) return -1;
-    if (ast.isLoopStmt(up)) return up.state ? scope.names.indexOf(up.state.name) : -1;
+    if (ast.isLoopStmt(up)) return up.state ? slotOf(scope, up.state.name) : -1;
     up = up.$container as { $container?: unknown } | undefined;
   }
   return -1;

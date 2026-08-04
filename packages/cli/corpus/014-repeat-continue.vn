@@ -1,0 +1,4 @@
+repeat 3 as i {
+  if i == 2 { continue }
+  seen = "${seen}${i} "
+}

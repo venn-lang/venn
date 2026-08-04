@@ -1,0 +1,6 @@
+forEach x in [1, 2] {
+  repeat 3 as i {
+    if i == 3 { break }
+    seen = "${seen}${x}:${i} "
+  }
+}

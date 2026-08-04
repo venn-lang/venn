@@ -106,7 +106,7 @@ export function verbInAFn(args: { text: string; offset: number }): VerbInAFn | u
   const tryOffset = tryAt({ text: args.text, start, offset: args.offset }) ?? found.tryOffset;
   if (tryOffset !== undefined) return { title: TRY_TITLE, offset: tryOffset };
   const called = args.text.slice(start, args.offset).match(VERB_ALONE)?.[1];
-  return called && !KEYWORDS.has(called) ? { title: verbTitle(called) } : undefined;
+  return called && !KEYWORDS.has(called) ? { title: pureBodyCannotCall(called) } : undefined;
 }
 
 /**
@@ -117,8 +117,17 @@ function emptyLine(text: string, offset: number, end: number): boolean {
   return text.slice(offset, end === -1 ? undefined : end).trim() === "";
 }
 
-/** The sentence for a plain verb, once it is known not to be a keyword. */
-function verbTitle(called: string): string {
+/**
+ * Why a `fn` cannot call this, in the one sentence the language uses for it.
+ *
+ * Said here and by the checker, because the grammar catches only the spellings
+ * it fails to parse: `io.print "x"` is refused as a parse error and
+ * `let a = io.print "x"` parses cleanly, and the two are the same mistake.
+ *
+ * @param called The dotted name being called.
+ * @returns The title, ready to be the whole of a Problem's first line.
+ */
+export function pureBodyCannotCall(called: string): string {
   return `A \`fn\` is pure, so it cannot call \`${called}\`. A verb belongs in a \`fragment\`, or at the top level of a file.`;
 }
 

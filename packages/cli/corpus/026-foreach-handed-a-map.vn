@@ -1,0 +1,3 @@
+forEach x in { data: [1] } {
+  seen = "${seen}${x} "
+}

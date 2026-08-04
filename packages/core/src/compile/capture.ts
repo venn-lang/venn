@@ -28,8 +28,10 @@ export function capturePlan(
   free: readonly string[],
   scope: LexScope,
 ): readonly Capture[] | undefined {
-  rootOf(scope).nested = true;
   if (free.length === 0 || rootOf(scope).free === undefined) return undefined;
+  // Only a `fn` that reads a name from around it makes the body it sits in
+  // worth compiling twice: one that reads nothing resolves nothing.
+  rootOf(scope).nested = true;
   return free.map((name) => captureOf(name, scope));
 }
 

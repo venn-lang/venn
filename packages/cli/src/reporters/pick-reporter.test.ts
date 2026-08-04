@@ -1,6 +1,7 @@
 import type { Envelope } from "@venn-lang/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { pickReporter } from "./pick-reporter.js";
+import type { Reporter } from "./reporter.types.js";
 
 /**
  * What each name selects, told apart by what the reporter WRITES rather than by
@@ -17,26 +18,25 @@ function wrote(name: string | undefined, tty: boolean): string {
   // property, and there is no getter for a spy to stand in front of.
   const wasTTY = process.stdout.isTTY;
   process.stdout.isTTY = tty;
-  const reporter = pickReporter(name);
-  reporter.beginFile("orders.vn");
-  // A flow as well as an assertion: the tree defers a file's banner until
-  // something in it runs, so a filtered-out file stays quiet.
-  reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-  reporter.sink.emit(passed());
-  reporter.sink.emit(envelope("flow.finished", { title: "Checkout", status: "passed" }));
-  reporter.sink.emit(runDone());
-  reporter.finish({ passed: 1, failed: 0, files: 1, ms: 1 });
+  drive(pickReporter(name));
   process.stdout.isTTY = wasTTY;
   stdout.mockRestore();
   return out.join("");
 }
 
-function passed(): Envelope {
-  return envelope("expect.passed", { source: "expect true" });
-}
-
-function runDone(): Envelope {
-  return envelope("run.finished", { passed: 1, failed: 0, durationMs: 1 });
+/**
+ * One passing file, start to finish.
+ *
+ * A flow as well as an assertion, because the tree defers a file's banner until
+ * something in it runs, so a file whose flows were all filtered out stays quiet.
+ */
+function drive(reporter: Reporter): void {
+  reporter.beginFile("orders.vn");
+  reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
+  reporter.sink.emit(envelope("expect.passed", { source: "expect true" }));
+  reporter.sink.emit(envelope("flow.finished", { title: "Checkout", status: "passed" }));
+  reporter.sink.emit(envelope("run.finished", { passed: 1, failed: 0, durationMs: 1 }));
+  reporter.finish({ passed: 1, failed: 0, files: 1, ms: 1 });
 }
 
 function envelope(kind: string, data: unknown): Envelope {

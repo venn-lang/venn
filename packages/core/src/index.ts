@@ -3,8 +3,8 @@
 
 export * from "./ast/index.js";
 export * from "./codes/index.js";
-export type { CompiledBody, Thunk } from "./compile/index.js";
-export { closureOfDecl, compileExpr } from "./compile/index.js";
+export type { CompiledBody, StopCheck, Thunk } from "./compile/index.js";
+export { closureOfDecl, compileExpr, setStopCheck } from "./compile/index.js";
 export * from "./events/index.js";
 // Decorators: the expansion phase, run between parsing and everything else.
 export * from "./expand/index.js";

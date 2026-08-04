@@ -1,0 +1,8 @@
+# differs fnDecl a pure body runs one pass at a time, so the option is refused there
+# differs fnExpr a pure body runs one pass at a time, so the option is refused there
+let hit = []
+forEach n in [1, 2, 3, 4, 5, 6] { concurrency: 2 } {
+  hit = hit.push(n)
+  if n == 2 { break }
+}
+seen = "${hit}"

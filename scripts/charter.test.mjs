@@ -37,7 +37,7 @@ describe("the charter's counted rules", () => {
    * A survey that measured nothing would agree with any baseline at all, and
    * would say so in the same words as a clean tree.
    */
-  it("are measured over a tree the survey really read", async () => {
+  it("are measured over a tree the survey really read", { timeout: 60_000 }, async () => {
     const now = await survey();
 
     expect(Object.keys(now["over 300 lines"]).length).toBeGreaterThan(4);

@@ -1,0 +1,1104 @@
+{
+  "010-repeat-counts-from-one": {
+    "top": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    }
+  },
+  "011-repeat-runs-whole-passes": {
+    "top": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    }
+  },
+  "012-repeat-of-nothing": {
+    "top": {
+      "problems": [],
+      "out": "",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "",
+      "refused": null
+    }
+  },
+  "013-repeat-break": {
+    "top": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    }
+  },
+  "014-repeat-continue": {
+    "top": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    }
+  },
+  "015-foreach-takes-each-item-apart": {
+    "top": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    }
+  },
+  "016-foreach-break-and-continue": {
+    "top": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    }
+  },
+  "017-break-leaves-its-own-loop": {
+    "top": {
+      "problems": [],
+      "out": "1:1 1:2 2:1 2:2 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1:1 1:2 2:1 2:2 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1:1 1:2 2:1 2:2 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1:1 1:2 2:1 2:2 ",
+      "refused": null
+    }
+  },
+  "018-loop-until-its-condition-stops": {
+    "top": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    }
+  },
+  "019-loop-leaves-on-break": {
+    "top": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    }
+  },
+  "020-loop-advances-by-continue": {
+    "top": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    }
+  },
+  "021-loop-advances-by-assignment": {
+    "top": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    }
+  },
+  "022-loop-state-outlives-the-loop": {
+    "top": {
+      "problems": [],
+      "out": "4",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "4",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "4",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "4",
+      "refused": null
+    }
+  },
+  "023-continue-in-a-repeat-carries-nothing": {
+    "top": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 3 ",
+      "refused": null
+    }
+  },
+  "024-repeat-count-that-is-not-a-number": {
+    "top": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3016",
+        "title": "repeat needs a number of times, and this is a string.",
+        "help": "Give it a count, as in `repeat 3 { … }`.",
+        "column": 8
+      }
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3016",
+        "title": "repeat needs a number of times, and this is a string.",
+        "help": "Give it a count, as in `repeat 3 { … }`.",
+        "column": 8
+      }
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3016",
+        "title": "repeat needs a number of times, and this is a string.",
+        "help": "Give it a count, as in `repeat 3 { … }`.",
+        "column": 8
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3016",
+        "title": "repeat needs a number of times, and this is a string.",
+        "help": "Give it a count, as in `repeat 3 { … }`.",
+        "column": 8
+      }
+    }
+  },
+  "025-foreach-source-that-is-not-a-list": {
+    "top": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a number.",
+        "help": null,
+        "column": 14
+      }
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a number.",
+        "help": null,
+        "column": 14
+      }
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a number.",
+        "help": null,
+        "column": 14
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a number.",
+        "help": null,
+        "column": 14
+      }
+    }
+  },
+  "026-foreach-handed-a-map": {
+    "top": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a map.",
+        "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "column": 14
+      }
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a map.",
+        "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "column": 14
+      }
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a map.",
+        "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "column": 14
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3015",
+        "title": "forEach needs a list, and this is a map.",
+        "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "column": 14
+      }
+    }
+  },
+  "027-foreach-with-a-concurrency-option": {
+    "top": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN5008 error@23"],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": ["VN5008 error@23"],
+      "out": "1 2 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 2 ",
+      "refused": null
+    }
+  },
+  "028-loop-advances-from-a-continue-in-an-if": {
+    "top": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1 3 ",
+      "refused": null
+    }
+  },
+  "030-a-let-inside-a-repeat-shadows": {
+    "top": {
+      "problems": [],
+      "out": "outer",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "outer",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "outer",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "outer",
+      "refused": null
+    }
+  },
+  "031-a-let-inside-a-foreach-shadows": {
+    "top": {
+      "problems": [],
+      "out": "0",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "0",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "0",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "0",
+      "refused": null
+    }
+  },
+  "032-a-let-inside-an-if-shadows": {
+    "top": {
+      "problems": [],
+      "out": "1",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1",
+      "refused": null
+    }
+  },
+  "033-a-loop-binding-is-gone-after-its-loop": {
+    "top": {
+      "problems": [],
+      "out": "... i= z=",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "... i= z=",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "... i= z=",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "... i= z=",
+      "refused": null
+    }
+  },
+  "034-a-block-local-is-gone-after-its-block": {
+    "top": {
+      "problems": [],
+      "out": "[]",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "[]",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "[]",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "[]",
+      "refused": null
+    }
+  },
+  "035-a-nested-block-binds-its-own": {
+    "top": {
+      "problems": [],
+      "out": "inner middle outer",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "inner middle outer",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "inner middle outer",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "inner middle outer",
+      "refused": null
+    }
+  },
+  "036-a-loop-body-reads-the-outer-name": {
+    "top": {
+      "problems": [],
+      "out": "6",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "6",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "6",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "6",
+      "refused": null
+    }
+  },
+  "040-a-closure-writes-a-name-it-does-not-bind": {
+    "top": {
+      "problems": [],
+      "out": "ran g=after",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "ran g=after",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "ran g=after",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "ran g=after",
+      "refused": null
+    }
+  },
+  "041-a-closure-writes-it-with-four-locals-about": {
+    "top": {
+      "problems": [],
+      "out": "1234 g=after",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "1234 g=after",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "1234 g=after",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "1234 g=after",
+      "refused": null
+    }
+  },
+  "042-a-pattern-let-nested-in-a-block": {
+    "top": {
+      "problems": [],
+      "out": "8",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "8",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "8",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "8",
+      "refused": null
+    }
+  },
+  "043-a-pattern-foreach-nested-in-another": {
+    "top": {
+      "problems": [],
+      "out": "(1,9)(2,9)",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "(1,9)(2,9)",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "(1,9)(2,9)",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "(1,9)(2,9)",
+      "refused": null
+    }
+  },
+  "044-a-let-carrying-a-verb": {
+    "top": {
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
+    },
+    "fnExpr": {
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
+    }
+  },
+  "045-a-let-carrying-a-prelude-verb": {
+    "top": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "",
+        "title": "the guard fired",
+        "help": null,
+        "column": -1
+      }
+    },
+    "fnDecl": {
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
+    },
+    "fnExpr": {
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "",
+        "title": "the guard fired",
+        "help": null,
+        "column": -1
+      }
+    }
+  },
+  "046-a-verb-as-a-bare-statement": {
+    "top": {
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [
+        "VN1002 error@10",
+        "VN1002 error@1",
+        "VN1002 error@1",
+        "VN1002 error@1",
+        "VN2008 error@1"
+      ],
+      "out": null,
+      "refused": {
+        "code": "",
+        "title": "Unknown action \"seen\".",
+        "help": null,
+        "column": -1
+      }
+    },
+    "fnExpr": {
+      "problems": [
+        "VN1002 error@10",
+        "VN1002 error@1",
+        "VN1002 error@1",
+        "VN2003 error@1",
+        "VN2008 error@1"
+      ],
+      "out": null,
+      "refused": {
+        "code": "",
+        "title": "Unknown action \"seen\".",
+        "help": null,
+        "column": -1
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
+    }
+  },
+  "050-match-dispatches-on-shape": {
+    "top": {
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
+      "refused": null
+    },
+    "fragment": {
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
+      "refused": null
+    }
+  },
+  "051-match-asks-a-map-for-its-keys": {
+    "top": {
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
+      "refused": null
+    },
+    "fragment": {
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
+      "refused": null
+    }
+  },
+  "052-match-with-a-rest-takes-any-length": {
+    "top": {
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
+      "refused": null
+    },
+    "fragment": {
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
+      "refused": null
+    }
+  },
+  "053-a-match-with-no-arms": {
+    "top": {
+      "problems": ["VN3019 error@29"],
+      "out": "[]",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN3019 error@29"],
+      "out": "[]",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": ["VN3019 error@29"],
+      "out": "[]",
+      "refused": null
+    },
+    "fragment": {
+      "problems": ["VN3019 error@29"],
+      "out": "[]",
+      "refused": null
+    }
+  },
+  "060-a-closure-made-in-a-foreach-pass": {
+    "top": {
+      "problems": [],
+      "out": "2 4 6",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "6 6 6",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "6 6 6",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "2 4 6",
+      "refused": null
+    }
+  },
+  "061-a-closure-made-in-a-repeat-pass": {
+    "top": {
+      "problems": [],
+      "out": "2 4 6",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "6 6 6",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "6 6 6",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "2 4 6",
+      "refused": null
+    }
+  },
+  "062-a-closure-made-in-a-loop-pass": {
+    "top": {
+      "problems": [],
+      "out": "0 10 20",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "20 20 20",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "20 20 20",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "0 10 20",
+      "refused": null
+    }
+  },
+  "063-a-body-local-read-before-its-own-let": {
+    "top": {
+      "problems": [],
+      "out": "[][][]",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "[][][]",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "[][][]",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "[][][]",
+      "refused": null
+    }
+  },
+  "064-break-under-concurrency": {
+    "top": {
+      "problems": [],
+      "out": "[1, 2]",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": ["VN5008 error@35"],
+      "out": "[1, 2]",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": ["VN5008 error@35"],
+      "out": "[1, 2]",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "[1, 2]",
+      "refused": null
+    }
+  },
+  "070-statements-inside-a-namespace": {
+    "top": {
+      "problems": ["VN2025 error@3"],
+      "out": null,
+      "refused": {
+        "code": "VN2025",
+        "title": "A namespace groups names, so it cannot hold an assignment.",
+        "help": "Move it to the top level of the file.",
+        "column": 3
+      }
+    }
+  },
+  "071-a-flow-inside-a-namespace": {
+    "top": {
+      "problems": ["VN2025 error@3"],
+      "out": null,
+      "refused": {
+        "code": "VN2025",
+        "title": "A namespace groups names, so it cannot hold a `flow`.",
+        "help": "Move it to the top level of the file.",
+        "column": 3
+      }
+    }
+  },
+  "080-a-member-write-on-a-value-with-no-place": {
+    "top": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
+        "help": null,
+        "column": 3
+      }
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
+        "help": null,
+        "column": 3
+      }
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
+        "help": null,
+        "column": 3
+      }
+    },
+    "fragment": {
+      "problems": [],
+      "out": null,
+      "refused": {
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
+        "help": null,
+        "column": 3
+      }
+    }
+  }
+}

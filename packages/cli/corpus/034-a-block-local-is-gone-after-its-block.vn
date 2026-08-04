@@ -1,0 +1,4 @@
+if true {
+  let inner = 5
+}
+seen = "[${inner}]"

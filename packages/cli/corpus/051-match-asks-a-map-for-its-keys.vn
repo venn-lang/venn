@@ -1,0 +1,8 @@
+let has = fn (e) => match e {
+  { missing } => 1
+  other => 0
+}
+let there = has({ missing: 3 })
+let elsewhere = has({ a: 2 })
+let text = has("a plain string")
+seen = "${there} ${elsewhere} ${text}"

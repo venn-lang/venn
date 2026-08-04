@@ -1,0 +1,13 @@
+# open fnDecl issue 264, a compiled body reaches a closure free name by slot, so every pass reads the last
+# open fnExpr issue 264, a compiled body reaches a closure free name by slot, so every pass reads the last
+let made = []
+loop n = 0 {
+  if n == 3 { break }
+  let y = n * 10
+  made = made.push(fn () => y)
+  continue n + 1
+}
+let a = made[0]()
+let b = made[1]()
+let c = made[2]()
+seen = "${a} ${b} ${c}"

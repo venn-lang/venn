@@ -1,0 +1,7 @@
+repeat 2 as i {
+  seen = "${seen}."
+}
+forEach z in [7] {
+  seen = "${seen}."
+}
+seen = "${seen} i=${i} z=${z}"

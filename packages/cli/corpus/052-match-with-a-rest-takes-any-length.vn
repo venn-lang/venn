@@ -1,0 +1,9 @@
+let head = fn (e) => match e {
+  [first, ...rest] => first
+  other => 0
+}
+let two = head([8, 9])
+let one = head([8])
+let none = head([])
+let notAList = head(42)
+seen = "${two} ${one} ${none} ${notAList}"

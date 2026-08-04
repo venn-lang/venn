@@ -39,7 +39,7 @@ export function createBaseScope(args: {
   const scope = createScope();
   bindPrelude(scope);
   const named = args.document ? namespacesInFile(args.document, args.engine.registry) : undefined;
-  bindNamespaces({ registry: args.engine.registry, ctx: args.engine.ctx, scope, named });
+  bindNamespaces({ engine: args.engine, scope, named });
   if (args.document) bindImportedValues(args.document, args.engine.registry, scope);
   scope.set("env", args.engine.env);
   if (args.variant) scope.set("matrix", args.variant);

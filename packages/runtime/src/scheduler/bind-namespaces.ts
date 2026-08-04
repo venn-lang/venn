@@ -1,7 +1,9 @@
 import { namespaceValue, nativeFn } from "@venn-lang/core";
-import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
-import type { Registry } from "../registry/index.js";
+import type { ActionDefinition } from "@venn-lang/sdk";
 import type { Scope } from "../scope/index.js";
+import type { Engine } from "./engine.types.js";
+import type { VerbName } from "./split-values.types.js";
+import { runVerbValue } from "./verb-value.js";
 
 /**
  * Put every plugin namespace in the root scope as a value, so its verbs work
@@ -13,21 +15,21 @@ import type { Scope } from "../scope/index.js";
  * so those stay written as statements, where the runtime awaits them.
  */
 export function bindNamespaces(args: {
-  registry: Registry;
-  ctx: ActionContext;
+  engine: Engine;
   scope: Scope;
   /** What the file called each namespace. Absent means every one, by its own name. */
   named?: ReadonlyMap<string, string>;
 }): void {
   const byNamespace = new Map<string, Record<string, unknown>>();
-  for (const entry of args.registry.actions()) {
+  for (const entry of args.engine.registry.actions()) {
     const members = byNamespace.get(entry.namespace) ?? {};
-    place({ members, path: entry.name, action: entry.action, ctx: args.ctx });
+    const name = { namespace: entry.namespace, action: entry.name };
+    place({ members, path: entry.name, action: entry.action, name, engine: args.engine });
     byNamespace.set(entry.namespace, members);
   }
   // A constant is placed the same way a verb is, so `math.pi` and `math.sin(x)`
   // are read off one object and nothing downstream has to know the difference.
-  for (const { namespace, value } of args.registry.values()) {
+  for (const { namespace, value } of args.engine.registry.values()) {
     const members = byNamespace.get(namespace) ?? {};
     members[value.name] = value.value;
     byNamespace.set(namespace, members);
@@ -58,7 +60,8 @@ function place(args: {
   members: Record<string, unknown>;
   path: string;
   action: ActionDefinition;
-  ctx: ActionContext;
+  name: VerbName;
+  engine: Engine;
 }): void {
   const parts = args.path.split(".");
   const leaf = parts.pop();
@@ -68,19 +71,18 @@ function place(args: {
     level[part] = (level[part] as Record<string, unknown>) ?? {};
     level = level[part] as Record<string, unknown>;
   }
-  level[leaf] = verb(args.action, args.ctx);
+  level[leaf] = verb(args);
 }
 
-function verb(action: ActionDefinition, ctx: ActionContext): unknown {
-  return nativeFn((values) => action.run(ctx, { args: values, params: params(action) }));
-}
-
-/** No options map in expression position, so let the schema supply its defaults. */
-function params(action: ActionDefinition): unknown {
-  if (!action.params) return {};
-  try {
-    return action.params.parse({});
-  } catch {
-    return {};
-  }
+/**
+ * One verb as a value.
+ *
+ * Everything a call means is settled by `runVerbValue`, which is what the
+ * statement form settles too. This used to decide it here and differently: the
+ * trailing map was passed on as an argument and the options came from
+ * `params.parse({})`, so `crypto.hash("x", { algorithm: "sha512" })` inside a
+ * `print` hashed with sha256 and said nothing.
+ */
+function verb(args: { action: ActionDefinition; name: VerbName; engine: Engine }): unknown {
+  return nativeFn((values) => runVerbValue({ ...args, values }));
 }

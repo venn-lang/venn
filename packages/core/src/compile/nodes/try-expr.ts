@@ -6,7 +6,7 @@ import { isWaiting } from "../../expr/pending.js";
 import type { TryExpr } from "../../generated/ast.js";
 import { caughtValue, isFailure } from "../../problem/index.js";
 import type { Thunk } from "../compile.types.js";
-import type { LexScope } from "../lex-scope.js";
+import { type LexScope, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
 
 /**
@@ -24,7 +24,7 @@ export function compileTry(expr: TryExpr, scope: LexScope, compileIn: CompileIn)
   const attempt = compileIn(expr.attempt, scope);
   const fallback = compileIn(expr.fallback, scope);
   // -1 outside a function body, where there is no frame to write the name into.
-  const slot = expr.error ? scope.names.indexOf(expr.error) : -1;
+  const slot = expr.error ? slotOf(scope, expr.error) : -1;
   const name = expr.error;
   return (env) => {
     try {

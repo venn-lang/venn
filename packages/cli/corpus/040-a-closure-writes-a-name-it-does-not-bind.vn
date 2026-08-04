@@ -1,0 +1,7 @@
+let g = "before"
+let touch = fn () {
+  g = "after"
+  return "ran"
+}
+let done = touch()
+seen = "${done} g=${g}"

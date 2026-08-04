@@ -6,8 +6,7 @@
     "packages/lsp/src/completion/completion.ts": 418,
     "packages/lsp/src/hover/hover.ts": 338,
     "packages/runtime/src/check/the-lint-family.test.ts": 302,
-    "packages/runtime/src/run/pattern-matching.test.ts": 304,
-    "packages/runtime/src/run/same-in-a-fn.test.ts": 388
+    "packages/runtime/src/run/pattern-matching.test.ts": 304
   },
   "functions over 15 lines": {
     "packages/cli/src/bin/moved.test.ts": 1,
@@ -304,7 +303,6 @@
     "packages/runtime/src/run/pattern-matching.test.ts": 5,
     "packages/runtime/src/run/resolve-imports.test.ts": 3,
     "packages/runtime/src/run/resolve-imports.ts": 2,
-    "packages/runtime/src/run/same-in-a-fn.test.ts": 2,
     "packages/runtime/src/run/script-lifecycle.test.ts": 3,
     "packages/runtime/src/run/script-mode.test.ts": 1,
     "packages/runtime/src/run/spread.test.ts": 4,

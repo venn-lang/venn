@@ -8,7 +8,7 @@
 
 import { CODES } from "../codes/index.js";
 import type { MatchArm, MatchExpr, Pattern } from "../generated/ast.js";
-import { type Asked, patternTests } from "../pattern/index.js";
+import { type Asked, type PatternTest, patternTests } from "../pattern/index.js";
 import { checkBlock } from "./check-stmts.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
 import { tagAt, written } from "./narrow.js";
@@ -121,8 +121,15 @@ function reaches(branch: Type, arm: MatchArm): boolean {
   return arm.patterns.some((pattern) => couldBe(branch, pattern));
 }
 
+/**
+ * Whether the branch could be what this pattern matches.
+ *
+ * Only a literal rules a branch out here: a shape test asks about a value's
+ * runtime form, which a tag says nothing about, so it settles neither way.
+ */
 function couldBe(branch: Type, pattern: Pattern): boolean {
   return patternTests(pattern).every((test) => {
+    if (test.asks !== "is") return true;
     const tag = tagAt(branch, test.path);
     return tag === undefined || tag === test.value;
   });
@@ -138,11 +145,28 @@ function couldBe(branch: Type, pattern: Pattern): boolean {
  * A guarded arm settles nothing at all, whatever its pattern says: the condition
  * may fail, and then the case is still nobody's. That is what keeps a match
  * whose only arm for a branch is guarded from passing for complete.
+ *
+ * A shape settles nothing either, and used to settle everything: an empty test
+ * list is the catch-all, and a pattern made of names had one, so arm one took
+ * every branch and every arm after it was reported unreachable. `{ user }` then
+ * `{ order }` then a catch-all, which is how a payload is ordinarily dispatched,
+ * did not compile.
  */
 function taken(branch: Type, arm: MatchArm): boolean {
-  return arm.patterns.some((pattern) =>
-    patternTests(pattern).every((test) => tagAt(branch, test.path) === test.value),
-  );
+  return arm.patterns.some((pattern) => settles(branch, patternTests(pattern)));
+}
+
+/** A literal in the pattern, which is the only test that files a branch. */
+type Literal = Extract<PatternTest, { asks: "is" }>;
+
+const isLiteral = (test: PatternTest): test is Literal => test.asks === "is";
+
+function settles(branch: Type, tests: readonly PatternTest[]): boolean {
+  const literals = tests.filter(isLiteral);
+  // Nothing to file it under: either the catch-all, which is no test at all, or
+  // a shape, which says nothing about which branch of a union this is.
+  if (literals.length === 0) return tests.length === 0;
+  return literals.every((test) => tagAt(branch, test.path) === test.value);
 }
 
 function bodyType(args: {
@@ -173,6 +197,17 @@ function report(args: {
   arms: readonly Arm[];
   infer: Infer;
 }): void {
+  if (args.expr.arms.length === 0) noArms(args.expr, args.infer);
+  else casesLeft(args);
+}
+
+/** What the arms did not settle between them, once there are arms at all. */
+function casesLeft(args: {
+  expr: MatchExpr;
+  left: readonly Type[];
+  arms: readonly Arm[];
+  infer: Infer;
+}): void {
   const { expr, left, arms, infer } = args;
   expr.arms.forEach((arm, at) => {
     if (arms[at] && !arms[at].reachable) unreachable(arm, infer);
@@ -189,8 +224,25 @@ function known(tag: Asked | undefined): tag is Asked {
 
 /** What a branch is filed under, read at the path the arms are asking about. */
 function tagOfBranch(branch: Type, expr: MatchExpr): Asked | undefined {
-  const first = expr.arms.flatMap((arm) => arm.patterns.flatMap(patternTests))[0];
+  const asked = expr.arms.flatMap((arm) => arm.patterns.flatMap(patternTests));
+  const first = asked.find((test) => test.asks === "is");
   return first && tagAt(branch, first.path);
+}
+
+/**
+ * `match k { }`: no arm, so nothing to decide and nothing to give back.
+ *
+ * It answered `null` and satisfied a declared `-> string`, because the first arm
+ * of none has no tag and arms that do not exist agree on anything.
+ */
+function noArms(expr: MatchExpr, infer: Infer): void {
+  infer.ctx.mismatches.push({
+    node: expr.subject,
+    expected: DYNAMIC,
+    actual: DYNAMIC,
+    code: CODES.VN3019_MISSING_CASE,
+    sentence: "This `match` has no arms, so there is nothing here it can decide.",
+  });
 }
 
 function unreachable(arm: MatchArm, infer: Infer): void {

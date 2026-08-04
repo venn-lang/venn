@@ -1,0 +1,3 @@
+let label = fn (k) => match k {
+}
+seen = "[${label(1)}]"

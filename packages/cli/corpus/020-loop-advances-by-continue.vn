@@ -1,0 +1,5 @@
+loop n = 1 {
+  if n > 3 { break }
+  seen = "${seen}${n} "
+  continue n + 1
+}

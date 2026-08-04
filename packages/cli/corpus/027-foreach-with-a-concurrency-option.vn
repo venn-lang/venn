@@ -1,0 +1,5 @@
+# differs fnDecl a pure body runs one pass at a time, so the option is refused there
+# differs fnExpr a pure body runs one pass at a time, so the option is refused there
+forEach x in [1, 2] { concurrency: 2 } {
+  seen = "${seen}${x} "
+}

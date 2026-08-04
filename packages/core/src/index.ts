@@ -52,7 +52,12 @@ export {
   specifierKind,
 } from "./module/index.js";
 export type { ParseOutput } from "./parse/index.js";
-export { EXPRESSION_OFFSET, parse, parseExpression } from "./parse/index.js";
+export {
+  EXPRESSION_OFFSET,
+  parse,
+  parseExpression,
+  pureBodyCannotCall,
+} from "./parse/index.js";
 export {
   type Asked,
   answers,

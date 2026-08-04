@@ -122,7 +122,7 @@ async function runPrelude(engine: Engine, call: Invocation, scope: Scope): Promi
   if (call.target === "print") return printLine(engine, args);
   if (call.target === "log") return logLine(engine, args);
   const message = String(args[0] ?? "");
-  if (call.target === "wait") await engine.clock.sleep(waitMs(args[0]));
+  if (call.target === "wait") await waitFor(engine, waitMs(args[0]));
   else if (call.target === "skip") skipLog(engine, message);
   else if (call.target === "exit") throw new ExitSignal(exitCode(args[0]));
   else if (call.target === "fail") {
@@ -167,6 +167,19 @@ function exitCode(value: unknown): number {
 
 function skipLog(engine: Engine, message: string): void {
   engine.emitter.emit({ kind: "log", data: { level: "warn", message: `skipped: ${message}` } });
+}
+
+/**
+ * `wait 5s`, ended the moment the scope it runs in is called off.
+ *
+ * The check afterwards is what makes `wait` a boundary of its own. A cancelled
+ * sleep resolves rather than rejecting, so a `wait` written last in a branch
+ * would otherwise run out early and report the branch as having passed.
+ */
+async function waitFor(engine: Engine, ms: number): Promise<void> {
+  await engine.clock.sleep(ms, engine.cancel?.signal);
+  const stop = engine.cancel?.stopped();
+  if (stop !== undefined) throw stop;
 }
 
 function waitMs(value: unknown): number {

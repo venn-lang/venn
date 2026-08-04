@@ -1,6 +1,7 @@
 import type { Clock, LockProvider } from "@venn-lang/contracts";
 import type { FragmentDecl } from "@venn-lang/core";
 import type { ActionContext, PluginDefinition } from "@venn-lang/sdk";
+import type { CancelScope } from "../cancel/index.js";
 import type { Emitter } from "../emit/index.js";
 import type { Registry } from "../registry/index.js";
 import type { Scope } from "../scope/index.js";
@@ -43,8 +44,15 @@ export interface Engine {
   aliases: ReadonlyMap<string, string>;
   /** `@flaky(ratio)` tallies per annotated node, settled at the end of the run. */
   flaky: Map<object, FlakyTally>;
-  /** Set on a `race` branch: once aborted, the branch stops at its next statement. */
-  signal?: AbortSignal;
+  /**
+   * How this part of the run ends: its own cancellation, and every one above it.
+   *
+   * Set by `@timeout`, `race` and `parallel`, composed rather than replaced at
+   * each level, and read at every statement boundary and every loop back edge.
+   * Absent on the cleanup path, where a `defer` has to reach the world it is
+   * giving back even though what it tidies was cancelled.
+   */
+  cancel?: CancelScope;
   /** What a script-mode program owes the machine when it ends. */
   cleanup: CleanupSink;
   env: Record<string, unknown>;

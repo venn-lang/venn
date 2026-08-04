@@ -38,7 +38,7 @@ import { runRepeat } from "./run-repeat.js";
 import { runRun } from "./run-run.js";
 import { runStep } from "./run-step.js";
 import { runTry } from "./run-try.js";
-import { BreakSignal, CancelSignal, ContinueSignal } from "./signals.js";
+import { BreakSignal, ContinueSignal } from "./signals.js";
 
 /** Run a block's statements in order. */
 export async function runStatements(
@@ -62,7 +62,8 @@ export async function runStatements(
  * node carries, so one switch answers what thirteen questions would.
  */
 export function runStatement(engine: Engine, stmt: Statement, scope: Scope): Pending {
-  if (engine.signal?.aborted) throw new CancelSignal();
+  const stop = engine.cancel?.stopped();
+  if (stop !== undefined) throw stop;
   switch (stmt.$type) {
     case "LetStmt":
       return runLet(engine, stmt as LetStmt, scope);

@@ -11,8 +11,8 @@ import { binderFor, type Scope } from "../scope/index.js";
 import { runPool } from "./concurrency.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
-import { optsNumber } from "./opts.js";
 import type { Pending } from "./pending.types.js";
+import { readOptions } from "./read-options.js";
 import { runBlock } from "./run-block.js";
 import { settle } from "./settled.js";
 import { BreakSignal, ContinueSignal } from "./signals.js";
@@ -21,7 +21,8 @@ import { BreakSignal, ContinueSignal } from "./signals.js";
 export async function runForEach(engine: Engine, stmt: ForEachStmt, scope: Scope): Promise<void> {
   const source = await settle(evaluate(stmt.source, scope));
   if (!Array.isArray(source)) throw notAList({ engine, stmt, source });
-  const concurrency = optsNumber(stmt.opts, "concurrency", scope) ?? 1;
+  const opts = await readOptions({ opts: stmt.opts, kind: "ForEachStmt", scope, uri: engine.uri });
+  const concurrency = (opts.concurrency as number | undefined) ?? 1;
   // One at a time is the default and by far the common case: run it as a plain
   // loop rather than through the pool, which allocates a worker, an array and a
   // `Promise.all` to supervise a single sequential walk.
@@ -85,6 +86,8 @@ function sequential(
   scope: Scope,
 ): Pending {
   for (let at = 0; at < items.length; at += 1) {
+    const stop = engine.cancel?.stopped();
+    if (stop !== undefined) throw stop;
     try {
       const pending = onePass({ engine, stmt, item: items[at], scope });
       if (pending) return resume({ engine, stmt, items, from: at + 1, scope, pending });
@@ -109,6 +112,8 @@ async function resume(args: {
   const { engine, stmt, items, scope } = args;
   if (await stopped(args.pending)) return;
   for (let at = args.from; at < items.length; at += 1) {
+    const stop = engine.cancel?.stopped();
+    if (stop !== undefined) throw stop;
     try {
       await onePass({ engine, stmt, item: items[at], scope });
     } catch (error) {
@@ -151,7 +156,7 @@ async function concurrently(args: {
     items: args.items,
     limit: args.concurrency,
     task: (item) => runIteration({ ...args, item, broke }),
-    stop: () => broke.yet,
+    stop: () => broke.yet || args.engine.cancel?.stopped() !== undefined,
   });
 }
 

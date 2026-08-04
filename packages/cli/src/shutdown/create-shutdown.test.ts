@@ -26,8 +26,10 @@ describe("createShutdown", () => {
     expect(closed).toBe(1);
   });
 
-  // Leaving is the goal: one closer that throws must not strand the others.
-  it("keeps going when a closer fails", async () => {
+  // Leaving is the goal: one closer that throws must not strand the others. It
+  // is handed back rather than swallowed, so the command does not leave saying
+  // it gave back what it is still holding.
+  it("keeps going when a closer fails, and says which one did", async () => {
     const order: string[] = [];
     const shutdown = createShutdown();
     shutdown.add(() => void order.push("database"));
@@ -35,8 +37,10 @@ describe("createShutdown", () => {
       throw new Error("socket refused to die");
     });
 
-    await expect(shutdown.close()).resolves.toBeUndefined();
+    const failures = await shutdown.close();
+
     expect(order).toEqual(["database"]);
+    expect(String(failures[0])).toContain("socket refused to die");
   });
 
   it("forgets what was unregistered, a file's server is not the run's", async () => {

@@ -8,6 +8,7 @@ import { declaredEnv, loadEnv, loadManifest } from "../manifest/index.js";
 import type { Reporter, RunTotals } from "../reporters/index.js";
 import { pickReporter, reportProblems } from "../reporters/index.js";
 import { collectSourceFiles } from "../run/collect-files.js";
+import { watchForAStuckRun } from "../run/index.js";
 import { createNodeModuleIo } from "../run/node-io.js";
 import { createNpmLoader } from "../run/npm-loader.js";
 import { type RunFileArgs, type RunFileOutcome, runFile } from "../run/run-file.js";
@@ -47,7 +48,9 @@ export async function runCommand(options: RunOptions): Promise<number> {
   const shutdown = createShutdown();
   setProgramTitle({ command: "test", target: options.file });
   installHooks({ signals: createNodeSignals(), shutdown, exit: (code) => process.exit(code) });
+  const settled = watchForAStuckRun((line) => process.stderr.write(line));
   const totals = await runAll({ files, options, reporter, shutdown });
+  settled();
   reporter.finish(totals);
   // A suite that called `exit` named its own verdict, even `exit 0` after a
   // failure, which is the point of saying it.

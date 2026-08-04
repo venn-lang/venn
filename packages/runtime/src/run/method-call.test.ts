@@ -34,7 +34,7 @@ function plugin(sink: string[]) {
   });
 }
 
-async function program(source: string): Promise<{ out: string[]; end: () => Promise<void> }> {
+async function program(source: string): Promise<{ out: string[]; end: () => Promise<unknown> }> {
   const out: string[] = [];
   const cleanup = createCleanupList();
   const runner = createRunner({

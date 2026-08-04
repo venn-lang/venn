@@ -8,8 +8,9 @@ export interface Pool<T> {
    * Whether to stop handing work out.
    *
    * Asked before each item rather than after, so a `break` in one pass ends the
-   * loop instead of ending only the pass that wrote it. Absent means run them
-   * all, which is what `parallel` wants: its branches do not break each other.
+   * loop instead of ending only the pass that wrote it. Both callers ask their
+   * cancellation scope here as well, which is what stops a pool dispatching
+   * once the run around it has already been decided.
    */
   readonly stop?: () => boolean;
 }

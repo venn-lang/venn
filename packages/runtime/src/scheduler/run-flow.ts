@@ -32,8 +32,10 @@ async function runFlowBody(engine: Engine, flow: FlowDecl, scope: Scope): Promis
         node: flow,
         scope,
         title: flow.title,
+        // The body takes the engine rather than closing over it: a `@timeout`
+        // makes a scope for the body, and one closed over here would never see it.
         // The caller wants a promise; a block that never suspended returns none.
-        run: () => runAround(flow, () => runBlock(engine, flow.body, scope)),
+        run: (scoped) => runAround(flow, () => runBlock(scoped, flow.body, scope)),
       }),
     );
   } catch (error) {

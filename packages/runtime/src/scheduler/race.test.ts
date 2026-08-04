@@ -62,3 +62,27 @@ describe("race cancellation", () => {
     expect(seen).toEqual(["fast"]);
   });
 });
+
+/**
+ * `Promise.race([])` is pending for ever, so an empty block used to delete
+ * everything after it from the run: no `run.finished`, no `teardown`, and the
+ * process left with 0 because the event loop had drained.
+ */
+const EMPTY = `flow "one" {
+  race { }
+  expect 1 == 2
+}
+flow "two" { log "two ran" }`;
+
+describe("a race with no branches", () => {
+  it("settles at once, so the rest of the run still happens", async () => {
+    const sink = createMemorySink();
+    const runner = createRunner({ host: createTestHost(), plugins: [], sink });
+
+    await runner.run(parse(EMPTY).ast);
+    const kinds = sink.envelopes.map((one) => one.kind);
+
+    expect(kinds).toContain("run.finished");
+    expect(JSON.stringify(sink.envelopes)).toContain("two ran");
+  });
+});

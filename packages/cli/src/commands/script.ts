@@ -7,6 +7,7 @@ import { declaredEnv, envDirOf, loadEnv, loadManifest } from "../manifest/index.
 import { createProblemSink, errorLine, reportProblems } from "../reporters/index.js";
 import type { Ending } from "../run/ending.types.js";
 import { exitCodeOf } from "../run/exit-code.js";
+import { watchForAStuckRun } from "../run/index.js";
 import { createNodeModuleIo } from "../run/node-io.js";
 import { createNpmLoader } from "../run/npm-loader.js";
 import { type RunFileArgs, runFile } from "../run/run-file.js";
@@ -34,14 +35,29 @@ export async function scriptCommand(options: ScriptOptions): Promise<Ending> {
   const uri = resolve(options.file);
   const servers = createNodeServer();
   const shutdown = hooked({ servers, file: uri });
+  // A program whose work cannot settle never reaches any of the lines below, so
+  // the watch has to be armed before the run and disarmed by it.
+  const settled = watchForAStuckRun((line) => process.stderr.write(line));
   try {
-    const outcome = await runFile(await scriptArgs({ options, uri, servers, shutdown }));
-    if (outcome.problems.length > 0) return { code: report(outcome.problems), leave: true };
-    return await ending(exitCodeOf(outcome.result), asked(outcome.result), shutdown);
+    return await script({ options, uri, servers, shutdown, settled });
   } catch (error) {
+    settled();
     await shutdown.close();
     return { code: crashed(error), leave: true };
   }
+}
+
+async function script(args: {
+  options: ScriptOptions;
+  uri: string;
+  servers: NodeHttpServer;
+  shutdown: Shutdown;
+  settled: () => void;
+}): Promise<Ending> {
+  const outcome = await runFile(await scriptArgs(args));
+  args.settled();
+  if (outcome.problems.length > 0) return { code: report(outcome.problems), leave: true };
+  return await ending(exitCodeOf(outcome.result), asked(outcome.result), args.shutdown);
 }
 
 /** Whether the program said when to stop, rather than simply running out of lines. */

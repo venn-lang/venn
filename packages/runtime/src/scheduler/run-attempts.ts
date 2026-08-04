@@ -11,6 +11,7 @@ import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
 import type { Scoped, TimeoutArgs } from "./run-attempts.types.js";
 import { isControlSignal } from "./signals.js";
+import { forget, scopeTally } from "./tally.js";
 
 interface AnnotatedNode extends SpanNode {
   annotations: Annotation[];
@@ -25,10 +26,10 @@ export async function runWithAnnotations(args: {
   run: Scoped;
 }): Promise<void> {
   const bounds = { timeoutMs: readTimeout(args.node), where: nodeSpan(args.node, args.engine.uri) };
-  const attempt = (): Promise<void> =>
-    withTimeout({ engine: args.engine, ...bounds, run: args.run });
+  const attempt = (engine: Engine): Promise<void> =>
+    withTimeout({ engine, ...bounds, run: args.run });
   const retry = readRetry(args.node);
-  if (!retry || retry.attempts === 0) return attempt();
+  if (!retry || retry.attempts === 0) return attempt(args.engine);
   await withRetry({ engine: args.engine, retry, title: args.title, run: attempt });
 }
 
@@ -141,18 +142,20 @@ async function withRetry(args: {
   engine: Engine;
   retry: RetrySpec;
   title: string;
-  run: () => Promise<void>;
+  run: Scoped;
 }): Promise<void> {
   const total = args.retry.attempts + 1;
   for (let i = 1; i <= total; i++) {
-    const snapshot = { ...args.engine.result };
     const outcome = await attempt(args.engine, args.run);
     if (outcome.ok) return;
     if (i >= total) {
       if (outcome.error) throw outcome.error;
       return;
     }
-    Object.assign(args.engine.result, snapshot);
+    // Only what this attempt counted. Putting a remembered total back over the
+    // run's counter erased whatever a concurrent sibling had failed with in the
+    // meantime, and a run with a genuine failure in it reported none.
+    forget(args.engine, outcome.failed);
     emitRetrying({ engine: args.engine, title: args.title, attempt: i });
     await backoffPause(args.engine, backoff(args.retry, i));
   }
@@ -170,16 +173,25 @@ async function backoffPause(engine: Engine, ms: number): Promise<void> {
 interface AttemptOutcome {
   ok: boolean;
   error?: unknown;
+  /** What this attempt failed by, which is what a discarded one gives back. */
+  failed: number;
 }
 
-async function attempt(engine: Engine, run: () => Promise<void>): Promise<AttemptOutcome> {
-  const before = engine.result.failed;
+/**
+ * One attempt, under a tally of its own.
+ *
+ * `ok` asks whether THIS attempt failed. Asked of the run's counter it read
+ * every concurrent sibling too, so a step that did its work once re-ran it
+ * because a branch beside it had failed while it was running.
+ */
+async function attempt(engine: Engine, run: Scoped): Promise<AttemptOutcome> {
+  const { engine: scoped, tally } = scopeTally(engine);
   try {
-    await run();
-    return { ok: engine.result.failed === before };
+    await run(scoped);
+    return { ok: tally.count === 0, failed: tally.count };
   } catch (error) {
     if (isControlSignal(error)) throw error;
-    return { ok: false, error };
+    return { ok: false, error, failed: tally.count };
   }
 }
 

@@ -133,3 +133,38 @@ describe("what a `try` may not erase", () => {
     expect(result.failed).toBe(1);
   });
 });
+
+/**
+ * An attempt `@retry` threw away takes its failures with it, all the way up.
+ *
+ * A discarded attempt's hard assertion never reports at all, because the retry
+ * catches the throw below the frame that would have reported it. A soft one is
+ * different: it records and does not throw, so the attempt is judged failed by
+ * a tally that already rose, and what rose has to come back down in the step
+ * and the flow above as well as in the run's own total. Subtracting from the
+ * run alone would leave the step reporting failed for a failure the run no
+ * longer counts.
+ */
+describe("an attempt that was retried away", () => {
+  it("takes its soft failures out of every verdict above it", async () => {
+    const { sink, result } = await ran(`let n = 0
+flow "soft then clean" {
+  @retry(3)
+  step "settles" {
+    n = n + 1
+    if n < 3 { expect.soft false }
+  }
+}`);
+
+    expect(kindsIn(sink).filter((kind) => kind === "expect.soft_failed")).toHaveLength(2);
+    expect(verdicts(sink, "step.finished")).toEqual(["passed"]);
+    expect(verdicts(sink, "flow.finished")).toEqual(["passed"]);
+    expect(result.failed).toBe(0);
+  });
+});
+
+function verdicts(sink: MemorySink, kind: EventKind): string[] {
+  return sink.envelopes
+    .filter((envelope) => envelope.kind === kind)
+    .map((envelope) => ("status" in envelope.data ? String(envelope.data.status) : ""));
+}

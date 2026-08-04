@@ -1,6 +1,7 @@
 import { fc, test } from "@fast-check/vitest";
 import { describe, expect, it } from "vitest";
 import { parse } from "./index.js";
+import { saidLexerError } from "./said-error.js";
 
 /**
  * Sources that parse, which is what a file looks like a keystroke before it
@@ -124,4 +125,27 @@ describe("what a problem's first line is", () => {
       }
     },
   );
+});
+
+/**
+ * The vendor's messages are matched by shape, so the day one of them changes
+ * shape the fallback is what a user reads.
+ *
+ * Both patterns here are Chevrotain's wording, not a contract it owes us, and a
+ * lexer upgrade is exactly the change that would slip a raw sentence back into
+ * a title without any test noticing. This is the guarantee that it cannot: an
+ * unrecognised message is still one line in the product's voice, and never the
+ * message itself.
+ */
+describe("a lexer message nobody recognises", () => {
+  it("is still said in the language's own voice", () => {
+    const said = saidLexerError("NoViableAltException at 0x1f: expected TK_LBRACE, got EOF");
+
+    expect(said).toBe("Venn cannot read this part of the file.");
+  });
+
+  it("still names the character and the bracket it does recognise", () => {
+    expect(saidLexerError("unexpected character: ->§<- at offset: 18")).toContain("`§`");
+    expect(saidLexerError("unclosed bracket: ->(<- at offset: 10")).toContain("never closed");
+  });
 });

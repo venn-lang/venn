@@ -19,14 +19,44 @@ export function unknownOptions(args: {
   params: unknown;
   uri: string;
 }): Problem[] {
-  const specs = paramSpecs(args.params as never);
-  if (!args.opts || specs.length === 0 || welcomesMore(args.params)) return [];
+  const specs = declaredKeys(args.params);
+  if (!args.opts || specs.length === 0) return [];
   const known = new Set(specs.map((spec) => spec.name));
   // An entry poured in with `...` brings keys nobody wrote here, so there is no
   // written key to call unknown.
   return args.opts.entries
     .filter((entry) => entry.key !== undefined && !known.has(entry.key))
     .map((entry) => unknownOption({ entry, specs, uri: args.uri }));
+}
+
+/**
+ * The keys a schema declares, or none where every key is welcome.
+ *
+ * Split out so a call whose options arrived as a value rather than as a written
+ * map is held to the same list: the same typo has to read the same way whether
+ * it was bound with `const` or written inside a `print`.
+ *
+ * @param params The verb's or matcher's options schema.
+ * @returns One spec per declared key, empty where there is nothing to refuse.
+ */
+export function declaredKeys(params: unknown): readonly ParamSpec[] {
+  const specs = paramSpecs(params as never);
+  return welcomesMore(params) ? [] : specs;
+}
+
+/**
+ * What to say about a key nobody declared, without a written entry to point at.
+ *
+ * @param key The key the options carried.
+ * @param specs What {@link declaredKeys} answered for the schema.
+ * @returns The sentence, in the words the written form uses.
+ */
+export function strayKeyTitle(key: string, specs: readonly ParamSpec[]): string {
+  const hint = nearest(key, specs);
+  const accepted = specs.map((spec) => spec.name).join(", ");
+  return hint
+    ? `"${key}" is not an option here. Did you mean "${hint}"?`
+    : `"${key}" is not an option here. Accepted: ${accepted}.`;
 }
 
 /**
@@ -47,16 +77,10 @@ function unknownOption(args: {
   specs: readonly ParamSpec[];
   uri: string;
 }): Problem {
-  const key = args.entry.key as string;
-  const hint = nearest(key, args.specs);
-  const accepted = args.specs.map((spec) => spec.name).join(", ");
-  const title = hint
-    ? `"${key}" is not an option here. Did you mean "${hint}"?`
-    : `"${key}" is not an option here. Accepted: ${accepted}.`;
   return buildProblem({
     spec: CODES.VN3001_UNKNOWN_OPTION,
     span: nodeSpan(args.entry, args.uri),
-    title,
+    title: strayKeyTitle(args.entry.key as string, args.specs),
   });
 }
 

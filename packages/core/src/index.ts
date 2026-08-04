@@ -54,8 +54,10 @@ export {
 export type { ParseOutput } from "./parse/index.js";
 export {
   EXPRESSION_OFFSET,
+  KEYWORDS,
   parse,
   parseExpression,
+  parseProblems,
   pureBodyCannotCall,
 } from "./parse/index.js";
 export {
@@ -75,6 +77,7 @@ export {
   type Step,
   slotValue,
 } from "./pattern/index.js";
+export { stepTitlesOf } from "./plan/index.js";
 export * from "./problem/index.js";
 // Where a node is: one answer, `${…}` included.
 export * from "./span/index.js";

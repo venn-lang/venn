@@ -8,3 +8,13 @@ export type RunId = string & { readonly __brand: "RunId" };
  * tree. Never a numeric index: an edit would silently desync history.
  */
 export type NodePath = string & { readonly __brand: "NodePath" };
+
+/**
+ * One run of one step, minted when it starts.
+ *
+ * Distinct from {@link NodePath}, which names a step in the source: a step
+ * inside a `forEach` has one path and one id per pass. This is what tells two
+ * overlapping steps apart, which is what `parallel` and `race` produce by
+ * design.
+ */
+export type StepId = string & { readonly __brand: "StepId" };

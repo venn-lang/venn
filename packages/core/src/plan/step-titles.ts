@@ -1,15 +1,5 @@
-import {
-  type Block,
-  type Document,
-  type FlowDecl,
-  type IfStmt,
-  isBlock,
-  isFragmentDecl,
-  isIfStmt,
-  isRunStmt,
-  isStepDecl,
-  type Statement,
-} from "@venn-lang/core";
+import type { Block, Document, FlowDecl, IfStmt, Statement } from "../generated/ast.js";
+import { isBlock, isFragmentDecl, isIfStmt, isRunStmt, isStepDecl } from "../generated/ast.js";
 
 interface Walk {
   document: Document;

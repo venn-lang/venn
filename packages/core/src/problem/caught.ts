@@ -1,5 +1,7 @@
-import type { Problem } from "./problem.types.js";
+import { UNKNOWN_CODE } from "./problem-of.js";
 import type { Span } from "./span.types.js";
+import { spanIn } from "./span-in.js";
+import type { Thrown } from "./thrown.types.js";
 
 /**
  * A failure as a value a program can read.
@@ -22,23 +24,17 @@ export interface Caught {
   data: unknown;
 }
 
-/** The default for a failure that carried no code of its own. */
-const UNKNOWN = "VN7000";
-
-/** What a thrown value may be carrying, whoever threw it. */
-interface Thrown {
-  message?: string;
-  code?: string;
-  problem?: Problem;
-  detail?: { data?: unknown; where?: Span };
-}
-
 /**
  * What `catch` binds, from whatever was thrown.
  *
  * A `ProblemError` keeps its code inside the problem and a `VennError` keeps it
  * on itself, so both are asked. Reading only the second handed `VN7000` back for
  * every failure the compiler raises, which is most of them.
+ *
+ * A code is taken as it comes, unlike the one a reporter renders: `e.code ==
+ * "pay.declined"` is the whole point of the field, nothing downstream of a
+ * program promises it is catalogued, and a program that met an `ENOENT` is
+ * better off being told so than being handed `VN7000`.
  *
  * Nothing is unwrapped on the way through. A secret redacts itself when it is
  * serialised, so a secret that reached a failure is still redacted when the
@@ -52,9 +48,9 @@ export function caughtValue(failure: unknown): Caught {
   const held = failure as Thrown | undefined;
   const problem = held?.problem;
   return {
-    code: problem?.code ?? held?.code ?? UNKNOWN,
+    code: problem?.code ?? held?.code ?? UNKNOWN_CODE,
     message: held?.message ?? String(failure),
-    where: placeOf(problem?.span ?? held?.detail?.where),
+    where: placeOf(problem?.span ?? spanIn(held?.detail)),
     help: problem?.help ?? null,
     docs: problem?.docs ?? null,
     data: held?.detail?.data ?? null,

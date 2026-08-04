@@ -164,3 +164,37 @@ describe("a binding a closure captured", () => {
   it("is that arm's name, where a `match` bound it", whatTheMatchArmBound);
   it("costs a loop that captures nothing no cell at all", aLoopThatCapturesNothing);
 });
+
+function reachesTwoBodiesOut(): void {
+  const answer = made(
+    '  let far = "two out"',
+    "  let middle = fn () {",
+    "    let inner = fn () => far",
+    "    return inner()",
+    "  }",
+    "  return middle()",
+  );
+
+  expect(answer).toBe("two out");
+}
+
+function keepsReadingAfterAWrite(): void {
+  const answer = made(
+    '  let far = "first"',
+    "  let seeIt = fn () => far",
+    '  far = "second"',
+    "  return seeIt()",
+  );
+
+  expect(answer).toBe("second");
+}
+
+/**
+ * A closure two bodies down reaches a name through the free list of the body
+ * between, which is what lets it arrive without walking a chain of frames at
+ * every call.
+ */
+describe("where else a captured name lives", () => {
+  it("reaches a name two bodies out, through the free list between", reachesTwoBodiesOut);
+  it("keeps reading it after the name it came from is written again", keepsReadingAfterAWrite);
+});

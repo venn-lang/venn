@@ -972,6 +972,10 @@ capture orderId = mail.body ~= r"Order #(\d+)" { group: 1 }
 
 > **Escopo de `capture`.** Uma captura é visível do ponto de declaração até o fim do bloco. Dentro de `parallel`, cada ramo tem escopo próprio, capturar num ramo e ler no irmão é erro de compilação, não corrida silenciosa em runtime.
 
+> **Um `expect` que falha encerra o step.** É o que dá sentido às outras duas formas: `.soft` só quer dizer alguma coisa se a forma simples parar, e `.all` só precisa de nome porque avalia todas as verificações antes de parar uma vez. Depois de `expect res.status == 200` falhar, o resto do step correria contra um estado que já se sabe errado, e um `db.exec "TRUNCATE orders CASCADE"` escrito abaixo é destrutivo e nunca devia ter sido alcançado.
+>
+> A falha é um valor, e por isso `try { expect ... } catch e { … }` a apanha: `e.code` é `VN6001`. É assim que a especificação escreve uma falha esperada, e é a mesma regra da §16, sem nada de novo para aprender.
+
 
 ---
 
@@ -1323,6 +1327,12 @@ operador. É a regra do Swift, e existe porque parêntese depois de um valor é
 sempre chamada, então `print total (-1)` chamaria `total`. A regra vale igual num
 matcher: `expect xs contains -1`.
 
+E vale num padrão, onde não há nada de que subtrair: `match code { -1 => … }` casa
+o número negativo, e `match code { - 1 => … }` é recusado com o recado de escrever
+`-1`. A gramática não vê a diferença, porque `SignedNumber` junta as imagens dos
+tokens que casou e o espaço entre elas desaparece; a verificação que segue o parse
+lê o ficheiro e vê.
+
 ### Função sem nome
 
 Uma função também pode ser escrita no meio de uma expressão, para passar adiante. Um parâmetro dispensa os parênteses; mais de um exige. `fn (x) => …` continua valendo e diz exatamente a mesma coisa.
@@ -1575,12 +1585,15 @@ type Envelope = {
   kind:    EventKind
   node?:   NodePath     // "checkout/flow-checkout/step-cart"  ← chave de junção
   parent?: NodePath
+  step?:   StepId       // qual execução de qual step, quando duas se sobrepõem
   worker?: number       // qual worker emitiu, essencial sob concorrência
   data:    EventData[EventKind]
 }
 ```
 
 > **A chave de junção é o `@id`.** O mesmo identificador que ancora o layout do nó no grafo ancora o marcador na margem do editor e a linha na árvore de execução. Uma identidade, três superfícies. Se você emitir índice numérico em vez de `NodePath` derivado do `@id`, qualquer edição no arquivo desalinha silenciosamente todo o histórico, e você só descobre semanas depois.
+
+> **`node` diz qual step, `step` diz qual execução dele.** Um `step` dentro de um `forEach` tem um `NodePath` e um `StepId` por passagem, e `parallel` abre dois ao mesmo tempo por desenho. Sem o segundo, um relator que recebe duas aberturas seguidas não tem como saber a qual delas pertence a falha que chega depois, e atribui pela ordem de chegada, que é errada exatamente quando importa.
 
 ### Taxonomia
 
@@ -1593,13 +1606,17 @@ type Envelope = {
 | flow.retrying | tentativa, motivo, atraso | Badge de retentativa, sem duplicar a linha |
 | step.started / finished | status, duração | Ícone, cronômetro, cor do nó no grafo |
 | action.started / finished | namespace, ação, args redigidos, duração | As sublinhas `POST /auth/login · 0.2s` |
-| expect.passed / failed / soft_failed | `Problem` completo, com diff | Check verde ou abre o painel de erro |
+| expect.passed | a origem da asserção, como ela foi escrita | Check verde |
+| expect.failed / soft_failed | `Problem` completo, com diff | Abre o painel de erro |
+| failure | `Problem` completo | Toda falha que não é asserção: hook, ramo, verbo, timeout |
 | capture.set | nome, tipo, valor redigido | Inspetor de variáveis do step |
-| log | nível, mensagem, origem | Console lateral |
+| log | nível (`info` ou `warn`) e mensagem | Console lateral |
 | artifact.ready | tipo, caminho, tamanho, miniatura | Aba de artefatos, preview de screenshot |
 | browser.frame | JPEG base64, ~8fps | O preview ao vivo do navegador |
 | load.sample | janela de 1s: vus, rps, p50/p95/p99, erros | Gráficos de carga |
 | runner.heartbeat | vivo, uso de memória, workers ativos | Status `runner: executing` no rodapé |
+
+> **Uma falha nunca viaja como prosa.** Três envelopes carregam `Problem`, e qual deles diz que tipo de falha foi: `expect.failed` é uma asserção que o programa fez e perdeu, `expect.soft_failed` é uma que ele pediu para registar e seguir, `failure` é todo o resto. `expect.passed` não é um deles: uma asserção que passou não tem problema para carregar, e leva apenas a origem de como foi escrita. `log` também não é canal de falha, e por isso o seu nível não tem `error`: um relator que precisasse adivinhar o código a partir de uma linha de texto adivinharia errado.
 
 ### Volume e contrapressão
 
@@ -2680,9 +2697,11 @@ ShapePattern:
 
 LiteralValue infers Expr:
     {infer StringLit} value=STRING
-  | {infer NumberLit} raw=NUMBER
+  | {infer NumberLit} raw=SignedNumber
   | {infer BoolLit} value=('true' | 'false')
   | {infer NullLit} 'null';
+
+SignedNumber returns string: '-'? NUMBER;
 
 FieldPattern: name=ID (':' value=Pattern)?;
 
@@ -2817,11 +2836,11 @@ RefName returns string: ID | 'matrix' | 'flow' | 'step';
 Word returns string:
     ID | 'module' | 'as' | 'pub' | 'import' | 'from' | 'flow'
   | 'fragment' | 'fn' | 'deco' | 'return' | 'const' | 'let' | 'config'
-  | 'matrix' | 'type' | 'setup' | 'teardown'
+  | 'matrix' | 'type' | 'namespace' | 'setup' | 'teardown'
   | 'beforeEach' | 'afterEach' | 'defer' | 'on' | 'step' | 'group' | 'if'
-  | 'else' | 'forEach' | 'in' | 'repeat' | 'while' | 'parallel' | 'race' | 'try'
+  | 'else' | 'forEach' | 'in' | 'repeat' | 'loop' | 'parallel' | 'race' | 'try'
   | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
-  | 'all' | 'soft' | 'not' | 'match';
+  | 'all' | 'soft' | 'not' | 'match' | 'true' | 'false' | 'null';
 
 terminal NL: /([ \t]*(\r?\n|;)[ \t]*)+/;
 hidden terminal WS: /[ \t]+/;

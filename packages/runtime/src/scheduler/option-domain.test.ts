@@ -7,10 +7,15 @@ import { outsideItsDomain } from "./option-domain.js";
  * program, because the checker and the runtime both ask it and a reader must get
  * the same words whether the value was written down or came out of a variable.
  */
-const CHOICE: ParamSpec = { name: "onError", type: "string", values: ["stop", "collect"] };
-const COUNT: ParamSpec = { name: "concurrency", type: "number" };
-const TIME: ParamSpec = { name: "timeout", type: "duration" };
-const ANYTHING: ParamSpec = { name: "label", type: "string" };
+const CHOICE: ParamSpec = {
+  name: "onError",
+  type: "string",
+  required: false,
+  values: ["stop", "collect"],
+};
+const COUNT: ParamSpec = { name: "concurrency", type: "number", required: false };
+const TIME: ParamSpec = { name: "timeout", type: "duration", required: false };
+const ANYTHING: ParamSpec = { name: "label", type: "string", required: false };
 
 describe("an option that was not written", () => {
   it("is not wrong, because a default is the answer to a missing value", () => {

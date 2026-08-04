@@ -1,0 +1,8 @@
+let passes = 0
+loop n = 1 {
+  passes = passes + 1
+  if passes > 8 { break }
+  if n > 3 { break }
+  n = n + 1
+}
+seen = "${seen}${n}"

@@ -1,0 +1,5 @@
+let at = 1
+loop at <= 3 {
+  seen = "${seen}${at} "
+  at = at + 1
+}

@@ -1,0 +1,4 @@
+# differs fnDecl a `fn` is pure, so it may not call a verb where the top of a file may
+# differs fnExpr a `fn` is pure, so it may not call a verb where the top of a file may
+io.print "the verb ran"
+seen = "${seen}after"

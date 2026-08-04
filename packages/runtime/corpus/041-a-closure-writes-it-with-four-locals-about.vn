@@ -1,0 +1,11 @@
+let g = "before"
+let touch = fn () {
+  let a = 1
+  let b = 2
+  let c = 3
+  let d = 4
+  g = "after"
+  return "${a}${b}${c}${d}"
+}
+let done = touch()
+seen = "${done} g=${g}"

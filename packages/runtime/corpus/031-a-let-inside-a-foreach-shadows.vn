@@ -1,0 +1,7 @@
+# open fnDecl issue 265, a compiled body flattens every block into one slot list
+# open fnExpr issue 265, a compiled body flattens every block into one slot list
+let total = 0
+forEach x in [1, 2, 3] {
+  let total = x * 100
+}
+seen = "${total}"

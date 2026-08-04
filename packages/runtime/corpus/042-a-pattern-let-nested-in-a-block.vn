@@ -1,0 +1,9 @@
+let inside = fn () {
+  if true {
+    let q = 1
+    let { a } = { a: 7 }
+    return a + q
+  }
+  return 0
+}
+seen = "${inside()}"

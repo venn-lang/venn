@@ -1,0 +1,6 @@
+# open fnDecl issue 265, a compiled body flattens every block into one slot list
+# open fnExpr issue 265, a compiled body flattens every block into one slot list
+if true {
+  let inner = 5
+}
+seen = "[${inner}]"

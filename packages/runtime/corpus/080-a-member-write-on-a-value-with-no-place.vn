@@ -1,0 +1,5 @@
+let poke = fn (s) {
+  s.field = 1
+  return "wrote"
+}
+seen = poke(null)

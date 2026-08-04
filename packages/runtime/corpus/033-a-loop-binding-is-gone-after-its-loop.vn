@@ -1,0 +1,9 @@
+# open fnDecl issue 265, a compiled body flattens every block into one slot list
+# open fnExpr issue 265, a compiled body flattens every block into one slot list
+repeat 2 as i {
+  seen = "${seen}."
+}
+forEach z in [7] {
+  seen = "${seen}."
+}
+seen = "${seen} i=${i} z=${z}"

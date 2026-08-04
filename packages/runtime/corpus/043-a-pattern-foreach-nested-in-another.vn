@@ -1,0 +1,5 @@
+forEach { a } in [{ a: 1 }, { a: 2 }] {
+  forEach { b } in [{ b: 9 }] {
+    seen = "${seen}(${a},${b})"
+  }
+}

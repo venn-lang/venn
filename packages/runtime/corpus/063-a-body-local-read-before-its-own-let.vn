@@ -1,0 +1,4 @@
+forEach x in [1, 2, 3] {
+  seen = "${seen}[${carried}]"
+  let carried = x
+}

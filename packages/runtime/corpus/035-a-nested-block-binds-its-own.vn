@@ -1,0 +1,12 @@
+# open fnDecl issue 265, a compiled body flattens every block into one slot list
+# open fnExpr issue 265, a compiled body flattens every block into one slot list
+let x = "outer"
+repeat 1 {
+  let x = "middle"
+  repeat 1 {
+    let x = "inner"
+    seen = "${seen}${x} "
+  }
+  seen = "${seen}${x} "
+}
+seen = "${seen}${x}"

@@ -1,0 +1,5 @@
+let total = 0
+forEach x in [1, 2, 3] {
+  total = total + x
+}
+seen = "${total}"

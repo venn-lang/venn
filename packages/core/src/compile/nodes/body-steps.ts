@@ -5,9 +5,11 @@ import * as ast from "../../generated/ast.js";
 import { truthy } from "../../value/index.js";
 import type { Step } from "../compile.types.js";
 import type { LexScope } from "../lex-scope.js";
-import { unpack, wholeValueName } from "../unpack.js";
+import { unpack, wholeSlot } from "../unpack.js";
+import { assignStep } from "./assign-step.js";
 import type { CompileIn } from "./fn.js";
 import { checkedCount, checkedList } from "./loop-bound.js";
+import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 
 /**
  * One statement of a function body, compiled.
@@ -36,17 +38,7 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   return () => RAN;
 }
 
-/**
- * Why a block stopped, when it did.
- *
- * Numbers rather than thrown signals: a `break` in a loop of fifty thousand
- * would otherwise build fifty thousand stack traces, and the whole reason a
- * body is compiled is that a call is cheap.
- */
-export const RAN = 0;
-export const LEFT = 1;
-export const BROKE = 2;
-export const WENT_ON = 3;
+export { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 
 /** Run a block's steps until one of them stops. */
 export function runSteps(steps: readonly Step[], frame: Frame): number {
@@ -75,37 +67,11 @@ function letStep(stmt: ast.LetStmt, scope: LexScope, compile: CompileIn): Step {
       return RAN;
     };
   }
-  const whole = scope.names.indexOf(wholeValueName("let", positionOf(stmt)));
+  const whole = wholeSlot(scope, stmt);
   const parts = unpack(stmt.pattern, scope, whole);
   return (frame) => {
     writeSlot(frame, whole, value(frame));
     for (const part of parts) writeSlot(frame, part.slot, part.value(frame));
-    return RAN;
-  };
-}
-
-/** Where this `let` sits among the ones the body holds, for its whole-value slot. */
-function positionOf(stmt: ast.LetStmt): number {
-  const body = stmt.$container as { stmts?: Statement[] };
-  return (body.stmts ?? []).indexOf(stmt as Statement);
-}
-
-function assignStep(stmt: ast.AssignStmt, scope: LexScope, compile: CompileIn): Step {
-  const value = compile(stmt.value, scope);
-  const target = stmt.target;
-  if (ast.isRef(target)) {
-    const slot = scope.names.indexOf(target.name);
-    return (frame) => {
-      writeSlot(frame, slot, value(frame));
-      return RAN;
-    };
-  }
-  const into = compile((target as { receiver: ast.Expr }).receiver, scope);
-  const key = ast.isIndex(target) ? compile(target.index, scope) : undefined;
-  const named = ast.isIndex(target) ? undefined : (target as { member: string }).member;
-  return (frame) => {
-    const holder = into(frame) as Record<string, unknown>;
-    holder[named ?? String(key?.(frame))] = value(frame);
     return RAN;
   };
 }
@@ -158,7 +124,7 @@ function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: un
     const slot = scope.names.indexOf(stmt.item);
     return (frame, item) => writeSlot(frame, slot, item);
   }
-  const whole = scope.names.indexOf(wholeValueName("each", 0));
+  const whole = wholeSlot(scope, stmt);
   const parts = stmt.pattern ? unpack(stmt.pattern, scope, whole) : [];
   return (frame, item) => {
     writeSlot(frame, whole, item);

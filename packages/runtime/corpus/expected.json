@@ -634,107 +634,67 @@
   "040-a-closure-writes-a-name-it-does-not-bind": {
     "top": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "ran g=after",
+      "refused": null
     },
     "fnDecl": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "ran g=after",
+      "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "ran g=after",
+      "refused": null
     },
     "fragment": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "ran g=after",
+      "refused": null
     }
   },
   "041-a-closure-writes-it-with-four-locals-about": {
     "top": {
       "problems": [],
-      "out": "1234 g=before",
+      "out": "1234 g=after",
       "refused": null
     },
     "fnDecl": {
       "problems": [],
-      "out": "1234 g=before",
+      "out": "1234 g=after",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "1234 g=before",
+      "out": "1234 g=after",
       "refused": null
     },
     "fragment": {
       "problems": [],
-      "out": "1234 g=before",
+      "out": "1234 g=after",
       "refused": null
     }
   },
   "042-a-pattern-let-nested-in-a-block": {
     "top": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "8",
+      "refused": null
     },
     "fnDecl": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "8",
+      "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "8",
+      "refused": null
     },
     "fragment": {
       "problems": [],
-      "out": null,
-      "refused": {
-        "code": "",
-        "title": "Cannot set properties of undefined (setting '-4')",
-        "help": null,
-        "column": -1
-      }
+      "out": "8",
+      "refused": null
     }
   },
   "043-a-pattern-foreach-nested-in-another": {
@@ -1091,40 +1051,40 @@
       "problems": [],
       "out": null,
       "refused": {
-        "code": "",
-        "title": "Cannot set properties of null (setting 'field')",
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
         "help": null,
-        "column": -1
+        "column": 3
       }
     },
     "fnDecl": {
       "problems": [],
       "out": null,
       "refused": {
-        "code": "",
-        "title": "Cannot set properties of null (setting 'field')",
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
         "help": null,
-        "column": -1
+        "column": 3
       }
     },
     "fnExpr": {
       "problems": [],
       "out": null,
       "refused": {
-        "code": "",
-        "title": "Cannot set properties of null (setting 'field')",
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
         "help": null,
-        "column": -1
+        "column": 3
       }
     },
     "fragment": {
       "problems": [],
       "out": null,
       "refused": {
-        "code": "",
-        "title": "Cannot set properties of null (setting 'field')",
+        "code": "VN3021",
+        "title": "There is nothing here to write to.",
         "help": null,
-        "column": -1
+        "column": 3
       }
     }
   }

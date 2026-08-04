@@ -15,7 +15,7 @@ import {
 } from "../../generated/ast.js";
 import type { CompiledBody, CompiledLocal, Thunk } from "../compile.types.js";
 import { type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
-import { paramLocals, paramSlotName, unpack, wholeValueName } from "../unpack.js";
+import { paramLocals, paramSlotName, unpack, wholeSlot } from "../unpack.js";
 import { compileStep } from "./body-steps.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
@@ -88,7 +88,7 @@ function compileInScope(
   const rest = body.stmts.slice(firstStatement(body));
   const locals = [
     ...paramLocals(params, scope),
-    ...leading.flatMap((local, at) => localsOf({ local: local as LetStmt, at, scope, compileIn })),
+    ...leading.flatMap((local) => localsOf({ local: local as LetStmt, scope, compileIn })),
   ];
   const steps = rest.map((stmt) => compileStep(stmt, scope, compileIn));
   const result = body.result ? compileIn(body.result, scope) : undefined;
@@ -125,13 +125,12 @@ function firstStatement(body: FnBody): number {
  */
 function localsOf(args: {
   local: LetStmt;
-  at: number;
   scope: LexScope;
   compileIn: CompileIn;
 }): CompiledLocal[] {
-  const { local, at, scope, compileIn } = args;
+  const { local, scope, compileIn } = args;
   const value = compileIn(local.value, scope);
   if (!local.pattern) return [{ slot: scope.names.indexOf(local.name as string), value }];
-  const whole = scope.names.indexOf(wholeValueName("let", at));
+  const whole = wholeSlot(scope, local);
   return [{ slot: whole, value }, ...unpack(local.pattern, scope, whole)];
 }

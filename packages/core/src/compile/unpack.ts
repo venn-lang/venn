@@ -48,6 +48,22 @@ export function paramLocals(params: readonly Param[], scope: LexScope): Compiled
 }
 
 /**
+ * The slot the whole value of a node's pattern lands in.
+ *
+ * Read off the scope rather than worked out again: the name is minted once, per
+ * node, where the scope is built, so there is nothing for two counts to disagree
+ * about.
+ *
+ * @param scope The scope the node is compiled in.
+ * @param node The `let` or `forEach` that binds a pattern.
+ * @returns The slot index, or `-1` when this node binds no whole value.
+ */
+export function wholeSlot(scope: LexScope, node: object): number {
+  const name = scope.wholes.get(node);
+  return name === undefined ? -1 : scope.names.indexOf(name);
+}
+
+/**
  * One local per name the pattern binds, each reading from the slot holding the
  * whole value.
  */

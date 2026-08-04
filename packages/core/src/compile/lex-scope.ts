@@ -17,6 +17,17 @@ import { paramPatternNames, paramSlotName, wholeValueName } from "./unpack.js";
 export interface LexScope {
   readonly names: readonly string[];
   /**
+   * The slot name the whole value of a pattern lands in, per node that binds
+   * one.
+   *
+   * Kept by node rather than worked out twice from a position. Two counts of
+   * "which one is this" disagreed: this one numbered by place among the body's
+   * top-level statements and the compiler numbered by place within the
+   * statement's own block, so a pattern `let` inside an `if` asked for a slot
+   * nobody had minted.
+   */
+  readonly wholes: ReadonlyMap<object, string>;
+  /**
    * Compiled nodes for this scope. Per scope, not global: a placeholder's
    * expression is shared between every string literal with the same text, so a
    * single cache would hand one scope's slot numbers to another.
@@ -50,7 +61,7 @@ export interface LexScope {
 
 /** Outside any function: every name is looked up by asking the environment. */
 export function rootScope(): LexScope {
-  return { names: [], cache: new WeakMap() };
+  return { names: [], wholes: new Map(), cache: new WeakMap() };
 }
 
 /**
@@ -67,14 +78,21 @@ export function scopeOf(params: ParamList | undefined, body: FnBody): LexScope {
   // function, with a slot of its own, because a call has one frame and not a
   // chain of them. Two of the same name in one body meet in one slot, which is
   // what `venn check` refuses before it can matter.
-  for (const name of bodyNames(body)) if (!names.includes(name)) names.push(name);
+  const bound = bodyNames(body);
+  for (const name of bound.names) if (!names.includes(name)) names.push(name);
   // What a `match` arm or a `catch` binds is a local like any other: written
   // before it is read, and only where its own branch was taken, so two of them
   // may share a name and a slot.
   for (const name of innerNames(body)) if (!names.includes(name)) names.push(name);
   // Worth trying without a frame: one name, and nothing bound after it.
   const bare = names.length === 1 && body.stmts.length === 0;
-  return { names, cache: new WeakMap(), free: [], bare };
+  return { names, wholes: bound.wholes, cache: new WeakMap(), free: [], bare };
+}
+
+/** The names a body binds, and where each pattern's whole value goes. */
+interface Bound {
+  readonly names: string[];
+  readonly wholes: Map<object, string>;
 }
 
 /**
@@ -83,22 +101,29 @@ export function scopeOf(params: ParamList | undefined, body: FnBody): LexScope {
  * A binding, what a pattern in one takes apart, a loop's item, a repeat's
  * index, a loop's state, and the slot a pattern's whole value lands in.
  */
-function bodyNames(body: FnBody): string[] {
-  const found: string[] = [];
-  for (const [at, stmt] of body.stmts.entries()) collectNames(stmt, at, found);
+function bodyNames(body: FnBody): Bound {
+  const found: Bound = { names: [], wholes: new Map() };
+  for (const stmt of body.stmts) collectNames(stmt, found);
   return found;
 }
 
-function collectNames(node: object, at: number, into: string[]): void {
+function collectNames(node: object, into: Bound): void {
   if (ast.isLetStmt(node)) {
-    if (node.pattern) into.push(wholeValueName("let", at));
-    into.push(...boundNames(node));
+    if (node.pattern) into.names.push(whole(node, "let", into));
+    into.names.push(...boundNames(node));
   } else if (ast.isForEachStmt(node)) {
-    if (node.pattern) into.push(wholeValueName("each", 0));
-    into.push(...boundNames(loopBinding(node)));
-  } else if (ast.isRepeatStmt(node) && node.index) into.push(node.index);
-  else if (ast.isLoopStmt(node) && node.state) into.push(node.state.name);
-  for (const child of children(node)) collectNames(child, at, into);
+    if (node.pattern) into.names.push(whole(node, "each", into));
+    into.names.push(...boundNames(loopBinding(node)));
+  } else if (ast.isRepeatStmt(node) && node.index) into.names.push(node.index);
+  else if (ast.isLoopStmt(node) && node.state) into.names.push(node.state.name);
+  for (const child of children(node)) collectNames(child, into);
+}
+
+/** A slot name no source can write, one per node that binds a whole value. */
+function whole(node: object, kind: "let" | "each", into: Bound): string {
+  const name = wholeValueName(kind, into.wholes.size);
+  into.wholes.set(node, name);
+  return name;
 }
 
 /** The blocks a statement holds, so a binding inside one is found too. */

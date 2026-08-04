@@ -839,112 +839,88 @@
   },
   "050-match-dispatches-on-shape": {
     "top": {
-      "problems": [
-        "VN3020 error@3",
-        "VN3020 error@3",
-        "VN3010 error@23",
-        "VN3010 error@22",
-        "VN3010 error@23"
-      ],
-      "out": "5   ",
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
       "refused": null
     },
     "fnDecl": {
-      "problems": [
-        "VN3020 error@3",
-        "VN3020 error@3",
-        "VN3010 error@23",
-        "VN3010 error@22",
-        "VN3010 error@23"
-      ],
-      "out": "5   ",
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
       "refused": null
     },
     "fnExpr": {
-      "problems": [
-        "VN3020 error@3",
-        "VN3020 error@3",
-        "VN3010 error@23",
-        "VN3010 error@22",
-        "VN3010 error@23"
-      ],
-      "out": "5   ",
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
       "refused": null
     },
     "fragment": {
-      "problems": [
-        "VN3020 error@3",
-        "VN3020 error@3",
-        "VN3010 error@23",
-        "VN3010 error@22",
-        "VN3010 error@23"
-      ],
-      "out": "5   ",
+      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "out": "5 1 0 0",
       "refused": null
     }
   },
   "051-match-asks-a-map-for-its-keys": {
     "top": {
-      "problems": ["VN3020 error@3", "VN3010 error@17", "VN3010 error@16"],
-      "out": "1 1 1",
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN3020 error@3", "VN3010 error@17", "VN3010 error@16"],
-      "out": "1 1 1",
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN3020 error@3", "VN3010 error@17", "VN3010 error@16"],
-      "out": "1 1 1",
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
       "refused": null
     },
     "fragment": {
-      "problems": ["VN3020 error@3", "VN3010 error@17", "VN3010 error@16"],
-      "out": "1 1 1",
+      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "out": "1 0 0",
       "refused": null
     }
   },
   "052-match-with-a-rest-takes-any-length": {
     "top": {
-      "problems": ["VN3020 error@3", "VN3010 error@21"],
-      "out": "8 8  ",
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN3020 error@3", "VN3010 error@21"],
-      "out": "8 8  ",
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN3020 error@3", "VN3010 error@21"],
-      "out": "8 8  ",
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
       "refused": null
     },
     "fragment": {
-      "problems": ["VN3020 error@3", "VN3010 error@21"],
-      "out": "8 8  ",
+      "problems": ["VN3010 error@21"],
+      "out": "8 8 0 0",
       "refused": null
     }
   },
   "053-a-match-with-no-arms": {
     "top": {
-      "problems": [],
+      "problems": ["VN3019 error@29"],
       "out": "[]",
       "refused": null
     },
     "fnDecl": {
-      "problems": [],
+      "problems": ["VN3019 error@29"],
       "out": "[]",
       "refused": null
     },
     "fnExpr": {
-      "problems": [],
+      "problems": ["VN3019 error@29"],
       "out": "[]",
       "refused": null
     },
     "fragment": {
-      "problems": [],
+      "problems": ["VN3019 error@29"],
       "out": "[]",
       "refused": null
     }

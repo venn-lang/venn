@@ -928,7 +928,7 @@
   "060-a-closure-made-in-a-foreach-pass": {
     "top": {
       "problems": [],
-      "out": "6 6 6",
+      "out": "2 4 6",
       "refused": null
     },
     "fnDecl": {
@@ -943,7 +943,7 @@
     },
     "fragment": {
       "problems": [],
-      "out": "6 6 6",
+      "out": "2 4 6",
       "refused": null
     }
   },
@@ -972,7 +972,7 @@
   "062-a-closure-made-in-a-loop-pass": {
     "top": {
       "problems": [],
-      "out": "20 20 20",
+      "out": "0 10 20",
       "refused": null
     },
     "fnDecl": {
@@ -987,14 +987,14 @@
     },
     "fragment": {
       "problems": [],
-      "out": "20 20 20",
+      "out": "0 10 20",
       "refused": null
     }
   },
   "063-a-body-local-read-before-its-own-let": {
     "top": {
       "problems": [],
-      "out": "[][1][2]",
+      "out": "[][][]",
       "refused": null
     },
     "fnDecl": {
@@ -1009,14 +1009,14 @@
     },
     "fragment": {
       "problems": [],
-      "out": "[][1][2]",
+      "out": "[][][]",
       "refused": null
     }
   },
   "064-break-under-concurrency": {
     "top": {
       "problems": [],
-      "out": "[1, 2, 3, 4, 5, 6]",
+      "out": "[1, 2]",
       "refused": null
     },
     "fnDecl": {
@@ -1031,7 +1031,7 @@
     },
     "fragment": {
       "problems": [],
-      "out": "[1, 2, 3, 4, 5, 6]",
+      "out": "[1, 2]",
       "refused": null
     }
   },

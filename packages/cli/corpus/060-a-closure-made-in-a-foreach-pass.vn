@@ -1,3 +1,5 @@
+# open fnDecl issue 264, a compiled pass reuses one slot so every closure reads the last
+# open fnExpr issue 264, a compiled pass reuses one slot so every closure reads the last
 let made = []
 forEach n in [1, 2, 3] {
   let doubled = n * 2

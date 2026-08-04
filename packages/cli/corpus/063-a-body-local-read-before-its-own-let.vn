@@ -1,3 +1,5 @@
+# open fnDecl issue 264, a compiled pass reuses one slot so a pass reads what the one before it bound
+# open fnExpr issue 264, a compiled pass reuses one slot so a pass reads what the one before it bound
 forEach x in [1, 2, 3] {
   seen = "${seen}[${carried}]"
   let carried = x

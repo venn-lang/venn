@@ -1,3 +1,5 @@
+# open fnDecl issue 264, a compiled pass reuses one slot so every closure reads the last
+# open fnExpr issue 264, a compiled pass reuses one slot so every closure reads the last
 let made = []
 loop n = 0 {
   if n == 3 { break }

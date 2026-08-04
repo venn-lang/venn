@@ -84,6 +84,8 @@ function stillOpen(cases: readonly Case[]): string[] {
 const NO_BLOCK_SCOPE = "issue 265, a compiled body flattens every block into one slot list";
 const ONE_SLOT_PER_LOOP =
   "issue 264, a compiled pass reuses one slot so every closure reads the last";
+const A_SLOT_OUTLIVES_A_PASS =
+  "issue 264, a compiled pass reuses one slot so a pass reads what the one before it bound";
 
 /** What the corpus knows the two paths still disagree about, and where it is filed. */
 const FILED: readonly string[] = [
@@ -99,8 +101,14 @@ const FILED: readonly string[] = [
   `034-a-block-local-is-gone-after-its-block: fnExpr, ${NO_BLOCK_SCOPE}`,
   `035-a-nested-block-binds-its-own: fnDecl, ${NO_BLOCK_SCOPE}`,
   `035-a-nested-block-binds-its-own: fnExpr, ${NO_BLOCK_SCOPE}`,
+  `060-a-closure-made-in-a-foreach-pass: fnDecl, ${ONE_SLOT_PER_LOOP}`,
+  `060-a-closure-made-in-a-foreach-pass: fnExpr, ${ONE_SLOT_PER_LOOP}`,
   `061-a-closure-made-in-a-repeat-pass: fnDecl, ${ONE_SLOT_PER_LOOP}`,
   `061-a-closure-made-in-a-repeat-pass: fnExpr, ${ONE_SLOT_PER_LOOP}`,
+  `062-a-closure-made-in-a-loop-pass: fnDecl, ${ONE_SLOT_PER_LOOP}`,
+  `062-a-closure-made-in-a-loop-pass: fnExpr, ${ONE_SLOT_PER_LOOP}`,
+  `063-a-body-local-read-before-its-own-let: fnDecl, ${A_SLOT_OUTLIVES_A_PASS}`,
+  `063-a-body-local-read-before-its-own-let: fnExpr, ${A_SLOT_OUTLIVES_A_PASS}`,
 ];
 
 async function agreesEverywhere(): Promise<void> {

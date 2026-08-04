@@ -81,18 +81,8 @@ function stillOpen(cases: readonly Case[]): string[] {
   return cases.flatMap((one) => [...one.open].map(([at, why]) => `${one.name}: ${at}, ${why}`));
 }
 
-const CAPTURED_BY_SLOT =
-  "issue 264, a compiled body reaches a closure free name by slot, so every pass reads the last";
-
 /** What the corpus knows the two paths still disagree about, and where it is filed. */
-const FILED: readonly string[] = [
-  `060-a-closure-made-in-a-foreach-pass: fnDecl, ${CAPTURED_BY_SLOT}`,
-  `060-a-closure-made-in-a-foreach-pass: fnExpr, ${CAPTURED_BY_SLOT}`,
-  `061-a-closure-made-in-a-repeat-pass: fnDecl, ${CAPTURED_BY_SLOT}`,
-  `061-a-closure-made-in-a-repeat-pass: fnExpr, ${CAPTURED_BY_SLOT}`,
-  `062-a-closure-made-in-a-loop-pass: fnDecl, ${CAPTURED_BY_SLOT}`,
-  `062-a-closure-made-in-a-loop-pass: fnExpr, ${CAPTURED_BY_SLOT}`,
-];
+const FILED: readonly string[] = [];
 
 async function agreesEverywhere(): Promise<void> {
   const { cases, now } = await driveAll();

@@ -1,10 +1,12 @@
 import type { Frame } from "../../expr/frame.js";
-import { writeSlot } from "../../expr/frame.js";
+import { readSlot, writeSlot } from "../../expr/frame.js";
+import type { Cell } from "../../expr/index.js";
 import type { Statement } from "../../generated/ast.js";
 import * as ast from "../../generated/ast.js";
 import { truthy } from "../../value/index.js";
+import { boundValue, slotBinder } from "../box.js";
 import type { Step, Thunk } from "../compile.types.js";
-import { allocate, blockScope, declare, type LexScope, slotOf } from "../lex-scope.js";
+import { allocate, blockScope, boxed, declare, type LexScope, slotOf } from "../lex-scope.js";
 import { unpack } from "../unpack.js";
 import { assignStep } from "./assign-step.js";
 import type { CompileIn } from "./fn.js";
@@ -84,8 +86,11 @@ function letStep(stmt: ast.LetStmt, scope: LexScope, compile: CompileIn): Step {
   const value = compile(stmt.value, scope);
   if (!stmt.pattern) {
     const slot = declare(scope, stmt.name as string);
+    // A captured binding is a cell, minted here, so this `let` inside a loop
+    // gives this pass a place of its own and the pass before keeps its answer.
+    const bound = boundValue(value, scope, slot);
     return (frame) => {
-      writeSlot(frame, slot, value(frame));
+      writeSlot(frame, slot, bound(frame));
       return RAN;
     };
   }
@@ -145,10 +150,7 @@ function forEachStep(stmt: ast.ForEachStmt, scope: LexScope, compile: CompileIn)
 
 /** What a `forEach` calls each item, written as a name or as a pattern. */
 function binder(stmt: ast.ForEachStmt, scope: LexScope): (frame: Frame, item: unknown) => void {
-  if (stmt.item) {
-    const slot = declare(scope, stmt.item);
-    return (frame, item) => writeSlot(frame, slot, item);
-  }
+  if (stmt.item) return slotBinder(scope, declare(scope, stmt.item));
   const whole = allocate(scope);
   const parts = stmt.pattern ? unpack(stmt.pattern, scope, whole) : [];
   return (frame, item) => {
@@ -169,12 +171,12 @@ function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): 
   const count = compile(stmt.count, scope);
   const counted = checkedCount(stmt.count);
   const inner = blockScope(scope);
-  const slot = stmt.index ? declare(inner, stmt.index) : -1;
+  const bind = stmt.index ? slotBinder(inner, declare(inner, stmt.index)) : undefined;
   const body = stepsIn(stmt.body, inner, compile);
   return (frame) => {
     const times = counted(count(frame));
     for (let at = 1; at <= times; at += 1) {
-      if (slot !== -1) writeSlot(frame, slot, at);
+      if (bind) bind(frame, at);
       const stopped = runSteps(body, frame);
       if (stopped === LEFT) return LEFT;
       if (stopped === BROKE) break;
@@ -186,10 +188,16 @@ function repeatStep(stmt: ast.RepeatStmt, scope: LexScope, compile: CompileIn): 
 /**
  * `loop { … }`, `loop cond { … }`, `loop state = initial { … }`.
  *
- * The state gets its slot filled once, before the first pass, so both ways of
+ * The state gets one slot, filled before the first pass, so both ways of
  * advancing it land in the same place: `continue next` writes the slot, and so
  * does a plain `state = next`. Re-binding the name at the top of every pass
  * would throw the second one away, and a loop that never advances never ends.
+ *
+ * A captured state is the one that pays for both: the slot holds a cell, a
+ * fresh one per pass carrying what the pass before left, so a closure keeps its
+ * pass's value while the loop goes on advancing, and the last one is still
+ * there to read after it. That is what the scheduler's child scope per pass
+ * does, and this is where the two used to part.
  *
  * Uncapped, as everywhere else: what ends a loop that should have ended is the
  * timeout around it, and a program that means to run forever is allowed to.
@@ -199,17 +207,29 @@ function loopStep(stmt: ast.LoopStmt, scope: LexScope, compile: CompileIn): Step
   // The state outlives the loop, so it belongs to the block the loop is written
   // in rather than to the body: `loop n = 1 { … }` leaves `n` readable after it.
   const state = stmt.state ? declare(scope, stmt.state.name) : -1;
+  const start = slotBinder(scope, state);
+  const fresh = state !== -1 && boxed(scope, state) ? reboxer(state) : undefined;
   const condition = stmt.cond ? compile(stmt.cond, scope) : undefined;
   const body = blockSteps(stmt.body, scope, compile);
   return (frame) => {
-    if (initial) writeSlot(frame, state, initial(frame));
-    return passes(body, condition, frame);
+    if (initial) start(frame, initial(frame));
+    return passes({ body, condition, fresh }, frame);
   };
 }
 
+/** What a pass starts from: the value the one before it left, in a new cell. */
+function reboxer(state: number): (frame: Frame) => void {
+  return (frame) => writeSlot(frame, state, { value: (readSlot(frame, state) as Cell).value });
+}
+
 /** Round and round until the condition stops holding, or something stops it. */
-function passes(body: readonly Step[], condition: Thunk | undefined, frame: Frame): number {
+function passes(
+  args: { body: readonly Step[]; condition: Thunk | undefined; fresh?: (frame: Frame) => void },
+  frame: Frame,
+): number {
+  const { body, condition, fresh } = args;
   while (!condition || truthy(condition(frame))) {
+    if (fresh) fresh(frame);
     const stopped = runSteps(body, frame);
     if (stopped === LEFT) return LEFT;
     if (stopped === BROKE) break;
@@ -222,16 +242,20 @@ function passes(body: readonly Step[], condition: Thunk | undefined, frame: Fram
  *
  * The value goes into the state's slot, which is the same slot a plain
  * assignment writes, so the next pass starts from it and the name still holds
- * the last one after the loop. A value handed to a `repeat` or a `forEach` has
- * nowhere to go: it is evaluated, because the source asked for it, and dropped.
+ * the last one after the loop. It binds rather than assigns, so where the state
+ * is captured this pass keeps the value its closures were made against and the
+ * next one starts from a place of its own. A value handed to a `repeat` or a
+ * `forEach` has nowhere to go: it is evaluated, because the source asked for
+ * it, and dropped.
  */
 function continueStep(stmt: ast.ContinueStmt, scope: LexScope, compile: CompileIn): Step {
   if (!stmt.value) return () => WENT_ON;
   const value = compile(stmt.value, scope);
   const slot = carriedSlot(stmt, scope);
+  const carry = slotBinder(scope, slot);
   return (frame) => {
     const next = value(frame);
-    if (slot !== -1) writeSlot(frame, slot, next);
+    if (slot !== -1) carry(frame, next);
     return WENT_ON;
   };
 }

@@ -631,6 +631,72 @@
       "refused": null
     }
   },
+  "037-a-closure-in-a-block-that-shadows": {
+    "top": {
+      "problems": [],
+      "out": "inner",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "inner",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "inner",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "inner",
+      "refused": null
+    }
+  },
+  "038-a-closure-made-before-a-block-that-shadows": {
+    "top": {
+      "problems": [],
+      "out": "outer while the block held inner",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "outer while the block held inner",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "outer while the block held inner",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "outer while the block held inner",
+      "refused": null
+    }
+  },
+  "039-a-closure-writes-the-binding-beside-it": {
+    "top": {
+      "problems": [],
+      "out": "ran inner=written outer=outer",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "ran inner=written outer=outer",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "ran inner=written outer=outer",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "ran inner=written outer=outer",
+      "refused": null
+    }
+  },
   "040-a-closure-writes-a-name-it-does-not-bind": {
     "top": {
       "problems": [],
@@ -933,12 +999,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "6 6 6",
+      "out": "2 4 6",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "6 6 6",
+      "out": "2 4 6",
       "refused": null
     },
     "fragment": {
@@ -955,12 +1021,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "6 6 6",
+      "out": "2 4 6",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "6 6 6",
+      "out": "2 4 6",
       "refused": null
     },
     "fragment": {
@@ -977,12 +1043,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "20 20 20",
+      "out": "0 10 20",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "20 20 20",
+      "out": "0 10 20",
       "refused": null
     },
     "fragment": {
@@ -1032,6 +1098,72 @@
     "fragment": {
       "problems": [],
       "out": "[1, 2]",
+      "refused": null
+    }
+  },
+  "065-a-closure-in-a-pass-that-shadows-an-outer-name": {
+    "top": {
+      "problems": [],
+      "out": "2 4 6 outer=outer",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "2 4 6 outer=outer",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "2 4 6 outer=outer",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "2 4 6 outer=outer",
+      "refused": null
+    }
+  },
+  "066-a-closure-made-in-a-loop-pass-holds-the-state": {
+    "top": {
+      "problems": [],
+      "out": "0 1 2 after=3",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "0 1 2 after=3",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "0 1 2 after=3",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "0 1 2 after=3",
+      "refused": null
+    }
+  },
+  "067-a-closure-in-a-pass-of-a-nested-fn": {
+    "top": {
+      "problems": [],
+      "out": "10 20",
+      "refused": null
+    },
+    "fnDecl": {
+      "problems": [],
+      "out": "10 20",
+      "refused": null
+    },
+    "fnExpr": {
+      "problems": [],
+      "out": "10 20",
+      "refused": null
+    },
+    "fragment": {
+      "problems": [],
+      "out": "10 20",
       "refused": null
     }
   },

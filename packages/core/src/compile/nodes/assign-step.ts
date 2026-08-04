@@ -8,13 +8,13 @@
  */
 
 import { buildProblem, CODES } from "../../codes/index.js";
-import { type Cell, type Frame, writeNamed, writeSlot } from "../../expr/index.js";
+import { type Cell, type Frame, readSlot, writeNamed, writeSlot } from "../../expr/index.js";
 import type { AssignStmt, Expr } from "../../generated/ast.js";
 import * as ast from "../../generated/ast.js";
 import { ProblemError, type Span } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
 import type { Step, Thunk } from "../compile.types.js";
-import { type LexScope, slotOf } from "../lex-scope.js";
+import { boxed, freeSlot, type LexScope, rootOf, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
 import { RAN } from "./stopped.js";
 
@@ -30,27 +30,51 @@ export function assignStep(stmt: AssignStmt, scope: LexScope, compile: CompileIn
 }
 
 /**
- * A name the body binds is a slot. One it does not is the binding it names,
- * which is the cell a closure captured or a slot of the frame that holds it.
+ * Where a write goes, asked exactly as a read of the same name is.
+ *
+ * A name the body binds is a slot. One it does not is a cell this body holds,
+ * or a cell the closure resolved where it was written. One name in one place is
+ * one binding, so a read and a write of it have to be told apart by nothing.
  */
 function toName(name: string, value: Thunk, scope: LexScope): Step {
   // `slotOf`, not a search of the flat name list: a block that shadows a name
   // has a slot of its own, and the flat list finds the outermost whoever asks,
   // so a write inside the block landed on the binding outside it.
   const slot = slotOf(scope, name);
-  if (slot !== -1) {
+  if (slot !== -1) return intoSlot(slot, value, boxed(scope, slot));
+  const own = rootOf(scope).cellOf?.(name);
+  if (own) return intoCell(own, value);
+  const up = freeSlot(scope, name);
+  return up === undefined ? outward(name, value) : intoUp(up, name, value);
+}
+
+/** A captured slot holds a cell, and the write goes through it, not over it. */
+function intoSlot(slot: number, value: Thunk, box: boolean): Step {
+  if (!box) {
     return (frame) => {
       writeSlot(frame, slot, value(frame));
       return RAN;
     };
   }
-  const own = scope.cellOf?.(name);
-  return own ? intoCell(own, value) : outward(name, value);
+  return (frame) => {
+    (readSlot(frame, slot) as Cell).value = value(frame);
+    return RAN;
+  };
 }
 
 function intoCell(cell: Cell, value: Thunk): Step {
   return (frame) => {
     cell.value = value(frame);
+    return RAN;
+  };
+}
+
+/** A free name of this body: the cell the closure was handed when it was made. */
+function intoUp(up: number, name: string, value: Thunk): Step {
+  return (frame) => {
+    const cell = frame.up?.[up];
+    if (cell) cell.value = value(frame);
+    else writeNamed(frame, name, value(frame));
     return RAN;
   };
 }

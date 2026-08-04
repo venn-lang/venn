@@ -1,6 +1,6 @@
 import type { CompiledBody } from "../compile/compile.types.js";
 import { hasCells } from "./cell.types.js";
-import { CLOSURE, type Closure } from "./closure.types.js";
+import { CLOSURE, type Closure, type ClosureParts } from "./closure.types.js";
 import type { EvalEnv } from "./eval-env.types.js";
 
 /** Whether this value is a `fn`. The brand distinguishes it from a lookalike map. */
@@ -9,18 +9,33 @@ export function isClosure(value: unknown): value is Closure {
 }
 
 /**
- * Build a function value from parts the compiler already prepared.
+ * Build a function value, addressing its free names against the environment it
+ * is being defined in.
  *
- * The free names are addressed here, once, against the environment the function
- * is being defined in, so the body reads them by index rather than walking the
- * chain on every call. Only where that environment hands out cells: a function
- * nested in another reads its parent's frame, which has slots and no cells, and
- * there the body falls back to asking by name.
+ * For a `fn` written where bindings are cells: at the top of a file, in a
+ * fragment, in a scheduler scope. A `fn` written inside a compiled body knows
+ * where its free names live before it is ever made, and arrives here through
+ * {@link closureWith} carrying them.
  */
 export function makeClosure(params: readonly string[], body: CompiledBody, env: EvalEnv): Closure {
   if (body.free.length === 0 || !hasCells(env)) return { [CLOSURE]: true, params, body, env };
   const up = body.free.map((name) => env.cell(name));
   return { [CLOSURE]: true, params, body, env, up };
+}
+
+/**
+ * The same value, with the free names already resolved where the `fn` was
+ * written.
+ *
+ * One place builds the shape, so every closure the language makes has the same
+ * one whichever route it came by.
+ *
+ * @param parts The parameter names, the compiled body, the defining
+ * environment, and a cell per free name.
+ * @returns The function value.
+ */
+export function closureWith(parts: ClosureParts): Closure {
+  return { [CLOSURE]: true, params: parts.params, body: parts.body, env: parts.env, up: parts.up };
 }
 
 /**

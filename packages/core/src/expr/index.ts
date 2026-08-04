@@ -1,7 +1,7 @@
 export type { Cell, CellEnv } from "./cell.types.js";
 export { hasCells } from "./cell.types.js";
-export { childEnv, isClosure, makeClosure } from "./closure.js";
-export type { Closure } from "./closure.types.js";
+export { childEnv, closureWith, isClosure, makeClosure } from "./closure.js";
+export type { Closure, ClosureParts } from "./closure.types.js";
 export type { EvalEnv } from "./eval-env.types.js";
 export { evaluate } from "./evaluate.js";
 export { Frame, INLINE_SLOTS, readSlot, writeNamed, writeSlot } from "./frame.js";

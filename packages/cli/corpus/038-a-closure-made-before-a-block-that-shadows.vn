@@ -1,0 +1,6 @@
+let x = "outer"
+let seeIt = fn () => x
+if true {
+  let x = "inner"
+  seen = "${seeIt()} while the block held ${x}"
+}

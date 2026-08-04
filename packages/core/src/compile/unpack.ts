@@ -12,8 +12,9 @@ import { readSlot } from "../expr/frame.js";
 import type { Param, Pattern } from "../generated/ast.js";
 import type { PatternSlot } from "../pattern/index.js";
 import { patternNames, patternSlots, slotValue } from "../pattern/index.js";
+import { boundValue } from "./box.js";
 import type { CompiledLocal, Thunk } from "./compile.types.js";
-import { declare, type LexScope, slotOf } from "./lex-scope.js";
+import { boxed, declare, type LexScope, slotOf } from "./lex-scope.js";
 
 /**
  * The name a parameter's slot is held under, which no source can write.
@@ -47,12 +48,33 @@ export function paramLocals(params: readonly Param[], scope: LexScope): Compiled
  * pattern `let` inside an `if` asked for a slot nobody had minted.
  */
 export function unpack(pattern: Pattern, scope: LexScope, from: number): CompiledLocal[] {
-  return patternSlots(pattern).map((bound) => ({
-    slot: declare(scope, bound.name),
-    value: slotThunk(from, bound),
-  }));
+  return patternSlots(pattern).map((bound) => {
+    const slot = declare(scope, bound.name);
+    return { slot, value: boundValue(slotThunk(from, bound), scope, slot) };
+  });
 }
 
 function slotThunk(from: number, bound: PatternSlot): Thunk {
   return (env) => slotValue(readSlot(env as Frame, from), bound);
+}
+
+/**
+ * The locals that put a captured parameter in a cell of its own.
+ *
+ * The caller writes a parameter's slot straight, so a closure capturing one has
+ * nothing to hold on to until the body starts. This is where it gets it, after
+ * the patterns have read what they need out of the raw value and before the
+ * body's own bindings, which read it as a cell like any other.
+ *
+ * @param params The parameters as written.
+ * @param scope The body's scope, its parameters already declared.
+ * @returns One local per captured parameter, and nothing at all for the rest.
+ */
+export function boxedParams(params: readonly Param[], scope: LexScope): CompiledLocal[] {
+  return params.flatMap((param, at) => {
+    const slot = slotOf(scope, paramSlotName(param, at));
+    if (slot === -1 || !boxed(scope, slot)) return [];
+    const value: Thunk = (env) => ({ value: readSlot(env as Frame, slot) });
+    return [{ slot, value }];
+  });
 }

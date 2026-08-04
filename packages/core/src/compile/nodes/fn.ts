@@ -1,6 +1,6 @@
 import type { Cell } from "../../expr/cell.types.js";
 import { hasCells } from "../../expr/cell.types.js";
-import { makeClosure } from "../../expr/closure.js";
+import { closureWith, makeClosure } from "../../expr/closure.js";
 import type { Closure } from "../../expr/closure.types.js";
 import type { EvalEnv } from "../../expr/eval-env.types.js";
 import { INLINE_SLOTS } from "../../expr/frame.js";
@@ -13,22 +13,31 @@ import {
   type LetStmt,
   type ParamList,
 } from "../../generated/ast.js";
-import type { CompiledBody, CompiledLocal, Thunk } from "../compile.types.js";
+import { boundValue } from "../box.js";
+import { capturePlan } from "../capture.js";
+import type { CompiledBody, CompiledLocal, Step, Thunk } from "../compile.types.js";
 import { allocate, declare, type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
-import { paramLocals, paramSlotName, unpack } from "../unpack.js";
+import { boxedParams, paramLocals, paramSlotName, unpack } from "../unpack.js";
 import { compileStep } from "./body-steps.js";
 import { refuseACall } from "./pure-body.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
 export type CompileIn = (expr: Expr, scope: LexScope) => Thunk;
 
-/** `fn (…) => …` as a value: the body is compiled here, not on every evaluation. */
-export function compileFnExpr(expr: FnExpr, compileIn: CompileIn): Thunk {
+/**
+ * `fn (…) => …` as a value: the body is compiled here, not on every evaluation.
+ *
+ * Where its free names live is settled here too, against the block the `fn` is
+ * written in, so making the closure reads a list rather than the source.
+ */
+export function compileFnExpr(expr: FnExpr, scope: LexScope, compileIn: CompileIn): Thunk {
   const params = paramNames(expr.params);
   // No `cellOf`: this body is compiled once and shared by every closure the
   // expression makes, so it cannot hold cells belonging to one of them.
   const body = compileBody({ params: expr.params, body: expr.body, compileIn });
-  return (env) => makeClosure(params, body, env);
+  const plan = capturePlan(body.free, scope);
+  if (!plan) return (env) => makeClosure(params, body, env);
+  return (env) => closureWith({ params, body, env, up: plan.map((one) => one(env)) });
 }
 
 /**
@@ -55,19 +64,23 @@ interface BodyArgs {
 }
 
 /**
- * Compile a body, first assuming it needs no frame.
+ * Compile a body, first assuming it needs no frame and that nothing captures
+ * its bindings.
  *
- * Whether it does is known only once it has been compiled: a free name needs
- * cells to reach, and a `"${…}"` asks for names as text. So the optimistic pass
- * runs and is thrown away when it was wrong, which costs one extra compile of
- * one body against an allocation saved on every call it will ever receive.
+ * Both are known only once it has been compiled: a free name needs cells to
+ * reach, and which slots a closure written inside captured is the closure's
+ * answer, not the source's. So the optimistic pass runs and is thrown away when
+ * it was wrong, which costs one extra compile of one body against an allocation
+ * saved on every call, and on every pass of every loop that captures nothing.
  */
 function compileBody(args: BodyArgs): CompiledBody {
   const first = compileInScope(scoped(args), args);
-  if (first.bare || !first.wasBare) return first.compiled;
-  const plain = scoped(args);
-  plain.bare = false;
-  return compileInScope(plain, args).compiled;
+  if (first.bare || !(first.wasBare || first.nested)) return first.compiled;
+  const again = scoped(args);
+  again.bare = false;
+  again.boxes = first.captures;
+  again.binds = new Set(first.compiled.names);
+  return compileInScope(again, args).compiled;
 }
 
 function scoped(args: BodyArgs): LexScope {
@@ -81,10 +94,17 @@ function extraSlots(scope: LexScope): number {
   return Math.max(0, scope.names.length - INLINE_SLOTS);
 }
 
-function compileInScope(
-  scope: LexScope,
-  args: BodyArgs,
-): { compiled: CompiledBody; bare: boolean; wasBare: boolean } {
+/** One pass over a body, and what the pass after it needs to know. */
+interface Pass {
+  compiled: CompiledBody;
+  bare: boolean;
+  wasBare: boolean;
+  /** A `fn` is written in the body, so what it captured is only now known. */
+  nested: boolean;
+  captures: ReadonlySet<number>;
+}
+
+function compileInScope(scope: LexScope, args: BodyArgs): Pass {
   const { body, compileIn } = args;
   const wasBare = Boolean(scope.bare);
   const params = args.params?.params ?? [];
@@ -94,18 +114,31 @@ function compileInScope(
   const rest = body.stmts.slice(firstStatement(body));
   const locals = [
     ...paramLocals(params, scope),
+    ...boxedParams(params, scope),
     ...leading.flatMap((local) => localsOf({ local: local as LetStmt, scope, compileIn })),
   ];
   const steps = rest.map((stmt) => compileStep(stmt, scope, compileIn));
   const result = body.result ? compileIn(body.result, scope) : undefined;
-  const bare = stayedBare(scope);
-  const free = scope.free ?? [];
-  const compiled = { names: scope.names, extra: extraSlots(scope), free, locals, result, bare };
-  return {
-    compiled: steps.length === 0 ? compiled : { ...compiled, steps, bare: false },
-    bare,
-    wasBare,
-  };
+  const compiled = bodyOf({ scope, locals, steps, result });
+  return { compiled, bare: compiled.bare, wasBare, ...found(scope) };
+}
+
+/** What the pass learned, kept apart from what it compiled. */
+function found(scope: LexScope): { nested: boolean; captures: ReadonlySet<number> } {
+  return { nested: Boolean(scope.nested), captures: scope.captures ?? new Set() };
+}
+
+function bodyOf(args: {
+  scope: LexScope;
+  locals: CompiledLocal[];
+  steps: readonly Step[];
+  result: Thunk | undefined;
+}): CompiledBody {
+  const { scope, locals, steps, result } = args;
+  const boxed = scope.boxes?.size ? scope.boxes : undefined;
+  const shared = { names: scope.names, extra: extraSlots(scope), free: scope.free ?? [], boxed };
+  if (steps.length === 0) return { ...shared, locals, result, bare: stayedBare(scope) };
+  return { ...shared, locals, result, bare: false, steps };
 }
 
 function paramNames(params: ParamList | undefined): readonly string[] {
@@ -136,7 +169,10 @@ function localsOf(args: {
   const { local, scope, compileIn } = args;
   refuseACall(local);
   const value = compileIn(local.value, scope);
-  if (!local.pattern) return [{ slot: declare(scope, local.name as string), value }];
+  if (!local.pattern) {
+    const slot = declare(scope, local.name as string);
+    return [{ slot, value: boundValue(value, scope, slot) }];
+  }
   const whole = allocate(scope);
   return [{ slot: whole, value }, ...unpack(local.pattern, scope, whole)];
 }

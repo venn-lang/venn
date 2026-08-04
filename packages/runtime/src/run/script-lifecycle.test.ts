@@ -1,6 +1,6 @@
 // biome-ignore-all lint/suspicious/noTemplateCurlyInString: Venn source under test, where ${…} is the language's own interpolation.
 import { createTestHost } from "@venn-lang/contracts";
-import { type Problem, parse } from "@venn-lang/core";
+import { parse } from "@venn-lang/core";
 import { defineAction, definePlugin } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
@@ -105,9 +105,10 @@ describe("script mode · the program's own lifetime", () => {
     await end();
 
     expect(out).toEqual(["open db", "close db"]);
-    const problems = events.envelopes
-      .filter((envelope) => envelope.kind === "expect.failed")
-      .map((envelope) => (envelope.data as { problem: Problem }).problem);
+    // A hook that failed is not an assertion, so it travels on `failure`.
+    const problems = events.envelopes.flatMap((envelope) =>
+      "problem" in envelope.data ? [envelope.data.problem] : [],
+    );
     expect(problems).toMatchObject([{ code: "VN7004", title: "teardown failed: db is down" }]);
   });
 

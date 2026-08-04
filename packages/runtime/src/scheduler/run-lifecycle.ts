@@ -1,6 +1,7 @@
 import type { LifecycleDecl } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
+import { release } from "./report-failure.js";
 import { runCleanup } from "./run-cleanup.js";
 import { ExitSignal } from "./signals.js";
 
@@ -53,5 +54,8 @@ async function runHook(engine: Engine, hook: LifecycleDecl, scope: Scope): Promi
     // `exit` is not the hook's to absorb: it ends the run, and the code it
     // carries is the whole verdict, so it keeps unwinding to whoever ends it.
     if (error instanceof ExitSignal) throw error;
+    // Swallowed here, so the next throw of the same object is a failure of its
+    // own rather than a repeat of this one.
+    release(error);
   }
 }

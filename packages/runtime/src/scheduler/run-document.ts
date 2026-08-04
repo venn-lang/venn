@@ -4,9 +4,9 @@ import {
   type FlowDecl,
   isFlowDecl,
   isMatrixDecl,
-  isStepDecl,
   type PlannedStep,
   type RunPlan,
+  stepTitlesOf,
 } from "@venn-lang/core";
 import { createScope, type Scope } from "../scope/index.js";
 import { absorbExit } from "./absorb-exit.js";
@@ -29,7 +29,7 @@ import { runPrologue, runTeardowns } from "./run-prologue.js";
 export async function runDocument(engine: Engine, doc: Document): Promise<void> {
   const flows = selectFlows(engine, doc.decls.filter(isFlowDecl));
   const hooks = collectHooks(doc);
-  engine.emitter.emit({ kind: "run.started", data: { plan: planOf(flows) } });
+  engine.emitter.emit({ kind: "run.started", data: { plan: planOf(flows, doc) } });
   const start = engine.clock.now();
   await runSuite({ engine, doc, flows, hooks });
   settleFlaky(engine);
@@ -179,10 +179,19 @@ function byTags(flows: FlowDecl[], tags: readonly string[] | undefined): FlowDec
   return flows.filter((flow) => readTags(flow).some((tag) => tags.includes(tag)));
 }
 
-function planOf(flows: readonly FlowDecl[]): RunPlan {
-  return { flows: flows.map((flow) => ({ title: flow.title, steps: stepTitles(flow) })) };
-}
-
-function stepTitles(flow: FlowDecl): PlannedStep[] {
-  return flow.body.stmts.filter(isStepDecl).map((step) => ({ title: step.title }));
+/**
+ * What the run is about to do, as the reader wrote it.
+ *
+ * The titles come from the walk that reaches a step wherever it is written:
+ * inside a `parallel`, a `forEach`, a `try` or behind a `run <fragment>`. One
+ * level of `stmts` reported `"steps": []` for a flow whose steps all live one
+ * block down, which is most of them.
+ */
+function planOf(flows: readonly FlowDecl[], document: Document): RunPlan {
+  return {
+    flows: flows.map((flow) => ({
+      title: flow.title,
+      steps: stepTitlesOf(flow, document).map((title): PlannedStep => ({ title })),
+    })),
+  };
 }

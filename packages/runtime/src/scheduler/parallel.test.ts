@@ -1,9 +1,9 @@
 import { createTestHost } from "@venn-lang/contracts";
 import { parse } from "@venn-lang/core";
-import { defineAction, definePlugin } from "@venn-lang/sdk";
+import { defineAction, definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
-import { createMemorySink } from "../eventsink/index.js";
-import { createRunner } from "../run/create-runner.js";
+import { createMemorySink, type MemorySink } from "../eventsink/index.js";
+import { createRunner, type RunResult } from "../run/index.js";
 
 /** A plugin that records what ran, can fail on demand, and can park. */
 function harness() {
@@ -56,16 +56,26 @@ function harness() {
   return { seen, plugin, release, peak: () => peak };
 }
 
-async function run(source: string, plugin: ReturnType<typeof harness>["plugin"]) {
+/** What one run of a `parallel` block left behind: its verdict and its stream. */
+interface Ran {
+  result: RunResult;
+  sink: MemorySink;
+}
+
+async function run(source: string, plugin: PluginDefinition): Promise<Ran> {
   const { ast, problems } = parse(source);
   expect(problems).toEqual([]);
-  const runner = createRunner({
-    host: createTestHost(),
-    plugins: [plugin],
-    sink: createMemorySink(),
-  });
-  return runner.run(ast).catch((error: unknown) => error);
+  const sink = createMemorySink();
+  const runner = createRunner({ host: createTestHost(), plugins: [plugin], sink });
+  return { result: await runner.run(ast), sink };
 }
+
+const TWO_THAT_FAIL = `flow "F" {
+  parallel { onError: "collect" } {
+    step "one" { t.boom "first" }
+    step "two" { t.boom "second" }
+  }
+}`;
 
 describe("parallel", () => {
   /**
@@ -144,18 +154,20 @@ describe("parallel", () => {
     expect(t.seen).toEqual(["ok"]);
   });
 
-  it("reports every failure rather than picking one", async () => {
+  /**
+   * Two branches failed, and the run has to say two.
+   *
+   * They used to be gathered into an `AggregateError` that nothing in the repo
+   * ever unpacked, so the flow boundary counted the bundle once and the second
+   * message reached no reporter at all.
+   */
+  it("reports every failure it collected, and counts them one each", async () => {
     const t = harness();
-    const flow = `flow "F" {
-  parallel { onError: "collect" } {
-    step "one" { t.boom "first" }
-    step "two" { t.boom "second" }
-  }
-}`;
-    const result = await run(flow, t.plugin);
+    const { result, sink } = await run(TWO_THAT_FAIL, t.plugin);
 
-    // The flow records the failure rather than throwing out of `run`, so what
-    // this pins is that neither message was silently dropped.
-    expect(String(result)).not.toContain("undefined");
+    expect(result.failed).toBe(2);
+    const said = sink.envelopes.flatMap((e) => ("problem" in e.data ? [e.data.problem.title] : []));
+    expect([...said].sort()).toEqual(["first", "second"]);
+    expect(sink.envelopes.at(-1)?.data).toMatchObject({ failed: 2 });
   });
 });

@@ -2,6 +2,7 @@ import { buildProblem, type Problem, type Span } from "@venn-lang/core";
 import { GRACE_MS } from "../cancel/index.js";
 import { RUN_CODES } from "../codes.js";
 import type { Engine } from "./engine.types.js";
+import { reportProblem } from "./report-failure.js";
 
 /**
  * Say that cancelled work did not stop, rather than reporting a verdict over it.
@@ -15,11 +16,10 @@ import type { Engine } from "./engine.types.js";
  * @param args The engine, what was left running, and where it is written.
  */
 export function reportAbandoned(args: { engine: Engine; title: string; where: Span }): void {
-  args.engine.result.failed += 1;
-  args.engine.emitter.emit({ kind: "expect.failed", data: { problem: problemOf(args) } });
+  reportProblem({ engine: args.engine, problem: stillRunning(args), kind: "failure" });
 }
 
-function problemOf(args: { title: string; where: Span }): Problem {
+function stillRunning(args: { title: string; where: Span }): Problem {
   return {
     ...buildProblem({
       spec: { code: RUN_CODES.VN8002_STILL_RUNNING, severity: "error" },

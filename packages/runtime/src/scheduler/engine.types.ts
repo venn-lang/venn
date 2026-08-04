@@ -9,6 +9,7 @@ import type { ImportGraph } from "./bind-imports.js";
 import type { CleanupSink } from "./cleanup.types.js";
 import type { RunFilter } from "./filter.types.js";
 import type { FlakyTally } from "./flaky.types.js";
+import type { Tally } from "./tally.types.js";
 
 /** Mutable pass/fail tally accumulated across a run. */
 export interface RunCounters {
@@ -53,6 +54,15 @@ export interface Engine {
    * giving back even though what it tidies was cancelled.
    */
   cancel?: CancelScope;
+  /**
+   * What this frame is answerable for: its failures, and every frame above it.
+   *
+   * Composed rather than replaced at each level, exactly as `cancel` is, and
+   * for the same reason: `result` is one number shared by reference with every
+   * concurrent branch, so a frame that read it differentially read a sibling's
+   * failure as its own. Absent at the root, where the run's total is the answer.
+   */
+  tally?: Tally;
   /** What a script-mode program owes the machine when it ends. */
   cleanup: CleanupSink;
   env: Record<string, unknown>;

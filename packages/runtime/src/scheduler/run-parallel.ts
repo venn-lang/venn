@@ -4,7 +4,9 @@ import type { Scope } from "../scope/index.js";
 import { branchEngine } from "./branch-engine.js";
 import { runPool } from "./concurrency.js";
 import type { Engine } from "./engine.types.js";
+import { nodeSpan } from "./node-span.js";
 import { readOptions } from "./read-options.js";
+import { claim, reportFailure } from "./report-failure.js";
 import { runStatement } from "./run-statements.js";
 import { CancelSignal, isControlSignal } from "./signals.js";
 
@@ -67,6 +69,11 @@ interface BranchArgs extends DispatchArgs {
  * because a run that has already failed should stop working. `collect` lets them
  * all finish and reports every failure, which is what a set of independent
  * checks wants.
+ *
+ * A failure is reported from here rather than from where the block ends, so
+ * `collect` counts n failures as n and each of them keeps the branch it happened
+ * in. A branch that is a step has already reported its own, and this adds
+ * nothing to it.
  */
 async function branch(args: BranchArgs): Promise<void> {
   try {
@@ -76,6 +83,7 @@ async function branch(args: BranchArgs): Promise<void> {
     // already being reported by whoever ended it, one level up or ten.
     if (error instanceof CancelSignal || error === args.cancel.stopped()) return;
     if (isControlSignal(error)) throw error;
+    reportFailure({ engine: args.engine, error, span: nodeSpan(args.child, args.engine.uri) });
     args.failures.push(error);
     if (args.onError === "cancel") args.cancel.cancel(new CancelSignal());
   }
@@ -84,9 +92,14 @@ async function branch(args: BranchArgs): Promise<void> {
 /**
  * One failure is raised as itself, so the reader sees the message the branch
  * produced. Several are raised together rather than one being picked.
+ *
+ * Either way the throw is claimed: every one of these is already counted and on
+ * the stream, and what is left is only how the block ends.
  */
 function report(failures: readonly unknown[]): void {
   if (failures.length === 0) return;
-  if (failures.length === 1) throw failures[0];
-  throw new AggregateError(failures, `${failures.length} parallel branches failed.`);
+  const many = `${failures.length} parallel branches failed.`;
+  const error = failures.length === 1 ? failures[0] : new AggregateError(failures, many);
+  claim(error);
+  throw error;
 }

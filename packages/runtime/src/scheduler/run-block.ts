@@ -6,6 +6,7 @@ import { branchEngine } from "./branch-engine.js";
 import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
+import { release } from "./report-failure.js";
 import { keepExit, runCleanup } from "./run-cleanup.js";
 import { runStatement } from "./run-statements.js";
 
@@ -68,7 +69,10 @@ async function withDefers(engine: Engine, block: Block, scope: Scope): Promise<v
     // mid-flight, and it reaches the world through the same context an action
     // was handed, so the signal has to leave that too.
     const cleanup = branchEngine(engine, undefined);
-    keepExit(await closeAll(defers.map((hook) => () => runCleanup(cleanup, hook, scope))));
+    const work = defers.map((hook) => () => runCleanup(cleanup, hook, scope));
+    // Reported and then dropped here, so a later throw of the same object is a
+    // failure of its own rather than a repeat of this one.
+    for (const one of keepExit(await closeAll(work))) release(one);
   }
 }
 

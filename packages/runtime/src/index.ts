@@ -15,9 +15,18 @@ export type {
   Cleanup,
   CleanupList,
   CleanupSink,
+  FailureKind,
   ImportGraph,
   RunFilter,
 } from "./scheduler/index.js";
-export { collectFragments, createCleanupList, matchesTitle } from "./scheduler/index.js";
+export {
+  claim,
+  collectFragments,
+  createCleanupList,
+  matchesTitle,
+  reportFailure,
+  reportProblem,
+  unclaimed,
+} from "./scheduler/index.js";
 export * from "./scope/index.js";
 export * from "./types/index.js";

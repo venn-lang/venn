@@ -13,7 +13,7 @@ import {
 } from "../../pattern/index.js";
 import { truthy } from "../../value/index.js";
 import type { Thunk } from "../compile.types.js";
-import type { LexScope } from "../lex-scope.js";
+import { type LexScope, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
 
 /** One arm, ready to run: the ways in, the condition, and what it gives back. */
@@ -75,7 +75,7 @@ function armOf(arm: MatchArm, scope: LexScope, compileIn: CompileIn): Arm {
 function wayOf(pattern: Pattern, scope: LexScope): Way {
   const binds = patternSlots(pattern).map((bound) => ({
     of: bound,
-    slot: scope.names.indexOf(bound.name),
+    slot: slotOf(scope, bound.name),
   }));
   return { tests: patternTests(pattern), binds };
 }

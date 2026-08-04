@@ -43,8 +43,14 @@ export class Frame implements EvalEnv {
     this.left = undefined;
   }
 
+  /**
+   * `lastIndexOf`, not `indexOf`: a name may have a slot per block that binds
+   * it, and the innermost is the one a function made inside that block meant.
+   * Nothing else asks a frame for a name, because everything else was resolved
+   * where it was written.
+   */
   lookup(name: string): unknown {
-    const at = this.closure.body.names.indexOf(name);
+    const at = this.closure.body.names.lastIndexOf(name);
     return at === -1 ? this.closure.env.lookup(name) : readSlot(this, at);
   }
 }
@@ -83,7 +89,7 @@ export function writeSlot(frame: Frame, at: number, value: unknown): void {
 export function writeNamed(frame: Frame, name: string, value: unknown): void {
   let env: EvalEnv = frame;
   while (env instanceof Frame) {
-    const at = env.closure.body.names.indexOf(name);
+    const at = env.closure.body.names.lastIndexOf(name);
     if (at !== -1) {
       writeSlot(env, at, value);
       return;

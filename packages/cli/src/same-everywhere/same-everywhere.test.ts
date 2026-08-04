@@ -81,34 +81,17 @@ function stillOpen(cases: readonly Case[]): string[] {
   return cases.flatMap((one) => [...one.open].map(([at, why]) => `${one.name}: ${at}, ${why}`));
 }
 
-const NO_BLOCK_SCOPE = "issue 265, a compiled body flattens every block into one slot list";
-const ONE_SLOT_PER_LOOP =
-  "issue 264, a compiled pass reuses one slot so every closure reads the last";
-const A_SLOT_OUTLIVES_A_PASS =
-  "issue 264, a compiled pass reuses one slot so a pass reads what the one before it bound";
+const CAPTURED_BY_SLOT =
+  "issue 264, a compiled body reaches a closure free name by slot, so every pass reads the last";
 
 /** What the corpus knows the two paths still disagree about, and where it is filed. */
 const FILED: readonly string[] = [
-  `030-a-let-inside-a-repeat-shadows: fnDecl, ${NO_BLOCK_SCOPE}`,
-  `030-a-let-inside-a-repeat-shadows: fnExpr, ${NO_BLOCK_SCOPE}`,
-  `031-a-let-inside-a-foreach-shadows: fnDecl, ${NO_BLOCK_SCOPE}`,
-  `031-a-let-inside-a-foreach-shadows: fnExpr, ${NO_BLOCK_SCOPE}`,
-  `032-a-let-inside-an-if-shadows: fnDecl, ${NO_BLOCK_SCOPE}`,
-  `032-a-let-inside-an-if-shadows: fnExpr, ${NO_BLOCK_SCOPE}`,
-  `033-a-loop-binding-is-gone-after-its-loop: fnDecl, ${NO_BLOCK_SCOPE}`,
-  `033-a-loop-binding-is-gone-after-its-loop: fnExpr, ${NO_BLOCK_SCOPE}`,
-  `034-a-block-local-is-gone-after-its-block: fnDecl, ${NO_BLOCK_SCOPE}`,
-  `034-a-block-local-is-gone-after-its-block: fnExpr, ${NO_BLOCK_SCOPE}`,
-  `035-a-nested-block-binds-its-own: fnDecl, ${NO_BLOCK_SCOPE}`,
-  `035-a-nested-block-binds-its-own: fnExpr, ${NO_BLOCK_SCOPE}`,
-  `060-a-closure-made-in-a-foreach-pass: fnDecl, ${ONE_SLOT_PER_LOOP}`,
-  `060-a-closure-made-in-a-foreach-pass: fnExpr, ${ONE_SLOT_PER_LOOP}`,
-  `061-a-closure-made-in-a-repeat-pass: fnDecl, ${ONE_SLOT_PER_LOOP}`,
-  `061-a-closure-made-in-a-repeat-pass: fnExpr, ${ONE_SLOT_PER_LOOP}`,
-  `062-a-closure-made-in-a-loop-pass: fnDecl, ${ONE_SLOT_PER_LOOP}`,
-  `062-a-closure-made-in-a-loop-pass: fnExpr, ${ONE_SLOT_PER_LOOP}`,
-  `063-a-body-local-read-before-its-own-let: fnDecl, ${A_SLOT_OUTLIVES_A_PASS}`,
-  `063-a-body-local-read-before-its-own-let: fnExpr, ${A_SLOT_OUTLIVES_A_PASS}`,
+  `060-a-closure-made-in-a-foreach-pass: fnDecl, ${CAPTURED_BY_SLOT}`,
+  `060-a-closure-made-in-a-foreach-pass: fnExpr, ${CAPTURED_BY_SLOT}`,
+  `061-a-closure-made-in-a-repeat-pass: fnDecl, ${CAPTURED_BY_SLOT}`,
+  `061-a-closure-made-in-a-repeat-pass: fnExpr, ${CAPTURED_BY_SLOT}`,
+  `062-a-closure-made-in-a-loop-pass: fnDecl, ${CAPTURED_BY_SLOT}`,
+  `062-a-closure-made-in-a-loop-pass: fnExpr, ${CAPTURED_BY_SLOT}`,
 ];
 
 async function agreesEverywhere(): Promise<void> {

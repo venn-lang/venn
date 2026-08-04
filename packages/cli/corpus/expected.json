@@ -485,12 +485,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "inner",
+      "out": "outer",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "inner",
+      "out": "outer",
       "refused": null
     },
     "fragment": {
@@ -507,12 +507,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "300",
+      "out": "0",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "300",
+      "out": "0",
       "refused": null
     },
     "fragment": {
@@ -529,12 +529,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "2",
+      "out": "1",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "2",
+      "out": "1",
       "refused": null
     },
     "fragment": {
@@ -551,12 +551,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "... i=2 z=7",
+      "out": "... i= z=",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "... i=2 z=7",
+      "out": "... i= z=",
       "refused": null
     },
     "fragment": {
@@ -573,12 +573,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "[5]",
+      "out": "[]",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "[5]",
+      "out": "[]",
       "refused": null
     },
     "fragment": {
@@ -595,12 +595,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "inner inner inner",
+      "out": "inner middle outer",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "inner inner inner",
+      "out": "inner middle outer",
       "refused": null
     },
     "fragment": {
@@ -999,12 +999,12 @@
     },
     "fnDecl": {
       "problems": [],
-      "out": "[][1][2]",
+      "out": "[][][]",
       "refused": null
     },
     "fnExpr": {
       "problems": [],
-      "out": "[][1][2]",
+      "out": "[][][]",
       "refused": null
     },
     "fragment": {

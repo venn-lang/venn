@@ -13,7 +13,7 @@ import type { EvalEnv } from "../expr/eval-env.types.js";
 import type { Frame } from "../expr/frame.js";
 import type { Expr, FnDecl } from "../generated/ast.js";
 import type { Compile, Thunk } from "./compile.types.js";
-import { freeSlot, type LexScope, rootScope } from "./lex-scope.js";
+import { freeSlot, type LexScope, rootOf, rootScope, slotOf } from "./lex-scope.js";
 import {
   closureIn,
   compileBinary,
@@ -93,7 +93,7 @@ function dispatch(expr: Expr, scope: LexScope): Thunk {
     case "FnExpr":
       // A function made here captures this environment to reach the names
       // around it, so there has to be one for it to capture.
-      scope.dynamic = true;
+      rootOf(scope).dynamic = true;
       return compileFnExpr(expr, compileIn);
     // Compiled with the scope rather than only with a way to compile: what an
     // arm binds needs a slot, and slots belong to the scope.
@@ -146,13 +146,14 @@ function operation(expr: Expr, compile: Compile): Thunk {
  * the root has no closure at all.
  */
 function compileRef(name: string, scope: LexScope): Thunk {
-  const slot = scope.names.indexOf(name);
+  const body = rootOf(scope);
+  const slot = slotOf(scope, name);
   // The one name a bare body binds is the value it was handed, unwrapped.
-  if (slot === 0 && scope.bare) return (env) => env;
+  if (slot === 0 && body.bare) return (env) => env;
   if (slot !== -1) return slotThunk(slot);
   // One closure owns this body, so the cell can be held right here: no frame to
   // carry it, and no chain to walk.
-  const own = scope.cellOf?.(name);
+  const own = body.cellOf?.(name);
   if (own) return () => own.value;
   const up = freeSlot(scope, name);
   // A slot is only ever made for a name the compiler resolved, so reading one

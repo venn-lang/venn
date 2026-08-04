@@ -183,8 +183,18 @@ iterations happened to fail in.
 Everything a reporter or a UI shows derives from the envelope stream: `seq` is monotonic per run,
 `ts` comes from the host clock, and the kinds are `run.started`, `run.finished`, `flow.started`,
 `flow.finished`, `flow.retrying`, `step.started`, `step.finished`, `action.started`,
-`action.finished`, `expect.passed`, `expect.failed` and `log`. A failed expectation carries a whole
-`Problem`, code and span included, never a flattened string.
+`action.finished`, `expect.passed`, `expect.failed`, `expect.soft_failed`, `failure` and `log`.
+
+Three of those carry a failure, and which one it travels on says what kind of failure it was:
+`expect.failed` is an assertion the program made and lost, `expect.soft_failed` is one it asked to
+record and walk past, and `failure` is everything else, a hook, a branch, a verb, a timeout, a flow
+boundary. Every one of them carries a whole `Problem`, code and span and help included: a failure
+never travels as a flattened string, and `log` carries what the program said and nothing that went
+wrong. Whoever raises a failure reports it, where it happened, which is what keeps a step's name on
+its own failure and what makes `n` collected branch failures count as `n`; the flow boundary reports
+only what nobody claimed. Every envelope a step's body produces carries that step's `step` id, so a
+reporter never has to infer attribution from arrival order, which two steps open at once under a
+`parallel` would defeat.
 
 `EventSink` is a port: `createMemorySink` and `createNdjsonSink` are its two implementations, and
 both run the same conformance suite, which pins that envelopes arrive in `seq` order.

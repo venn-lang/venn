@@ -19,5 +19,19 @@ export function clockConformance(spec: ConformanceSpec<Clock>): void {
       // What must never happen is returning wildly short.
       expect(clock.now()).toBeGreaterThanOrEqual(before + 18);
     });
+
+    it("gives the time back when the sleep is cancelled", async () => {
+      const clock = await spec.factory();
+      const stop = new AbortController();
+      const before = clock.now();
+      const sleeping = clock.sleep(1000, stop.signal);
+      stop.abort();
+      await sleeping;
+      // Cancelled while waiting, then asked again with a signal already aborted:
+      // neither spends the second it was told to wait.
+      expect(clock.now()).toBeLessThan(before + 1000);
+      await clock.sleep(1000, stop.signal);
+      expect(clock.now()).toBeLessThan(before + 1000);
+    });
   });
 }

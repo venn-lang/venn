@@ -1,10 +1,10 @@
 import { type Block, isLifecycleDecl, type LifecycleDecl, type Statement } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import { type BlockPlan, planOf, type Step } from "./block-plan.js";
+import { branchEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
 import { runStatement } from "./run-statements.js";
-import { CancelSignal } from "./signals.js";
 
 /**
  * Run a block's statements in order, running any `defer { … }` bodies LIFO on
@@ -19,7 +19,8 @@ export function runBlock(engine: Engine, block: Block, scope: Scope): Pending {
 /** The walk over a plan, reusable by a loop that hoists `planOf` out of it. */
 export function runSteps(engine: Engine, steps: readonly Step[], scope: Scope): Pending {
   for (let at = 0; at < steps.length; at += 1) {
-    if (engine.signal?.aborted) throw new CancelSignal();
+    const stop = engine.cancel?.stopped();
+    if (stop !== undefined) throw stop;
     const pending = (steps[at] as Step)(engine, scope);
     if (pending) return resume(engine, steps, at + 1, scope, pending);
   }
@@ -35,7 +36,8 @@ async function resume(
 ): Promise<void> {
   await pending;
   for (let at = from; at < steps.length; at += 1) {
-    if (engine.signal?.aborted) throw new CancelSignal();
+    const stop = engine.cancel?.stopped();
+    if (stop !== undefined) throw stop;
     const next = (steps[at] as Step)(engine, scope);
     if (next) await next;
   }
@@ -53,7 +55,10 @@ async function withDefers(engine: Engine, block: Block, scope: Scope): Promise<v
       if (pending) await pending;
     }
   } finally {
-    const cleanup: Engine = { ...engine, signal: undefined };
+    // Detached: cleanup must complete even when what it tidies was cancelled
+    // mid-flight, and it reaches the world through the same context an action
+    // was handed, so the signal has to leave that too.
+    const cleanup = branchEngine(engine, undefined);
     for (const body of defers) await runBlock(cleanup, body, scope.child());
   }
 }

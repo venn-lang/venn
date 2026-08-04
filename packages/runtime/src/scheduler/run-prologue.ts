@@ -7,6 +7,7 @@ import {
   type LifecycleDecl,
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
+import { branchEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
 import { runStatement } from "./run-statements.js";
@@ -47,7 +48,7 @@ function isDefer(node: Declaration): node is Declaration & LifecycleDecl {
 
 function deferred(args: { engine: Engine; body: Block; scope: Scope }): Teardown {
   // Cleanup must complete even when what it tidies was cancelled mid-flight.
-  const engine: Engine = { ...args.engine, signal: undefined };
+  const engine = branchEngine(args.engine, undefined);
   return async () => {
     await runBlock(engine, args.body, args.scope.child());
   };

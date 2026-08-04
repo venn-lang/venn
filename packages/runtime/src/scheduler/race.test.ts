@@ -28,7 +28,17 @@ describe("race cancellation", () => {
       version: "0",
       namespace: "t",
       actions: [
-        defineAction({ name: "gate", run: () => gate }),
+        // Honours `ctx.signal`, which is what an action owes the scope it runs
+        // in. A race now waits for its losers to stop before it reports, so one
+        // that never stops is one the whole run waits on.
+        defineAction({
+          name: "gate",
+          run: (ctx) =>
+            new Promise<void>((resolve, reject) => {
+              void gate.then(resolve);
+              ctx.signal?.addEventListener("abort", () => reject(new Error("cancelled")));
+            }),
+        }),
         defineAction({
           name: "record",
           run: (_ctx, input) => {

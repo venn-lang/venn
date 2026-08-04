@@ -5,6 +5,9 @@ import { describe, expect, it } from "vitest";
 import { createMemorySink } from "../eventsink/index.js";
 import { createRunner } from "../run/index.js";
 
+/** What the work did after it was told to stop, which is the whole question. */
+let wentOn = false;
+
 const SLOW = definePlugin({
   name: "@t/slow",
   version: "0",
@@ -12,12 +15,23 @@ const SLOW = definePlugin({
   actions: [
     defineAction({
       name: "work",
-      run: () => new Promise((settle) => setTimeout(() => settle(1), 200)),
+      run: (ctx) =>
+        new Promise((settle, fail) => {
+          const timer = setTimeout(() => {
+            wentOn = true;
+            settle(1);
+          }, 200);
+          ctx.signal?.addEventListener("abort", () => {
+            clearTimeout(timer);
+            fail(new Error("cancelled"));
+          });
+        }),
     }),
   ],
 });
 
 async function ran(source: string) {
+  wentOn = false;
   const sink = createMemorySink();
   const runner = createRunner({ host: createTestHost(), plugins: [SLOW], sink });
   await runner.run(parse(source).ast);
@@ -32,15 +46,18 @@ async function ran(source: string) {
  * when a flow hangs.
  */
 describe("a step that ran out of time", () => {
-  // The step never finishes, which is the point: what ends is the flow around
-  // it, and the reason arrives as the log the runner writes before it does.
-  it("fails, saying how long it was given", async () => {
+  // What the timeout ends is the work, not the waiting. It used to end only the
+  // waiting: the body carried on to completion past the verdict, which is how a
+  // retried step came to run three copies of itself at once.
+  it("fails, saying how long it was given, and the work stops", async () => {
     const source = '@timeout(20ms)\nflow "F" {\n  step "s" {\n    slow.work\n  }\n}';
     const events = await ran(source);
     const flow = events.find((one) => one.kind === "flow.finished");
+    await new Promise((resolve) => setTimeout(resolve, 250));
 
     expect(flow?.data).toMatchObject({ status: "failed" });
     expect(JSON.stringify(events)).toContain("Timed out after 20ms");
+    expect(wentOn).toBe(false);
   });
 
   it("lets a step that finishes in time alone", async () => {

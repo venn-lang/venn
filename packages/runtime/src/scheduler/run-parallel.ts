@@ -1,4 +1,5 @@
 import type { ParallelStmt, Statement } from "@venn-lang/core";
+import { type CancelScope, createCancelScope } from "../cancel/index.js";
 import type { Scope } from "../scope/index.js";
 import { branchEngine } from "./branch-engine.js";
 import { runPool } from "./concurrency.js";
@@ -13,29 +14,43 @@ import { CancelSignal, isControlSignal } from "./signals.js";
  * statement concurrently.
  *
  * The block does not outlive itself. However it ends, every branch has either
- * finished or been cancelled by the time this returns: `Promise.all` on its own
- * rejects at the first failure and leaves the rest running, which is how a
- * finished test carries on making requests.
+ * finished or been cancelled by the time this returns, and the scope it made is
+ * built under the one it was already running in, so an outer `race` or an outer
+ * `@timeout` reaches every branch here too.
  */
 export async function runParallel(engine: Engine, stmt: ParallelStmt, scope: Scope): Promise<void> {
-  const limit = optsNumber(stmt.opts, "concurrency", scope) ?? stmt.body.stmts.length;
-  const onError = optsText(stmt.opts, "onError", scope) ?? "cancel";
-  const controller = new AbortController();
+  const cancel = createCancelScope({ parent: engine.cancel, clock: engine.clock });
   const failures: unknown[] = [];
-  await runPool({
-    items: stmt.body.stmts,
-    limit,
-    task: (child) => branch({ engine, child, scope, controller, failures, onError }),
-  });
+  try {
+    await dispatch({ engine, stmt, scope, cancel, failures });
+  } finally {
+    cancel.release();
+  }
   report(failures);
 }
 
-interface BranchArgs {
+interface DispatchArgs {
   engine: Engine;
-  child: Statement;
+  stmt: ParallelStmt;
   scope: Scope;
-  controller: AbortController;
+  cancel: CancelScope;
   failures: unknown[];
+}
+
+/** Every child statement, at most `concurrency` of them in flight. */
+function dispatch(args: DispatchArgs): Promise<void> {
+  const stmts = args.stmt.body.stmts;
+  const onError = optsText(args.stmt.opts, "onError", args.scope) ?? "cancel";
+  return runPool({
+    items: stmts,
+    limit: optsNumber(args.stmt.opts, "concurrency", args.scope) ?? stmts.length,
+    stop: () => args.cancel.stopped() !== undefined,
+    task: (child) => branch({ ...args, child, onError }),
+  });
+}
+
+interface BranchArgs extends DispatchArgs {
+  child: Statement;
   onError: string;
 }
 
@@ -48,14 +63,15 @@ interface BranchArgs {
  * checks wants.
  */
 async function branch(args: BranchArgs): Promise<void> {
-  const engine = branchEngine(args.engine, args.controller.signal);
   try {
-    await runStatement(engine, args.child, args.scope.child());
+    await runStatement(branchEngine(args.engine, args.cancel), args.child, args.scope.child());
   } catch (error) {
-    if (error instanceof CancelSignal) return;
+    // Whatever ended this scope is not this branch's failure to report: it is
+    // already being reported by whoever ended it, one level up or ten.
+    if (error instanceof CancelSignal || error === args.cancel.stopped()) return;
     if (isControlSignal(error)) throw error;
     args.failures.push(error);
-    if (args.onError === "cancel") args.controller.abort();
+    if (args.onError === "cancel") args.cancel.cancel(new CancelSignal());
   }
 }
 

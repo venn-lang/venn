@@ -15,6 +15,8 @@ export const RUN_CODES = {
   VN7002_UNBOUND_PORT: "VN7002",
   /** A step or a flow that ran out of the time it was given. */
   VN8001_TIMED_OUT: "VN8001",
+  /** Work that was cancelled, was given a while to stop, and did not stop. */
+  VN8002_STILL_RUNNING: "VN8002",
   /** Deeper than the machine will go: a function that never stops calling itself. */
   VN8003_TOO_DEEP: "VN8003",
 } as const;

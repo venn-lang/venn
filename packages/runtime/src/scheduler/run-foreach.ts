@@ -85,6 +85,8 @@ function sequential(
   scope: Scope,
 ): Pending {
   for (let at = 0; at < items.length; at += 1) {
+    const stop = engine.cancel?.stopped();
+    if (stop !== undefined) throw stop;
     try {
       const pending = onePass({ engine, stmt, item: items[at], scope });
       if (pending) return resume({ engine, stmt, items, from: at + 1, scope, pending });
@@ -109,6 +111,8 @@ async function resume(args: {
   const { engine, stmt, items, scope } = args;
   if (await stopped(args.pending)) return;
   for (let at = args.from; at < items.length; at += 1) {
+    const stop = engine.cancel?.stopped();
+    if (stop !== undefined) throw stop;
     try {
       await onePass({ engine, stmt, item: items[at], scope });
     } catch (error) {
@@ -151,7 +155,7 @@ async function concurrently(args: {
     items: args.items,
     limit: args.concurrency,
     task: (item) => runIteration({ ...args, item, broke }),
-    stop: () => broke.yet,
+    stop: () => broke.yet || args.engine.cancel?.stopped() !== undefined,
   });
 }
 

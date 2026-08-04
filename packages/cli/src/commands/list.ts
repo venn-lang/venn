@@ -1,10 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { relative, resolve } from "node:path";
-import { type Document, type FlowDecl, isFlowDecl, parse } from "@venn-lang/core";
+import { type Document, type FlowDecl, isFlowDecl, parse, stepTitlesOf } from "@venn-lang/core";
 import { matchesTitle } from "@venn-lang/runtime";
 import { bold, cyan, dim } from "../reporters/colors.js";
 import { collectSourceFiles } from "../run/collect-files.js";
-import { stepTitlesOf } from "../run/step-titles.js";
 
 /** Everything `venn list` accepts. */
 export interface ListOptions {

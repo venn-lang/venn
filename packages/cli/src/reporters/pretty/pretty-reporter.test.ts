@@ -1,24 +1,11 @@
-import type { Envelope } from "@venn-lang/core";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { captureStdout, finished, flow, flowDone, raised, said, started } from "../events.suite.js";
 import type { Reporter } from "../reporter.types.js";
 import { createPrettyReporter } from "./pretty-reporter.js";
 
-function envelope(kind: string, data: unknown, ts = "2026-07-24T10:00:00.000Z"): Envelope {
-  return { seq: 1, ts, run: "run-1", kind, data } as unknown as Envelope;
-}
-
+/** Everything the tree reporter writes while it is driven. */
 function capture(drive: (reporter: Reporter) => void): string {
-  const chunks: string[] = [];
-  const spy = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
-    chunks.push(String(chunk));
-    return true;
-  });
-  try {
-    drive(createPrettyReporter());
-  } finally {
-    spy.mockRestore();
-  }
-  return chunks.join("");
+  return captureStdout(() => drive(createPrettyReporter()));
 }
 
 const PROBLEM = {
@@ -47,14 +34,20 @@ const HOOK = {
   span: { uri: "flows/checkout.vn", line: 1, column: 1 },
 };
 
+const THROWN = {
+  code: "VN7001",
+  title: "The action failed: connect ECONNREFUSED",
+  span: { uri: "flows/checkout.vn", line: 6, column: 3 },
+};
+
 describe("pretty reporter", () => {
   it("draws a tree of flows and steps with their verdicts", () => {
     const output = capture((reporter) => {
       reporter.beginFile("flows/checkout.vn");
-      reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-      reporter.sink.emit(envelope("step.started", { title: "Ping" }));
-      const finished = { title: "Ping", status: "passed" };
-      reporter.sink.emit(envelope("step.finished", finished, "2026-07-24T10:00:00.120Z"));
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Ping", step: "s1" }));
+      const ts = "2026-07-24T10:00:00.120Z";
+      reporter.sink.emit(finished({ title: "Ping", step: "s1", ts }));
       reporter.finish({ passed: 1, failed: 0, files: 1, ms: 120 });
     });
 
@@ -69,10 +62,10 @@ describe("pretty reporter", () => {
   it("marks a failing step and repeats it with code and location", () => {
     const output = capture((reporter) => {
       reporter.beginFile("flows/checkout.vn");
-      reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-      reporter.sink.emit(envelope("step.started", { title: "Charge" }));
-      reporter.sink.emit(envelope("expect.failed", { problem: PROBLEM }));
-      reporter.sink.emit(envelope("step.finished", { title: "Charge", status: "failed" }));
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(raised({ problem: PROBLEM, step: "s1" }));
+      reporter.sink.emit(finished({ title: "Charge", status: "failed", step: "s1" }));
       reporter.finish({ passed: 0, failed: 1, files: 1, ms: 5 });
     });
 
@@ -85,10 +78,10 @@ describe("pretty reporter", () => {
 
   it("prints the diff under the failure, field by field", () => {
     const output = capture((reporter) => {
-      reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-      reporter.sink.emit(envelope("step.started", { title: "Reconcile" }));
-      reporter.sink.emit(envelope("expect.failed", { problem: WITH_DIFF }));
-      reporter.sink.emit(envelope("step.finished", { title: "Reconcile", status: "failed" }));
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Reconcile", step: "s1" }));
+      reporter.sink.emit(raised({ problem: WITH_DIFF, step: "s1" }));
+      reporter.sink.emit(finished({ title: "Reconcile", status: "failed", step: "s1" }));
       reporter.finish({ passed: 0, failed: 1, files: 1, ms: 9 });
     });
     const lines = output.split("\n");
@@ -103,9 +96,9 @@ describe("pretty reporter", () => {
   it("keeps one banner per file and one summary for the whole run", () => {
     const output = capture((reporter) => {
       reporter.beginFile("flows/a.vn");
-      reporter.sink.emit(envelope("flow.started", { title: "A" }));
+      reporter.sink.emit(flow("A"));
       reporter.beginFile("flows/b.vn");
-      reporter.sink.emit(envelope("flow.started", { title: "B" }));
+      reporter.sink.emit(flow("B"));
       reporter.finish({ passed: 4, failed: 0, files: 2, ms: 40 });
     });
 
@@ -116,26 +109,30 @@ describe("pretty reporter", () => {
     expect(output).toContain("Files");
   });
 
-  it("reports an error thrown mid-flow, which arrives as a log", () => {
+  // A verb that blew up is not an assertion anybody made, and it used to arrive
+  // as a `log` the reporter stamped VN7001 on itself. It arrives on `failure`
+  // now, carrying the code and the span of whatever really went wrong.
+  it("reports a failure that no assertion made, with the code it carries", () => {
     const output = capture((reporter) => {
       reporter.beginFile("flows/checkout.vn");
-      reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-      reporter.sink.emit(envelope("log", { level: "error", message: "connect ECONNREFUSED" }));
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(raised({ problem: THROWN, kind: "failure" }));
       reporter.finish({ passed: 0, failed: 1, files: 1, ms: 3 });
     });
 
     expect(output).toContain("connect ECONNREFUSED");
     expect(output).toContain("VN7001");
+    expect(output).toContain("checkout.vn:6:3");
   });
 
   it("prints an info `log` under its step, the way console output shows in vitest", () => {
     const output = capture((reporter) => {
-      reporter.sink.emit(envelope("flow.started", { title: "Demo" }));
-      reporter.sink.emit(envelope("step.started", { title: "logs" }));
-      reporter.sink.emit(envelope("log", { level: "info", message: "hello" }));
-      reporter.sink.emit(envelope("log", { level: "info", message: '{"n":42}' }));
-      const done = { title: "logs", status: "passed" };
-      reporter.sink.emit(envelope("step.finished", done, "2026-07-24T10:00:00.001Z"));
+      reporter.sink.emit(flow("Demo"));
+      reporter.sink.emit(started({ title: "logs", step: "s1" }));
+      reporter.sink.emit(said({ message: "hello", step: "s1" }));
+      reporter.sink.emit(said({ message: '{"n":42}', step: "s1" }));
+      const ts = "2026-07-24T10:00:00.001Z";
+      reporter.sink.emit(finished({ title: "logs", step: "s1", ts }));
       reporter.finish({ passed: 1, failed: 0, files: 1, ms: 1 });
     });
 
@@ -151,10 +148,10 @@ describe("pretty reporter", () => {
   it("prints a failure that arrived before any step", () => {
     const output = capture((reporter) => {
       reporter.beginFile("flows/checkout.vn");
-      reporter.sink.emit(envelope("expect.failed", { problem: HOOK }));
-      reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-      reporter.sink.emit(envelope("step.started", { title: "Charge" }));
-      reporter.sink.emit(envelope("step.finished", { title: "Charge", status: "passed" }));
+      reporter.sink.emit(raised({ problem: HOOK, kind: "failure" }));
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(finished({ title: "Charge", step: "s1" }));
       reporter.finish({ passed: 1, failed: 1, files: 1, ms: 5 });
     });
 
@@ -168,11 +165,11 @@ describe("pretty reporter", () => {
   // flush it, and it is not the last step's fault, so it is not filed there.
   it("prints a failure that arrived after the last step, blaming no step", () => {
     const output = capture((reporter) => {
-      reporter.sink.emit(envelope("flow.started", { title: "Checkout" }));
-      reporter.sink.emit(envelope("step.started", { title: "Charge" }));
-      reporter.sink.emit(envelope("step.finished", { title: "Charge", status: "passed" }));
-      reporter.sink.emit(envelope("flow.finished", { title: "Checkout", status: "passed" }));
-      reporter.sink.emit(envelope("expect.failed", { problem: HOOK }));
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(finished({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(flowDone({ title: "Checkout" }));
+      reporter.sink.emit(raised({ problem: HOOK, kind: "failure" }));
       reporter.finish({ passed: 1, failed: 1, files: 1, ms: 5 });
     });
 
@@ -182,13 +179,59 @@ describe("pretty reporter", () => {
 
   it("keeps a step's logs out of the failures summary", () => {
     const output = capture((reporter) => {
-      reporter.sink.emit(envelope("flow.started", { title: "Demo" }));
-      reporter.sink.emit(envelope("step.started", { title: "s" }));
-      reporter.sink.emit(envelope("log", { level: "info", message: "just noise" }));
-      reporter.sink.emit(envelope("step.finished", { title: "s", status: "passed" }));
+      reporter.sink.emit(flow("Demo"));
+      reporter.sink.emit(started({ title: "s", step: "s1" }));
+      reporter.sink.emit(said({ message: "just noise", step: "s1" }));
+      reporter.sink.emit(finished({ title: "s", step: "s1" }));
       reporter.finish({ passed: 1, failed: 0, files: 1, ms: 1 });
     });
 
     expect(output).not.toContain("FAILURES");
+  });
+
+  it("says a soft failure did not stop the step", () => {
+    const output = capture((reporter) => {
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(raised({ problem: PROBLEM, kind: "expect.soft_failed", step: "s1" }));
+      reporter.sink.emit(finished({ title: "Charge", step: "s1" }));
+      reporter.finish({ passed: 1, failed: 1, files: 1, ms: 2 });
+    });
+
+    expect(output).toContain("✓ Charge");
+    expect(output).toContain("the step carried on");
+    expect(output).toContain("VN6001");
+  });
+
+  it("gives a step that was cut short neither a tick nor a cross", () => {
+    const output = capture((reporter) => {
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(finished({ title: "Charge", status: "cancelled", step: "s1" }));
+      reporter.finish({ passed: 0, failed: 0, files: 1, ms: 1 });
+    });
+
+    expect(output).toContain("- Charge");
+    expect(output).not.toContain("✓ Charge");
+    expect(output).not.toContain("✗ Charge");
+  });
+
+  /**
+   * A `log` written between two steps carries no step id, and printed at the
+   * indent a step's children use it read as one of the preceding step's own
+   * lines. It belongs to the flow, so it sits where the steps sit.
+   */
+  it("prints a log that no step said beside the steps, not under one", () => {
+    const output = capture((reporter) => {
+      reporter.sink.emit(flow("Checkout"));
+      reporter.sink.emit(started({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(finished({ title: "Charge", step: "s1" }));
+      reporter.sink.emit(said({ message: "between steps" }));
+      reporter.finish({ passed: 1, failed: 0, files: 1, ms: 1 });
+    });
+    const lines = output.split("\n");
+
+    expect(lines).toContain("   › between steps");
+    expect(lines).not.toContain("     › between steps");
   });
 });

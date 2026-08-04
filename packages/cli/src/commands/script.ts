@@ -3,8 +3,9 @@ import { dirname, resolve } from "node:path";
 import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang/contracts/node";
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer, type NodeHttpServer } from "@venn-lang/http/node";
+import { unclaimed } from "@venn-lang/runtime";
 import { declaredEnv, envDirOf, loadEnv, loadManifest } from "../manifest/index.js";
-import { createProblemSink, errorLine, reportProblems } from "../reporters/index.js";
+import { createProblemSink, errorLine, problemThrown, reportProblems } from "../reporters/index.js";
 import type { Ending } from "../run/ending.types.js";
 import { exitCodeOf } from "../run/exit-code.js";
 import { watchForAStuckRun } from "../run/index.js";
@@ -144,8 +145,24 @@ function report(problems: Parameters<typeof reportProblems>[0]): number {
   return 1;
 }
 
-/** An error thrown mid-script: print it the way the program would see it, then fail. */
+/**
+ * An error thrown mid-script: print it the way the program would see it, then
+ * fail.
+ *
+ * A throw that carries a code of ours goes through the same report as a
+ * compile-time problem, so the code, the location and the help survive the throw
+ * instead of arriving as a bare title under a format of their own. Reading the
+ * throw rather than its class is what covers every raiser: a `ProblemError` from
+ * the kernel is not a `VennError`, a plugin's is neither, and `VennError` carries
+ * most of the runtime's codes.
+ *
+ * This is the last catcher, so it says only what nobody claimed. A raise site
+ * that reported its own failure already put it on the stream, and the sink said
+ * it out loud: repeating it here is the same failure told twice.
+ */
 function crashed(error: unknown): number {
+  const problem = problemThrown(error);
+  if (problem) return unclaimed(error) ? report([problem]) : 1;
   process.stderr.write(`${errorLine(error)}\n`);
   return 1;
 }

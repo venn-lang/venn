@@ -1,16 +1,14 @@
-import type { Problem, RelatedInfo } from "@venn-lang/core";
+import { type Problem, problemLines } from "@venn-lang/core";
 import { dim } from "./colors.js";
 
 /**
- * Everything a problem knows beneath its title, as lines.
+ * Everything a problem knows beneath its title, as terminal lines.
  *
- * §16 says a well-formed error answers seven questions. The title and the span
- * answer two, and the rest were built and thrown away: a check that worked out
- * which import to write, or which name was nearly right, said so into a field
- * nobody printed.
- *
- * One function, so `venn check`, `venn run` and `venn test` read the same
- * beneath their own headings.
+ * Which lines a problem has and what each one reads as is decided once, beside
+ * the problem, by `problemLines`. This is only the terminal over it: an indent,
+ * a dim label padded to one width, and the gap that lines the text up. Keeping
+ * the two apart is what lets the editor and anything else render the same
+ * failure instead of each keeping its own idea of it.
  *
  * @param problem The problem to describe.
  * @param args.indent What each line starts with, since the tree reporter is
@@ -25,26 +23,7 @@ export function problemDetail(
   args: { indent?: string; where?: boolean } = {},
 ): string[] {
   const indent = args.indent ?? "  ";
-  return [
-    ...(args.where === false ? [] : line(indent, "at", location(problem))),
-    ...line(indent, "help", problem.help),
-    ...line(indent, "note", problem.note),
-    ...(problem.related ?? []).flatMap((one) => line(indent, "see", related(one))),
-    ...line(indent, "docs", problem.docs),
-  ];
-}
-
-/** Labels are padded to one width so the text beside them lines up. */
-function line(indent: string, label: string, text: string | undefined): string[] {
-  return text ? [`${indent}${dim(label.padEnd(4))}  ${text}`] : [];
-}
-
-function location(problem: Problem): string | undefined {
-  const { uri, line: at, column } = problem.span;
-  return uri ? `${uri}:${at}:${column}` : undefined;
-}
-
-/** A second place worth looking at, and why: "here it was declared as string". */
-function related(one: RelatedInfo): string {
-  return `${one.span.uri}:${one.span.line}:${one.span.column}  ${one.label}`;
+  const lines = problemLines(problem);
+  const wanted = args.where === false ? lines.filter((one) => one.label !== "at") : lines;
+  return wanted.map((one) => `${indent}${dim(one.label.padEnd(4))}  ${one.text}`);
 }

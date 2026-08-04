@@ -1,15 +1,23 @@
-import { VennError } from "@venn-lang/contracts";
 import { RUN_CODES } from "@venn-lang/runtime";
+import { problemDetail } from "./problem-detail.js";
+import { problemThrown } from "./problem-thrown.js";
 
 /**
  * One line for one failure, however it reached us.
  *
- * A `VennError` already knows how it wants to read, and leads with its code so
- * the failure is googlable; anything else is a stray from below the language and
- * gets its message, never `[object Object]`.
+ * A throw that carries a code of ours says everything it knows: the code, so the
+ * failure is googlable, then where it happened and what to do about it. Reading
+ * the throw rather than its class is what keeps this true of a `ProblemError`
+ * from the kernel, of a `VennError` from a port, and of anything else that
+ * carries one. Anything else is a stray from below the language and gets its
+ * message, never `[object Object]`.
+ *
+ * @param error Whatever was thrown.
+ * @returns The failure as text, one line unless a problem had more to say.
  */
 export function errorLine(error: unknown): string {
-  if (error instanceof VennError) return `${error.code}  ${error.message}`;
+  const problem = problemThrown(error);
+  if (problem) return [`${problem.code}  ${problem.title}`, ...problemDetail(problem)].join("\n");
   const tooDeep = wentTooDeep(error);
   if (tooDeep) return tooDeep;
   const message = (error as { message?: unknown } | undefined)?.message;

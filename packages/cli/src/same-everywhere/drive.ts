@@ -64,9 +64,17 @@ function analysed(document: Document, frontEnd: FrontEnd): readonly Problem[] {
   }).problems;
 }
 
-/** A problem as the corpus records it: what it is, how loud, and where. */
+/**
+ * A problem as the corpus records it: what it is, how loud, where, and what it
+ * said.
+ *
+ * The sentence is compared because it is the one the user reads, and the
+ * charter makes it the product's voice in the user's own domain. A refusal's
+ * title was already kept; leaving a diagnostic's out meant a message that
+ * changed to something wrong read here as no change at all.
+ */
 function shown(problem: Problem): string {
-  return `${problem.code} ${problem.severity}@${problem.span.column}`;
+  return `${problem.code} ${problem.severity}@${problem.span.column} ${problem.title}`;
 }
 
 /**

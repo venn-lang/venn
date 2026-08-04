@@ -37,6 +37,13 @@ export interface Case {
   readonly open: ReadonlyMap<Placement, string>;
 }
 
+/** One placement's file, and the half-open range the body occupies in it. */
+export interface Placed {
+  readonly source: string;
+  readonly from: number;
+  readonly to: number;
+}
+
 /** A refusal, in the parts that survive being raised from two different paths. */
 export interface Refusal {
   /** Empty for a host error, which is itself the thing worth seeing. */
@@ -52,7 +59,7 @@ export interface Refusal {
 
 /** What one placement of one body did, in every channel a user can see. */
 export interface Answer {
-  /** Every problem the front end found, as `CODE severity@column`. */
+  /** Every problem the front end found, as `CODE severity@column title`. */
   readonly problems: readonly string[];
   /** What the body left in `seen`. `null` when the run never printed it. */
   readonly out: string | null;

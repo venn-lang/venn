@@ -440,12 +440,16 @@
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN5008 error@23"],
+      "problems": [
+        "VN5008 error@23 A pure body runs one pass at a time, so concurrency here has no effect."
+      ],
       "out": "1 2 ",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN5008 error@23"],
+      "problems": [
+        "VN5008 error@23 A pure body runs one pass at a time, so concurrency here has no effect."
+      ],
       "out": "1 2 ",
       "refused": null
     },
@@ -792,7 +796,9 @@
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN2024 error@1"],
+      "problems": [
+        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
+      ],
       "out": null,
       "refused": {
         "code": "VN2024",
@@ -802,7 +808,9 @@
       }
     },
     "fnExpr": {
-      "problems": ["VN2024 error@1"],
+      "problems": [
+        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
+      ],
       "out": null,
       "refused": {
         "code": "VN2024",
@@ -829,7 +837,9 @@
       }
     },
     "fnDecl": {
-      "problems": ["VN2024 error@1"],
+      "problems": [
+        "VN2024 error@1 A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file."
+      ],
       "out": null,
       "refused": {
         "code": "VN2024",
@@ -839,7 +849,9 @@
       }
     },
     "fnExpr": {
-      "problems": ["VN2024 error@1"],
+      "problems": [
+        "VN2024 error@1 A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file."
+      ],
       "out": null,
       "refused": {
         "code": "VN2024",
@@ -867,11 +879,11 @@
     },
     "fnDecl": {
       "problems": [
-        "VN1002 error@10",
-        "VN1002 error@1",
-        "VN1002 error@1",
-        "VN1002 error@1",
-        "VN2008 error@1"
+        "VN1002 error@10 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "VN1002 error@1 Expecting token of type '}' but found `seen`.",
+        "VN1002 error@1 Expecting token of type 'EOF' but found `return`.",
+        "VN1002 error@1 Expecting token of type 'EOF' but found `}`.",
+        "VN2008 error@1 `io.print` is a verb, not a value: write `io.print()` to call it."
       ],
       "out": null,
       "refused": {
@@ -883,11 +895,11 @@
     },
     "fnExpr": {
       "problems": [
-        "VN1002 error@10",
-        "VN1002 error@1",
-        "VN1002 error@1",
-        "VN2003 error@1",
-        "VN2008 error@1"
+        "VN1002 error@10 Expecting token of type '}' but found `\"the verb ran\"`.",
+        "VN1002 error@1 Expecting token of type 'EOF' but found `return`.",
+        "VN1002 error@1 Expecting token of type 'EOF' but found `}`.",
+        "VN2003 error@1 This is not an action to call.",
+        "VN2008 error@1 `io.print` is a verb, not a value: write `io.print()` to call it."
       ],
       "out": null,
       "refused": {
@@ -905,88 +917,124 @@
   },
   "050-match-dispatches-on-shape": {
     "top": {
-      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "problems": [
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>.",
+        "VN3010 error@22 Type mismatch: expected { user: { name: number } }, found number.",
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>."
+      ],
       "out": "5 1 0 0",
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "problems": [
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>.",
+        "VN3010 error@22 Type mismatch: expected { user: { name: number } }, found number.",
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>."
+      ],
       "out": "5 1 0 0",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "problems": [
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>.",
+        "VN3010 error@22 Type mismatch: expected { user: { name: number } }, found number.",
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>."
+      ],
       "out": "5 1 0 0",
       "refused": null
     },
     "fragment": {
-      "problems": ["VN3010 error@23", "VN3010 error@22", "VN3010 error@23"],
+      "problems": [
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>.",
+        "VN3010 error@22 Type mismatch: expected { user: { name: number } }, found number.",
+        "VN3010 error@23 Type mismatch: expected { user: { name: number } }, found list<number>."
+      ],
       "out": "5 1 0 0",
       "refused": null
     }
   },
   "051-match-asks-a-map-for-its-keys": {
     "top": {
-      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "problems": [
+        "VN3010 error@17 Type mismatch: expected fn({ a: number }) -> a, found fn({ missing: number }) -> number.",
+        "VN3010 error@16 Type mismatch: expected { missing: number }, found string."
+      ],
       "out": "1 0 0",
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "problems": [
+        "VN3010 error@17 Type mismatch: expected fn({ a: number }) -> a, found fn({ missing: number }) -> number.",
+        "VN3010 error@16 Type mismatch: expected { missing: number }, found string."
+      ],
       "out": "1 0 0",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "problems": [
+        "VN3010 error@17 Type mismatch: expected fn({ a: number }) -> a, found fn({ missing: number }) -> number.",
+        "VN3010 error@16 Type mismatch: expected { missing: number }, found string."
+      ],
       "out": "1 0 0",
       "refused": null
     },
     "fragment": {
-      "problems": ["VN3010 error@17", "VN3010 error@16"],
+      "problems": [
+        "VN3010 error@17 Type mismatch: expected fn({ a: number }) -> a, found fn({ missing: number }) -> number.",
+        "VN3010 error@16 Type mismatch: expected { missing: number }, found string."
+      ],
       "out": "1 0 0",
       "refused": null
     }
   },
   "052-match-with-a-rest-takes-any-length": {
     "top": {
-      "problems": ["VN3010 error@21"],
+      "problems": ["VN3010 error@21 Type mismatch: expected list<number>, found number."],
       "out": "8 8 0 0",
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN3010 error@21"],
+      "problems": ["VN3010 error@21 Type mismatch: expected list<number>, found number."],
       "out": "8 8 0 0",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN3010 error@21"],
+      "problems": ["VN3010 error@21 Type mismatch: expected list<number>, found number."],
       "out": "8 8 0 0",
       "refused": null
     },
     "fragment": {
-      "problems": ["VN3010 error@21"],
+      "problems": ["VN3010 error@21 Type mismatch: expected list<number>, found number."],
       "out": "8 8 0 0",
       "refused": null
     }
   },
   "053-a-match-with-no-arms": {
     "top": {
-      "problems": ["VN3019 error@29"],
+      "problems": [
+        "VN3019 error@29 This `match` has no arms, so there is nothing here it can decide."
+      ],
       "out": "[]",
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN3019 error@29"],
+      "problems": [
+        "VN3019 error@29 This `match` has no arms, so there is nothing here it can decide."
+      ],
       "out": "[]",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN3019 error@29"],
+      "problems": [
+        "VN3019 error@29 This `match` has no arms, so there is nothing here it can decide."
+      ],
       "out": "[]",
       "refused": null
     },
     "fragment": {
-      "problems": ["VN3019 error@29"],
+      "problems": [
+        "VN3019 error@29 This `match` has no arms, so there is nothing here it can decide."
+      ],
       "out": "[]",
       "refused": null
     }
@@ -1086,12 +1134,16 @@
       "refused": null
     },
     "fnDecl": {
-      "problems": ["VN5008 error@35"],
+      "problems": [
+        "VN5008 error@35 A pure body runs one pass at a time, so concurrency here has no effect."
+      ],
       "out": "[1, 2]",
       "refused": null
     },
     "fnExpr": {
-      "problems": ["VN5008 error@35"],
+      "problems": [
+        "VN5008 error@35 A pure body runs one pass at a time, so concurrency here has no effect."
+      ],
       "out": "[1, 2]",
       "refused": null
     },
@@ -1169,7 +1221,7 @@
   },
   "070-statements-inside-a-namespace": {
     "top": {
-      "problems": ["VN2025 error@3"],
+      "problems": ["VN2025 error@3 A namespace groups names, so it cannot hold an assignment."],
       "out": null,
       "refused": {
         "code": "VN2025",
@@ -1181,7 +1233,7 @@
   },
   "071-a-flow-inside-a-namespace": {
     "top": {
-      "problems": ["VN2025 error@3"],
+      "problems": ["VN2025 error@3 A namespace groups names, so it cannot hold a `flow`."],
       "out": null,
       "refused": {
         "code": "VN2025",

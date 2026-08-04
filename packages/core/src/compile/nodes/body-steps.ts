@@ -9,6 +9,7 @@ import { unpack, wholeSlot } from "../unpack.js";
 import { assignStep } from "./assign-step.js";
 import type { CompileIn } from "./fn.js";
 import { checkedCount, checkedList } from "./loop-bound.js";
+import { refuseACall } from "./pure-body.js";
 import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 
 /**
@@ -59,6 +60,7 @@ function blockSteps(
 }
 
 function letStep(stmt: ast.LetStmt, scope: LexScope, compile: CompileIn): Step {
+  refuseACall(stmt);
   const value = compile(stmt.value, scope);
   if (!stmt.pattern) {
     const slot = scope.names.indexOf(stmt.name as string);

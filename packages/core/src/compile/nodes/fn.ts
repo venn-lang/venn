@@ -17,6 +17,7 @@ import type { CompiledBody, CompiledLocal, Thunk } from "../compile.types.js";
 import { type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
 import { paramLocals, paramSlotName, unpack, wholeSlot } from "../unpack.js";
 import { compileStep } from "./body-steps.js";
+import { refuseACall } from "./pure-body.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
 export type CompileIn = (expr: Expr, scope: LexScope) => Thunk;
@@ -129,6 +130,7 @@ function localsOf(args: {
   compileIn: CompileIn;
 }): CompiledLocal[] {
   const { local, scope, compileIn } = args;
+  refuseACall(local);
   const value = compileIn(local.value, scope);
   if (!local.pattern) return [{ slot: scope.names.indexOf(local.name as string), value }];
   const whole = wholeSlot(scope, local);

@@ -1,10 +1,14 @@
 import { createTestHost } from "@venn-lang/contracts";
 import { type Document, type Problem, type ProblemError, parse } from "@venn-lang/core";
+import {
+  collectFragments,
+  createFrontEnd,
+  createMemorySink,
+  createRunner,
+  type FrontEnd,
+  NOTHING_IMPORTED,
+} from "@venn-lang/runtime";
 import { defineAction, definePlugin, type PluginDefinition } from "@venn-lang/sdk";
-import { createFrontEnd, type FrontEnd, NOTHING_IMPORTED } from "../analyze/index.js";
-import { createMemorySink } from "../eventsink/index.js";
-import { createRunner } from "../run/index.js";
-import { collectFragments } from "../scheduler/index.js";
 import type { Answer, Driver, Refusal } from "./same-everywhere.types.js";
 
 const URI = "memory://corpus.vn";

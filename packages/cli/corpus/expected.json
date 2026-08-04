@@ -726,14 +726,24 @@
       "refused": null
     },
     "fnDecl": {
-      "problems": [],
-      "out": "after",
-      "refused": null
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
     },
     "fnExpr": {
-      "problems": [],
-      "out": "after",
-      "refused": null
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
     },
     "fragment": {
       "problems": [],
@@ -753,14 +763,24 @@
       }
     },
     "fnDecl": {
-      "problems": [],
-      "out": "fell through",
-      "refused": null
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
     },
     "fnExpr": {
-      "problems": [],
-      "out": "fell through",
-      "refused": null
+      "problems": ["VN2024 error@1"],
+      "out": null,
+      "refused": {
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "help": null,
+        "column": 1
+      }
     },
     "fragment": {
       "problems": [],

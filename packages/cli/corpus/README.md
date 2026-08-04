@@ -12,6 +12,10 @@ A case is statements only. It appends to `seen`, and the wrapper prints what
 `seen` ended up holding, so the assertion is that the four answers agree and
 nothing about the body has to be predicted.
 
+It lives in the CLI rather than beside either evaluator because the cases are
+files on disk, and the CLI is the package the charter lets read one. Nothing
+here is shipped: `corpus/` is outside `src` and outside `files`.
+
 ## The header
 
 Lines starting with `#`, before the body, and each one carries its reason:
@@ -31,13 +35,13 @@ worse, files that defect under "meant to".
 
 ## Running it
 
-`pnpm --filter @venn-lang/runtime test` drives every case and compares it with
+`pnpm --filter @venn-lang/cli test` drives every case and compares it with
 `expected.json`, which is the pinned answer per case per placement. Agreement
 between placements is not enough on its own, because both paths can be wrong the
 same way: `match` dispatched on nothing at all in both, identically, for as long
 as it existed.
 
-`VENN_WRITE_CORPUS=1 pnpm --filter @venn-lang/runtime test` records what the tree
+`VENN_WRITE_CORPUS=1 pnpm --filter @venn-lang/cli test` records what the tree
 does now, the way `node scripts/examples-run.mjs --write` does, and `pnpm format`
 after it puts the file back the way Biome wants it. The comparison is over the
 parsed answers, not the text, so the formatting of the file is nobody's business

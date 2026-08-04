@@ -147,9 +147,16 @@ async function reallyRuns(): Promise<void> {
   expect(Object.values(now).flatMap((one) => Object.keys(one)).length).toBeGreaterThan(60);
 }
 
+/**
+ * Every case at every placement, parsed, analysed and run. Under a second on
+ * its own; the room is for a machine with sixty-nine other test files of this
+ * package running beside it.
+ */
+const A_WHILE = { timeout: 30_000 };
+
 describe("the same lines, written in each of the places the language compiles them", () => {
-  it("answers the same in every placement, or says in the case why not", agreesEverywhere);
-  it("answers what was recorded for it", matchesThePin);
-  it("has filed exactly the divergences it has not fixed", filesWhatItHasNotFixed);
-  it("is read from disk and really runs", reallyRuns);
+  it("answers the same in every placement, or says in the case why not", A_WHILE, agreesEverywhere);
+  it("answers what was recorded for it", A_WHILE, matchesThePin);
+  it("has filed exactly the divergences it has not fixed", A_WHILE, filesWhatItHasNotFixed);
+  it("is read from disk and really runs", A_WHILE, reallyRuns);
 });

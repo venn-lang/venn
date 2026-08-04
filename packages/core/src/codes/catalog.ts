@@ -27,6 +27,8 @@ export const CODES = {
   VN2022_CONST_ASSIGNED: { code: "VN2022", severity: "error" },
   /** A name inside a `deco` body that expansion time cannot reach yet. */
   VN2023_OUT_OF_REACH: { code: "VN2023", severity: "error" },
+  /** A verb called from a `fn` body, which is pure and cannot reach the world. */
+  VN2024_VERB_IN_A_PURE_BODY: { code: "VN2024", severity: "error" },
   VN3001_UNKNOWN_OPTION: { code: "VN3001", severity: "error" },
   /** A verb or matcher handed more positional arguments than it takes, or fewer. */
   VN3002_ARGUMENT_COUNT: { code: "VN3002", severity: "error" },

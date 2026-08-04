@@ -1,4 +1,7 @@
 import {
+  type AstNode,
+  buildProblem,
+  CODES,
   closureOfDecl,
   decorateCallable,
   evaluate,
@@ -6,8 +9,11 @@ import {
   isLetStmt,
   isNamespaceDecl,
   type NamespaceDecl,
+  ProblemError,
 } from "@venn-lang/core";
 import { binderFor, type Scope } from "../scope/index.js";
+import { heldByANamespace, wordFor } from "./namespace-member.js";
+import { nodeSpan } from "./node-span.js";
 
 /** A declaration list: a file's, or one namespace's. */
 type Declared = readonly { readonly $type: string }[];
@@ -33,6 +39,7 @@ export function bindDeclaredNamespaces(decls: Declared, scope: Scope): void {
 /** Everything the block declares, bound inside; only what it published, outside. */
 function faceOf(decl: NamespaceDecl, outer: Scope): Record<string, unknown> {
   const inside = outer.child();
+  for (const held of decl.decls) if (!heldByANamespace(held)) throw noPlaceFor(held);
   claim(decl, inside);
   for (const held of decl.decls) {
     if (isFnDecl(held)) inside.set(held.name, decorateCallable(held, closureOfDecl(held, inside)));
@@ -42,6 +49,24 @@ function faceOf(decl: NamespaceDecl, outer: Scope): Record<string, unknown> {
     if (isLetStmt(held)) binderFor(held)(evaluate(held.value, inside), inside);
   }
   return published(decl, inside);
+}
+
+/**
+ * What the block holds and this cannot place, said rather than skipped.
+ *
+ * The checker refuses it where it is written. This is the backstop for a host
+ * that runs without one, so a `flow` inside a namespace can never again be
+ * dropped in silence and counted as a suite that passed.
+ */
+function noPlaceFor(held: AstNode): ProblemError {
+  return new ProblemError({
+    ...buildProblem({
+      spec: CODES.VN2025_NOT_A_NAMESPACE_MEMBER,
+      span: nodeSpan(held, ""),
+      title: `A namespace groups names, so it cannot hold ${wordFor(held)}.`,
+    }),
+    help: "Move it to the top level of the file.",
+  });
 }
 
 /**

@@ -1037,9 +1037,26 @@
   },
   "070-statements-inside-a-namespace": {
     "top": {
-      "problems": [],
-      "out": "end",
-      "refused": null
+      "problems": ["VN2025 error@3"],
+      "out": null,
+      "refused": {
+        "code": "VN2025",
+        "title": "A namespace groups names, so it cannot hold an assignment.",
+        "help": "Move it to the top level of the file.",
+        "column": 3
+      }
+    }
+  },
+  "071-a-flow-inside-a-namespace": {
+    "top": {
+      "problems": ["VN2025 error@3"],
+      "out": null,
+      "refused": {
+        "code": "VN2025",
+        "title": "A namespace groups names, so it cannot hold a `flow`.",
+        "help": "Move it to the top level of the file.",
+        "column": 3
+      }
     }
   },
   "080-a-member-write-on-a-value-with-no-place": {

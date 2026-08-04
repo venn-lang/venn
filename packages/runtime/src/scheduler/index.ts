@@ -10,6 +10,7 @@ export { matchesTitle } from "./filter.js";
 export type { RunFilter } from "./filter.types.js";
 export type { Invocation } from "./invocation.js";
 export { actionTarget, invocationOf } from "./invocation.js";
+export { heldByANamespace, wordFor } from "./namespace-member.js";
 export { nodeSource, nodeSpan } from "./node-span.js";
 export { runDocument } from "./run-document.js";
 export { runScript } from "./run-script.js";

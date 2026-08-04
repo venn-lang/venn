@@ -44,13 +44,19 @@ export class Frame implements EvalEnv {
   }
 
   /**
-   * `lastIndexOf`, not `indexOf`: a name may have a slot per block that binds
-   * it, and the innermost is the one a function made inside that block meant.
-   * Nothing else asks a frame for a name, because everything else was resolved
-   * where it was written.
+   * The outermost slot with this name, which is the one a closure made in this
+   * body was written against unless it was made inside a block that shadowed it.
+   *
+   * That last case is not resolved here and cannot be: this asks by name at call
+   * time, and which slot a closure meant is a question about where it was
+   * written. `lastIndexOf` was tried and is worse: it reads the innermost slot
+   * whoever calls, so a closure made before a shadowing block read the shadow,
+   * and one made where the block never ran read nothing at all. The answer is to
+   * resolve a free name when the closure is built, which is issue #265's
+   * remaining half.
    */
   lookup(name: string): unknown {
-    const at = this.closure.body.names.lastIndexOf(name);
+    const at = this.closure.body.names.indexOf(name);
     return at === -1 ? this.closure.env.lookup(name) : readSlot(this, at);
   }
 }
@@ -89,7 +95,9 @@ export function writeSlot(frame: Frame, at: number, value: unknown): void {
 export function writeNamed(frame: Frame, name: string, value: unknown): void {
   let env: EvalEnv = frame;
   while (env instanceof Frame) {
-    const at = env.closure.body.names.lastIndexOf(name);
+    // The outermost, to match what `lookup` reads. A write and a read of one
+    // name in one frame must reach one slot, whichever is the right one.
+    const at = env.closure.body.names.indexOf(name);
     if (at !== -1) {
       writeSlot(env, at, value);
       return;

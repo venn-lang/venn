@@ -14,7 +14,7 @@ import * as ast from "../../generated/ast.js";
 import { ProblemError, type Span } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
 import type { Step, Thunk } from "../compile.types.js";
-import type { LexScope } from "../lex-scope.js";
+import { type LexScope, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
 import { RAN } from "./stopped.js";
 
@@ -34,7 +34,10 @@ export function assignStep(stmt: AssignStmt, scope: LexScope, compile: CompileIn
  * which is the cell a closure captured or a slot of the frame that holds it.
  */
 function toName(name: string, value: Thunk, scope: LexScope): Step {
-  const slot = scope.names.indexOf(name);
+  // `slotOf`, not a search of the flat name list: a block that shadows a name
+  // has a slot of its own, and the flat list finds the outermost whoever asks,
+  // so a write inside the block landed on the binding outside it.
+  const slot = slotOf(scope, name);
   if (slot !== -1) {
     return (frame) => {
       writeSlot(frame, slot, value(frame));

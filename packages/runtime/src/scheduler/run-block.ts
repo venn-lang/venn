@@ -1,9 +1,11 @@
 import { type Block, isLifecycleDecl, type LifecycleDecl, type Statement } from "@venn-lang/core";
+import { closeAll } from "../cleanup/index.js";
 import type { Scope } from "../scope/index.js";
 import { type BlockPlan, planOf, type Step } from "./block-plan.js";
 import { branchEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
+import { keepExit, runCleanup } from "./run-cleanup.js";
 import { runStatement } from "./run-statements.js";
 
 /**
@@ -43,12 +45,20 @@ async function resume(
   }
 }
 
+/**
+ * The block, and the `defer` bodies it leaves behind, LIFO.
+ *
+ * Every one of them runs, however any of them ends. One that fails is reported
+ * as VN7004 against its own line and the walk carries on, because the ones
+ * behind it hold the resources this program is trying to hand back. Nothing here
+ * touches the error already unwinding: it is what says why the block is ending.
+ */
 async function withDefers(engine: Engine, block: Block, scope: Scope): Promise<void> {
-  const defers: Block[] = [];
+  const defers: LifecycleDecl[] = [];
   try {
     for (const stmt of block.stmts) {
       if (isDefer(stmt)) {
-        defers.unshift(stmt.body);
+        defers.unshift(stmt);
         continue;
       }
       const pending = runStatement(engine, stmt, scope);
@@ -59,7 +69,7 @@ async function withDefers(engine: Engine, block: Block, scope: Scope): Promise<v
     // mid-flight, and it reaches the world through the same context an action
     // was handed, so the signal has to leave that too.
     const cleanup = branchEngine(engine, undefined);
-    for (const body of defers) await runBlock(cleanup, body, scope.child());
+    keepExit(await closeAll(defers.map((hook) => () => runCleanup(cleanup, hook, scope))));
   }
 }
 

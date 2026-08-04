@@ -75,8 +75,11 @@ function asked(result: { exitCode?: number } | undefined): boolean {
  */
 async function ending(code: number, requested: boolean, shutdown: Shutdown): Promise<Ending> {
   if (!shouldLeave({ code, requested })) return { code, leave: false };
-  await shutdown.close();
-  return { code, leave: true };
+  // A cleanup that could not finish is a program still holding something it
+  // meant to give back, so it does not get to leave with 0. A code the program
+  // named itself stands: it said how it went, and this is not better informed.
+  const failures = await shutdown.close();
+  return { code: failures.length > 0 ? Math.max(code, 1) : code, leave: true };
 }
 
 /** Give the process its hooks, its name, and this run's servers to close. */

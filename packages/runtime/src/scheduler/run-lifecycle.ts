@@ -1,9 +1,8 @@
-import { buildProblem, CODES, type LifecycleDecl, type Problem } from "@venn-lang/core";
+import type { LifecycleDecl } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
-import { nodeSpan } from "./node-span.js";
-import { runBlock } from "./run-block.js";
-import { ExitSignal, isControlSignal } from "./signals.js";
+import { runCleanup } from "./run-cleanup.js";
+import { ExitSignal } from "./signals.js";
 
 /**
  * Run a set of lifecycle blocks (setup/teardown/beforeEach/afterEach) in order.
@@ -48,39 +47,11 @@ export async function runOnHandlers(args: {
  */
 async function runHook(engine: Engine, hook: LifecycleDecl, scope: Scope): Promise<void> {
   try {
-    await runBlock(engine, hook.body, scope.child());
+    await runCleanup(engine, hook, scope);
   } catch (error) {
     // Read as a flow body reads it: `break`/`return` unwind, they do not fail.
     // `exit` is not the hook's to absorb: it ends the run, and the code it
     // carries is the whole verdict, so it keeps unwinding to whoever ends it.
     if (error instanceof ExitSignal) throw error;
-    if (!isControlSignal(error)) recordFailure({ engine, hook, error });
   }
-}
-
-/**
- * Counted where a failing flow is counted, and carried on the event that already
- * puts a Problem in front of every reporter. A hook failure the reporters never
- * hear about ends as a green artifact over a broken run.
- */
-function recordFailure(args: { engine: Engine; hook: LifecycleDecl; error: unknown }): void {
-  args.engine.result.failed += 1;
-  args.engine.emitter.emit({ kind: "expect.failed", data: { problem: hookProblem(args) } });
-}
-
-function hookProblem(args: { engine: Engine; hook: LifecycleDecl; error: unknown }): Problem {
-  return buildProblem({
-    spec: CODES.VN7004_HOOK_FAILED,
-    span: nodeSpan(args.hook, args.engine.uri),
-    title: `${hookLabel(args.hook)} failed: ${messageOf(args.error)}`,
-  });
-}
-
-/** The block named the way the user wrote it: `setup`, or `on failure`. */
-function hookLabel(hook: LifecycleDecl): string {
-  return hook.hook ?? (hook.event ? `on ${hook.event}` : "lifecycle");
-}
-
-function messageOf(error: unknown): string {
-  return (error as { message?: string })?.message ?? String(error);
 }

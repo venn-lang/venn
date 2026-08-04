@@ -14,5 +14,12 @@ export interface CleanupSink {
 
 /** A sink that also runs what it collected, newest first. */
 export interface CleanupList extends CleanupSink {
-  close(): Promise<void>;
+  /**
+   * Close everything, whatever any of them does.
+   *
+   * @returns What each failing cleanup threw. A program still holding something
+   * it meant to give back has not ended cleanly, and only the host can say what
+   * that is worth.
+   */
+  close(): Promise<readonly unknown[]>;
 }

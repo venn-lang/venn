@@ -1,3 +1,4 @@
+import { closeAll } from "@venn-lang/runtime";
 import type { Closer, Shutdown } from "./shutdown.types.js";
 
 /**
@@ -5,11 +6,13 @@ import type { Closer, Shutdown } from "./shutdown.types.js";
  *
  * Closing runs newest first, because a thing opened later may be standing on one
  * opened earlier. One closer that throws must not strand the rest: leaving is
- * the goal, and a half-closed program still has to go.
+ * the goal, and a half-closed program still has to go. What failed is handed
+ * back rather than swallowed, so a program that could not give something back
+ * does not leave saying it did.
  */
 export function createShutdown(): Shutdown {
   const closers = new Set<Closer>();
-  let closing: Promise<void> | undefined;
+  let closing: Promise<readonly unknown[]> | undefined;
   return {
     add: (closer) => {
       closers.add(closer);
@@ -18,17 +21,14 @@ export function createShutdown(): Shutdown {
       };
     },
     close: () => {
-      closing ??= closeAll(closers);
+      closing ??= closeEvery(closers);
       return closing;
     },
   };
 }
 
-async function closeAll(closers: Set<Closer>): Promise<void> {
-  for (const closer of [...closers].reverse()) {
-    await Promise.resolve()
-      .then(() => closer())
-      .catch(() => {});
-  }
+async function closeEvery(closers: Set<Closer>): Promise<readonly unknown[]> {
+  const failures = await closeAll([...closers].reverse());
   closers.clear();
+  return failures;
 }

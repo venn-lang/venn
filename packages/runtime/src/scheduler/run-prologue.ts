@@ -1,15 +1,15 @@
 import {
-  type Block,
   type Declaration,
   type Document,
   isLifecycleDecl,
   isRunnable,
   type LifecycleDecl,
 } from "@venn-lang/core";
+import { closeAll } from "../cleanup/index.js";
 import type { Scope } from "../scope/index.js";
 import { branchEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";
-import { runBlock } from "./run-block.js";
+import { keepExit, runCleanup } from "./run-cleanup.js";
 import { runStatement } from "./run-statements.js";
 
 /** A cleanup a program deferred, to be run on the way out. */
@@ -35,7 +35,7 @@ export async function runPrologue(args: {
 }): Promise<Teardown[]> {
   const teardowns = args.into ?? [];
   for (const node of args.doc.decls) {
-    if (isDefer(node)) teardowns.push(deferred({ ...args, body: node.body }));
+    if (isDefer(node)) teardowns.push(deferred({ ...args, hook: node }));
     else if (isRunnable(node)) await runStatement(args.engine, node, args.scope);
   }
   return teardowns;
@@ -46,15 +46,19 @@ function isDefer(node: Declaration): node is Declaration & LifecycleDecl {
   return isLifecycleDecl(node) && node.hook === "defer";
 }
 
-function deferred(args: { engine: Engine; body: Block; scope: Scope }): Teardown {
+function deferred(args: { engine: Engine; hook: LifecycleDecl; scope: Scope }): Teardown {
   // Cleanup must complete even when what it tidies was cancelled mid-flight.
   const engine = branchEngine(args.engine, undefined);
-  return async () => {
-    await runBlock(engine, args.body, args.scope.child());
-  };
+  return () => runCleanup(engine, args.hook, args.scope);
 }
 
-/** Undo in reverse: what opened last is given back first. */
-export async function runTeardowns(teardowns: readonly Teardown[]): Promise<void> {
-  for (const teardown of [...teardowns].reverse()) await teardown();
+/**
+ * Undo in reverse: what opened last is given back first, and every one of them
+ * runs however any of them ends.
+ *
+ * @returns What each failing cleanup threw, each already reported as VN7004.
+ * The caller decides what a cleanup that could not finish means for the verdict.
+ */
+export async function runTeardowns(teardowns: readonly Teardown[]): Promise<readonly unknown[]> {
+  return keepExit(await closeAll([...teardowns].reverse()));
 }

@@ -1,5 +1,6 @@
 import { caughtValue, type TryStmt } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
+import { branchEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";
 import { runBlock } from "./run-block.js";
 import { isControlSignal } from "./signals.js";
@@ -12,8 +13,22 @@ export async function runTry(engine: Engine, stmt: TryStmt, scope: Scope): Promi
     if (isControlSignal(error)) throw error;
     await runCatch({ engine, stmt, scope, error });
   } finally {
-    if (stmt.finalizer) await runBlock(engine, stmt.finalizer, scope.child());
+    await runFinalizer(engine, stmt, scope);
   }
+}
+
+/**
+ * `finally { … }`, detached from the scope, exactly as a `defer` is.
+ *
+ * A finalizer is what gives back what the body took, so a run that was called
+ * off is the case it exists for and the one it did not survive: the walk refuses
+ * to take a step under an ended scope, and this block's first statement was that
+ * step. What it may not do is run for ever, and the grace around the timeout is
+ * what says so.
+ */
+async function runFinalizer(engine: Engine, stmt: TryStmt, scope: Scope): Promise<void> {
+  if (!stmt.finalizer) return;
+  await runBlock(branchEngine(engine, undefined), stmt.finalizer, scope.child());
 }
 
 async function runCatch(args: {

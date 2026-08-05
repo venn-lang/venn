@@ -1,5 +1,12 @@
 # @venn-lang/dts
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/types@0.7.1
+
 ## 0.7.0
 
 ### Patch Changes

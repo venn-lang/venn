@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/dts",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Reads the types an installed npm package publishes and returns them as Venn TypeSpecs.",
   "keywords": [
     "venn",

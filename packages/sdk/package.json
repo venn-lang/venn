@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/sdk",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "The plugin authoring API: small typed builders that return plain definition objects.",
   "keywords": [
     "venn",

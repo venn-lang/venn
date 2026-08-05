@@ -1,7 +1,7 @@
 export { documentRoot } from "./document-root.js";
 export { type ExportedName, exportedNames } from "./exported-names.js";
 export { pathOf, stdlibAction } from "./expression-path.js";
-export { findBinding, findDeclaration, findFragment } from "./find-binding.js";
+export { findBinding, findDeclaration, findFragment, findType } from "./find-binding.js";
 export type { HostArgs, SlotSource } from "./host-at.js";
 export { hostAt } from "./host-at.js";
 export {

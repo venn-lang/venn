@@ -5,7 +5,6 @@ import {
   isActionCall,
   isAnnotation,
   isDecoDecl,
-  isFnDecl,
   isFragmentDecl,
   isImportName,
   isMatcherClause,
@@ -14,6 +13,7 @@ import {
   isNullType,
   isPackageSpecifier,
   isRunStmt,
+  isTypeDecl,
   isValueImport,
   type ValueImport,
 } from "@venn-lang/core";
@@ -161,9 +161,10 @@ export class VennHoverProvider implements HoverProvider {
     if (member) return member;
     if (isActionCall(node) && on(leaf, node, "target"))
       return this.callTarget(node, leaf, document);
-    if (isNamedType(node)) return typeNameHover(node.name, this.catalog);
+    if (isNamedType(node))
+      return typeNameHover({ name: node.name, catalog: this.catalog, document });
     // `null` written as a type is a keyword, so it arrives as its own node.
-    if (isNullType(node)) return typeNameHover("null", this.catalog);
+    if (isNullType(node)) return typeNameHover({ name: "null", catalog: this.catalog });
     if (isMatcherClause(node) && on(leaf, node, "name"))
       return matcherHover(node.name, this.catalog);
     return this.declared(leaf, node, document);
@@ -231,19 +232,22 @@ export class VennHoverProvider implements HoverProvider {
     return this.resolve({ path, segment: segmentAt(node), host: node, document });
   }
 
+  // On a declaration's own name, which declaration it is decides. A `type`
+  // draws the card its use sites draw, so the two never disagree about what it
+  // says: one of them would be the one nobody edits.
   private async declared(
     leaf: CstNode,
     node: AstNode,
     document: LangiumDocument,
   ): Promise<string | undefined> {
-    if (isRunStmt(node) && on(leaf, node, "target")) return this.fragment(node.target, document);
-    if (isFnDecl(node) && on(leaf, node, "name"))
-      return declarationHover({ document, node, types: this.types, waiting: this.waits(document) });
-    if (isFragmentDecl(node) && on(leaf, node, "name")) return this.fragment(node.name, document);
-    if (isDecoDecl(node) && on(leaf, node, "name")) {
-      return decoHover(declaredDeco({ decl: node, document }));
+    if (!on(leaf, node, "name")) {
+      const target = isRunStmt(node) && on(leaf, node, "target");
+      return target ? this.fragment(node.target, document) : undefined;
     }
-    if (!on(leaf, node, "name")) return undefined;
+    if (isFragmentDecl(node)) return this.fragment(node.name, document);
+    if (isDecoDecl(node)) return decoHover(declaredDeco({ decl: node, document }));
+    if (isTypeDecl(node))
+      return typeNameHover({ name: node.name, catalog: this.catalog, document });
     return declarationHover({ document, node, types: this.types, waiting: this.waits(document) });
   }
 

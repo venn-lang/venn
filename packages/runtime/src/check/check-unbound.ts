@@ -2,7 +2,6 @@ import {
   type AstNode,
   CODES,
   insideAnnotation,
-  isFnDecl,
   isRef,
   type Problem,
   type Ref,
@@ -10,7 +9,17 @@ import {
 import { isPrelude } from "@venn-lang/prelude";
 import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
+import { paramsADecoratorAdds } from "./decorator-params.js";
 import { problemAt } from "./problem-at.js";
+
+/**
+ * The keywords that stand where a value does.
+ *
+ * `matrix`, `flow` and `step` are references to the run rather than to a
+ * binding, and `env` to what the host was started with, so all four are in
+ * scope everywhere without anything having bound them.
+ */
+const OF_THE_RUN = new Set(["matrix", "flow", "step", "env"]);
 
 /**
  * A name nothing binds.
@@ -19,37 +28,18 @@ import { problemAt } from "./problem-at.js";
  * `null`, and a program carries that until something else fails over it, three
  * lines and one file away. So it is said here, where the name is written.
  *
- * The three keywords that stand where a value does (`matrix`, `flow`, `step`)
- * are references to the run rather than to a binding, and are always in scope.
+ * @param node Any node of the document; only a reference is answered about.
+ * @param ctx What the file binds, imports and declares.
+ * @returns One VN2018 for a name nothing in reach binds, else nothing.
  */
-const OF_THE_RUN = new Set(["matrix", "flow", "step", "env"]);
-
 export function checkUnbound(node: AstNode, ctx: CheckContext): Problem[] {
   if (!isRef(node) || insideAnnotation(node) || known(node.name, ctx)) return [];
-  if (underADecorator(node)) return [];
+  const added = paramsADecoratorAdds(node, ctx);
+  if (added.unreadable || added.names.has(node.name)) return [];
   const title = `Nothing is named "${node.name}" here.`;
   return [
     { ...problemAt({ node, ctx, spec: CODES.VN2018_UNBOUND_NAME, title }), help: help(node, ctx) },
   ];
-}
-
-/**
- * A `fn` a decorator rewrote may bind names nothing here can see.
- *
- * `@inject("who")` calls `target.addParam("who")`, and the body underneath is
- * written expecting it. Expansion runs after this check, so the parameter is
- * not in the tree yet, and no check can know what a `deco` body will do with
- * the handle it was given: saying the name does not exist would be refusing a
- * feature that works.
- *
- * @param node Any node, or the declaration a `${…}` was written inside.
- * @returns True when a decorated `fn` encloses it.
- */
-export function underADecorator(node: AstNode): boolean {
-  for (let at: AstNode | undefined = node; at; at = at.$container) {
-    if (isFnDecl(at) && at.annotations.length > 0) return true;
-  }
-  return false;
 }
 
 function known(name: string, ctx: CheckContext): boolean {

@@ -21,7 +21,8 @@ import { checkAction, checkCapture, checkLet } from "./check-calls.js";
 import { checkConstructOptions } from "./check-construct-options.js";
 import { checkInsideDeco } from "./check-deco-body.js";
 import { checkDecoReach } from "./check-deco-reach.js";
-import { checkDecoratorName, decosOf } from "./check-decorator-name.js";
+import { checkDecoratorName, decoDeclsOf, decosOf } from "./check-decorator-name.js";
+import { checkDecoratorTarget } from "./check-decorator-target.js";
 import { checkDuplicateKey } from "./check-duplicate-key.js";
 import { checkEmptyConcurrency } from "./check-empty-concurrency.js";
 import { checkEnv } from "./check-env.js";
@@ -63,6 +64,7 @@ export function checkDocument(args: CheckArgs): Problem[] {
     bound: collectBoundNames(args.document),
     declared: everyBoundName(args.document),
     decos: decosOf(args.document, args.importedDecos),
+    ownDecos: decoDeclsOf(args.document),
     decorators: args.decorators,
     env: args.env ? new Set(args.env) : undefined,
     uri: args.uri ?? "memory://inline.vn",
@@ -76,6 +78,12 @@ export function checkDocument(args: CheckArgs): Problem[] {
     ...checkDecoReach(args.document, ctx),
   ];
   for (const node of walkAst(args.document)) {
+    // Outside the branch below, because a `deco` body sends every node it holds
+    // to `checkInsideDeco`, which answers for what a handle can do and nothing
+    // else. Where a decorator may sit is a fact about the text either way, and
+    // leaving it out meant a misplaced one in a body was found only by the run
+    // it was written to stop, after the program had printed its output.
+    problems.push(...checkDecoratorTarget(node, ctx));
     const inDeco = checkInsideDeco(node, ctx);
     if (inDeco) problems.push(...inDeco);
     else problems.push(...everyCheck(node, ctx));

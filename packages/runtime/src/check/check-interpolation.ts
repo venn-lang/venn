@@ -16,7 +16,9 @@ import {
 } from "@venn-lang/core";
 import type { CheckContext } from "./check.types.js";
 import { envProblemsIn } from "./check-env.js";
-import { checkUnbound, underADecorator } from "./check-unbound.js";
+import { checkUnbound } from "./check-unbound.js";
+import { paramsADecoratorAdds } from "./decorator-params.js";
+import type { AddedParams } from "./decorator-params.types.js";
 import { everyBoundName } from "./every-bound-name.js";
 
 /**
@@ -29,14 +31,14 @@ export function checkInterpolation(node: AstNode, ctx: CheckContext): Problem[] 
   if (!isStringLit(node) || !cst || insideAnnotation(node)) return [];
   // The slot is parsed apart from the file, so the walk out of it never reaches
   // the declaration it sits in. Asked here, where the string still knows.
-  const decorated = underADecorator(node);
+  const added = paramsADecoratorAdds(node, ctx);
   return scanInterpolations(cst.text).flatMap((slot) =>
     inSlot({
       slot,
       host: node,
       span: slotSpan({ slot, host: node, uri: ctx.uri }),
       ctx,
-      decorated,
+      added,
     }),
   );
 }
@@ -51,12 +53,13 @@ function inSlot(args: {
   host: AstNode;
   span: Span;
   ctx: CheckContext;
-  decorated: boolean;
+  added: AddedParams;
 }): Problem[] {
   const expr = parsed(args.slot, args.host);
   if (!expr) return [unreadable(args.slot, args.span)];
   const env = envProblemsIn(args.slot.source, args.span, args.ctx);
-  return args.decorated ? env : [...env, ...unbound(expr, args.ctx)];
+  if (args.added.unreadable) return env;
+  return [...env, ...unbound(expr, args.ctx, args.added.names)];
 }
 
 /** The slot's expression, told where it was written so a problem points at it. */
@@ -73,12 +76,14 @@ function parsed(slot: InterpolationSlot, host: AstNode): Expr | undefined {
  * a passing assertion, while the same name outside the string was refused.
  * Whatever the slot binds itself, a lambda's parameter above all, is added to
  * what the file binds: the expression was parsed apart from the document, so
- * the document cannot know about it.
+ * the document cannot know about it. So is whatever a decorator on the
+ * declaration around it adds, for the same reason.
  */
-function unbound(expr: Expr, ctx: CheckContext): Problem[] {
+function unbound(expr: Expr, ctx: CheckContext, added: ReadonlySet<string>): Problem[] {
   const own = everyBoundName(expr);
-  const declared = own.size === 0 ? ctx.declared : new Set([...ctx.declared, ...own]);
-  return [expr, ...walkAst(expr)].flatMap((node) => checkUnbound(node, { ...ctx, declared }));
+  const seen =
+    own.size + added.size === 0 ? ctx.declared : new Set([...ctx.declared, ...own, ...added]);
+  return [expr, ...walkAst(expr)].flatMap((node) => checkUnbound(node, { ...ctx, declared: seen }));
 }
 
 function unreadable(slot: InterpolationSlot, span: Span): Problem {

@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: Venn source under test, where ${…} is the language's own interpolation.
 import { createTestHost } from "@venn-lang/contracts";
 import { parse } from "@venn-lang/core";
 import { defineAction, definePlugin } from "@venn-lang/sdk";
@@ -23,6 +24,19 @@ const codes = (source: string): string[] => problems(source).map((found) => foun
 
 const titles = (source: string): string[] =>
   problems(source).map((found) => `${found.title} ${found.help ?? ""}`.trim());
+
+/**
+ * The same pass, told this file imported a `pub deco` of that name. Its body is
+ * in the other file, which this pass never parsed.
+ */
+const imported = (source: string, decos: string[]): string[] => {
+  const document = parse(source).ast;
+  const registry = buildRegistry({ plugins: [KIT], caps: createTestHost().caps });
+  const fragments = new Set(collectFragments(document).keys());
+  return checkDocument({ document, registry, fragments, importedDecos: decos }).map(
+    (found) => found.code,
+  );
+};
 
 /**
  * A name nothing binds.
@@ -131,16 +145,19 @@ describe("a name nothing binds, written inside a placeholder", () => {
 
 /**
  * A decorator can add a parameter, and the body underneath is written expecting
- * it. Expansion runs after this check, so nothing here can see the binding, and
- * no check can know what a `deco` body does with the handle it was given.
+ * it. Expansion runs after this check, so nothing here can see the binding.
+ *
+ * The `deco` body says which decorator can do that and which name it adds, so
+ * only that name is excused: exempting every decorated function turned off the
+ * check that catches typos wherever a decorator was written.
  */
 describe("a name a decorator binds", () => {
-  const DECORATED = [
-    "deco inject(target: Fn, name: string) {",
-    "  target.addParam(name)",
-    "}",
-    '@inject("who")',
-  ];
+  const INJECT = ["deco inject(target: Fn, name: string) {", "  target.addParam(name)", "}"];
+  const LOUD = ["deco loud(target: Fn) {", "  target.wrap(fn (call, args) => call(args))", "}"];
+  const DECORATED = [...INJECT, '@inject("who")'];
+  const UNBOUND =
+    'Nothing is named "nobodyDefinedThis" here. ' +
+    "Bind it with `const` or `let`, or bring it in with `import`.";
 
   it("is not refused when it is read inside a placeholder", () => {
     expect(codes([...DECORATED, 'fn greet() => "hello ${who}"'].join("\n"))).toEqual([]);
@@ -155,5 +172,42 @@ describe("a name a decorator binds", () => {
     expect(codes([...DECORATED, "fn greet() => 1", "fn other() => who"].join("\n"))).toEqual([
       "VN2018",
     ]);
+  });
+
+  /** The name the decorator adds, and no other: a typo beside it is still a typo. */
+  it("is refused for a name the decorator does not add", () => {
+    const source = [...DECORATED, 'fn greet() => "${who} ${nobodyDefinedThis}"'].join("\n");
+
+    expect(titles(source)).toEqual([UNBOUND]);
+  });
+
+  it("is refused under a decorator that only wraps its target", () => {
+    const source = [...LOUD, "@loud", 'fn greet() => "hello ${nobodyDefinedThis}"'].join("\n");
+
+    expect(codes(source)).toEqual(["VN2018"]);
+  });
+
+  it("is refused under a built-in decorator, which cannot add a parameter", () => {
+    expect(codes("@retry(2)\nfn greet() => nobodyDefinedThis")).toEqual(["VN2018"]);
+  });
+
+  /** Stacked, one of the two adds: what it adds is excused and nothing else is. */
+  it("takes the union of what the decorators on it add", () => {
+    const source = [
+      ...INJECT,
+      ...LOUD,
+      "@loud",
+      '@inject("who")',
+      'fn greet() => "${who} ${nobodyDefinedThis}"',
+    ].join("\n");
+
+    expect(titles(source)).toEqual([UNBOUND]);
+  });
+
+  /** A `deco` whose body is in another file: unreadable here, so nothing is refused. */
+  it("says nothing under an imported decorator", () => {
+    const source = '@inject("who")\nfn greet() => "${who} ${nobodyDefinedThis}"';
+
+    expect(imported(source, ["inject"])).toEqual([]);
   });
 });

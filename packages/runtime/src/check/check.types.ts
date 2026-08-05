@@ -1,4 +1,4 @@
-import type { DecoratorSource, Document } from "@venn-lang/core";
+import type { DecoDecl, DecoratorSource, Document } from "@venn-lang/core";
 import type { Registry } from "../registry/index.js";
 
 /** Inputs to a static name-resolution pass over a parsed document. */
@@ -51,6 +51,14 @@ export interface CheckContext {
   declared: ReadonlySet<string>;
   /** Every `deco` in reach: this file's own, and the ones it imported. */
   decos: ReadonlySet<string>;
+  /**
+   * The `deco`s this file declares, by name, bodies and all.
+   *
+   * What a decorator does to what it decorates is a question only its body
+   * answers, and an imported one is absent here on purpose: this pass parsed
+   * one file, so a body in another is out of reach rather than empty.
+   */
+  ownDecos: ReadonlyMap<string, DecoDecl>;
   /** The decorators the host loaded, when the caller had them. */
   decorators?: DecoratorSource;
   /** Declared `env` variables, or undefined when the manifest could not be read. */

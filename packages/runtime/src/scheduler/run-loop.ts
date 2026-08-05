@@ -4,7 +4,7 @@ import { planOf } from "./block-plan.js";
 import { checkpoint } from "./checkpoint.js";
 import type { Engine } from "./engine.types.js";
 import type { Pending } from "./pending.types.js";
-import { runSteps } from "./run-block.js";
+import { runBlock, runSteps } from "./run-block.js";
 import { isPending, settle } from "./settled.js";
 import { BreakSignal, ContinueSignal } from "./signals.js";
 
@@ -50,6 +50,12 @@ class LoopState {
    * `continue` anywhere else still unwinds the way a jump has to.
    */
   private readonly tail: Statement | undefined;
+  /**
+   * Whether the body has a lifetime of its own: a `setup`, a `teardown` or a
+   * `defer`. Those are the block's to run, not the plan's, so a pass over one
+   * goes through `runBlock` and pays for the walk it needs.
+   */
+  private readonly closing: boolean;
   private readonly name: string | undefined;
   /**
    * The scope of the pass in flight, built fresh for each one.
@@ -67,11 +73,10 @@ class LoopState {
     private readonly stmt: LoopStmt,
     private readonly scope: Scope,
   ) {
-    const stmts = stmt.body.stmts;
-    const last = stmts[stmts.length - 1];
-    this.tail = last && isContinueStmt(last) && last.value ? last : undefined;
-    const steps = planOf(stmt.body).steps;
-    this.steps = this.tail ? steps.slice(0, -1) : steps;
+    const plan = planOf(stmt.body);
+    this.closing = Boolean(plan.hooks || plan.defers);
+    this.tail = tailOf(stmt, this.closing);
+    this.steps = this.tail ? plan.steps.slice(0, -1) : plan.steps;
     this.name = stmt.state?.name;
     this.child = scope.child();
     this.carried = stmt.state ? evaluate(stmt.state.initial, scope) : undefined;
@@ -131,7 +136,9 @@ class LoopState {
     this.child = this.scope.child();
     if (this.name) this.child.set(this.name, this.carried);
     try {
-      const pending = runSteps(this.engine, this.steps as never, this.child);
+      const pending = this.closing
+        ? runBlock(this.engine, this.stmt.body, this.child)
+        : runSteps(this.engine, this.steps as never, this.child);
       if (pending) return pending;
       this.advance();
       return CARRY_ON;
@@ -186,6 +193,18 @@ class LoopState {
     if (this.name) this.scope.set(this.name, this.carried);
     return undefined;
   }
+}
+
+/**
+ * The trailing `continue next`, which a pass evaluates rather than throws.
+ *
+ * Nothing is taken off the end of a body that closes over its own statements:
+ * that one is walked whole, so its `teardown` and its `defer`s still run.
+ */
+function tailOf(stmt: LoopStmt, closing: boolean): Statement | undefined {
+  if (closing) return undefined;
+  const last = stmt.body.stmts[stmt.body.stmts.length - 1];
+  return last && isContinueStmt(last) && last.value ? last : undefined;
 }
 
 /** Sentinels, so a pass's outcome needs no object allocated per pass. */

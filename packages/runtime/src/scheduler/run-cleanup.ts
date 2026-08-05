@@ -17,8 +17,11 @@ import { ExitSignal, isControlSignal } from "./signals.js";
  * @throws Whatever the body threw, after recording it as VN7004.
  */
 export async function runCleanup(engine: Engine, hook: LifecycleDecl, scope: Scope): Promise<void> {
+  // A hook body is not a step of the block that wrote the hook: a `beforeEach`
+  // with a step in it would otherwise ask itself to run around that step.
+  const inner = engine.each ? { ...engine, each: undefined } : engine;
   try {
-    await runBlock(engine, hook.body, scope.child());
+    await runBlock(inner, hook.body, scope.child());
   } catch (error) {
     if (!isControlSignal(error)) recordHookFailure({ engine, hook, error });
     throw error;

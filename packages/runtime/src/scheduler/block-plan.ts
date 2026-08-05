@@ -7,6 +7,7 @@ import {
   type Statement,
 } from "@venn-lang/core";
 import { type Binder, binderFor, type Scope } from "../scope/index.js";
+import { collectBlockHooks, isNamedHook, type LifecycleHooks } from "./collect.js";
 import type { Engine } from "./engine.types.js";
 import { actionCall } from "./invocation.js";
 import type { Pending } from "./pending.types.js";
@@ -20,6 +21,13 @@ export type Step = (engine: Engine, scope: Scope) => Pending;
 export interface BlockPlan {
   readonly steps: readonly Step[];
   readonly defers: boolean;
+  /**
+   * The `setup`/`teardown`/`beforeEach`/`afterEach` this block wrote, if any.
+   *
+   * Out of `steps` as well: they are run around the block rather than in it, so
+   * a walk that ran them in place would run each of them twice.
+   */
+  readonly hooks: LifecycleHooks | undefined;
 }
 
 const plans = new WeakMap<Block, BlockPlan>();
@@ -29,8 +37,9 @@ export function planOf(block: Block): BlockPlan {
   const known = plans.get(block);
   if (known) return known;
   const built: BlockPlan = {
-    steps: block.stmts.map(stepOf),
+    steps: block.stmts.filter((stmt) => !isNamedHook(stmt)).map(stepOf),
     defers: block.stmts.some(isDefer),
+    hooks: collectBlockHooks(block),
   };
   plans.set(block, built);
   return built;

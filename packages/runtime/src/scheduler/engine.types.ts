@@ -1,5 +1,5 @@
 import type { Clock, LockProvider } from "@venn-lang/contracts";
-import type { FragmentDecl } from "@venn-lang/core";
+import type { FragmentDecl, LifecycleDecl } from "@venn-lang/core";
 import type { ActionContext, PluginDefinition } from "@venn-lang/sdk";
 import type { CancelScope } from "../cancel/index.js";
 import type { Emitter } from "../emit/index.js";
@@ -15,6 +15,18 @@ import type { Tally } from "./tally.types.js";
 export interface RunCounters {
   passed: number;
   failed: number;
+}
+
+/**
+ * What runs around each step of a block, as that block wrote it.
+ *
+ * A `beforeEach` at the top of a file means each flow; one inside a flow or a
+ * group means each step underneath it, which is why this travels with the run
+ * rather than with the source: the steps of a group are steps of the flow too.
+ */
+export interface EachHooks {
+  readonly before: readonly LifecycleDecl[];
+  readonly after: readonly LifecycleDecl[];
 }
 
 /** The shared state every `run-*` step reads from. */
@@ -75,4 +87,10 @@ export interface Engine {
    * host: `exit 0` ends a run cleanly however many flows were left.
    */
   exit?: number;
+  /**
+   * The `beforeEach`/`afterEach` of the blocks this frame is inside, stacked
+   * outermost first. Absent where no enclosing block wrote one, which is most
+   * of a run.
+   */
+  each?: EachHooks;
 }

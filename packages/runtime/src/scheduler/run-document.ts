@@ -14,7 +14,7 @@ import { hasAnnotation, readTags } from "./annotations.js";
 import { createBaseScope } from "./base-scope.js";
 import { bindGlobals } from "./bind-globals.js";
 import { bindImports } from "./bind-imports.js";
-import { collectHooks, type SuiteHooks } from "./collect.js";
+import { collectHooks, type LifecycleHooks } from "./collect.js";
 import type { Engine } from "./engine.types.js";
 import { matchesTitle } from "./filter.js";
 import { settleFlaky } from "./flaky.js";
@@ -50,7 +50,7 @@ async function runSuite(args: {
   engine: Engine;
   doc: Document;
   flows: readonly FlowDecl[];
-  hooks: SuiteHooks;
+  hooks: LifecycleHooks;
 }): Promise<void> {
   const { engine, hooks } = args;
   const suite = rootScope({ engine, doc: args.doc, variant: {} });
@@ -66,7 +66,7 @@ async function runVariants(args: {
   engine: Engine;
   doc: Document;
   flows: readonly FlowDecl[];
-  hooks: SuiteHooks;
+  hooks: LifecycleHooks;
 }): Promise<void> {
   for (const variant of matrixVariants(args.engine, args.doc)) {
     await runVariant({ ...args, variant });
@@ -77,7 +77,7 @@ async function runVariant(args: {
   engine: Engine;
   doc: Document;
   flows: readonly FlowDecl[];
-  hooks: SuiteHooks;
+  hooks: LifecycleHooks;
   variant: Record<string, unknown>;
 }): Promise<void> {
   const root = rootScope({ engine: args.engine, doc: args.doc, variant: args.variant });
@@ -94,7 +94,7 @@ async function runVariant(args: {
 async function runFlows(args: {
   engine: Engine;
   flows: readonly FlowDecl[];
-  hooks: SuiteHooks;
+  hooks: LifecycleHooks;
   root: Scope;
 }): Promise<void> {
   for (const flow of args.flows) {
@@ -106,7 +106,7 @@ async function runFlows(args: {
 async function runFlowWithHooks(args: {
   engine: Engine;
   flow: FlowDecl;
-  hooks: SuiteHooks;
+  hooks: LifecycleHooks;
   root: Scope;
 }): Promise<void> {
   // A scope of its own, so what `beforeEach` opens dies with the flow that

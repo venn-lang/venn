@@ -1,13 +1,15 @@
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
-import { t } from "@venn-lang/types";
 import {
+  type ActionDefinition,
+  arg,
+  defineAction,
   fromBase64,
   fromBase64Url,
   fromBytes,
   toBase64,
   toBase64Url,
   toBytes,
-} from "../bytes/index.js";
+} from "@venn-lang/sdk";
+import { t } from "@venn-lang/types";
 
 /** The `crypto.base64.*` and `crypto.base64url.*` verbs, both directions. */
 export const encodingActions: ActionDefinition[] = [

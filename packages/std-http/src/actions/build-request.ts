@@ -1,3 +1,4 @@
+import { toBase64, toBytes } from "@venn-lang/sdk";
 import type { HttpRequest } from "../port/index.js";
 import type { RequestParams } from "./request.types.js";
 
@@ -76,7 +77,7 @@ function headersOf(params: RequestParams, contentType: string | undefined): Reco
 function authorization(params: RequestParams): string | undefined {
   if (params.bearer) return `Bearer ${params.bearer}`;
   if (!params.basic) return undefined;
-  return `Basic ${base64(`${params.basic.user}:${params.basic.pass}`)}`;
+  return `Basic ${credentials(params.basic.user, params.basic.pass)}`;
 }
 
 function withQuery(url: string, query: RequestParams["query"]): string {
@@ -95,8 +96,17 @@ function hasHeader(headers: Record<string, string>, name: string): boolean {
   return Object.keys(headers).some((key) => key.toLowerCase() === name);
 }
 
-function base64(text: string): string {
-  return btoa(text);
+/**
+ * RFC 7617 §2: the credentials are base64 of the UTF-8 bytes of `user:pass`.
+ *
+ * This was `btoa(text)`, which reads a string one code unit at a time. An
+ * accented password went onto the wire as latin-1, so the server answered 401
+ * and nothing here said why, and a password outside latin-1 threw a
+ * `DOMException` carrying no `VNxxxx` code and no line. One encoder, in the SDK,
+ * so `http.get { basic: … }` and `auth.basic` produce the same header.
+ */
+function credentials(user: string, pass: string): string {
+  return toBase64(toBytes(`${user}:${pass}`));
 }
 
 /** Resolve a relative path against `config.baseUrl`; absolute URLs pass through. */

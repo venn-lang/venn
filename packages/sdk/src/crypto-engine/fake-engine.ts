@@ -1,16 +1,20 @@
-import type { CryptoEngine } from "../port/index.js";
+import { toHex } from "../bytes/index.js";
+import type { CryptoEngine, Signable } from "./crypto-engine.types.js";
 
 /**
  * A deterministic stand-in for tests: same input, same output, no platform crypto.
  *
  * Not secure and not meant to be. It exists so assertions over a digest, an HMAC
  * or a random token stay reproducible from run to run.
+ *
+ * @returns An engine whose answers depend only on what it was asked.
  */
 export function createFakeCryptoEngine(): CryptoEngine {
   let counter = 0;
   return {
     digest: ({ algorithm, data }) => Promise.resolve(stable(`${algorithm}|${data}`)),
-    hmac: ({ algorithm, key, data }) => Promise.resolve(stable(`${algorithm}|${key}|${data}`)),
+    hmac: ({ algorithm, key, data }) =>
+      Promise.resolve(stable(`${algorithm}|${key}|${written(data)}`)),
     derive: (args) =>
       Promise.resolve(stable(`${args.algorithm}|${args.password}|${args.salt}|${args.iterations}`)),
     randomBytes: (size) => {
@@ -18,6 +22,12 @@ export function createFakeCryptoEngine(): CryptoEngine {
       return sized(stable(`bytes|${counter}`), size);
     },
   };
+}
+
+// Bytes as hex, so signing eight raw bytes never collides with signing the text
+// that happens to spell them, which is the whole reason `hmac` accepts both.
+function written(data: Signable): string {
+  return typeof data === "string" ? `text:${data}` : `bytes:${toHex(data)}`;
 }
 
 // FNV-1a, run over the seed with a changing suffix until 64 hex digits are filled.

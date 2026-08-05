@@ -1,6 +1,6 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { authActions } from "./actions/index.js";
-import { authTypeDefs, Token } from "./types/index.js";
+import { authTypeDefs } from "./types/index.js";
 
 /**
  * The `auth` plugin: header builders, signing helpers and an OAuth2 exchange.
@@ -11,11 +11,9 @@ import { authTypeDefs, Token } from "./types/index.js";
  */
 export const authPlugin: PluginDefinition = definePlugin({
   name: "venn/auth",
-  version: "0.0.0",
   namespace: "auth",
   requires: ["net"],
   actions: authActions,
-  types: { Token },
   typeDefs: authTypeDefs,
 });
 

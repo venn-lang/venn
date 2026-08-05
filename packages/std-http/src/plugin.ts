@@ -13,7 +13,6 @@ import { httpTypeDefs } from "./types.js";
  */
 export const httpPlugin: PluginDefinition = definePlugin({
   name: "venn/http",
-  version: "0.0.0",
   namespace: "http",
   requires: ["net"],
   actions: httpActions,

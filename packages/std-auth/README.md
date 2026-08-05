@@ -52,7 +52,12 @@ flow "Signed in" {
 
 **`bearer`** returns `{ Authorization: "Bearer <token>" }`.
 
-**`basic`** base64-encodes `user:pass` into `{ Authorization: "Basic <…>" }`.
+**`basic`** base64-encodes the **UTF-8 bytes** of `user:pass` into
+`{ Authorization: "Basic <…>" }`, which is what RFC 7617 §2 requires. It used to call `btoa` on the
+string, which encodes latin-1: `auth.basic "user" "señha"` went out as `dXNlcjpzZfFoYQ==` rather
+than `dXNlcjpzZcOxaGE=`, so the far end read a different password, answered 401, and nothing here
+said why. A password outside latin-1 threw a `DOMException` with no code and no line at all.
+`http.get "…" { basic: … }` uses the same encoder, so the two agree byte for byte.
 
 **`apikey`** puts the key under a header of your choosing. The `header` option defaults to
 `X-API-Key`, so `auth.apikey "KEY"` gives `{ "X-API-Key": "KEY" }`.
@@ -60,17 +65,31 @@ flow "Signed in" {
 **`hmac`** takes the secret first and the payload second, so `auth.hmac "s3cret" "payload"` keys the
 HMAC with `s3cret`. The `algo` option accepts `sha1`, `sha256`, `sha384` and `sha512`, case and
 dashes ignored. A name it does not recognise is refused with VN7005: signing a typo with SHA-256
-produces a signature nothing verifies and says nothing about why.
+produces a signature nothing verifies and says nothing about why. That list of names, and that
+refusal, are the ones `crypto.hmac` uses; there is one of each in the repository.
 
 **`totp`** computes an RFC 6238 code and is deterministic for a fixed `at`, which makes it usable in
 a test. `at` is the time to compute at and `period` the step, both in seconds; `digits` defaults
 to 6 and the result is zero-padded, which is why it is a string and not a number.
 
 **`jwt`** takes nothing positionally. `payload` and `secret` are required options, `header` is
-optional and is merged over the default `{ alg: "HS256", typ: "JWT" }`. The signature is HS256.
+optional and is merged over the default `{ alg: "HS256", typ: "JWT" }`. **`alg` chooses the
+signature**, not just what the token claims: `{ header: { alg: "HS512" } }` is signed with SHA-512.
+It used to write the caller's `alg` into the signed bytes and sign with SHA-256 whatever it said, so
+`crypto.jwt.verify` read the claim, hashed with SHA-512 and answered `false` for a token nothing had
+tampered with. An `alg` no HMAC digest answers to is refused with VN7005 rather than minting a token
+nothing can check.
 
 **`oauth2`** takes the principal positionally and `grant`, `tokenUrl`, `scope` and `refresh` as
 options. It is the only verb here that reaches a port.
+
+### Where the digests come from
+
+`hmac`, `totp` and `jwt` reach `CryptoEnginePort` for every digest, the same port `crypto.hmac` and
+`crypto.jwt.sign` use, declared in [`@venn-lang/sdk`](../sdk) because a plugin may not depend on
+another plugin. They used to call the global `crypto.subtle` directly, which meant a host that bound
+`createFakeCryptoEngine` made `crypto.*` reproducible and left `auth.*` on real WebCrypto: half a
+run replayable, half not. A test that swaps the engine in now reaches all three.
 
 ## The types it publishes
 
@@ -116,7 +135,6 @@ refused with a legible diagnostic before the run starts, rather than failing som
 | `OAuthToken` | What it answers: `{ access_token, token_type, expires_in }`. |
 | `createFakeAuthClient({ token? })` | The deterministic double. |
 | `createRealAuthClient()` | The real client, stubbed to throw `VN8090`. |
-| `Token` | The Zod schema registered as the plugin's nominal `Token` type. |
 | `authTypeDefs` | The `TypeSpec`s for `auth.Headers` and `auth.Token`, which the checker and the LSP read. |
 
 Binding a different client means one entry in the runner's port list:

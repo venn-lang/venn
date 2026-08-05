@@ -88,7 +88,14 @@ Every request verb takes the URL as its one positional argument. The rest is the
 | `body` | What to send. A map becomes JSON; a string is sent as written. |
 | `encode` | `json`, `form`, `multipart` or `raw`. Defaults to `json` for a map, `raw` for a string. |
 | `bearer` | Shorthand for `Authorization: Bearer …`. |
-| `basic` | `{ user, pass }`, as HTTP basic auth. |
+| `basic` | `{ user, pass }`, as HTTP basic auth. Base64 of the **UTF-8** bytes of `user:pass`, which is what RFC 7617 §2 requires. |
+
+`basic` used to call `btoa`, which encodes latin-1: `{ basic: { user: "user", pass: "señha" } }` went
+onto the wire as `dXNlcjpzZfFoYQ==` rather than `dXNlcjpzZcOxaGE=`, so the server read a different
+password, answered 401, and nothing in Venn said why. A password outside latin-1 threw a
+`DOMException` with no `VNxxxx` code and no line. The encoder now lives in
+[`@venn-lang/sdk`](../sdk), so `http.get "…" { basic: … }` and `auth.basic` produce the same header
+byte for byte.
 
 `http.serve` takes `port` (`0` asks for any free one) and `host` (defaults to `127.0.0.1`).
 

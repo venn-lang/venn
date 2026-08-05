@@ -15,7 +15,6 @@ export interface ActionContext {
   /** Aborted when a `race` this action runs inside has already been won. */
   signal?: AbortSignal;
   log(message: string): void;
-  redact(value: string): void;
   /**
    * Write a value out the way the language itself writes it: the one definition
    * behind `print`, `str` and `"${…}"`.

@@ -1,9 +1,17 @@
-import { type ActionDefinition, arg, defineAction, z } from "@venn-lang/sdk";
+import {
+  type ActionDefinition,
+  arg,
+  CryptoEnginePort,
+  defineAction,
+  fromHex,
+  HASH_ALGORITHMS,
+  type HashAlgorithm,
+  toHex,
+  z,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
-import { fromHex, toHex } from "../bytes/index.js";
-import { CryptoEnginePort, type HashAlgorithm } from "../port/index.js";
 
-const algorithm = z.enum(["sha1", "sha256", "sha384", "sha512"]).default("sha256");
+const algorithm = z.enum(HASH_ALGORITHMS).default("sha256");
 const hashParams = z.object({ algorithm }).optional();
 const hmacParams = z.object({ key: z.string(), algorithm });
 const bytesParams = z.object({ size: z.number().int().positive().default(16) }).optional();

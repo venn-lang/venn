@@ -8,15 +8,20 @@ const params = z.object({
   secret: z.string(),
 });
 
-/** `auth.jwt({ header, payload, secret })`: a compact HS256-signed JWT. */
+/**
+ * `auth.jwt({ header, payload, secret })`: a compact HMAC-signed JWT.
+ *
+ * `header.alg` chooses the digest, HS256 by default. It signs with what it says.
+ */
 export const jwt: ActionDefinition = defineAction({
   name: "jwt",
-  doc: "Sign an HS256 JWT.",
+  doc: "Sign a JWT with the algorithm its header names, HS256 by default.",
   params,
   // Header, payload and secret are all options, so nothing goes positionally.
   result: t.string,
-  run: (_ctx, input) =>
+  run: (ctx, input) =>
     signJwt({
+      ctx,
       header: input.params.header,
       payload: input.params.payload,
       secret: input.params.secret,

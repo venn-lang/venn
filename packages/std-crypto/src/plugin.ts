@@ -11,7 +11,6 @@ import { cryptoTypeDefs } from "./types.js";
  */
 export const cryptoPlugin: PluginDefinition = definePlugin({
   name: "venn/crypto",
-  version: "0.1.0",
   namespace: "crypto",
   actions: cryptoActions,
   typeDefs: cryptoTypeDefs,

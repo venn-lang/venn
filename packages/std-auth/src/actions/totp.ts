@@ -23,8 +23,9 @@ export const totp: ActionDefinition = defineAction({
   // part of it, so the result is a string and not a number.
   args: [arg("seed", t.string, "The shared seed, base32.")],
   result: t.string,
-  run: (_ctx, input) =>
+  run: (ctx, input) =>
     totpCode({
+      ctx,
       seed: String(input.args[0] ?? ""),
       at: input.params?.at,
       period: input.params?.period,

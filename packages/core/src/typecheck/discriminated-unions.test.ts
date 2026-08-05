@@ -124,7 +124,7 @@ fn describe(r: Result) -> string => r.kind == "ok" ? onOk(r) : r.message`;
     const source = `${RESULT}fn onOk(o: Ok) -> string => str(o.value)
 fn describe(r: Result) -> string => r.kind == "ok" ? "yes" : onOk(r)`;
 
-    expect(said(source)[0]).toContain("Type mismatch");
+    expect(said(source)[0]).toContain('This map is missing "value", and has "message" instead.');
   });
 
   it("narrows a union of values by the value itself", () => {

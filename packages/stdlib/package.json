@@ -53,6 +53,7 @@
     "@venn-lang/db": "workspace:*",
     "@venn-lang/env": "workspace:*",
     "@venn-lang/fmt": "workspace:*",
+    "@venn-lang/fs": "workspace:*",
     "@venn-lang/graphql": "workspace:*",
     "@venn-lang/grpc": "workspace:*",
     "@venn-lang/http": "workspace:*",

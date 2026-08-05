@@ -12,7 +12,9 @@ import {
 import { actionTarget, PRELUDE, resolveTarget, splitTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 import { checkOptions } from "./check-options.js";
+import { namesANamespace } from "./names-a-namespace.js";
 import { problemAt } from "./problem-at.js";
+import { unknownVerb } from "./unknown-verb.js";
 
 /** `http.get "…"` written as a statement. */
 export function checkAction(call: ActionCall, ctx: CheckContext): Problem[] {
@@ -63,8 +65,13 @@ export function checkCapture(stmt: CaptureStmt, ctx: CheckContext): Problem {
 }
 
 /**
- * A namespace is only usable when this file brought it in with `use` (or it is
- * Loading the whole stdlib must not make the import optional.
+ * A statement call, resolved the way the expression form resolves.
+ *
+ * The import used to be the gate: an unimported namespace never got as far as
+ * "does it publish this verb", so the sentence that names the real mistake was
+ * only reachable from a file that had already written the line the reader did
+ * not know how to write. Every run loads every plugin, so the gate was never
+ * what decided whether the call worked.
  */
 function checkTarget(args: {
   node: AstNode;
@@ -75,26 +82,18 @@ function checkTarget(args: {
   const { node, target, ctx } = args;
   if (PRELUDE.has(target)) return [];
   const written = splitTarget(target).namespace;
-  if (ctx.bound.has(written)) return [];
-  if (!ctx.imported.has(written)) return [missingImport(args, written)];
-  const resolved = ctx.registry.action(resolveTarget(target, ctx.aliases));
-  if (!resolved) {
-    const title = `Unknown action "${target}".`;
-    return [problemAt({ node, ctx, spec: CODES.VN2003_UNKNOWN_ACTION, title })];
+  if (!namesANamespace(written, ctx)) {
+    // A name of the file's own wins over a namespace spelled the same way.
+    return ctx.declared.has(written) ? [] : [noSuchNamespace({ node, target, ctx })];
   }
+  const resolved = ctx.registry.action(resolveTarget(target, ctx.aliases));
+  if (!resolved) return [unknownVerb({ node, target, ctx })];
   return checkOptions({ opts: args.opts, params: resolved.action.params, ctx });
 }
 
-function missingImport(
-  args: { node: AstNode; target: string; ctx: CheckContext },
-  namespace: string,
-): Problem {
-  const { node, ctx } = args;
-  if (!ctx.registry.hasNamespace(namespace)) {
-    const title = `Unknown action "${args.target}": no loaded plugin provides it.`;
-    return problemAt({ node, ctx, spec: CODES.VN2003_UNKNOWN_ACTION, title });
-  }
-  const title = `"${namespace}" is not imported in this file.`;
-  const help = `Write \`import { ${namespace} } from "…"\` for the package it comes from.`;
-  return { ...problemAt({ node, ctx, spec: CODES.VN2007_NAMESPACE_NOT_IMPORTED, title }), help };
+/** A dotted target whose head names no namespace anything loaded provides. */
+function noSuchNamespace(args: { node: AstNode; target: string; ctx: CheckContext }): Problem {
+  const { node, target, ctx } = args;
+  const title = `Unknown action "${target}": no loaded plugin provides it.`;
+  return problemAt({ node, ctx, spec: CODES.VN2003_UNKNOWN_ACTION, title });
 }

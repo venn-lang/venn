@@ -13,6 +13,8 @@ import type { CompileIn } from "./fn.js";
 import { checkedCount, checkedList } from "./loop-bound.js";
 import { refuseACall } from "./pure-body.js";
 import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
+import { tryStep } from "./try-step.js";
+import { compileVerb } from "./verb-step.js";
 import { overCount, overItems, overPasses, runSteps } from "./walk-steps.js";
 
 /**
@@ -33,13 +35,24 @@ export function compileStep(stmt: Statement, scope: LexScope, compile: CompileIn
   if (ast.isForEachStmt(stmt)) return forEachStep(stmt, scope, compile);
   if (ast.isRepeatStmt(stmt)) return repeatStep(stmt, scope, compile);
   if (ast.isLoopStmt(stmt)) return loopStep(stmt, scope, compile);
+  if (ast.isTryStmt(stmt)) return tryStep(stmt, scope, { compile, stepsIn });
   if (ast.isBreakStmt(stmt)) return () => BROKE;
   if (ast.isContinueStmt(stmt)) return continueStep(stmt, scope, compile);
-  // Everything a pure body may hold is named above, and the grammar holds it to
-  // that at every depth. Anything else stands still rather than stopping the
-  // block: a statement nobody compiled must not be able to end the body, which
-  // is what made a verb inside an `if` answer `null` and print nothing.
-  return () => RAN;
+  if (ast.isActionCall(stmt)) return compileVerb(stmt, scope, compile);
+  throw unknownStatement(stmt);
+}
+
+/**
+ * A statement of a pure body that nothing above compiles.
+ *
+ * Unreachable while `FnStmt` and the list above say the same thing, and loud so
+ * it stays that way. This case used to stand still and answer "ran": a verb one
+ * level in parsed, compiled to nothing, and the function reported success having
+ * done nothing at all. The next person to widen `FnStmt` gets a throw where they
+ * are working rather than a program that silently drops a line.
+ */
+function unknownStatement(stmt: Statement): Error {
+  return new Error(`No step compiles ${stmt.$type} in a pure body.`);
 }
 
 /**
@@ -61,7 +74,7 @@ function blockSteps(
 }
 
 /** The same, in a scope the caller already made because it bound a name in it. */
-function stepsIn(
+export function stepsIn(
   block: { stmts: Statement[] } | undefined,
   inner: LexScope,
   compile: CompileIn,

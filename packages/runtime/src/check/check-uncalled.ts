@@ -8,8 +8,9 @@ import {
   type Member,
   type Problem,
 } from "@venn-lang/core";
-import { actionTarget, nodeSpan, resolveTarget } from "../scheduler/index.js";
+import { actionTarget, nodeSpan, resolveTarget, splitTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
+import { namesANamespace } from "./names-a-namespace.js";
 
 /**
  * A plugin verb named but never called.
@@ -26,7 +27,7 @@ export function checkUncalledAction(node: AstNode, ctx: CheckContext): Problem |
   // A name the file binds is not a namespace, however much it reads like one:
   // `const { kit } = …` then `kit.shout` is a field, and the registry's opinion
   // about a verb of the same spelling is not about this.
-  if (ctx.bound.has(target.slice(0, target.indexOf(".")))) return undefined;
+  if (!namesANamespace(splitTarget(target).namespace, ctx)) return undefined;
   if (!ctx.registry.action(resolveTarget(target, ctx.aliases))) return undefined;
   return buildProblem({
     spec: CODES.VN2008_UNCALLED_ACTION,

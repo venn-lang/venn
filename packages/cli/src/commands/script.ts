@@ -4,6 +4,7 @@ import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer, type NodeHttpServer } from "@venn-lang/http/node";
 import { unclaimed } from "@venn-lang/runtime";
+import { refuses } from "../diagnostics/index.js";
 import { declaredEnv, envDirOf, loadEnv, loadManifest } from "../manifest/index.js";
 import { createProblemSink, errorLine, problemThrown, reportProblems } from "../reporters/index.js";
 import type { Ending } from "../run/ending.types.js";
@@ -57,9 +58,10 @@ async function script(args: {
 }): Promise<Ending> {
   const outcome = await runFile(await scriptArgs(args));
   args.settled();
-  // Said already: `runFile` puts what refused the file on the stream, and the
-  // sink under a script is the one that reads a failure out loud.
-  if (outcome.problems.length > 0) return { code: 1, leave: true };
+  // Said already, and said in full: `runFile` puts the whole list on the stream
+  // in front of the run, and the sink under a script is the one that reads a
+  // problem out loud. A hint among them does not stop the program.
+  if (refuses(outcome.problems)) return { code: 1, leave: true };
   return await ending(exitCodeOf(outcome.result), asked(outcome.result), args.shutdown);
 }
 

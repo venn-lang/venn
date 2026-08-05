@@ -8,7 +8,7 @@ import { KIND_TYPES } from "./kind-types.js";
 import { REGEX_TYPE } from "./regex-type.js";
 import { instantiate, type Scheme } from "./scheme.js";
 import { TASK_TYPE } from "./task-type.js";
-import type { Type } from "./type.types.js";
+import { DYNAMIC, type Type } from "./type.types.js";
 import { shapeOf, typeRefToType } from "./type-ref.js";
 
 /** The named types a document declares, such as `type User { … }`, by name. */
@@ -58,11 +58,28 @@ export function collectNamedTypes(
     const away = fromAway(name);
     return generics.get(name) ?? (away && isGenericImport(away) ? away.generic : undefined);
   }
-  for (const decl of doc.decls.filter(isTypeDecl)) {
-    if (decl.params.length > 0) generics.set(decl.name, genericOf({ decl, ctx, named, catalog }));
-    else table.set(decl.name, declaredType({ decl, ctx, named, catalog }));
-  }
+  collectDeclared({ doc, table, generics, ctx, named, catalog });
   return named;
+}
+
+/**
+ * Every `type` this file declares, into the shared table.
+ *
+ * Two walks over one list. The names go in before any body is read, so a `type`
+ * that names a sibling declared below it, or names itself, resolves instead of
+ * being refused for a name the file plainly has. That one edge still reads
+ * `dynamic`, because knowing what the name IS means reading the body, and the
+ * body is the walk underway.
+ */
+function collectDeclared(
+  args: Scope & { doc: Document; table: Map<string, Type>; generics: Map<string, Scheme> },
+): void {
+  const declared = args.doc.decls.filter(isTypeDecl);
+  for (const decl of declared) args.table.set(decl.name, DYNAMIC);
+  for (const decl of declared) {
+    if (decl.params.length > 0) args.generics.set(decl.name, genericOf({ ...args, decl }));
+    else args.table.set(decl.name, declaredType({ ...args, decl }));
+  }
 }
 
 /**

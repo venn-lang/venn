@@ -49,7 +49,7 @@ print u.address.city`;
   it("refuses a field the shape does not have", () => {
     const said = titles('const u: { name: string } = { nome: "a" }');
 
-    expect(said[0]).toContain("expected { name: string }");
+    expect(said[0]).toBe('This map is missing "name", and has "nome" instead.');
   });
 
   it("refuses a field of the wrong type", () => {

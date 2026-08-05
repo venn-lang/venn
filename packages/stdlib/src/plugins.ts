@@ -8,6 +8,7 @@ import { datePlugin } from "@venn-lang/date";
 import { dbPlugin } from "@venn-lang/db";
 import { envPlugin } from "@venn-lang/env";
 import { fmtPlugin } from "@venn-lang/fmt";
+import { fsPlugin } from "@venn-lang/fs";
 import { gqlPlugin } from "@venn-lang/graphql";
 import { grpcPlugin } from "@venn-lang/grpc";
 import { httpPlugin } from "@venn-lang/http";
@@ -40,6 +41,7 @@ export const allPlugins: PluginDefinition[] = [
   fmtPlugin,
   jsonPlugin,
   pathPlugin,
+  fsPlugin,
   mathPlugin,
   ioPlugin,
   mockPlugin,

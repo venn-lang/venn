@@ -90,7 +90,7 @@ directory whose name merely starts the same (`data-evil` next to `data`) is a di
 
 Every answer comes from reading the path. A file that does not exist yet still has a name and a
 parent, and asking about them is how a program works out whether to make it. What is on the disk is
-a separate question, and this namespace never asks it.
+a separate question, and this namespace never asks it. `venn/fs` does.
 
 ## API
 
@@ -103,3 +103,4 @@ a separate question, and this namespace never asks it.
 ## See also
 
 - [`@venn-lang/contracts`](../contracts) for the `Paths` port and its two spellings.
+- [`@venn-lang/fs`](../std-fs) for reading and writing what is at the end of a path.

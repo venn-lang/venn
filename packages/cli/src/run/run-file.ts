@@ -19,6 +19,7 @@ import {
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
+import { createDiagnostics, type Diagnostics, isError, refuses } from "../diagnostics/index.js";
 import { packageTypesFor } from "./package-types.js";
 import { problemStream } from "./problem-stream.js";
 import type { ProblemStream } from "./problem-stream.types.js";
@@ -68,6 +69,13 @@ export interface RunFileArgs {
   cleanup?: CleanupSink;
   /** "test" runs the flows; "script" executes the file top to bottom. */
   mode?: "test" | "script";
+  /**
+   * The command's one list, so a mistake two files lead into is said once.
+   *
+   * Absent means this file is the whole command, which is what a test calling
+   * `runFile` directly is.
+   */
+  diagnostics?: Diagnostics;
 }
 
 /** One file, once the imports have been walked: what every step below reads. */
@@ -109,27 +117,43 @@ export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
 /** Parse, refuse, run: the file's own steps, all of them on the one stream. */
 async function passOver(stream: ProblemStream, args: RunFileArgs): Promise<RunFileOutcome> {
   const { ast, problems } = parse(args.source, { uri: args.uri });
-  if (problems.length > 0) return said(stream, problems);
+  if (problems.length > 0) return said({ args, stream, problems });
   const resolved = args.io
     ? await resolveImports({ document: ast, uri: args.uri, io: args.io, npm: args.npm })
     : undefined;
   const pass: Pass = { document: ast, args, resolved, stream, graph: graphOf(args, resolved) };
-  const refused = await refusedBefore(pass);
-  if (refused.length > 0) return said(stream, refused);
+  const found = said({ args, stream, problems: await foundBefore(pass) });
+  if (refuses(found.problems)) return found;
   const result = await execute(pass);
   // The result carries its own problems, a decorator that refused the program
   // among them, so both travel back together rather than one replacing the other.
-  return { ...said(stream, result.problems ?? []), result };
-}
-
-/** Everything refused, on the stream and in the outcome: one channel, two readers. */
-function said(stream: ProblemStream, problems: Problem[]): RunFileOutcome {
-  stream.say(problems);
-  return { problems };
+  const late = said({ args, stream, problems: result.problems ?? [] });
+  return { problems: [...found.problems, ...late.problems], result };
 }
 
 /**
- * What the front end refuses, before anything runs.
+ * Everything found, in the outcome, and on the stream in front of the run.
+ *
+ * What goes on the stream depends on who is reading it. `venn test` has a
+ * reporter and a machine-readable document to fill, and a `failure` envelope is
+ * what that document counts, so it is given the errors and nothing else: an
+ * untidy import is not a failing test. `venn run` has no reporter at all, only
+ * the sink that reads a failure out loud, so it is given the whole list and a
+ * person sees every problem in one piece, in reading order, before the program
+ * it belongs to starts printing.
+ */
+function said(args: {
+  args: RunFileArgs;
+  stream: ProblemStream;
+  problems: Problem[];
+}): RunFileOutcome {
+  const script = args.args.mode === "script";
+  args.stream.say(script ? args.problems : args.problems.filter(isError));
+  return { problems: args.problems };
+}
+
+/**
+ * What the front end found, before anything runs.
  *
  * Every pass, which for a long time was neither every nor any. `venn check` ran
  * the document check and `venn run` did not, so a lint was something you only
@@ -138,14 +162,16 @@ function said(stream: ProblemStream, problems: Problem[]): RunFileOutcome {
  * printed the string. Both because the list of what to check lived in two
  * functions in two files. There is one now.
  *
- * Errors only. A warning or a hint is `venn check`'s business: a run already
- * stops for a parse error and for an import that names nothing, and printing an
- * untidy import on every run would teach people to stop reading them.
+ * Every severity, and only an error stops the file. A warning or a hint used to
+ * be dropped here and printed by `venn check`, so a program ran clean and failed
+ * the check, which is two compilers wearing one name. Whoever prints this list
+ * decides how loud to be about it; nobody decides whether it exists.
  */
-async function refusedBefore(pass: Pass): Promise<Problem[]> {
+async function foundBefore(pass: Pass): Promise<Problem[]> {
   const front = createFrontEnd({ plugins: allPlugins, caps: pass.args.host.caps });
   const analysis = front.analyze(await inputsFor(pass));
-  return analysis.problems.filter((one) => one.severity === "error");
+  const list = pass.args.diagnostics ?? createDiagnostics();
+  return list.unsaid(analysis.problems);
 }
 
 /** What this run knows about the world outside the file. */

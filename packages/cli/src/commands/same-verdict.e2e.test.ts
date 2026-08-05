@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { checkProblems } from "./check.js";
+import { checkCommand, checkProblems } from "./check.js";
 import { runCommand } from "./run.js";
 import { scriptCommand } from "./script.js";
 
@@ -118,5 +118,69 @@ describe("what a flow prints", () => {
     for (const line of out.join("").split(NEWLINE).filter(Boolean)) {
       expect(() => JSON.parse(line)).not.toThrow();
     }
+  });
+});
+
+/** Every `VNxxxx · title` and every `at …:line:col`, in the order it was said. */
+function saidBy(chunks: readonly string[]): readonly string[] {
+  return chunks
+    .join("")
+    .split(NEWLINE)
+    .filter((line) => /^VN\d{4} ·|^ {2}at /.test(line))
+    .map((line) => line.trim().replace(/^at .*[/\\]/, "at "));
+}
+
+/** Whatever a command wrote to standard error while it ran. */
+async function stderrOf(run: () => Promise<unknown>): Promise<readonly string[]> {
+  const said: string[] = [];
+  const spy = vi.spyOn(process.stderr, "write").mockImplementation((chunk) => {
+    said.push(String(chunk));
+    return true;
+  });
+  await run();
+  spy.mockRestore();
+  return saidBy(said);
+}
+
+const MIXED = lines(
+  'import { io } from "venn/io"',
+  "",
+  'const count: number = "seven"',
+  "print count",
+);
+
+/** The two the file holds, in the order a person reads them. */
+const SAID = [
+  'VN5005 · "io" is imported and never used.',
+  "VN3010 · Type mismatch: expected number, found string.",
+];
+
+/**
+ * One file, two commands, one list.
+ *
+ * A program that ran clean and failed `venn check` was the first thing a
+ * newcomer met: the hint on line 1 was `venn check`'s business alone, and the
+ * two commands were two compilers wearing one name. The order is half the
+ * answer, since the analysis hands its problems over loudest first, which put
+ * the error on line 3 in front of the hint on line 1.
+ */
+describe("what two commands say about one file", () => {
+  it("says the same words, where they are written", async () => {
+    const file = await write("mixed.vn", MIXED);
+
+    const checked = await stderrOf(() => checkCommand({ paths: [file] }));
+    const ran = await stderrOf(() => scriptCommand({ file }));
+
+    expect(ran).toEqual(checked);
+    expect(checked.filter((line) => line.startsWith("VN"))).toEqual(SAID);
+  });
+});
+
+/** Said by all three, and worth nobody's exit code. */
+describe("what a hint costs", () => {
+  it("stops none of the three commands", async () => {
+    await write("hinted.vn", lines('import { io } from "venn/io"', 'print "ran"'));
+
+    expect(await verdicts("hinted.vn")).toEqual([0, 0, 0]);
   });
 });

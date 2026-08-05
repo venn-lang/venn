@@ -11,7 +11,8 @@ import type { Frame } from "../expr/frame.js";
 import { readSlot } from "../expr/frame.js";
 import type { Param, Pattern } from "../generated/ast.js";
 import type { PatternSlot } from "../pattern/index.js";
-import { patternNames, patternSlots, slotValue } from "../pattern/index.js";
+import { patternMisfit, patternNames, patternSlots, slotValue } from "../pattern/index.js";
+import { ProblemError } from "../problem/index.js";
 import { boundValue } from "./box.js";
 import type { CompiledLocal, Thunk } from "./compile.types.js";
 import { boxed, declare, type LexScope, slotOf } from "./lex-scope.js";
@@ -46,16 +47,30 @@ export function paramLocals(params: readonly Param[], scope: LexScope): Compiled
  * The names are declared here, as they are read out, so the slot a name stands
  * for is decided in one place. Two places once decided it and disagreed: a
  * pattern `let` inside an `if` asked for a slot nobody had minted.
+ *
+ * The shape is asked once, on the way to the first name, so the names after it
+ * read out of a value already known to have it.
  */
 export function unpack(pattern: Pattern, scope: LexScope, from: number): CompiledLocal[] {
-  return patternSlots(pattern).map((bound) => {
+  return patternSlots(pattern).map((bound, at) => {
     const slot = declare(scope, bound.name);
-    return { slot, value: boundValue(slotThunk(from, bound), scope, slot) };
+    const read = at === 0 ? askedFirst(pattern, from, bound) : slotThunk(from, bound);
+    return { slot, value: boundValue(read, scope, slot) };
   });
 }
 
 function slotThunk(from: number, bound: PatternSlot): Thunk {
   return (env) => slotValue(readSlot(env as Frame, from), bound);
+}
+
+/** The first name out of a pattern, which is where the value is asked its shape. */
+function askedFirst(pattern: Pattern, from: number, bound: PatternSlot): Thunk {
+  return (env) => {
+    const value = readSlot(env as Frame, from);
+    const misfit = patternMisfit(pattern, value);
+    if (misfit) throw new ProblemError(misfit);
+    return slotValue(value, bound);
+  };
 }
 
 /**

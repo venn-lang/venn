@@ -5,14 +5,17 @@ import { callType } from "./action-signature.js";
 import { checkCases } from "./check-cases.js";
 import { checkMatch } from "./check-match.js";
 import { inferAgainst } from "./checked-against.js";
+import { reportDiscarded } from "./discarded-result.js";
 import { endsThePass } from "./ends-the-pass.js";
 import { ERROR_TYPE } from "./error-type.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
+import { checkContinue, checkLoop } from "./loop-state.js";
 import { type Branches, narrowed } from "./narrow.js";
 import { paramType } from "./param-type.js";
 import { patternTypes } from "./pattern-types.js";
 import { checkRunArguments } from "./run-arguments.js";
 import { mono, type Scheme } from "./scheme.js";
+import { seededWithNothing, widenedByWrite } from "./seeded-with-nothing.js";
 import { DYNAMIC, NULL, type Type } from "./type.types.js";
 import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
@@ -30,6 +33,7 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
   if (ast.isMatchExpr(node)) return matchStmt(node, env, infer);
   if (ast.isForEachStmt(node)) return forEach(node, env, infer);
   if (ast.isLoopStmt(node)) return checkLoop(node, env, infer);
+  if (ast.isContinueStmt(node)) return checkContinue(node, env, infer);
   if (ast.isRepeatStmt(node)) return repeat(node, env, infer);
   if (ast.isTryStmt(node)) return tryStmt(node, env, infer);
   if (ast.isReturnStmt(node)) return returnStmt(node, env, infer);
@@ -45,11 +49,14 @@ export function checkStatement(node: Statement, env: TypeEnv, infer: Infer): Typ
  * The target is inferred rather than looked up, so a member or an index is
  * checked by the same rule as a name: writing a string into a field of numbers
  * is the same mistake wherever the field is.
+ *
+ * Unless the name held nothing, in which case the write is what teaches it: see
+ * {@link widenedByWrite}.
  */
 function assign(node: ast.AssignStmt, env: TypeEnv, infer: Infer): TypeEnv {
   const place = inferExpr(node.target, env, infer);
   const value = inferExpr(node.value, env, infer);
-  expect(infer, node.value, value, place);
+  if (!widenedByWrite(place, value)) expect(infer, node.value, value, place);
   return env;
 }
 
@@ -83,15 +90,16 @@ function nested(block: Block, env: TypeEnv, infer: Infer): TypeEnv {
  */
 function bindLet(node: ast.LetStmt, env: TypeEnv, infer: Infer): TypeEnv {
   const declared = declaredTypeOf(node, infer);
-  const type = isCall(node)
+  const found = isCall(node)
     ? boundCall(node, env, infer)
     : inferAgainst({ expr: node.value, env, infer, wanted: declared });
   // An annotation the checker parses and never reads is worse than no
   // annotation: the author believes something is being enforced.
-  if (declared) expect(infer, node.value, type, declared);
+  if (declared) expect(infer, node.value, found, declared);
+  const type = declared ?? seededWithNothing(node, found, infer.ctx);
   // Record it on the declaration too, so a hover on the name knows the type.
-  infer.types?.set(node, declared ?? type);
-  return bound(node, declared ?? type, env, infer);
+  infer.types?.set(node, type);
+  return bound(node, type, env, infer);
 }
 
 /**
@@ -144,6 +152,7 @@ function expectStmt(node: ast.ExpectStmt, env: TypeEnv, infer: Infer): TypeEnv {
  */
 function actionArgs(node: ast.ActionCall, env: TypeEnv, infer: Infer): TypeEnv {
   callType({ target: node.target, args: callArgs(node), opts: node.opts }, env, infer);
+  reportDiscarded(node, env, infer);
   return env;
 }
 
@@ -223,25 +232,6 @@ function tryStmt(node: ast.TryStmt, env: TypeEnv, infer: Infer): TypeEnv {
 }
 
 /**
- * `loop`, in all three shapes.
- *
- * The state is bound in the scope the loop stands in, not only inside it, so a
- * running total can be read after the loop the way the runtime leaves it. Its
- * type comes from the initial value; a `continue` of another type is a mismatch
- * the ordinary check reports where it is written.
- */
-function checkLoop(node: ast.LoopStmt, env: TypeEnv, infer: Infer): TypeEnv {
-  if (node.cond) inferExpr(node.cond, env, infer);
-  if (!node.state) {
-    checkBlock(node.body, env, infer);
-    return env;
-  }
-  const carried = env.with(node.state.name, mono(inferExpr(node.state.initial, env, infer)));
-  checkBlock(node.body, carried, infer);
-  return carried;
-}
-
-/**
  * `return`, read here and nowhere else.
  *
  * The scope it is written in is the one its `if` narrowed, and what the body was
@@ -270,6 +260,7 @@ export function checkBlock(block: Block, env: TypeEnv, infer: Infer): void {
  * is called by name from a flow, so no caller teaches it anything.
  */
 export function checkFragment(decl: FragmentDecl, env: TypeEnv, infer: Infer): void {
+  readReturnAnnotation(decl, infer);
   let scope = env;
   for (const param of decl.params?.params ?? []) {
     const type = paramType(param, infer);
@@ -279,4 +270,18 @@ export function checkFragment(decl: FragmentDecl, env: TypeEnv, infer: Infer): v
     }
   }
   checkBlock(decl.body, scope, infer);
+}
+
+/**
+ * Read for the names in it, not for the type it names.
+ *
+ * A fragment's body is not yet checked against its `-> T`, and this is the only
+ * place that annotation is read at all: without this, `fragment g() -> banana`
+ * is the one written type in the language nobody ever looks at, so the one
+ * position where naming a type nothing declares stays silent.
+ */
+function readReturnAnnotation(decl: FragmentDecl, infer: Infer): void {
+  if (!decl.returns) return;
+  const { ctx, named, catalog } = infer;
+  typeRefToType({ ref: decl.returns, ctx, named, catalog });
 }

@@ -11,6 +11,7 @@ import {
   resolveImports,
 } from "@venn-lang/runtime";
 import { allPlugins } from "@venn-lang/stdlib";
+import { createDiagnostics, isError } from "../diagnostics/index.js";
 import {
   declaredEnv,
   type LoadedManifest,
@@ -42,20 +43,11 @@ export async function checkCommand(args: { paths: readonly string[] }): Promise<
 }
 
 /**
- * Whether a problem is one that fails the check.
- *
- * A hint is something worth saying and not something worth stopping for: an
- * import nobody used is untidy, not wrong, and a check that fails on it is a
- * check people stop running. `venn build` reads the same rule, so a file that
- * checks clean does not fail the release path over an untidy import.
- */
-export function isError(problem: Problem): boolean {
-  return problem.severity === "error";
-}
-
-/**
  * The same walk without the printing, for whoever wants the answer rather than
  * the report: `build` records the count, `check` prints the list.
+ *
+ * The manifest comes first, because a project that is wrong is wrong before any
+ * of its files are read, and because that is where `venn test` says it.
  */
 export async function checkProblems(
   paths: readonly string[],
@@ -64,10 +56,10 @@ export async function checkProblems(
   // Built once for the whole walk: the registry, the decorators and the type
   // catalog are the same answer for every file, and were rebuilt for each.
   const front = createFrontEnd({ plugins: allPlugins, caps: createNodeHost().caps });
-  const problems: Problem[] = [];
-  for (const file of files) problems.push(...(await problemsIn(file, front)));
-  problems.push(...(await manifestProblems(await projectsOf(files))));
-  return { files: files.length, problems: said(problems) };
+  const list = createDiagnostics();
+  const problems = list.unsaid(await manifestProblems(await projectsOf(files)));
+  for (const file of files) problems.push(...list.unsaid(await problemsIn(file, front)));
+  return { files: files.length, problems };
 }
 
 /**
@@ -91,22 +83,9 @@ export async function projectsOf(files: readonly string[]): Promise<string[]> {
 }
 
 /**
- * Each problem once.
- *
- * A cycle is found from every file that leads into it, and it is one mistake
- * however many found it. Two files reaching the same one produce the same
- * problem, down to the span, so sameness is the whole test.
+ * One file's problems: whatever stopped it being parsed, else everything the
+ * front end found in it.
  */
-function said(problems: readonly Problem[]): Problem[] {
-  const seen = new Set<string>();
-  return problems.filter((problem) => {
-    const key = `${problem.code}:${problem.span.uri}:${problem.span.offset}:${problem.title}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 async function problemsIn(uri: string, front: FrontEnd): Promise<Problem[]> {
   const { ast, problems } = parse(await readFile(uri, "utf8"), { uri });
   if (problems.length > 0) return problems;

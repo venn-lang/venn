@@ -322,8 +322,8 @@ describe("a guard that learns nothing", () => {
   it("leaves a call with the wrong number of arguments to the arity check", () => {
     const declared = "fn pair(a: string, b: string) -> string => a";
 
-    expect(said(declared, 'const few = pair("x")')[0]).toContain("VN3010");
-    expect(said(declared, 'const many = pair("x", "y", "z")')[0]).toContain("VN3010");
+    expect(said(declared, 'const few = pair("x")')[0]).toContain("VN3002");
+    expect(said(declared, 'const many = pair("x", "y", "z")')[0]).toContain("VN3002");
   });
 });
 

@@ -101,8 +101,14 @@ describe("arithmetic on plain numbers", () => {
     expect(at("7 != 7")).toBe(false);
   });
 
-  it("divides by zero the way JavaScript does, not by throwing", () => {
-    expect(at("1 / 0")).toBe(Number.POSITIVE_INFINITY);
+  /**
+   * This asserted `Infinity`, which is what the host does and what the fast
+   * path used to hand straight back. The zero now leaves the fast path so it
+   * meets the refusal, and the ordinary divisions above still do not.
+   */
+  it("refuses a divisor of zero rather than answering an infinity", () => {
+    expect(() => at("1 / 0")).toThrow("Dividing by zero has no quotient.");
+    expect(() => at("5 % 0")).toThrow("Dividing by zero has no remainder.");
   });
 
   // The shortcut must not swallow units: these are not plain numbers.

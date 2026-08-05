@@ -51,7 +51,7 @@ describe("env checking", () => {
     expect(check(withEnv("expect env.BASE_URL"), DECLARED)).toEqual([]);
   });
 
-  it('refuses to read env without `import { env } from "venn/env"`', () => {
+  it('hints at reading env without `import { env } from "venn/env"`', () => {
     const found = check('flow "f" { step "s" { expect env.BASE_URL } }', DECLARED);
 
     expect(found[0]).toContain("VN2007");
@@ -62,6 +62,17 @@ describe("env checking", () => {
     const found = check('flow "f" { step "s" { expect "${env.BASE_URL}/x" } }', DECLARED);
 
     expect(found[0]).toContain("VN2007");
+  });
+
+  /**
+   * The import used to be asked first and refused, so the variable that does
+   * not exist was never mentioned. The reader wrote the import and only then
+   * learnt about the typo.
+   */
+  it("names the undeclared variable even with no import written", () => {
+    const found = check('flow "f" { step "s" { expect env.BASE_UR } }', DECLARED);
+
+    expect(found.some((one) => one.startsWith("VN2006"))).toBe(true);
   });
 
   it("rejects an undeclared one, suggesting the nearest declared name", () => {

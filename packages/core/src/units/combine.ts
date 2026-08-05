@@ -6,10 +6,14 @@ export type Numeric = number | UnitValue | Instant;
 /** Why two operands would not combine: the operator, and the kind of each side. */
 export type UnitMismatch = { op: string; left: string; right: string };
 
-/** The outcome of {@link combine}: the value, or the mismatch behind VN3012. */
+/**
+ * The outcome of {@link combine}: the value, the mismatch behind VN3012, or a
+ * divisor of zero, which is VN3030 and not a mismatch of anything.
+ */
 export type CombineResult =
   | { ok: true; value: Numeric | boolean }
-  | { ok: false; mismatch: UnitMismatch };
+  | { ok: false; mismatch: UnitMismatch }
+  | { ok: false; byZero: true };
 
 type Kind = UnitKind | "instant" | "scalar";
 
@@ -24,11 +28,15 @@ const COMPARE = new Set(["<", "<=", ">", ">=", "==", "!="]);
  * `ended - began` is how long there was between them. Never throws: the caller
  * decides whether a mismatch is a problem and where to point at it.
  *
- * @returns The combined value, or the mismatch that stopped it.
+ * @returns The combined value, or what stopped it.
  */
 export function combine(args: { op: string; left: Numeric; right: Numeric }): CombineResult {
   const left = norm(args.left);
   const right = norm(args.right);
+  // Asked before the operation rather than after it, because after it the
+  // answer is `Infinity` or `NaN` and there is no telling those from a real
+  // result. `0s` divides no better than `0`, so it is the base that is asked.
+  if (right.base === 0 && (args.op === "/" || args.op === "%")) return { ok: false, byZero: true };
   const value = COMPARE.has(args.op) ? compare(args.op, left, right) : arith(args.op, left, right);
   if (value === null)
     return { ok: false, mismatch: { op: args.op, left: left.kind, right: right.kind } };

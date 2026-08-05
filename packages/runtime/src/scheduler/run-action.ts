@@ -7,7 +7,9 @@ import {
   display,
   durationMs,
   evaluate,
+  failError,
   invoke,
+  placeAt,
   type Span,
   splitCall,
 } from "@venn-lang/core";
@@ -17,7 +19,6 @@ import { callParams } from "./call-params.js";
 import { checkpoint } from "./checkpoint.js";
 import { optionNames, takes } from "./declared-arity.js";
 import type { Engine } from "./engine.types.js";
-import { failError } from "./fail-error.js";
 import type { Invocation } from "./invocation.js";
 import { localCallee } from "./local-call.js";
 import { nodeSpan } from "./node-span.js";
@@ -37,23 +38,58 @@ export async function runAction(engine: Engine, call: Invocation, scope: Scope):
   // `conn.close()` is a method on something the program holds. A name it bound
   // beats a namespace of the same name, so this is asked first.
   const callee = localCallee(call.target, scope);
-  if (callee !== undefined) return callMethod(callee, call, scope);
+  if (callee !== undefined) return placed(engine, call, () => callMethod(callee, call, scope));
   const { namespace, name } = resolveTarget(call.target, engine.aliases);
   const resolved = engine.registry.action({ namespace, name });
   if (!resolved)
     throw unknownAction({ target: call.target, where: nodeSpan(siteOf(call), engine.uri) });
   engine.emitter.emit({ kind: "action.started", data: { namespace, action: name } });
   const start = engine.clock.now();
-  const value = await resolved.action.run(
-    engine.ctx,
-    await buildInput({ action: resolved.action, call, scope, uri: engine.uri }),
-  );
+  const value = await ran({ action: resolved.action, engine, call, scope });
   const elapsed = engine.clock.now() - start;
   engine.emitter.emit({
     kind: "action.finished",
     data: { namespace, action: name, status: "passed", durationMs: elapsed },
   });
   return value;
+}
+
+/**
+ * Whatever the call raised, pointed at the line that made it.
+ *
+ * A plugin raises what it knows: the text it could not read, the file that was
+ * not there. It has no node, and a `let` spelling a verb is not a compiled call
+ * either, so nothing between the plugin and the reporter holds one and
+ * `json.parse` on a bad line reached stderr with no `at` at all.
+ *
+ * A throw carrying no problem is given one here, which is how it keeps its
+ * code: script mode reads the code off the problem, and the `instanceof
+ * VennError` it falls back to is false across two bundles of `contracts`.
+ */
+async function placed(
+  engine: Engine,
+  call: Invocation,
+  work: () => Promise<unknown>,
+): Promise<unknown> {
+  try {
+    return await work();
+  } catch (thrown) {
+    placeAt(thrown, nodeSpan(siteOf(call), engine.uri));
+    throw thrown;
+  }
+}
+
+/** The verb itself, with its arguments built inside the same reach. */
+async function ran(args: {
+  action: ActionDefinition;
+  engine: Engine;
+  call: Invocation;
+  scope: Scope;
+}): Promise<unknown> {
+  const { action, engine, call, scope } = args;
+  return placed(engine, call, async () =>
+    action.run(engine.ctx, await buildInput({ action, call, scope, uri: engine.uri })),
+  );
 }
 
 /** Call a value the program holds, and wait for it as any other call is waited for. */

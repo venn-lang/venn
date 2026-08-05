@@ -102,7 +102,7 @@ describe("moments", () => {
 
   it("names both sides when it refuses", () => {
     const result = combine({ op: "*", left: began, right: 2 });
-    expect(result.ok === false && result.mismatch).toEqual({
+    expect("mismatch" in result && result.mismatch).toEqual({
       op: "*",
       left: "instant",
       right: "scalar",

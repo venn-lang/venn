@@ -37,26 +37,45 @@ function assertPluginCaps(args: {
   });
 }
 
+/** The maps one pass over the plugins fills, and the registry then reads. */
+interface Index {
+  actions: Map<string, ResolvedAction>;
+  matchers: Map<string, ResolvedMatcher>;
+  /** Namespace to the package that contributes it, so an import can be named. */
+  namespaces: Map<string, string>;
+  packages: Map<string, string>;
+  byPackage: Map<string, PluginDefinition>;
+  values: { namespace: string; value: ValueDefinition }[];
+}
+
 function indexPlugins(plugins: readonly PluginDefinition[]): Registry {
-  const actions = new Map<string, ResolvedAction>();
-  const matchers = new Map<string, ResolvedMatcher>();
-  const namespaces = new Set<string>();
-  const packages = new Map<string, string>();
-  const byPackage = new Map<string, PluginDefinition>();
-  const values: { namespace: string; value: ValueDefinition }[] = [];
-  for (const plugin of plugins) {
-    for (const value of plugin.values ?? []) values.push({ namespace: plugin.namespace, value });
-    addPlugin({ plugin, actions, matchers, namespaces, packages });
-    byPackage.set(plugin.name, plugin);
-  }
+  const index = blank();
+  for (const plugin of plugins) addPlugin(plugin, index);
+  return faceOf(index);
+}
+
+function blank(): Index {
   return {
-    action: ({ namespace, name }) => actions.get(`${namespace}.${name}`),
-    matcher: (name) => matchers.get(name),
-    hasNamespace: (namespace) => namespaces.has(namespace),
-    namespaceOf: (pkg) => packages.get(pkg),
-    plugin: (pkg) => byPackage.get(pkg),
-    actions: () => listActions(actions),
-    values: () => values,
+    actions: new Map(),
+    matchers: new Map(),
+    namespaces: new Map(),
+    packages: new Map(),
+    byPackage: new Map(),
+    values: [],
+  };
+}
+
+function faceOf(index: Index): Registry {
+  return {
+    action: ({ namespace, name }) => index.actions.get(`${namespace}.${name}`),
+    matcher: (name) => index.matchers.get(name),
+    hasNamespace: (namespace) => index.namespaces.has(namespace),
+    namespaceOf: (pkg) => index.packages.get(pkg),
+    packageOf: (namespace) => index.namespaces.get(namespace),
+    packages: () => [...index.byPackage.keys()],
+    plugin: (pkg) => index.byPackage.get(pkg),
+    actions: () => listActions(index.actions),
+    values: () => index.values,
   };
 }
 
@@ -70,20 +89,17 @@ function listActions(
   }));
 }
 
-function addPlugin(args: {
-  plugin: PluginDefinition;
-  actions: Map<string, ResolvedAction>;
-  matchers: Map<string, ResolvedMatcher>;
-  namespaces: Set<string>;
-  packages: Map<string, string>;
-}): void {
-  const { plugin, actions, matchers, namespaces, packages } = args;
-  namespaces.add(plugin.namespace);
-  packages.set(plugin.name, plugin.namespace);
+function addPlugin(plugin: PluginDefinition, index: Index): void {
+  index.namespaces.set(plugin.namespace, plugin.name);
+  index.packages.set(plugin.name, plugin.namespace);
+  index.byPackage.set(plugin.name, plugin);
+  for (const value of plugin.values ?? []) {
+    index.values.push({ namespace: plugin.namespace, value });
+  }
   for (const action of plugin.actions ?? []) {
-    actions.set(`${plugin.namespace}.${action.name}`, { plugin, action });
+    index.actions.set(`${plugin.namespace}.${action.name}`, { plugin, action });
   }
   for (const matcher of plugin.matchers ?? []) {
-    matchers.set(matcher.name, { plugin, matcher });
+    index.matchers.set(matcher.name, { plugin, matcher });
   }
 }

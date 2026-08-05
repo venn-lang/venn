@@ -1,4 +1,4 @@
-import type { SingleType, TypeBody, TypeRef } from "../generated/ast.js";
+import type { NamedType, SingleType, TypeBody, TypeRef } from "../generated/ast.js";
 import { isNamedType, isNullType, isShapeType } from "../generated/ast.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import type { TypeContext } from "./context.js";
@@ -42,9 +42,9 @@ export interface RefScope {
 
 /**
  * Read a written annotation (`list<number>`, `User`, `http.Request`,
- * `"GET" | "POST"`) into a type. An unknown name stays `dynamic`, so an
- * annotation never adds friction: being wrong about a name must not be worse
- * than saying nothing.
+ * `"GET" | "POST"`) into a type. A name nothing answers to is recorded on the
+ * context and read as `dynamic`, so the mistake is said once, where it is
+ * written, instead of turning checking off for whatever it annotates.
  */
 export function typeRefToType(args: RefScope & { ref: TypeRef | undefined }): Type {
   if (!args.ref) return args.ctx.fresh();
@@ -62,11 +62,62 @@ function singleToType(args: RefScope & { single: SingleType }): Type {
   // such as `"GET"`, and it means that one value. Widening it to `string` would
   // enforce nothing.
   if (!isNamedType(single)) return literalOf(single);
+  return namedToType(single, args);
+}
+
+/** A written name: a generic, a builtin, something in reach, or nothing at all. */
+function namedToType(single: NamedType, args: RefScope): Type {
   const name = single.name;
   const generic = genericType(name, single, args);
   if (generic) return generic;
   if (PRIMS.has(name)) return prim(name as "number");
-  return args.named.get(name) ?? args.catalog?.typeOf(name) ?? DYNAMIC;
+  // `dynamic` is the one name that means the fallback on purpose.
+  if (name === "dynamic") return DYNAMIC;
+  const found = args.named.get(name) ?? args.catalog?.typeOf(name) ?? published(name, args);
+  if (found) return found;
+  return refusable(name, args) ? unresolved(single, name, args.ctx) : DYNAMIC;
+}
+
+/**
+ * `shop.Order`: what a namespace publishes.
+ *
+ * `import * as shop` binds the alias to a record of everything the module
+ * published, so a type it published is one of that record's fields, and a
+ * folder inside a folder nests through the same walk.
+ */
+function published(name: string, args: RefScope): Type | undefined {
+  const steps = name.split(".");
+  if (steps.length < 2) return undefined;
+  let at = args.named.get(steps[0] as string);
+  for (const step of steps.slice(1)) at = at?.kind === "record" ? at.fields.get(step) : undefined;
+  return at;
+}
+
+/**
+ * Whether a name nothing answered to is one core may refuse the file for.
+ *
+ * A bare name always is. A qualified one only when its namespace is a module
+ * this file gathered, because that is the only qualifier core holds the answer
+ * for: whether a plugin's `http` publishes `Request` is the registry's to say,
+ * and a module nobody could read is already the import's problem. A refusal
+ * core cannot stand behind is a correct program refused.
+ */
+function refusable(name: string, args: RefScope): boolean {
+  const [head, ...rest] = name.split(".");
+  if (rest.length === 0) return true;
+  return args.named.get(head as string)?.kind === "record";
+}
+
+/**
+ * A name no builtin, declaration, import or plugin answers to.
+ *
+ * Recorded rather than raised, because this reader owes its caller a type and
+ * has nowhere to put a problem. Still `dynamic` afterwards, so one wrong name
+ * costs one problem instead of a cascade under everything it annotates.
+ */
+function unresolved(single: SingleType, name: string, ctx: TypeContext): Type {
+  ctx.unknownTypes.push({ node: single, name });
+  return DYNAMIC;
 }
 
 /**

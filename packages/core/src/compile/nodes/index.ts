@@ -8,6 +8,8 @@ export { closureIn, compileFnExpr } from "./fn.js";
 export { compileInstant, compileNumber, compileString, constant } from "./literal.js";
 export { compileMatch } from "./match.js";
 export { compileIndex, compileMember } from "./member.js";
+export { pureBodyCannotCall } from "./pure-body.js";
+export { raisedAt } from "./raised-at.js";
 export { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 export { compileTry } from "./try-expr.js";
 export { overCount, overItems, overPasses, runSteps } from "./walk-steps.js";

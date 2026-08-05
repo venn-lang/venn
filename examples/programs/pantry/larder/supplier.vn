@@ -1,8 +1,10 @@
 ## The half that leaves the kitchen: placing an order, and refusing one.
 ##
-## A `fragment` rather than a `fn`, because ordering is an act. A `fn` is pure
-## and cannot fail; a `fragment` can, and failing is most of what this file is
-## about.
+## A `fragment` rather than a `fn`, because ordering is an act: a caller writes
+## `run order(...)` and the order earns a node of its own in the graph. Failing
+## is not what decides it. A `fn` may `fail` too, since raising is control flow
+## rather than a reach into the world, and the two codes below would be legal in
+## one. Reaching out is what a `fragment` is for.
 module examples.programs.pantry.supplier
 
 ## What the supplier carries, and how much one case of it holds. Paneer and

@@ -1,29 +1,27 @@
 import type { AstNode } from "langium";
-import { buildProblem, CODES } from "../codes/index.js";
 import type { ImportedDeco } from "../expand/index.js";
 import type { Declaration, Document, Expr, FnDecl } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import type { Problem } from "../problem/index.js";
-import { spanOf } from "../span/index.js";
 import type { TypeCatalog } from "./catalog.types.js";
 import { checkDecoBody, checkDecos, decosInReach } from "./check-deco.js";
 import { checkBlock, checkFragment, checkStatement } from "./check-stmts.js";
-import { createContext, type TypeContext, type TypeMismatch } from "./context.js";
+import { createContext, type TypeContext } from "./context.js";
 import { type ImportedType, isGenericImport } from "./imported-types.js";
 import { type Infer, inferFn, type Slot } from "./infer.js";
+import { mismatchProblem } from "./mismatch-problem.js";
 import { collectNamedTypes } from "./named-types.js";
 import { namespaceEnv } from "./namespace-type.js";
-import { helpAboutNothing } from "./nothing-help.js";
 import { PRELUDE_SPECS } from "./prelude-types.js";
 import { reshapedFns } from "./reshaped-fns.js";
 import { generalize, mono } from "./scheme.js";
 import { seedParams } from "./seed-params.js";
 import { seedValues } from "./seed-values.js";
 import { applyShapeDecorators } from "./shape-decorators.js";
-import { showType } from "./show.js";
 import { DYNAMIC, type Type } from "./type.types.js";
 import { emptyEnv, type TypeEnv } from "./type-env.js";
 import { prune, unify } from "./unify.js";
+import { unknownTypeProblems } from "./unknown-type.js";
 
 /** What one check of a document produced. */
 export interface CheckTypesResult {
@@ -87,8 +85,9 @@ export function checkTypes(document: Document, options: CheckTypesOptions = {}):
   // After the pass, so a decorator's arguments are read once, and before the
   // mismatches are turned into problems, since that is where they land.
   const deco = checkDecos({ document, infer, uri });
+  const unknown = unknownTypeProblems({ ...infer, ctx, document, uri });
   return {
-    problems: [...ctx.mismatches.map((m) => problem(m, uri)), ...deco],
+    problems: [...unknown, ...ctx.mismatches.map((m) => mismatchProblem(m, uri)), ...deco],
     types: infer.types ?? new Map(),
     slots: infer.slots ?? new Map(),
   };
@@ -115,7 +114,7 @@ function topLevelEnv(document: Document, infer: Infer): TypeEnv {
   const outer = withImports(preludeEnv(), infer);
   let env = withSeededValues(hoist({ fns, reshaped, ctx: infer.ctx, env: outer }), infer);
   for (const decl of fns) {
-    const inferred = inferFn(decl, env, infer);
+    const inferred = inferFn({ decl, env, infer });
     if (!reshaped.has(decl)) unify(env.lookup(decl.name)?.type ?? placeholder(infer), inferred);
   }
   if (!infer.seeding) env = generalizeFns(fns, env, infer);
@@ -210,11 +209,16 @@ function walk(document: Document, env: TypeEnv, infer: Infer): void {
   for (const decl of document.decls) checkDeclaration(decl, env, infer);
 }
 
+/**
+ * One visit each: `binds` names what `bindValues` already walked. It read
+ * `isLetStmt`, which leaves out a `loop` carrying state, so a mismatch written
+ * inside one was found in both places and said twice.
+ */
 function checkDeclaration(decl: Declaration, env: TypeEnv, infer: Infer): void {
   if (ast.isFlowDecl(decl)) checkBlock(decl.body, env, infer);
   else if (ast.isFragmentDecl(decl)) checkFragment(decl, env, infer);
   else if (ast.isDecoDecl(decl)) checkDecoBody(decl, env, infer);
-  else if (!ast.isFnDecl(decl) && !ast.isLetStmt(decl) && isExecutable(decl)) {
+  else if (!ast.isFnDecl(decl) && !binds(decl) && isExecutable(decl)) {
     checkStatement(decl as never, env, infer);
   }
 }
@@ -237,27 +241,4 @@ function declaredFragments(document: Document): ReadonlyMap<string, ast.Fragment
 
 function placeholder(infer: Infer): Type {
   return infer.ctx.fresh();
-}
-
-function problem(mismatch: TypeMismatch, uri: string): Problem {
-  const built = buildProblem({
-    spec: mismatch.code ?? CODES.VN3010_TYPE_MISMATCH,
-    span: spanOf(mismatch.node, uri),
-    title: titleOf(mismatch),
-  });
-  const help = mismatch.help ?? wayOut(mismatch);
-  return help ? { ...built, help } : built;
-}
-
-/** The nothing is only the fault where the two types are otherwise the same. */
-function wayOut(mismatch: TypeMismatch): string | undefined {
-  if (mismatch.sentence) return undefined;
-  return helpAboutNothing(mismatch.actual, mismatch.expected);
-}
-
-/** Some clashes read better as a sentence than as the two types that clashed. */
-function titleOf(mismatch: TypeMismatch): string {
-  if (mismatch.sentence) return mismatch.sentence;
-  if (mismatch.note) return `Type ${showType(mismatch.expected)} ${mismatch.note}.`;
-  return `Type mismatch: expected ${showType(mismatch.expected)}, found ${showType(mismatch.actual)}.`;
 }

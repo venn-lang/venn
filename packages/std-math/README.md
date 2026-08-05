@@ -54,7 +54,13 @@ import { pi, tau } from "venn/math"
 
 **Questions a number cannot answer about itself**: `isNaN`, `isFinite`, and `isClose(a, b, within)`.
 `nan` is the reason the first one has to be a verb: it equals nothing, itself included, so
-`x == math.nan` is false however wrong the sum went.
+`x == math.nan` is false however wrong the value came out. They are for numbers from outside, a
+JSON field or a file, because a verb here no longer hands one back.
+
+**A verb with no answer refuses.** `math.log(0)`, `math.asin(2)` and `math.factorial(-1)` used to
+answer `-Infinity` or `NaN`, which are values that survive every sum after them and reach the
+reader as a plausible wrong number. Each now raises `VN7005`, saying there is no answer to that
+call, where it was written.
 
 `isClose` scales its tolerance with the numbers unless one is given, because a fixed difference is
 wrong at both ends: everything is within `0.001` of a billion, and nothing is within it of a

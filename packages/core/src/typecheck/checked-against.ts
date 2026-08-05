@@ -1,5 +1,6 @@
 /**
- * The two literals that have parts, checked against what was asked of them.
+ * The expressions that are typed by the place they were written, not only by
+ * what is inside them: the two literals with parts, and a lambda.
  *
  * Inference otherwise works outwards: an expression is given the type its parts
  * turned out to have, and whatever it was written into is checked against that
@@ -12,11 +13,17 @@
  * checked against what the whole was declared to hold. Where they said nothing
  * the old direction stands: with no annotation the first item is still all there
  * is to go on.
+ *
+ * A lambda is here for the same reason and it is the sharper case. `x` in
+ * `xs.map(x => …)` has no annotation anywhere and never will; the only thing
+ * that knows what it holds is the call it was written inside. Handed down, the
+ * body is walked knowing it. Worked out afterwards, the body has already been
+ * walked against a variable that answers `dynamic` to everything.
  */
 
 import type { Expr, ListLit, MapEntry, MapLit } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
-import { expect, type Infer, inferExpr } from "./infer.js";
+import { expect, type Infer, inferExpr, inferFn } from "./infer.js";
 import { emptyPour, pour, shapeOf } from "./poured-into.js";
 import { DYNAMIC, list, type Type } from "./type.types.js";
 import type { TypeEnv } from "./type-env.js";
@@ -42,16 +49,20 @@ export function inferAgainst(args: {
   return built;
 }
 
-/** What an expectation reaches: the literals with parts. Anything else has none. */
+/**
+ * What an expectation reaches: the two literals with parts, and the lambda
+ * whose parameters the place it was written names. Anything else has neither.
+ */
 function literalAgainst(args: {
   expr: Expr;
   env: TypeEnv;
   infer: Infer;
   wanted: Type;
 }): Type | undefined {
-  const { expr } = args;
+  const { expr, env, infer, wanted } = args;
   if (ast.isListLit(expr)) return inferList({ ...args, expr });
   if (ast.isMapLit(expr)) return inferMap({ ...args, expr });
+  if (ast.isFnExpr(expr)) return inferFn({ decl: expr, env, infer, wanted });
   return undefined;
 }
 

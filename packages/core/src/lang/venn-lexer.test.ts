@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Call, Document, FnExpr, LetStmt, MapLit } from "../generated/ast.js";
-import { parse } from "../parse/index.js";
+import { parse, SEMICOLON_IN_BRACKETS } from "../parse/index.js";
 import { spanOf } from "../span/index.js";
 
 /** Parse, and report the titles rather than the count when something breaks. */
@@ -220,5 +220,80 @@ describe("a bracket nobody closed", () => {
 
   it("leaves a file whose brackets all close alone", () => {
     expect(parse("print (1)\nprint [2]\n").problems).toEqual([]);
+  });
+});
+
+/**
+ * The pop fired on any closer at all, so a stray `}` discharged an open `(` and
+ * took away the one error this walk exists to raise.
+ */
+describe("a closer that closes the wrong bracket", () => {
+  it("leaves the bracket it does not match standing, and points at itself", () => {
+    const found = parse("print(1}\nprint 2\n").problems;
+
+    expect(found.map((one) => one.title)).toEqual([
+      "This `(` is never closed, so the rest of the file is read as part of it.",
+      "This `}` does not close the `(` that is still open. Write `)` here.",
+    ]);
+    expect(`${found[1]?.code} ${found[1]?.span.line}:${found[1]?.span.column}`).toBe("VN1001 1:8");
+  });
+
+  it("still discharges a bracket its own closer meets, innermost first", () => {
+    expect(parse("print (1)\nprint [2]\nprint([1, 2])\n").problems).toEqual([]);
+  });
+});
+
+/** A `;` between two items: what it earns, where, and the line that fixes it. */
+const SEPARATING = [
+  { at: "1:14", earned: "const xs = [1; 2]\n", fixed: "const xs = [1, 2]\n", what: "a list" },
+  { at: "1:8", earned: "print(1; 2)\n", fixed: "print(1, 2)\n", what: "an argument list" },
+];
+/** A `;` with the closer next: the closer, the line, and the line that fixes it. */
+const SEPARATES_NOTHING = [
+  { earned: "const xs = [1;]\n", end: "]", fixed: "const xs = [1]\n" },
+  { earned: "print(1;)\n", end: ")", fixed: "print(1)\n" },
+];
+
+/**
+ * Two mistakes wore one sentence until the fix was applied to the line that
+ * earned it: a comma is right only when an item follows, and an argument list
+ * refuses a trailing one, so `print(1;)` was told to write `print(1,)`.
+ */
+describe("a `;` written inside `( )` or `[ ]`", () => {
+  it.each(SEPARATING)("wants a comma between two items in $what", ({ earned, at, fixed }) => {
+    const found = parse(earned).problems;
+    expect(found[0]?.title).toBe(SEMICOLON_IN_BRACKETS);
+    expect(`${found[0]?.span.line}:${found[0]?.span.column}`).toBe(at);
+    expect(parse(fixed).problems).toEqual([]);
+  });
+  it.each(SEPARATES_NOTHING)("tells one before $end to go", ({ earned, end, fixed }) => {
+    const said = `Nothing follows this \`;\` before the \`${end}\`, so it separates nothing.`;
+    expect(parse(earned).problems.map((one) => one.title)).toEqual([`${said} Remove it.`]);
+    expect(parse(fixed).problems).toEqual([]);
+  });
+});
+
+/** The three ways of writing a leading `.` that are a mistake and stay one. */
+const NOT_A_CHAIN: [string, string][] = [
+  ["across a blank line, which is how a reader separates two things", "const n = xs\n\n  .len\n"],
+  ["past a `;`, which is the writer ending the statement", "const n = xs;\n  .len\n"],
+  ["for a keyword, since one opens a statement", "const n = xs\n  .return 1\n"],
+];
+
+/**
+ * Breaking a long chain over lines is what a reader does the moment the line
+ * gets long, and the only way to write one was brackets that defeat this walk.
+ */
+describe("a chain broken across lines", () => {
+  it.each([
+    ["a wrapped chain", "const n = xs\n  .filter(x => x > 1)\n  .len\n"],
+    ["the optional spelling", "const n = xs\n  .filter(x => x > 1)\n  ?.len\n"],
+    ["a comment line between, where a note about it goes", "const n = xs\n  # why\n  .len\n"],
+  ])("reads as the one expression it looks like, %s", (_what, source) => {
+    expect((ast(source).decls[0] as LetStmt).value.$type).toBe("Member");
+  });
+
+  it.each(NOT_A_CHAIN)("does not reach %s", (_what, source) => {
+    expect(parse(source).problems[0]?.title).toContain("found a dot");
   });
 });

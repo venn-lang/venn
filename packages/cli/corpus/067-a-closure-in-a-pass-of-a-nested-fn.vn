@@ -6,6 +6,8 @@ let build = fn (base) {
   return out
 }
 let got = build(10)
-let a = got[0]()
-let b = got[1]()
-seen = "${a} ${b}"
+let vals = []
+forEach one in got {
+  vals = vals.push(one())
+}
+seen = vals.join(" ")

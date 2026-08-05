@@ -1,5 +1,10 @@
 import { truthy } from "../../value/index.js";
+import { counted, countedOr } from "../counted-argument.js";
+import type { Counted } from "../counted-argument.types.js";
 import { type Invoke, type Method, nativeFn } from "../native.types.js";
+
+const FROM: Counted = { verb: "slice", what: "position to start at", least: 0 };
+const TO: Counted = { verb: "slice", what: "position to stop at", least: 0 };
 
 /** How `sort` orders when given no comparator: numbers by value, else by text. */
 function compare(a: unknown, b: unknown): number {
@@ -45,13 +50,14 @@ export const LIST_METHODS: Record<string, Method> = {
         ? [...list].sort((a, b) => Number(invoke.two(args[0], a, b)))
         : [...list].sort(compare),
     ),
+  // Clamping is deliberate and stays: `xs.slice(1, 99)` asking past the end is
+  // how a caller says "from here on", and every language answers what is there.
+  // What is refused is a position that is not one, since `-1` used to mean "one
+  // from the end" by accident of the host, and this language spells that
+  // `takeLast`.
   slice: (list: readonly unknown[]) =>
-    nativeFn((args) => list.slice(Number(args[0] ?? 0), end(args[1]))),
+    nativeFn((args) => list.slice(counted(args[0], FROM), countedOr(args[1], list.length, TO))),
   concat: (list: readonly unknown[]) =>
     nativeFn((args) => [...list, ...(Array.isArray(args[0]) ? args[0] : [args[0]])]),
   push: (list: readonly unknown[]) => nativeFn((args) => [...list, ...args]),
 };
-
-function end(value: unknown): number | undefined {
-  return value === undefined ? undefined : Number(value);
-}

@@ -3,6 +3,7 @@ import { ProblemError, UNLOCATED } from "../problem/index.js";
 import { combine, type Numeric } from "../units/index.js";
 import { isNumeric, strictEquals } from "../value/index.js";
 import { isPattern } from "./methods/regex-methods.js";
+import { operatorRefusal } from "./operator-refusal.js";
 import { isWaiting, whenBothReady } from "./pending.js";
 
 /**
@@ -44,7 +45,7 @@ export function applyBinary(op: string, left: unknown, right: unknown): unknown 
   if (isNumeric(left) && isNumeric(right)) return numeric(op, left, right);
   if (op === "==") return strictEquals(left, right);
   if (op === "!=") return !strictEquals(left, right);
-  throw operatorError(op);
+  throw operatorRefusal({ op, left, right });
 }
 
 /** Negate a numeric, keeping its unit. */
@@ -56,11 +57,37 @@ export function negate(value: Numeric): unknown {
 function numeric(op: string, left: Numeric, right: Numeric): unknown {
   const result = combine({ op, left, right });
   if (result.ok) return result.value;
+  if ("byZero" in result) throw dividedByZero(op);
   throw new ProblemError(
     buildProblem({
       spec: CODES.VN3012_UNIT_MISMATCH,
       span: UNLOCATED,
       title: `Cannot combine ${result.mismatch.left} with ${result.mismatch.right} using "${op}".`,
+    }),
+  );
+}
+
+/**
+ * `VN3030` for a divisor of zero, which used to answer `Infinity` or `NaN`.
+ *
+ * Both are values and both survive every sum after them, so the program went on
+ * and printed a plausible wrong number. There is no number that is `1 / 0`, and
+ * a caller who wrote one wants to know at the division.
+ *
+ * The help names `try` first and the guard only as prose, because this language
+ * scopes a binding to its block: `if b != 0 { const rate = a / b }` moves the
+ * name out of the scope that reads it, so a reader who followed a `{ … }` here
+ * got `null` and exit 0, which is the silence this code exists to end. A `try`
+ * stands where the division stands and takes nothing with it.
+ */
+function dividedByZero(op: string): ProblemError {
+  const what = op === "%" ? "remainder" : "quotient";
+  return new ProblemError(
+    buildProblem({
+      spec: CODES.VN3030_NO_NUMERIC_ANSWER,
+      span: UNLOCATED,
+      title: `Dividing by zero has no ${what}.`,
+      help: "Give it a stand-in with `try a / b else 0`, or check the divisor before you divide.",
     }),
   );
 }
@@ -103,16 +130,6 @@ function badPattern(source: string, error: unknown): ProblemError {
       spec: CODES.VN3018_BAD_PATTERN,
       span: UNLOCATED,
       title: `This is not a pattern \`~=\` can use: ${source}. ${why}`.trim(),
-    }),
-  );
-}
-
-function operatorError(op: string): ProblemError {
-  return new ProblemError(
-    buildProblem({
-      spec: CODES.VN3012_UNIT_MISMATCH,
-      span: UNLOCATED,
-      title: `Operator "${op}" cannot be applied to these values.`,
     }),
   );
 }

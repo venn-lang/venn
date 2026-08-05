@@ -1,5 +1,6 @@
 import process from "node:process";
 import { errorLine } from "../reporters/index.js";
+import { hungUp } from "./quiet-pipe.js";
 import type { Leave, Unregister } from "./shutdown.types.js";
 
 /**
@@ -24,6 +25,14 @@ export function installFaultHooks(args: {
 }
 
 function fault(args: { leave: Leave; report?: (message: string) => void; cause: unknown }): void {
+  // A reader that hung up is not a fault. It reaches here only when a write
+  // threw where the stream's own `error` had no chance to run, and saying
+  // `EPIPE: broken pipe, write` to a terminal nobody is reading is worse than
+  // saying nothing.
+  if (hungUp(args.cause)) {
+    args.leave(0);
+    return;
+  }
   const write = args.report ?? ((message: string) => process.stderr.write(`${message}\n`));
   write(errorLine(args.cause));
   args.leave(1);

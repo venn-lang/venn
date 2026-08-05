@@ -37,7 +37,7 @@ print "Term report"
 print ""
 print fmt.table(graded.map((one) => {
   student: one.who,
-  average: one.average.toFixed(1),
+  average: (one.average ?? 0).toFixed(1),
   grade: one.grade
 }))
 
@@ -45,9 +45,11 @@ if graded.len > 0 {
   ## `math.max` is the larger of two, so the largest of many is a fold. The
   ## first mark is the starting point rather than zero: a class where everyone
   ## failed still has a best.
-  const averages = graded.map((one) => one.average)
+  ## `?? 0` is a stand-in that never fires: `graded` is the rows whose average
+  ## is there. The checker cannot see that through a `filter`, so it is written.
+  const averages = graded.map((one) => one.average ?? 0)
   let sum = 0
-  let best = averages[0]
+  let best = averages[0] ?? 0
   forEach one in averages {
     sum = sum + one
     best = math.max(best, one)

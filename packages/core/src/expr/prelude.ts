@@ -1,5 +1,7 @@
 import { displayValue } from "../interpolation/stringify-value.js";
 import { kindOf } from "../value/index.js";
+import { stepOfZero } from "./argument-refusal.js";
+import { numeric } from "./counted-argument.js";
 import { invoke } from "./invoke.js";
 import { pattern } from "./methods/regex-methods.js";
 import { nativeFn } from "./native.types.js";
@@ -33,15 +35,30 @@ export function typeName(value: unknown): string {
   return kindOf(value);
 }
 
-/** `range(3)` → [0,1,2]; `range(1, 4)` → [1,2,3]; `range(0, 10, 2)` → [0,2,4,6,8]. */
+/**
+ * `range(3)` gives [0,1,2]; `range(1, 4)` gives [1,2,3]; `range(0, 10, 2)`
+ * gives [0,2,4,6,8].
+ *
+ * A step of zero used to become a step of one, so a loop written to walk in
+ * tens walked in ones and answered ten times as many items as it was asked
+ * for. There is no range with a step of zero, so it is refused rather than
+ * guessed at; a step left out still means one, up or down.
+ */
 function range(args: readonly unknown[]): number[] {
-  const [a, b, c] = args.map(Number);
-  const from = args.length > 1 ? (a ?? 0) : 0;
-  const to = args.length > 1 ? (b ?? 0) : (a ?? 0);
-  const step = c && c !== 0 ? c : from <= to ? 1 : -1;
+  const first = numeric(args[0], { verb: "range", what: "start" });
+  const from = args.length > 1 ? first : 0;
+  const to = args.length > 1 ? numeric(args[1], { verb: "range", what: "end" }) : first;
+  const step = args.length > 2 ? stepOf(args[2]) : from <= to ? 1 : -1;
   const out: number[] = [];
   for (let n = from; step > 0 ? n < to : n > to; n += step) out.push(n);
   return out;
+}
+
+/** Written out, so a zero is the caller's mistake rather than a default. */
+function stepOf(value: unknown): number {
+  const step = numeric(value, { verb: "range", what: "step" });
+  if (step === 0) throw stepOfZero();
+  return step;
 }
 
 /**

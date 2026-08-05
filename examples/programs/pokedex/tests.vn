@@ -112,8 +112,8 @@ flow "Comparing a team" {
   run lookupAll(BASE, ["pikachu", "snorlax", "gyarados"]) as answer
 
   step "the winner of a stat is the one with the highest number" {
-    expect strongest(answer.found, "hp").name == "snorlax"
-    expect strongest(answer.found, "speed").name == "pikachu"
+    expect strongest(answer.found, "hp")?.name == "snorlax"
+    expect strongest(answer.found, "speed")?.name == "pikachu"
   }
 
   step "an empty team has no winner, rather than a made-up one" {

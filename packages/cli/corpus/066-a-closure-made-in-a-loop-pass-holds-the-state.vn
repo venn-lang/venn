@@ -4,7 +4,9 @@ loop n = 0 {
   made = made.push(fn () => n)
   continue n + 1
 }
-let a = made[0]()
-let b = made[1]()
-let c = made[2]()
-seen = "${a} ${b} ${c} after=${n}"
+let out = []
+forEach one in made {
+  out = out.push(one())
+}
+let shown = out.join(" ")
+seen = "${shown} after=${n}"

@@ -20,6 +20,21 @@ export function showTypes(types: readonly Type[]): string[] {
   return types.map((type) => render(type, names));
 }
 
+/**
+ * Names quoted and joined the way a sentence wants them.
+ *
+ * One owner, because two diagnostics list field names and a reader who meets
+ * both should not have to notice that they punctuate differently.
+ *
+ * @param names One or more, in the order they should be read.
+ * @returns `"a"`, `"a" and "b"`, or `"a", "b" and "c"`.
+ */
+export function namedList(names: readonly string[]): string {
+  const quoted = names.map((name) => `"${name}"`);
+  if (quoted.length <= 1) return quoted.join("");
+  return `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
+}
+
 function render(type: Type, names: Map<number, string>): string {
   const t = prune(type);
   switch (t.kind) {
@@ -38,10 +53,23 @@ function render(type: Type, names: Map<number, string>): string {
     case "literal":
       return typeof t.value === "string" ? `"${t.value}"` : String(t.value);
     case "union":
-      return t.members.map((m) => render(m, names)).join(" | ");
+      return t.members.map((m) => inUnion(m, names)).join(" | ");
     case "opaque":
       return t.name;
   }
+}
+
+/**
+ * A member of a union, bracketed where reading it flat would say the wrong type.
+ *
+ * `->` reads looser than `|`, so a nullable function printed bare comes out as
+ * `fn() -> number | null`, which a reader parses as a function returning a
+ * nullable number. It is the opposite: the function itself may be missing, and
+ * that is exactly why calling it is refused.
+ */
+function inUnion(member: Type, names: Map<number, string>): string {
+  const said = render(member, names);
+  return prune(member).kind === "fn" ? `(${said})` : said;
 }
 
 /** Named keys read as a shape; unnamed ones read as the map they are. */

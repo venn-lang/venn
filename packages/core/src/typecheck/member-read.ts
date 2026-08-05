@@ -8,18 +8,27 @@
  * `const t: number = m["name"]` passed a check that `m.name` failed.
  */
 
-import type { Expr } from "../generated/ast.js";
 import { memberType } from "./builtins.js";
 import type { TypeMismatch } from "./context.js";
 import type { Infer } from "./infer.js";
+import { memberHelp } from "./member-help.js";
 import type { MemberRead } from "./member-read.types.js";
+import { pairIsAList } from "./pair-is-a-list.js";
+import { mayBeNothing, throughNothing } from "./read-through-nothing.js";
 import { showType } from "./show.js";
 import { DYNAMIC, type RecordType, type Type, type UnionType, union } from "./type.types.js";
 import { fieldType, prune } from "./unify.js";
+import { isWritten } from "./written-into.js";
 
 /**
  * What a member read answers with, reporting when the receiver's members are
  * all known and this is not one of them.
+ *
+ * The nothing is asked about first, because it is the one mistake where the
+ * member really is there and the read is still wrong. One report about the
+ * nothing, then the read goes on against the rest of the type, so what stands
+ * downstream is the type the reader meant rather than a second complaint on the
+ * same line.
  *
  * @param receiver The pruned type being read.
  * @param read Which member, written how, and where.
@@ -27,6 +36,11 @@ import { fieldType, prune } from "./unify.js";
  * @returns The member's type, or `dynamic` when nothing here can say.
  */
 export function memberRead(receiver: Type, read: MemberRead, infer: Infer): Type {
+  const rest = throughNothing(receiver, read);
+  if (rest) {
+    infer.ctx.mismatches.push(mayBeNothing(receiver, read));
+    return memberRead(prune(rest), read, infer);
+  }
   const built = memberType(receiver, read.name, infer.ctx);
   if (built) return built;
   if (receiver.kind === "record") return recordField(receiver, read, infer);
@@ -84,6 +98,7 @@ function unknownMember(receiver: Type, read: MemberRead, infer: Infer): Type {
     expected: receiver,
     actual: DYNAMIC,
     note: `has no member "${read.name}"`,
+    help: pairIsAList(receiver, read) ?? memberHelp(receiver, read.name),
   });
   return DYNAMIC;
 }
@@ -108,15 +123,12 @@ function recordField(receiver: RecordType, read: MemberRead, infer: Infer): Type
  */
 function noSuchField(receiver: RecordType, read: MemberRead): TypeMismatch {
   const at = { node: read.node, expected: receiver, actual: DYNAMIC };
-  if (!isWritten(read.node)) return { ...at, note: `has no field "${read.name}"` };
+  if (!isWritten(read.node)) {
+    return { ...at, note: `has no field "${read.name}"`, help: memberHelp(receiver, read.name) };
+  }
   return {
     ...at,
     sentence: `Type ${showType(receiver)} has no field "${read.name}" to write to.`,
     help: "List the field where the map is made, or annotate the binding as a map so a key it does not name may be written: `let stats: map<number> = {}`.",
   };
-}
-
-/** Whether this read is where a value is going rather than where one comes from. */
-function isWritten(node: Expr): boolean {
-  return node.$container?.$type === "AssignStmt" && node.$containerProperty === "target";
 }

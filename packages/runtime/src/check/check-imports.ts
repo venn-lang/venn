@@ -19,6 +19,7 @@ import type { Registry } from "../registry/index.js";
 import type { ImportCycle, UnreadableImport } from "../run/index.js";
 import type { ImportGraph } from "../scheduler/index.js";
 import { nodeSpan } from "../scheduler/index.js";
+import { checkPackageImport } from "./check-package-import.js";
 
 /**
  * Check every name a file imports against what the file it names publishes.
@@ -63,7 +64,13 @@ export function checkImports(args: {
     if (module) problems.push(...missing({ decl, module, uri: args.uri, path: decl.path }));
     problems.push(...noDefault({ decl, uri: args.uri, npm: args.graph.npm }));
   }
-  return [...problems, ...fromPackages(args), ...wentNowhere(args), ...wentInCircles(args)];
+  return [
+    ...problems,
+    ...fromPackages(args),
+    ...checkPackageImport({ ...args, npm: args.graph.npm }),
+    ...wentNowhere(args),
+    ...wentInCircles(args),
+  ];
 }
 
 /**

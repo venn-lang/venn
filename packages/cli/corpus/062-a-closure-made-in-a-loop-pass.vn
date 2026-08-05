@@ -5,7 +5,8 @@ loop n = 0 {
   made = made.push(fn () => y)
   continue n + 1
 }
-let a = made[0]()
-let b = made[1]()
-let c = made[2]()
-seen = "${a} ${b} ${c}"
+let out = []
+forEach one in made {
+  out = out.push(one())
+}
+seen = out.join(" ")

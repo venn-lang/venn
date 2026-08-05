@@ -161,8 +161,13 @@ describe("claiming a code the language owns", () => {
     expect(await ran(lines)).toEqual(["VN3022"]);
   });
 
+  /**
+   * The help says to name it after what happened, so this asserts the program a
+   * reader gets by following it reports NOTHING, rather than merely not VN3022.
+   * A rewrite that trades one refusal for another is not advice.
+   */
   it("leaves a code of the program's own alone", () => {
-    expect(codes(['fail "no" { code: "pay.declined" }'])).not.toContain("VN3022");
+    expect(codes(['fail "no" { code: "pay.declined" }'])).toEqual([]);
   });
 });
 

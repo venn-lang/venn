@@ -20,9 +20,15 @@ print "last three:  " primes.takeLast(3)
 
 # `pairwise` hands over every neighbouring pair, so the gap between one prime
 # and the next is a subtraction rather than an index dance.
-const gaps = primes.pairwise.map(pair => pair[1] - pair[0])
+#
+# A read by position may find nothing there. A pair from `pairwise` always has
+# both, and nothing in the type says so, so the stand-in is written once in a
+# named function rather than four times below.
+fn gap(pair: list<number>) -> number => (pair[1] ?? 0) - (pair[0] ?? 0)
 
-const twins = primes.pairwise.filter(pair => pair[1] - pair[0] == 2)
+const gaps = primes.pairwise.map(gap)
+
+const twins = primes.pairwise.filter(pair => gap(pair) == 2)
 print "twin pairs:  " twins.len
 print "first five:  " twins.take(5)
 

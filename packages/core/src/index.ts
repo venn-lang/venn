@@ -4,7 +4,7 @@
 export * from "./ast/index.js";
 export * from "./codes/index.js";
 export type { CompiledBody, StopCheck, Thunk } from "./compile/index.js";
-export { closureOfDecl, compileExpr, setStopCheck } from "./compile/index.js";
+export { closureOfDecl, compileExpr, pureBodyCannotCall, setStopCheck } from "./compile/index.js";
 export * from "./events/index.js";
 // Decorators: the expansion phase, run between parsing and everything else.
 export * from "./expand/index.js";
@@ -29,6 +29,9 @@ export {
   PRELUDE_VALUES,
   typeName,
 } from "./expr/index.js";
+// What a `fail` raises, shared by the compiler and the scheduler so a caught
+// failure reads the same wherever the `fail` was written.
+export * from "./fail/index.js";
 // Formatting: shared by `venn fmt` and the editor so both agree.
 export * from "./format/index.js";
 // A closure written above the binding it reads, refused where it is written.
@@ -68,7 +71,6 @@ export {
   parse,
   parseExpression,
   parseProblems,
-  pureBodyCannotCall,
 } from "./parse/index.js";
 export {
   type Asked,
@@ -79,6 +81,7 @@ export {
   loopBinding,
   type PatternSlot,
   type PatternTest,
+  patternMisfit,
   patternNames,
   patternSlots,
   patternTests,
@@ -91,6 +94,8 @@ export { stepTitlesOf } from "./plan/index.js";
 export * from "./problem/index.js";
 // Where a node is: one answer, `${…}` included.
 export * from "./span/index.js";
+// "Did you mean": one answer, so six checkers cannot disagree about one typo.
+export * from "./suggest/index.js";
 // Static type inference (Hindley-Milner) + generics.
 export {
   BUILTIN_TYPES,

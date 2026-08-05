@@ -1,9 +1,8 @@
 import type { FnSpec, TypeSpec } from "@venn-lang/types";
-import type { ZodType, z } from "zod";
+import type { ZodType } from "zod";
 import { signatureOf } from "./schema/arg.js";
 import type { ArgSpec } from "./schema/args.types.js";
-import type { ActionDefinition } from "./types/action.types.js";
-import type { ActionContext, ActionInput } from "./types/context.types.js";
+import type { ActionDefinition, ActionSpec } from "./types/action.types.js";
 
 /**
  * Define an action: a verb in a plugin's namespace. The options map handed to
@@ -14,21 +13,11 @@ import type { ActionContext, ActionInput } from "./types/context.types.js";
  * them, so an author says what the verb takes exactly once.
  *
  * @param def Name, docs, params schema, argument names, result type and `run`.
+ * See {@link ActionSpec} for the whole shape, field by field.
  * @returns The definition object, with `signature` filled in when it can be
  * derived and left absent otherwise.
  */
-export function defineAction<S extends ZodType = ZodType>(def: {
-  name: string;
-  doc?: string;
-  params?: S;
-  /** The positional arguments, in order: `http.on server handler`. */
-  args?: readonly ArgSpec[];
-  /** What the call evaluates to. The editor renders it, so there is no prose twin. */
-  result?: TypeSpec;
-  /** The whole type, for a shape `args` cannot describe. Wins when given. */
-  signature?: FnSpec;
-  run(ctx: ActionContext, input: ActionInput<z.infer<S>>): unknown | Promise<unknown>;
-}): ActionDefinition {
+export function defineAction<S extends ZodType = ZodType>(def: ActionSpec<S>): ActionDefinition {
   return { ...def, signature: def.signature ?? derive(def) } as unknown as ActionDefinition;
 }
 

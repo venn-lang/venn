@@ -5,10 +5,10 @@ import {
   CODES,
   type DecoDecl,
   isDecoDecl,
+  nearestName,
   type Problem,
 } from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
-import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
 
 /**

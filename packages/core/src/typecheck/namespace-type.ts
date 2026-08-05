@@ -1,4 +1,4 @@
-import type { Document, NamespaceDecl } from "../generated/ast.js";
+import type { Document, FnDecl, NamespaceDecl } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 // Type-only, so the cycle with `infer.ts` is erased at build.
 import type { Infer } from "./infer.js";
@@ -61,7 +61,20 @@ function everythingInside(decl: NamespaceDecl, outer: TypeEnv, infer: Infer): Ty
       inside = inside.with(held.name, mono(inferExpr(held.value, inside, infer)));
     }
   }
-  for (const held of fns) inside = inside.with(held.name, mono(inferFn(held, inside, infer)));
+  return withBodies(fns, inside, infer);
+}
+
+/**
+ * The second pass: every function again, now with its body read.
+ *
+ * Each is put back under its own name as it is typed, so a call from one body to
+ * the next reaches the type rather than the placeholder the first pass left.
+ */
+function withBodies(fns: readonly FnDecl[], env: TypeEnv, infer: Infer): TypeEnv {
+  let inside = env;
+  for (const held of fns) {
+    inside = inside.with(held.name, mono(inferFn({ decl: held, env: inside, infer })));
+  }
   return inside;
 }
 

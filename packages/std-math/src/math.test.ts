@@ -151,9 +151,9 @@ describe("the rest of the arithmetic", () => {
     expect(run("factorial", 0)).toBe(1);
   });
 
-  /** Below zero it has no meaning, and answering 1 would be a lie. */
-  it("answers with the not-a-number below zero", () => {
-    expect(Number.isNaN(run("factorial", -1) as number)).toBe(true);
+  /** Below zero it has no meaning, and `NaN` was as much a lie as `1` would be. */
+  it("refuses below zero rather than answering the not-a-number", () => {
+    expect(() => run("factorial", -1)).toThrow("There is no answer to `math.factorial(-1)`.");
   });
 
   it("picks between two, which a list already does for many", () => {

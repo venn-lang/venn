@@ -1,6 +1,12 @@
-import { buildProblem, CODES, type MapEntry, type MapLit, type Problem } from "@venn-lang/core";
+import {
+  buildProblem,
+  CODES,
+  type MapEntry,
+  type MapLit,
+  nearestName,
+  type Problem,
+} from "@venn-lang/core";
 import { type ParamSpec, paramSpecs } from "@venn-lang/sdk";
-import { nearestName } from "../suggest/index.js";
 import { nodeSpan } from "./node-span.js";
 
 /**

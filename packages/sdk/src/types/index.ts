@@ -1,4 +1,4 @@
-export type { ActionDefinition } from "./action.types.js";
+export type { ActionDefinition, ActionSpec } from "./action.types.js";
 export type {
   ActionContext,
   ActionInput,

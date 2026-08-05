@@ -56,8 +56,17 @@ function handleVerb(args: { deco: DecoDecl; target: string }): string | undefine
   return `A ${kinds.join(" or ")} has no \`${name}\`. It has ${offered.sort().join(", ")}.`;
 }
 
-/** The `deco` this node is written inside, if any. */
-function enclosingDeco(node: AstNode): DecoDecl | undefined {
+/**
+ * The `deco` this node was written inside, if any.
+ *
+ * A body is not the program: it is resolved by expansion rather than against
+ * the registry, so the document's ordinary checks stay out of it and this is
+ * the one place that boundary is drawn.
+ *
+ * @param node Any node of the tree.
+ * @returns The enclosing declaration, or nothing when the node is in the program.
+ */
+export function enclosingDeco(node: AstNode): DecoDecl | undefined {
   for (let at: AstNode | undefined = node; at; at = at.$container) {
     if (isDecoDecl(at)) return at;
   }

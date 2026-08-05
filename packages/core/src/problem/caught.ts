@@ -1,3 +1,4 @@
+import { docsFor } from "./docs-for.js";
 import { UNKNOWN_CODE } from "./problem-of.js";
 import type { Span } from "./span.types.js";
 import { spanIn } from "./span-in.js";
@@ -36,6 +37,12 @@ export interface Caught {
  * program promises it is catalogued, and a program that met an `ENOENT` is
  * better off being told so than being handed `VN7000`.
  *
+ * The link comes from that same code rather than from whatever made the
+ * failure. A `VennError` a plugin threw carries a code and no problem at all,
+ * so reading the link off the problem left the whole VN7xxx surface without
+ * one: `catch e { print e.docs }` printed a URL for a `fail` and nothing for a
+ * failed `json.parse`, one line apart, and a program could not tell why.
+ *
  * Nothing is unwrapped on the way through. A secret redacts itself when it is
  * serialised, so a secret that reached a failure is still redacted when the
  * program reads it back out of one.
@@ -47,12 +54,13 @@ export interface Caught {
 export function caughtValue(failure: unknown): Caught {
   const held = failure as Thrown | undefined;
   const problem = held?.problem;
+  const code = problem?.code ?? held?.code ?? UNKNOWN_CODE;
   return {
-    code: problem?.code ?? held?.code ?? UNKNOWN_CODE,
+    code,
     message: held?.message ?? String(failure),
     where: placeOf(problem?.span ?? spanIn(held?.detail)),
     help: problem?.help ?? null,
-    docs: problem?.docs ?? null,
+    docs: docsFor(code) ?? null,
     data: held?.detail?.data ?? null,
   };
 }

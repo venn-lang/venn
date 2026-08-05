@@ -10,7 +10,6 @@ export function readPackage(data: Record<string, unknown>): PackageInfo {
     description: asString(table.description),
     license: asString(table.license),
     authors: asList(table.authors),
-    edition: asString(table.edition),
   };
 }
 
@@ -23,7 +22,7 @@ export function readPackage(data: Record<string, unknown>): PackageInfo {
 export function readInheritable(data: Record<string, unknown>): Partial<PackageInfo> {
   const table = asRecord(data);
   const found: Partial<PackageInfo> = {};
-  for (const key of ["version", "description", "license", "edition"] as const) {
+  for (const key of ["version", "description", "license"] as const) {
     const value = asString(table[key]);
     if (value !== undefined) found[key] = value;
   }

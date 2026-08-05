@@ -1,3 +1,4 @@
+import { REDACTED } from "@venn-lang/contracts";
 import type { EnvVar } from "./env.types.js";
 
 /**
@@ -16,8 +17,6 @@ const SECRET_WORDS = new Set([
   "credentials",
   "auth",
 ]);
-
-const REDACTED = "‹redacted›";
 
 /**
  * True when the name reads like a credential, so its value is never shown.

@@ -1,3 +1,4 @@
+export { fileOf } from "./file-of.js";
 export { KEYWORDS } from "./keywords.js";
 export { parse, parseProblems } from "./parse.js";
 export { EXPRESSION_OFFSET, parseExpression } from "./parse-expression.js";

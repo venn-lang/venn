@@ -1,5 +1,4 @@
 export { createFakeSignals, type FakeSignals } from "./fake-signals.js";
-export { SignalSourcePort } from "./signal-source.port.js";
 export {
   ALL_SIGNALS,
   type SignalHandler,

@@ -1,5 +1,6 @@
 import { type Document, isValueImport, type ValueImport } from "@venn-lang/core";
 import type { LangiumDocument, LangiumDocuments } from "langium";
+import { documentRoot } from "../document/index.js";
 import type { ImportResolver } from "../workspace/index.js";
 import { builtinDecos } from "./builtin-decos.js";
 import { localDecos } from "./declared-deco.js";
@@ -22,7 +23,7 @@ export interface DecoScope {
  * own `deco retry` means its own.
  */
 export async function decosInScope(scope: DecoScope): Promise<DecoInfo[]> {
-  const root = rootOf(scope.document);
+  const root = documentRoot(scope.document);
   if (!root) return builtinDecos();
   const imported = await importedDecos(root, scope);
   return dedupe([...builtinDecos(), ...imported, ...localDecos(root, scope.document)]);
@@ -45,7 +46,7 @@ async function importedDecos(root: Document, scope: DecoScope): Promise<DecoInfo
 async function fromModule(decl: ValueImport, scope: DecoScope): Promise<DecoInfo[]> {
   const uri = scope.imports.resolve(decl.path, scope.document.uri);
   const document = await scope.documents.getOrCreateDocument(uri).catch(() => undefined);
-  const root = document && rootOf(document);
+  const root = document && documentRoot(document);
   if (!document || !root) return [];
   return localDecos(root, document).filter(
     (info) => info.decl?.export && decl.names.some((one) => one.name === info.name),
@@ -56,8 +57,4 @@ function dedupe(all: readonly DecoInfo[]): DecoInfo[] {
   const byName = new Map<string, DecoInfo>();
   for (const info of all) byName.set(info.name, info);
   return [...byName.values()];
-}
-
-function rootOf(document: LangiumDocument): Document | undefined {
-  return document.parseResult?.value as Document | undefined;
 }

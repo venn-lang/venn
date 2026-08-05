@@ -15,12 +15,14 @@ export {
   display,
   evaluate,
   hasCells,
+  indexValue,
   invoke,
   invoke1,
   isCallable,
   isClosure,
   isNamespaceValue,
   isNativeFn,
+  MEMBER_NAMES,
   memberValue,
   namespaceValue,
   nativeFn,
@@ -37,8 +39,6 @@ export {
   VennGeneratedSharedModule,
   VennLanguageMetaData,
 } from "./generated/module.js";
-// AST → node graph (§22).
-export * from "./graph/index.js";
 // `${…}` placeholders: one description, shared by the evaluator and the editor.
 export * from "./interpolation/index.js";
 export { createVennServices, VennLexer, vennServices } from "./lang/index.js";
@@ -54,6 +54,7 @@ export {
 export type { ParseOutput } from "./parse/index.js";
 export {
   EXPRESSION_OFFSET,
+  fileOf,
   KEYWORDS,
   parse,
   parseExpression,

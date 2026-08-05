@@ -22,7 +22,6 @@ import { createMemorySink, createRunner } from "@venn-lang/runtime";
 
 const echo = definePlugin({
   name: "@test/echo",
-  version: "0.0.0",
   namespace: "test",
   actions: [defineAction({ name: "echo", run: (_ctx, input) => ({ status: input.args[0] }) })],
 });
@@ -76,7 +75,7 @@ sink.envelopes.map((envelope) => envelope.kind); // run.started … run.finished
 | `EventSink` | One method, `emit(envelope)`. The destination of the stream. |
 | `createMemorySink()` | The test double: keeps every envelope on `.envelopes`. |
 | `createNdjsonSink({ write })` | One JSON envelope per line. `write` is injected, so the sink stays neutral. |
-| `EventSinkPort` | The port descriptor, `venn.port.event-sink`, version 1. |
+| `EventSinkPort` | The port descriptor, `venn.port.event-sink`, version 1. `createRunner` binds `args.sink` to it and resolves the emitter's sink through it, so a host handing over something with no `emit` is told once, with `VN2011`, instead of failing on the first event. |
 | `createEmitter({ sink, run, clock })` | The single place `seq` increments and `ts` is stamped. |
 | `newRunId({ clock, random })` | Mints a run id from the host clock and random source. |
 

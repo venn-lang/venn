@@ -17,7 +17,6 @@ const URI = "memory://corpus.vn";
 function recorder(out: string[]): PluginDefinition {
   return definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({
@@ -115,11 +114,12 @@ async function outcomeOf(document: Document): Promise<Outcome> {
 function refusalOf(error: unknown): Refusal {
   const problem = (error as ProblemError).problem;
   if (!problem)
-    return { code: "", title: String((error as Error).message), help: null, column: -1 };
+    return { code: "", title: String((error as Error).message), help: null, uri: "", column: -1 };
   return {
     code: problem.code,
     title: problem.title,
     help: problem.help ?? null,
+    uri: problem.span.uri,
     column: problem.span.column,
   };
 }

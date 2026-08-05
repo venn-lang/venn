@@ -34,3 +34,27 @@ flow "F" {
     expect(found).toEqual([]);
   });
 });
+
+/**
+ * The link is derived once, where the `Problem` is made, and the comment there
+ * says it gives the terminal, the editor and a program's `catch` the same URL.
+ * Two of those three read it; nothing in this package mentioned
+ * `codeDescription`, which is the field the protocol has for exactly this and
+ * which a client renders as a clickable code.
+ */
+describe("the page behind a diagnostic's code", () => {
+  it("is published for a problem the checker found", async () => {
+    const { document } = await fixture('flow "F" {\n  step "s" {\n    nope.doThing\n  }\n}');
+    const found = (document.diagnostics ?? []).find((one) => one.code === "VN2003");
+
+    expect(found?.codeDescription).toEqual({ href: "https://venn.dev/e/VN2003" });
+  });
+
+  it("is published for a problem the parser refused on", async () => {
+    const { document } = await fixture('flow "F" {\n  step "s" {\n');
+    const found = (document.diagnostics ?? []).filter((one) => one.codeDescription);
+
+    expect(found.length).toBeGreaterThan(0);
+    expect(found[0]?.codeDescription?.href).toBe(`https://venn.dev/e/${found[0]?.code}`);
+  });
+});

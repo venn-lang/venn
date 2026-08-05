@@ -12,7 +12,6 @@ import { readImports } from "./read-imports.js";
 /** A plugin with one of everything a package can publish. */
 const PLUGIN = definePlugin({
   name: "@t/kit",
-  version: "0",
   namespace: "kit",
   actions: [
     defineAction({
@@ -51,7 +50,6 @@ async function ran(source: string): Promise<string[]> {
   const out: string[] = [];
   const printer = definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({

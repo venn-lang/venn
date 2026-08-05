@@ -9,7 +9,6 @@ import { createRunner } from "./create-runner.js";
 function recorder(sink: string[]) {
   return definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({

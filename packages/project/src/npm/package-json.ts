@@ -11,8 +11,8 @@ import type { Dependency, Manifest } from "@venn-lang/contracts";
  *
  * @param args.members Their dependencies are merged in too, when the root is a
  * workspace.
- * @returns The file's text, marked private, with path dependencies left out and
- * `[patch]` turned into `overrides`.
+ * @returns The file's text, marked private, with path dependencies and optional
+ * ones left out and `[patch]` turned into `overrides`.
  */
 export function packageJsonFor(args: {
   manifest: Manifest;
@@ -37,11 +37,15 @@ export function packageJsonFor(args: {
  * A dependency on a path is not the package manager's business: it is another
  * package in this workspace, resolved by the language, and handing it over as a
  * version range would send the tool looking for it in the registry.
+ *
+ * `{ optional = true }` says installed on demand, so handing one to the manager
+ * installs it now and the key means nothing. It is still resolved and still
+ * locked; it is this file, the list of what to fetch today, that leaves it out.
  */
 function merged(deps: readonly Dependency[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const dep of deps) {
-    if (dep.path !== undefined) continue;
+    if (dep.path !== undefined || dep.optional) continue;
     out[dep.name] = dep.version ?? "*";
   }
   return sorted(out);

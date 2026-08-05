@@ -7,7 +7,6 @@ import { createTypeCatalog } from "./create-type-catalog.js";
 /** A plugin shaped like the real one: a handle, a handler, and a published type. */
 const server = definePlugin({
   name: "@t/server",
-  version: "0",
   namespace: "srv",
   typeDefs: {
     Request: t.record({ method: t.string, url: t.string, headers: t.map(t.string) }),

@@ -9,6 +9,7 @@
  * where a vendor sentence becomes one.
  */
 
+import { orPhrase } from "../problem/index.js";
 import { saidToken } from "./token-words.js";
 
 /** Beyond this many, naming each one is a list nobody reads to the end. */
@@ -90,10 +91,10 @@ function expectedNames(message: string): string[] {
  *
  * It used to end with `or one of 25 other things`, which is the parser counting
  * its own alternatives out loud. Nobody writing a file cares how many branches
- * the grammar has at that point; they care about the three worth trying.
+ * the grammar has at that point; they care about the three worth trying. The
+ * cap is this module's; the phrase belongs to `orPhrase`, which the type
+ * checker's uncovered-case line uses too.
  */
 function listed(names: string[]): string {
-  const said = names.slice(0, NAMED).map(saidToken);
-  if (said.length === 1) return said[0] as string;
-  return `${said.slice(0, -1).join(", ")} or ${said.at(-1)}`;
+  return orPhrase(names.slice(0, NAMED).map(saidToken));
 }

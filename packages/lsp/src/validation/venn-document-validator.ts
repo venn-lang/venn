@@ -53,13 +53,20 @@ export class VennDocumentValidator extends DefaultDocumentValidator {
     return problems.map((problem) => this.published(problem, document));
   }
 
-  /** One problem as the protocol carries it, with the code the catalogue gave it. */
+  /**
+   * One problem as the protocol carries it, with the code the catalogue gave it.
+   *
+   * `codeDescription` is what turns that code into a click: the client renders
+   * it beside the squiggle and opens the page the terminal and a program's
+   * `catch` are handed, so all three send a reader to the same URL.
+   */
   protected published(problem: Problem, document: LangiumDocument): Diagnostic {
     return {
       severity: toDiagnosticSeverity(problem.severity),
       range: spanRange(problem.span, document),
       message: saidProblem(problem),
       code: problem.code,
+      codeDescription: problem.docs ? { href: problem.docs } : undefined,
       source: this.getSource(),
     };
   }

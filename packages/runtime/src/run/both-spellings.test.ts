@@ -11,7 +11,6 @@ import { createRunner } from "./create-runner.js";
 function plugin(seen: unknown[]) {
   return definePlugin({
     name: "@t/v",
-    version: "0",
     namespace: "v",
     actions: [
       defineAction({

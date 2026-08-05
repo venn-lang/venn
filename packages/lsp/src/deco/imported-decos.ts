@@ -1,5 +1,6 @@
 import { type Document, type ImportedDeco, isDecoDecl, isValueImport } from "@venn-lang/core";
-import type { LangiumDocument, LangiumDocuments, URI } from "langium";
+import type { LangiumDocuments, URI } from "langium";
+import { documentRoot } from "../document/index.js";
 import type { ImportResolver } from "../workspace/index.js";
 
 /** What is needed to read a neighbour without waiting for it to load. */
@@ -35,7 +36,7 @@ function collect(args: {
 }): void {
   const uri = args.scope.imports.resolve(args.spec, args.scope.uri);
   const document = args.scope.documents.getDocument(uri);
-  const root = document && rootOf(document);
+  const root = document && documentRoot(document);
   if (!root) return;
   // Only what the other file marked `pub`, and only the names this one asked for.
   for (const decl of root.decls) {
@@ -43,8 +44,4 @@ function collect(args: {
       args.found.set(decl.name, { decl, uri: uri.toString() });
     }
   }
-}
-
-function rootOf(document: LangiumDocument): Document | undefined {
-  return document.parseResult?.value as Document | undefined;
 }

@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
-import { relative, resolve } from "node:path";
+import { resolve } from "node:path";
 import { type Document, type FlowDecl, isFlowDecl, parse, stepTitlesOf } from "@venn-lang/core";
 import { matchesTitle } from "@venn-lang/runtime";
+import { shorten } from "../paths/index.js";
 import { bold, cyan, dim } from "../reporters/colors.js";
 import { collectSourceFiles } from "../run/collect-files.js";
 
@@ -40,11 +41,6 @@ function writeFlow(flow: FlowDecl, document: Document, step: string | undefined)
   for (const title of stepTitlesOf(flow, document)) {
     if (matchesTitle(title, step)) write(`    ${dim("•")} ${title}`);
   }
-}
-
-function shorten(file: string): string {
-  const path = relative(process.cwd(), file);
-  return path && !path.startsWith("..") ? path.replace(/\\/g, "/") : file;
 }
 
 function write(text: string): void {

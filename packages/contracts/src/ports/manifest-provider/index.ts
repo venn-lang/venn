@@ -5,7 +5,6 @@ export {
   type DependencyEdit,
   removeDependency,
 } from "./edit/index.js";
-export { ManifestProviderPort } from "./manifest.port.js";
 export type { FormatSettings, Manifest, ManifestProvider } from "./manifest.types.js";
 export { createMemoryManifest } from "./memory-manifest.js";
 export type {

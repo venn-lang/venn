@@ -37,6 +37,19 @@ describe("what the package manager is shown", () => {
     expect(JSON.parse(packageJsonFor({ manifest })).dependencies).toEqual({});
   });
 
+  /**
+   * `{ optional = true }` says installed on demand. It was in this file all the
+   * same, because the filter asked only about `path`, so every optional
+   * dependency was fetched on the next install and the key meant nothing.
+   */
+  it("leaves an optional dependency out until something asks for it", () => {
+    const manifest = defaultManifest({
+      dependencies: [dep("zod", "^4"), { ...dep("playwright", "^1"), optional: true }],
+    });
+
+    expect(JSON.parse(packageJsonFor({ manifest })).dependencies).toEqual({ zod: "^4" });
+  });
+
   it("gathers every member's dependencies into the one file", () => {
     const root = defaultManifest({ name: "raiz", dependencies: [dep("zod", "^4")] });
     const member = defaultManifest({ name: "api", dependencies: [dep("hono", "^4")] });

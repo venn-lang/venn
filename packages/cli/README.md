@@ -168,8 +168,10 @@ venn verify-plugin ./dist/index.mjs
 ```
 
 Imports the module, takes its default export (or the first export that looks like a plugin) and
-prints the name, the namespace and how many actions and matchers it declares. Exits 1
-when the shape is wrong.
+prints the name, the namespace and how many actions and matchers it declares. Then it checks the
+shape a registry will have to ingest: every action needs a callable `run`, every matcher a callable
+`test` and `message`, and every name in `requires` has to be a capability a host can offer. Each
+fault is printed on its own line. Exits 1 when the shape is wrong.
 
 ### upgrade
 

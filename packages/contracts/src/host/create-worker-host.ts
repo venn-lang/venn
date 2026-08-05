@@ -4,7 +4,6 @@ import { createMemoryFs } from "../ports/file-system/index.js";
 import { createInProcessLock } from "../ports/lock-provider/index.js";
 import { createPosixPaths } from "../ports/paths/index.js";
 import type { ProcessProvider } from "../ports/process-provider/index.js";
-import { ProcessProviderPort } from "../ports/process-provider/index.js";
 import { createSeededRandom } from "../ports/random/index.js";
 import { createMemorySecrets } from "../ports/secret-provider/index.js";
 import type { Host } from "./host.types.js";
@@ -20,10 +19,10 @@ export function createWorkerHost(): Host {
   return {
     fs: createMemoryFs(),
     paths: createPosixPaths(),
-    proc: unavailable<ProcessProvider>({
-      capability: "process",
-      methods: ProcessProviderPort.methods,
-    }),
+    // `spawn` written out, not read off a port descriptor: nothing binds or
+    // negotiates a process port, and the list this needs is the one method a
+    // `ProcessProvider` has.
+    proc: unavailable<ProcessProvider>({ capability: "process", methods: ["spawn"] }),
     clock: createSystemClock(),
     random: createSeededRandom({ seed: 1 }),
     secrets: createMemorySecrets({ values: {} }),

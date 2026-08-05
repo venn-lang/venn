@@ -24,7 +24,7 @@ function plugin(out: string[]): PluginDefinition {
     result: t.void,
     run: (_ctx, input) => void out.push(String(input.args[0])),
   });
-  return { name: "@t/v", version: "0", namespace: "v", actions: [MARK, say] };
+  return { name: "@t/v", namespace: "v", actions: [MARK, say] };
 }
 
 interface Ran {

@@ -1,12 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
-import { type Problem, problemOf, type Thrown } from "@venn-lang/core";
-
-/**
- * Nobody below named a line. `problemLines` prints no location for a span with no
- * uri, which is the truth here: inventing the file's first line would point a
- * reader at code that is not the code that failed.
- */
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
+import { type Problem, problemOf, type Thrown, UNLOCATED } from "@venn-lang/core";
 
 /**
  * The failure a throw carries, when it carries one the language catalogued.
@@ -29,5 +22,7 @@ const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 export function problemThrown(error: unknown): Problem | undefined {
   const held = error as Thrown | undefined;
   if (!held?.problem && !(error instanceof VennError)) return undefined;
-  return problemOf({ thrown: error, span: NO_SPAN });
+  // Nobody below named a line, and inventing the file's first one would point a
+  // reader at code that is not the code that failed.
+  return problemOf({ thrown: error, span: UNLOCATED });
 }

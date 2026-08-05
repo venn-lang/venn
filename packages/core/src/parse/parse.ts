@@ -3,6 +3,7 @@ import type { Document } from "../generated/ast.js";
 import { vennServices } from "../lang/index.js";
 import type { Problem } from "../problem/index.js";
 import { lexerErrorToProblem, parserErrorToProblem } from "./error-to-problem.js";
+import { recordFile } from "./file-of.js";
 import type { ParseOutput } from "./parse-output.types.js";
 import { removedSyntax } from "./removed-syntax.js";
 import { isUnclosedBracket } from "./said-error.js";
@@ -18,6 +19,9 @@ import { spacedMinus } from "./spaced-minus.js";
 export function parse(text: string, options: { uri?: string } = {}): ParseOutput {
   const uri = options.uri ?? "memory://inline.vn";
   const result = vennServices().parser.LangiumParser.parse<Document>(text);
+  // Recorded here because this is the one place a tree and its file meet. The
+  // compiler asks for it later, where there is no document left to ask.
+  recordFile(result.value, uri);
   return { ast: result.value, problems: parseProblems({ result, uri, text }) };
 }
 

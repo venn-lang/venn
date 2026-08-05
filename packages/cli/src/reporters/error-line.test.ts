@@ -21,11 +21,17 @@ describe("a failure as one line", () => {
   /**
    * A `VennError` carries most of the runtime's codes, and its shape is the
    * catalogue's: nothing below the language chose `VN7001`, so it leads with it.
+   *
+   * The link comes with the code rather than being written beside it. A code is
+   * only googlable if the thing that prints it says where to look, and a crash
+   * is where that is worth most.
    */
-  it("leads with the code when the failure carries one", () => {
+  it("leads with the code when the failure carries one, and where to read about it", () => {
     const failure = new VennError({ code: "VN7001", message: "The action failed." });
 
-    expect(errorLine(failure)).toBe("VN7001  The action failed.");
+    expect(errorLine(failure)).toBe(
+      "VN7001  The action failed.\n  docs  https://venn.dev/e/VN7001",
+    );
   });
 
   /**

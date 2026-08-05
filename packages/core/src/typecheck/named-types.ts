@@ -7,6 +7,7 @@ import { type ImportedType, isGenericImport } from "./imported-types.js";
 import { KIND_TYPES } from "./kind-types.js";
 import { REGEX_TYPE } from "./regex-type.js";
 import { instantiate, type Scheme } from "./scheme.js";
+import { TASK_TYPE } from "./task-type.js";
 import type { Type } from "./type.types.js";
 import { shapeOf, typeRefToType } from "./type-ref.js";
 
@@ -42,6 +43,7 @@ export function collectNamedTypes(
   const table = new Map<string, Type>(KIND_TYPES);
   table.set("regex", REGEX_TYPE);
   table.set("error", ERROR_TYPE);
+  table.set("task", TASK_TYPE);
   // Local first, then what a `pub type` in another file published. A file that
   // declares a name of its own keeps it, the way a local binding wins over an
   // imported one.

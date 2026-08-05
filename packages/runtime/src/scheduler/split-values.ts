@@ -9,10 +9,15 @@
  * the schema supply its defaults.
  */
 
+import { kindOf } from "@venn-lang/core";
 import type { SplitValues } from "./split-values.types.js";
 
 /**
  * Split evaluated arguments the way {@link splitCall} splits written ones.
+ *
+ * What counts as a map is asked of the kernel rather than re-spelled here. A
+ * prototype check of its own read a `fn` and a task as options maps, both being
+ * objects that inherit from `Object` and nothing else.
  *
  * @param args.values Every value the call was given, in order.
  * @param args.takes How many positionals the verb declared.
@@ -27,7 +32,7 @@ export function splitValues(args: {
 }): SplitValues {
   const { values, takes, options } = args;
   const last = values[values.length - 1];
-  if (!isPlainMap(last)) return { args: values, opts: undefined };
+  if (kindOf(last) !== "map") return { args: values, opts: undefined };
   const map = last as Record<string, unknown>;
   if (values.length <= takes && !onlyDeclaredKeys(options, map)) {
     return { args: values, opts: undefined };
@@ -45,13 +50,4 @@ function onlyDeclaredKeys(
   if (options === true) return keys.length > 0;
   const known = new Set(options);
   return keys.every((key) => known.has(key));
-}
-
-/**
- * A map as the language means one: not a list, not a `fn`, not a value a plugin
- * gave a class of its own. A duration handed to `wait` is an argument.
- */
-function isPlainMap(value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
-  return Object.getPrototypeOf(value) === Object.prototype;
 }

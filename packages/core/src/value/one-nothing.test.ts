@@ -2,9 +2,22 @@ import { fc, test } from "@fast-check/vitest";
 import { describe, expect, it } from "vitest";
 import { compileExpr } from "../compile/index.js";
 import type { EvalEnv } from "../expr/index.js";
-import { memberValue } from "../expr/member-value.js";
+import { indexValue, memberValue } from "../expr/member-value.js";
 import type { Expr } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
+import { readPath } from "../pattern/index.js";
+
+/**
+ * The three ways into a value: `m.k`, `m[k]`, and the steps a pattern walks.
+ *
+ * One reader now answers all three, so the invariants below are asked of each
+ * of them rather than of the one that happened to be written first.
+ */
+const READERS: Readonly<Record<string, (value: unknown, name: string) => unknown>> = {
+  "m.k": memberValue,
+  "m[k]": indexValue,
+  "a pattern step": (value, name) => readPath(value, [name]),
+};
 
 /** Evaluate one expression the way a program would, with nothing in scope. */
 function value(source: string): unknown {
@@ -80,9 +93,29 @@ describe("absence is null, wherever it comes from", () => {
   test.prop([fc.string({ minLength: 1, maxLength: 12 })])("never answers undefined", (name) => {
     fc.pre(name !== "a" && /^[a-z]+$/i.test(name));
 
-    expect(memberValue({ a: 1 }, name)).not.toBe(undefined);
-    expect(memberValue([1, 2], name)).not.toBe(undefined);
-    expect(memberValue("text", name)).not.toBe(undefined);
-    expect(memberValue(null, name)).not.toBe(undefined);
+    for (const read of Object.values(READERS)) {
+      expect(read({ a: 1 }, name)).not.toBe(undefined);
+      expect(read([1, 2], name)).not.toBe(undefined);
+      expect(read("text", name)).not.toBe(undefined);
+      expect(read(null, name)).not.toBe(undefined);
+    }
+  });
+
+  /**
+   * The names every object in the host carries, which are the ones a random
+   * string never lands on and the ones that matter: `toString`, `constructor`,
+   * `__proto__`, `valueOf`. Each of the three readers used to answer at least
+   * one of them with something of the host's, and `m["toString"]` handed over a
+   * callable while `m.toString` was already null.
+   */
+  it.each(Object.entries(READERS))("keeps the host's own names out of %s", (_spelling, read) => {
+    // A number is left out on purpose: `toString` is one of its own published
+    // members, so it is the one receiver for which an answer here is right.
+    for (const name of Object.getOwnPropertyNames(Object.prototype)) {
+      expect(read({ id: 1 }, name), name).toBeNull();
+      expect(read([1, 2], name), name).toBeNull();
+      expect(read("text", name), name).toBeNull();
+      expect(read(null, name), name).toBeNull();
+    }
   });
 });

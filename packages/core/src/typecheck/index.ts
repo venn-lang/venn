@@ -1,6 +1,6 @@
 export type { BuiltinType } from "./builtin-types.js";
 export { BUILTIN_TYPES, isBuiltinType } from "./builtin-types.js";
-export { memberType, resolveMember } from "./builtins.js";
+export { CHECKED_MEMBERS, memberType, resolveMember } from "./builtins.js";
 export type { TypeCatalog } from "./catalog.types.js";
 export type { CheckTypesOptions, CheckTypesResult } from "./check-types.js";
 export { checkTypes } from "./check-types.js";

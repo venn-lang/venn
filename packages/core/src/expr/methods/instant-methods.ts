@@ -1,15 +1,9 @@
-import type { Duration, Instant } from "../../units/index.js";
+import { type Duration, durationMs, type Instant } from "../../units/index.js";
 import { nativeFn } from "../native.types.js";
 
 /** A moment, rebuilt from milliseconds since the epoch, ISO text and all. */
 function at(epochMs: number): Instant {
   return { kind: "instant", epochMs, iso: new Date(epochMs).toISOString() };
-}
-
-/** How long, in milliseconds, whatever was handed over says it is. */
-function millis(value: unknown): number {
-  const held = value as Duration | undefined;
-  return held?.kind === "duration" ? held.ms : Number(value ?? 0);
 }
 
 function epochOf(value: unknown): number {
@@ -41,8 +35,13 @@ export const INSTANT_METHODS: Record<string, unknown> = {
   /** The day on its own, which is what a report groups by. */
   date: (value: Instant) => value.iso.slice(0, 10),
   time: (value: Instant) => value.iso.slice(11, 19),
-  plus: (value: Instant) => nativeFn((args) => at(value.epochMs + millis(args[0]))),
-  minus: (value: Instant) => nativeFn((args) => at(value.epochMs - millis(args[0]))),
+  /**
+   * `durationMs` owns what counts as a length of time. Nothing said means
+   * nothing moved: it is the only reading of `t.plus(x)` that does not hand
+   * `new Date` a `NaN` and turn a bad argument into a thrown invalid date.
+   */
+  plus: (value: Instant) => nativeFn((args) => at(value.epochMs + (durationMs(args[0]) ?? 0))),
+  minus: (value: Instant) => nativeFn((args) => at(value.epochMs - (durationMs(args[0]) ?? 0))),
   /**
    * How long from here to there. Negative when the other moment is behind, so
    * `a.until(b)` and `b.until(a)` disagree the way subtraction does.

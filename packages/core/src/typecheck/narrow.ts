@@ -11,6 +11,7 @@ import type { Expr } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import type { Asked, Step } from "../pattern/index.js";
+import { orPhrase } from "../problem/index.js";
 import type { Infer } from "./infer.js";
 import { withoutNothing } from "./nothing.js";
 import { instantiate, mono } from "./scheme.js";
@@ -170,6 +171,21 @@ function impossible(cond: Expr, found: Discriminant, infer: Infer): void {
 export function written(value: Asked): string {
   if (value === null) return "null";
   return typeof value === "string" ? `"${value}"` : String(value);
+}
+
+/**
+ * What is missing, as a phrase: `"a", "b" or "c"`.
+ *
+ * Beside {@link written} because the mapping is the half that is this module's:
+ * the `if` chain and the `match` both name uncovered tags, and each had its own
+ * copy of both halves, doc comment included. How a list is said belongs to
+ * {@link orPhrase}, which the parser's own "expected" line uses too.
+ *
+ * @param values What is missing, in the order the union declares it.
+ * @returns The phrase, with no trailing full stop.
+ */
+export function listed(values: readonly Asked[]): string {
+  return orPhrase(values.map(written));
 }
 
 /** What a member of the union has to be for this branch: its tag, or nothing. */

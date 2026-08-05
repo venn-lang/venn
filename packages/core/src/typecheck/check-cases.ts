@@ -8,7 +8,7 @@ import { CODES } from "../codes/index.js";
 import type { Block, IfStmt } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import type { Infer } from "./infer.js";
-import { type Discriminant, discriminantOf, type Tag, tagOf, written } from "./narrow.js";
+import { type Discriminant, discriminantOf, listed, type Tag, tagOf } from "./narrow.js";
 import { instantiate } from "./scheme.js";
 import type { Type } from "./type.types.js";
 import type { TypeEnv } from "./type-env.js";
@@ -90,11 +90,4 @@ function report(head: IfStmt, first: Discriminant, missing: readonly Tag[], infe
     code: CODES.VN3019_MISSING_CASE,
     sentence: `Nothing here says what to do when ${subject} is ${listed(missing)}.`,
   });
-}
-
-/** `"a"`, or `"a" or "b"`, or `"a", "b" or "c"`: a list a person would read out. */
-function listed(missing: readonly Tag[]): string {
-  const all = missing.map(written);
-  const last = all[all.length - 1] as string;
-  return all.length === 1 ? last : `${all.slice(0, -1).join(", ")} or ${last}`;
 }

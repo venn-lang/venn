@@ -187,6 +187,41 @@ const TASK: Record<string, MemberDoc> = {
   settle: { doc: "Wait without the failure spreading, the value, or nothing." },
 };
 
+/**
+ * What a moment answers about itself, read in UTC.
+ *
+ * Absent until now, so `date.now().` offered nothing in the editor while the
+ * runtime and the checker both knew all sixteen.
+ */
+const INSTANT: Record<string, MemberDoc> = {
+  iso: { doc: "The whole moment as ISO text.", example: "t.iso  # 2026-07-27T12:00:00.000Z" },
+  epochMs: { doc: "Milliseconds since the epoch, as a plain number." },
+  year: { doc: "The year, in UTC." },
+  month: { doc: "The month, 1 to 12, in UTC." },
+  day: { doc: "The day of the month, in UTC." },
+  hour: { doc: "The hour, 0 to 23, in UTC." },
+  minute: { doc: "The minute, 0 to 59, in UTC." },
+  second: { doc: "The second, 0 to 59, in UTC." },
+  weekday: { doc: "The day of the week, 1 for Monday through 7 for Sunday." },
+  date: { doc: "The day on its own, which is what a report groups by.", example: "t.date" },
+  time: { doc: "The time of day on its own, without the date." },
+  plus: { doc: "That much later.", example: "t.plus(2h)" },
+  minus: { doc: "That much earlier." },
+  until: { doc: "How long from here to there.", example: "start.until(end).seconds" },
+  isBefore: { doc: "True when this moment comes first." },
+  isAfter: { doc: "True when this moment comes second." },
+};
+
+const REGEX: Record<string, MemberDoc> = {
+  source: { doc: "The pattern as it was written." },
+  flags: { doc: "The flags it was compiled with, as text." },
+  test: { doc: "True when the text matches. `~=` is the operator for it." },
+  match: {
+    doc: "The whole match first, then each group. Empty when it did not match.",
+    example: "order.match(body)[1]",
+  },
+};
+
 /** Documentation for every built-in member, by the kind of value it hangs off. */
 export const MEMBER_DOCS: Readonly<Record<string, Record<string, MemberDoc>>> = {
   list: LIST,
@@ -196,16 +231,36 @@ export const MEMBER_DOCS: Readonly<Record<string, Record<string, MemberDoc>>> = 
   duration: DURATION,
   size: SIZE,
   percent: PERCENT,
+  instant: INSTANT,
+  regex: REGEX,
   task: TASK,
 };
 
-const KINDS = new Set(["string", "number", "duration", "size", "percent"]);
+/**
+ * The named kinds, which are exactly the keys of {@link MEMBER_DOCS} that a
+ * type carries a name for. A list and a record are told by their shape instead.
+ *
+ * `instant` and `regex` were missing, so `date.now().` and a pattern offered
+ * nothing at all in the editor although both tables were sitting right here.
+ */
+const KINDS = new Set([
+  "string",
+  "number",
+  "duration",
+  "size",
+  "percent",
+  "instant",
+  "regex",
+  "task",
+]);
 
 /** Which table of members a type answers to, if any. */
 export function memberKind(type: Type): string | undefined {
   const t = prune(type);
   if (t.kind === "list") return "list";
   if (t.kind === "record") return "map";
-  if (t.kind !== "prim") return undefined;
+  // A pattern and a task are opaque rather than primitive: what each publishes
+  // is settled, which is the same thing their names say here.
+  if (t.kind !== "prim" && t.kind !== "opaque") return undefined;
   return KINDS.has(t.name) ? t.name : undefined;
 }

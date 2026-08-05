@@ -6,15 +6,19 @@
  * `[object Object]`: those are the host's words for a value nobody described,
  * and they say nothing about the program that printed one.
  *
- * The brands come from the files that define them rather than from `expr`'s
- * barrel, which reaches the evaluator, which reaches the compiler, which reaches
- * this file.
+ * The one writer. `fmt.table`, and every plugin through `ctx.show`, comes here
+ * rather than keeping a scalar writer of its own, which is how csv, yaml, xml
+ * and json each used to leak `{"kind":"duration","ms":250}` where `250ms` was
+ * meant.
+ *
+ * `kindOf` comes from `value/`, which owns the question of what a value is, and
+ * the two are imported directly rather than through `expr`'s barrel, which
+ * reaches the evaluator, which reaches the compiler, which reaches this file.
  */
 
-import { isClosure } from "../expr/closure.js";
-import { isNativeFn } from "../expr/native.types.js";
-import { isTask } from "../expr/task.js";
-import { isInstant, isUnitValue, type UnitValue } from "../units/index.js";
+import type { Pattern } from "../expr/methods/regex-methods.js";
+import type { Instant, UnitValue } from "../units/index.js";
+import { kindOf } from "../value/index.js";
 
 const BARE_KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
@@ -69,14 +73,52 @@ function write(value: unknown, seen: Set<object>): string {
   return typeof value === "function" ? "<fn>" : String(value);
 }
 
+/** The three that share one writer, since each is a number and a name for it. */
+const UNIT_KINDS = new Set(["duration", "size", "percent"]);
+
 function structured(value: object, seen: Set<object>): string {
-  if (isUnitValue(value)) return unitText(value);
-  if (isInstant(value)) return value.iso || String(value.epochMs);
-  if (isClosure(value) || isNativeFn(value)) return "<fn>";
-  if (isTask(value)) return "<task>";
+  const kind = kindOf(value);
+  if (UNIT_KINDS.has(kind)) return unitText(value as UnitValue);
+  if (kind === "instant") return (value as Instant).iso || String((value as Instant).epochMs);
+  if (kind === "fn") return "<fn>";
+  if (kind === "task") return "<task>";
+  if (kind === "regex") return patternText(value as Pattern);
+  const declared = declaredText(value);
+  if (declared !== undefined) return declared;
   // A map that holds itself has no text, and walking it has no end.
   if (seen.has(value)) return "<circular>";
   return walk(value, seen);
+}
+
+/**
+ * The text a value declares for itself, when it declares one.
+ *
+ * A `Secret` is why. It keeps its raw value in a closure and publishes a
+ * `toString` and a `toJSON` that both answer the marker, so it redacts through
+ * `String(s)` and `JSON.stringify(s)`. This writer is the third route, and the
+ * one the language itself takes: without this, `ctx.show(s)`, `print s` and
+ * every `fmt` format wrote out `{ reveal: <fn>, toString: <fn>, toJSON: <fn> }`
+ * and the promise that a secret redacts by any route was two thirds true.
+ *
+ * Own properties, and host functions. A Venn closure is an object rather than a
+ * function, so a map literal written `{ toString: fn () => "x" }` is data with
+ * a key spelled `toString` and is walked like any other map.
+ */
+function declaredText(value: object): string | undefined {
+  for (const name of ["toJSON", "toString"] as const) {
+    if (!Object.hasOwn(value, name)) continue;
+    const say: unknown = (value as Record<string, unknown>)[name];
+    if (typeof say !== "function") continue;
+    const text: unknown = (say as () => unknown).call(value);
+    if (typeof text === "string") return text;
+  }
+  return undefined;
+}
+
+/** As a program writes one, so a printed pattern could be typed back in. */
+function patternText(value: Pattern): string {
+  const source = `regex(r"${value.source}"`;
+  return value.flags ? `${source}, "${value.flags}")` : `${source})`;
 }
 
 function walk(value: object, seen: Set<object>): string {

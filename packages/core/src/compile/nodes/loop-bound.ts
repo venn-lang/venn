@@ -1,18 +1,19 @@
 /**
  * What a compiled `repeat` or `forEach` does with a bound it cannot use.
  *
- * The scheduler refuses the same two values with the same two codes, and this is
- * the other half of it: a body inside a `fn` is compiled, so there is no engine
- * to ask and no document URI to point at. The span is read off the node while
- * the body compiles and kept in the closure, which leaves the URI empty and
- * everything else exact, the way every Problem raised from inside the kernel
- * already reads.
+ * The scheduler refuses the same two values with the same two codes, and this
+ * is the other half of it. The span is read off the node while the body
+ * compiles and kept in the closure, and the file comes from the tree the node
+ * was parsed out of, so the sentence and the location both match the
+ * scheduler's rather than the compiler pointing at nowhere.
  */
 
 import { buildProblem, CODES } from "../../codes/index.js";
 import { typeName } from "../../expr/prelude.js";
 import type { Expr } from "../../generated/ast.js";
+import { fileOf } from "../../parse/index.js";
 import { ProblemError, type Span } from "../../problem/index.js";
+import { spanOf } from "../../span/index.js";
 
 /**
  * How many passes a `repeat` runs, refusing a count that is not a number.
@@ -22,7 +23,7 @@ import { ProblemError, type Span } from "../../problem/index.js";
  * @throws {ProblemError} `VN3016` when the value is not a finite number.
  */
 export function checkedCount(node: Expr): (value: unknown) => number {
-  const span = spanOf(node);
+  const span = spanOf(node, fileOf(node));
   return (value) => {
     if (typeof value !== "number" || !Number.isFinite(value)) throw notANumber(span, value);
     return value > 0 ? Math.floor(value) : 0;
@@ -37,7 +38,7 @@ export function checkedCount(node: Expr): (value: unknown) => number {
  * @throws {ProblemError} `VN3015` when the value is not a list.
  */
 export function checkedList(node: Expr): (value: unknown) => readonly unknown[] {
-  const span = spanOf(node);
+  const span = spanOf(node, fileOf(node));
   return (value) => {
     if (!Array.isArray(value)) throw notAList(span, value);
     return value;
@@ -77,17 +78,4 @@ function notAList(span: Span, value: unknown): ProblemError {
         kind === "map" ? "Name the list inside it, as in `forEach item in res.data`." : undefined,
     }),
   );
-}
-
-/** Where the node sits in its file. The URI is the one thing a body cannot know. */
-function spanOf(node: Expr): Span {
-  const cst = node.$cstNode;
-  const start = cst?.range?.start;
-  return {
-    uri: "",
-    offset: cst?.offset ?? 0,
-    length: cst?.length ?? 0,
-    line: (start?.line ?? 0) + 1,
-    column: (start?.character ?? 0) + 1,
-  };
 }

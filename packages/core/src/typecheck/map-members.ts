@@ -1,4 +1,5 @@
-import type { TypeContext } from "./context.js";
+import { createContext, type TypeContext } from "./context.js";
+import { declared } from "./declared.js";
 import {
   BOOL,
   callback,
@@ -39,9 +40,24 @@ export function recordMember(
   name: string,
   ctx: TypeContext,
 ): Type | undefined {
-  const value = valuesOf(receiver);
-  const into = ctx.fresh();
-  const table: Record<string, Type> = {
+  if (receiver.fields.has(name)) return undefined;
+  return declared(recordTable(valuesOf(receiver), ctx.fresh()), name);
+}
+
+/**
+ * Every member a map answers to, the names alone.
+ *
+ * Taken from the table that answers them rather than written out again, since
+ * two lists of the same names are two lists that drift.
+ * `value/member-tables-agree.test.ts` holds this against the runtime's table
+ * and the editor's docs.
+ */
+export const MAP_MEMBER_NAMES: readonly string[] = Object.keys(
+  recordTable(DYNAMIC, createContext().fresh()),
+);
+
+function recordTable(value: Type, into: Type): Record<string, Type> {
+  return {
     keys: list(STRING),
     values: list(value),
     entries: list(list(union([STRING, value]))),
@@ -66,7 +82,6 @@ export function recordMember(
     getPath: fn([STRING], DYNAMIC),
     hasPath: fn([STRING], BOOL),
   };
-  return receiver.fields.has(name) ? undefined : table[name];
 }
 
 /**

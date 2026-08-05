@@ -89,3 +89,36 @@ describe("the values that have no text of their own", () => {
     for (const value of values) expect(stringifyValue(value)).not.toContain("[object Object]");
   });
 });
+
+/**
+ * A `Secret` keeps its raw value in a closure and publishes a `toString` and a
+ * `toJSON` that both answer the marker, which is what makes `String(s)` and
+ * `JSON.stringify(s)` safe. This writer is the third route and the one the
+ * language itself takes, so `print s`, `"${…}"`, a plugin's `ctx.show` and
+ * every `fmt` format used to publish `{ reveal: <fn>, toString: <fn> }` while
+ * the SDK README promised redaction by any route.
+ */
+describe("a value that says how it writes itself", () => {
+  const secret = {
+    reveal: () => "hunter2",
+    toString: () => "‹redacted›",
+    toJSON: () => "‹redacted›",
+  };
+
+  it("takes the text it declares rather than opening it up", () => {
+    expect(stringifyValue(secret)).toBe("‹redacted›");
+  });
+
+  it("takes it one level in too, which is where a report would find it", () => {
+    expect(stringifyValue({ token: secret })).toBe("{ token: ‹redacted› }");
+  });
+
+  it("never lets the raw value through", () => {
+    expect(stringifyValue([secret])).not.toContain("hunter2");
+  });
+
+  /** A key spelled `toString` is data: a Venn `fn` is not a host function. */
+  it("leaves a map holding a language function under that name alone", () => {
+    expect(stringifyValue({ toString: nativeFn(() => "x") })).toBe("{ toString: <fn> }");
+  });
+});

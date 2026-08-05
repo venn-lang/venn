@@ -11,7 +11,7 @@ import type { MatchArm, MatchExpr, Pattern } from "../generated/ast.js";
 import { type Asked, type PatternTest, patternTests } from "../pattern/index.js";
 import { checkBlock } from "./check-stmts.js";
 import { expect, type Infer, inferExpr } from "./infer.js";
-import { tagAt, written } from "./narrow.js";
+import { listed, tagAt } from "./narrow.js";
 import { patternTypes } from "./pattern-types.js";
 import { mono, type Scheme } from "./scheme.js";
 import { showType } from "./show.js";
@@ -263,13 +263,6 @@ function missingCases(expr: MatchExpr, missing: readonly Asked[], infer: Infer):
     code: CODES.VN3019_MISSING_CASE,
     sentence: `Nothing here says what to do when this is ${listed(missing)}.`,
   });
-}
-
-/** `"a"`, or `"a" or "b"`, or `"a", "b" or "c"`: a list a person would read out. */
-function listed(missing: readonly Asked[]): string {
-  const all = missing.map(written);
-  const last = all[all.length - 1] as string;
-  return all.length === 1 ? last : `${all.slice(0, -1).join(", ")} or ${last}`;
 }
 
 /** A name only some of the ways in bind, which the body could not count on. */

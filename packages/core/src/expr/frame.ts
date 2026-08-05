@@ -1,5 +1,5 @@
 import { buildProblem, CODES } from "../codes/index.js";
-import { ProblemError } from "../problem/index.js";
+import { ProblemError, UNLOCATED } from "../problem/index.js";
 import type { Cell } from "./cell.types.js";
 import { hasCells } from "./cell.types.js";
 import type { Closure } from "./closure.types.js";
@@ -141,7 +141,7 @@ function noSlot(): ProblemError {
   return new ProblemError(
     buildProblem({
       spec: CODES.VN3021_NOT_A_PLACE,
-      span: { uri: "", offset: 0, length: 0, line: 1, column: 1 },
+      span: UNLOCATED,
       title: "There is nothing here to write to.",
     }),
   );
@@ -151,7 +151,7 @@ function nowhere(name: string): ProblemError {
   return new ProblemError(
     buildProblem({
       spec: CODES.VN3021_NOT_A_PLACE,
-      span: { uri: "", offset: 0, length: 0, line: 1, column: 1 },
+      span: UNLOCATED,
       title: `Nothing here binds "${name}", so there is nowhere to write it.`,
     }),
   );

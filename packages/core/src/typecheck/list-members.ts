@@ -1,7 +1,9 @@
-import type { TypeContext } from "./context.js";
+import { createContext, type TypeContext } from "./context.js";
+import { declared } from "./declared.js";
 import {
   BOOL,
   callback,
+  DYNAMIC,
   type FnType,
   fn,
   list,
@@ -34,6 +36,22 @@ type Over = (result: Type) => FnType;
  * @returns undefined when a list has no such member.
  */
 export function listMember(element: Type, name: string, ctx: TypeContext): Type | undefined {
+  return declared(listTable(element, ctx), name)?.();
+}
+
+/**
+ * Every member a list answers to, the names alone.
+ *
+ * Taken from the table that answers them rather than written out again, since
+ * two lists of the same names are two lists that drift.
+ * `value/member-tables-agree.test.ts` holds this against the runtime's table
+ * and the editor's docs.
+ */
+export const LIST_MEMBER_NAMES: readonly string[] = Object.keys(
+  listTable(DYNAMIC, createContext()),
+);
+
+function listTable(element: Type, ctx: TypeContext): Record<string, () => Type> {
   const u = (): TypeVar => ctx.fresh();
   const self = list(element);
   /** Every list callback is handed the index too; `p => p.age` may ignore it. */
@@ -96,7 +114,7 @@ export function listMember(element: Type, name: string, ctx: TypeContext): Type 
     // them all, and a signature of exactly one was refusing what it accepts.
     push: () => variadic([element], list(element)),
   };
-  return table[name]?.();
+  return table;
 }
 
 /**

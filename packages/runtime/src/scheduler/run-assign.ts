@@ -2,13 +2,14 @@ import {
   type AssignStmt,
   buildProblem,
   CODES,
-  type Expr,
   evaluate,
   isIndex,
   isMember,
   isRef,
+  isReservedKey,
   type Problem,
   ProblemError,
+  reservedKeyProblem,
 } from "@venn-lang/core";
 import type { Scope } from "../scope/index.js";
 import type { Engine } from "./engine.types.js";
@@ -35,27 +36,24 @@ export function runAssign(engine: Engine, stmt: AssignStmt, scope: Scope): Pendi
   return undefined;
 }
 
+/**
+ * Both halves of assignment answer the same, including the refusals: a place
+ * that is not one, and a key that reaches past the value into what made it.
+ */
 function place(engine: Engine, stmt: AssignStmt, scope: Scope, value: unknown): void {
   const target = stmt.target;
-  // Through the cell, not `set`, which writes locally: `total = 5` inside a
-  // block means the binding the block can see, not a new one beside it.
+  // Through the cell, not `set`: `total = 5` inside a block means the binding
+  // the block can see, not a new one beside it.
   if (isRef(target)) {
     scope.cell(target.name).value = value;
     return;
   }
-  const into = holder(engine, stmt, scope);
-  const key = isIndex(target)
-    ? evaluate(target.index, scope)
-    : (target as { member: string }).member;
-  if (into === null || typeof into !== "object") throw notAPlace(engine, stmt);
-  (into as Record<string, unknown>)[String(key)] = value;
-}
-
-/** What is being written into: the value the path leads to, minus its last step. */
-function holder(engine: Engine, stmt: AssignStmt, scope: Scope): unknown {
-  const target = stmt.target as Expr & { receiver?: Expr };
   if (!isMember(target) && !isIndex(target)) throw notAPlace(engine, stmt);
-  return evaluate(target.receiver as Expr, scope);
+  const into = evaluate(target.receiver, scope);
+  if (into === null || typeof into !== "object") throw notAPlace(engine, stmt);
+  const key = isIndex(target) ? String(evaluate(target.index, scope)) : target.member;
+  if (isReservedKey(key)) throw reservedKey(engine, stmt, key);
+  (into as Record<string, unknown>)[key] = value;
 }
 
 function notAPlace(engine: Engine, stmt: AssignStmt): ProblemError {
@@ -68,4 +66,15 @@ function problemOf(engine: Engine, stmt: AssignStmt): Problem {
     span: nodeSpan(stmt, engine.uri),
     title: "There is nothing here to write to.",
   });
+}
+
+/**
+ * Written by the kernel so this half and the compiled one give one sentence.
+ *
+ * Without it, `m["constructor"]["prototype"]["pwned"] = 7` ran, and afterwards
+ * every map, list and string in the process answered 7 to `.pwned`, including
+ * those of the flows running beside it.
+ */
+function reservedKey(engine: Engine, stmt: AssignStmt, key: string): ProblemError {
+  return new ProblemError(reservedKeyProblem({ key, span: nodeSpan(stmt, engine.uri) }));
 }

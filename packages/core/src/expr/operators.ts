@@ -1,11 +1,9 @@
 import { buildProblem, CODES } from "../codes/index.js";
-import { ProblemError } from "../problem/index.js";
+import { ProblemError, UNLOCATED } from "../problem/index.js";
 import { combine, type Numeric } from "../units/index.js";
 import { isNumeric, strictEquals } from "../value/index.js";
 import { isPattern } from "./methods/regex-methods.js";
 import { isWaiting, whenBothReady } from "./pending.js";
-
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 
 /**
  * Two plain numbers, where the unit machinery has nothing to decide. Going
@@ -61,7 +59,7 @@ function numeric(op: string, left: Numeric, right: Numeric): unknown {
   throw new ProblemError(
     buildProblem({
       spec: CODES.VN3012_UNIT_MISMATCH,
-      span: NO_SPAN,
+      span: UNLOCATED,
       title: `Cannot combine ${result.mismatch.left} with ${result.mismatch.right} using "${op}".`,
     }),
   );
@@ -103,7 +101,7 @@ function badPattern(source: string, error: unknown): ProblemError {
   return new ProblemError(
     buildProblem({
       spec: CODES.VN3018_BAD_PATTERN,
-      span: NO_SPAN,
+      span: UNLOCATED,
       title: `This is not a pattern \`~=\` can use: ${source}. ${why}`.trim(),
     }),
   );
@@ -113,7 +111,7 @@ function operatorError(op: string): ProblemError {
   return new ProblemError(
     buildProblem({
       spec: CODES.VN3012_UNIT_MISMATCH,
-      span: NO_SPAN,
+      span: UNLOCATED,
       title: `Operator "${op}" cannot be applied to these values.`,
     }),
   );

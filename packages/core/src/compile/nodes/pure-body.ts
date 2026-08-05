@@ -1,7 +1,7 @@
 import { dottedPath } from "../../ast/index.js";
 import { buildProblem, CODES } from "../../codes/index.js";
 import type { LetStmt } from "../../generated/ast.js";
-import { pureBodyCannotCall } from "../../parse/index.js";
+import { fileOf, pureBodyCannotCall } from "../../parse/index.js";
 import { ProblemError } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
 
@@ -22,7 +22,7 @@ export function refuseACall(stmt: LetStmt): void {
   throw new ProblemError(
     buildProblem({
       spec: CODES.VN2024_VERB_IN_A_PURE_BODY,
-      span: spanOf(stmt, ""),
+      span: spanOf(stmt, fileOf(stmt)),
       title: pureBodyCannotCall(dottedPath(stmt.value) ?? "a verb"),
     }),
   );

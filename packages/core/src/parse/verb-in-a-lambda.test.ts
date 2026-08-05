@@ -6,6 +6,15 @@ const NEWLINE = String.fromCharCode(10);
 const URI = "memory://inline.vn";
 
 /**
+ * The way out offered where no statement form can carry what the call answers.
+ *
+ * Both spellings below earn this same sentence, so it is named once: asserting
+ * only that one of them is NOT the rewrite is satisfied by any help at all.
+ */
+const NO_REWRITE =
+  "A verb needs a statement of its own. `forEach r in rows { print r }` runs one over each item.";
+
+/**
  * The method spelling of a loop, which is the same mistake as `for` wearing a
  * lambda. `rows.forEach(r => print r)` earned three separate `Expected the end
  * of the file here` for one wrong idea, at the bracket, at the arrow and at the
@@ -52,9 +61,7 @@ describe("a verb handed to a lambda", () => {
 
     const found = parse(source).problems;
     expect(found.map((problem) => problem.code)).toEqual(["VN5010"]);
-    expect(found[0]?.help).toBe(
-      "A verb needs a statement of its own. `forEach r in rows { print r }` runs one over each item.",
-    );
+    expect(found[0]?.help).toBe(NO_REWRITE);
   });
 
   /**
@@ -68,7 +75,7 @@ describe("a verb handed to a lambda", () => {
 
     const found = parse(source).problems;
     expect(found.map((problem) => problem.code)).toEqual(["VN5010"]);
-    expect(found[0]?.help).not.toContain("Write the statement instead");
+    expect(found[0]?.help).toBe(NO_REWRITE);
   });
 
   /**

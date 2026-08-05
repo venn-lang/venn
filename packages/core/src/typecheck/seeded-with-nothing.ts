@@ -7,13 +7,12 @@
  * did not, so `b = 3` was `expected null, found number`, naming a type nobody
  * would ever declare as the thing that was wanted.
  *
- * That one rule is why a program could not report why its input was malformed.
- * `try`/`catch` is a statement, so the parsed value cannot leave the block, and
- * the bridge every language writes for it is a `let` above the `try` that the
- * body assigns into. Seeded with `null` the bridge was refused; seeded with `{}`
- * it was refused one line later at the read. You could have the value or you
- * could have the message, and what the survey author shipped was parsing the
- * document twice.
+ * The pattern that needs it is the bridge out of a `try`. `try`/`catch` is a
+ * statement, so the parsed value cannot leave the block, and the way across is a
+ * `let` above the `try` that the body assigns into. Without this rule that `let`
+ * is refused at the write when it is seeded with `null`, and refused one line
+ * later at the read when it is seeded with `{}`, which leaves a program holding
+ * either its value or its error message and never both.
  *
  * So the same mechanism, for the same reason: a variable, solved by the write,
  * shared by every scope that can see the name. A `const` is left alone, since

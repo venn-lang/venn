@@ -7,6 +7,7 @@
  * `string | null` that no line of the file contains.
  */
 
+import type { Expr } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
 import type { MemberRead } from "./member-read.types.js";
 
@@ -36,5 +37,20 @@ export function receiverAsWritten(read: MemberRead): string | undefined {
   const node = read.node;
   if (!ast.isMember(node) && !ast.isIndex(node)) return undefined;
   const text = node.receiver.$cstNode?.text?.trim().replace(RUNS_OF_SPACE, " ");
+  return text && text.length <= TOO_LONG ? text : undefined;
+}
+
+/**
+ * What is inside the brackets of a read by position, as the source wrote it.
+ *
+ * Quoted back for the same reason the receiver is: `[0]` is a spelling the file
+ * contains and a way out can hand back, where `.0` is not something this
+ * language accepts at all.
+ *
+ * @param index The expression between the brackets.
+ * @returns The text, or nothing when there is none worth printing.
+ */
+export function indexAsWritten(index: Expr): string | undefined {
+  const text = index.$cstNode?.text?.trim().replace(RUNS_OF_SPACE, " ");
   return text && text.length <= TOO_LONG ? text : undefined;
 }

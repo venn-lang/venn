@@ -41,7 +41,23 @@ function whenNothing(left: Type, right: Type): Type {
 /**
  * One of two, as one type. Two sides that agree are that type rather than a
  * union of a thing with itself, which is what every message would read as.
+ *
+ * An undecided side agrees with nothing. `unify` would settle a variable by
+ * binding it, so the other side was written back into wherever that variable
+ * came from: `try g(x) catch e => e.message` made `x` a string, and the mismatch
+ * landed on the caller rather than on anything the author wrote wrong. Keeping
+ * both is what "neither side is asked to agree with the other" means.
+ *
+ * @param left One of the two.
+ * @param right The other.
+ * @returns Both, or the one they already are.
  */
 export function either(left: Type, right: Type): Type {
-  return unify(left, right) ? left : union([left, right]);
+  const a = prune(left);
+  const b = prune(right);
+  // One variable written twice is one type, and `union` cannot tell: every
+  // unsolved variable reads alike, so it keeps them all.
+  if (a === b) return a;
+  if (a.kind === "var" || b.kind === "var") return union([a, b]);
+  return unify(a, b) ? a : union([a, b]);
 }

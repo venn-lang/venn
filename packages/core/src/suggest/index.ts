@@ -10,5 +10,5 @@
  * one symbol, one path.
  */
 
-export { didYouMean } from "./did-you-mean.js";
+export { didYouMean, didYouMeanQuoted } from "./did-you-mean.js";
 export { nearestName } from "./nearest-name.js";

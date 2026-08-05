@@ -46,10 +46,9 @@ describe("an operator brought in from another language", () => {
 
   /** The wake of the one mistake, which used to be reported as a second one. */
   it("says it once, and does not ask for a bracket as well", () => {
-    const found = said("let a = 1\na += 2\nprint a");
-
-    expect(found).toHaveLength(1);
-    expect(found[0]).not.toContain("bracketed");
+    expect(said("let a = 1\na += 2\nprint a")).toEqual([
+      "VN1005 Venn has no `+=`. // Write `a = a + 2`.",
+    ]);
   });
 
   it("points at the operator itself", () => {

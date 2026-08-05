@@ -1,5 +1,6 @@
 import type { TypeContext } from "./context.js";
-import type { Type } from "./type.types.js";
+import type { ListType, Type } from "./type.types.js";
+import { positional } from "./type.types.js";
 import { prune } from "./unify.js";
 
 /**
@@ -76,7 +77,7 @@ function substitute(type: Type, mapping: ReadonlyMap<number, Type>): Type {
     case "var":
       return mapping.get(t.id) ?? t;
     case "list":
-      return { kind: "list", element: substitute(t.element, mapping) };
+      return substituteList(t, mapping);
     case "fn":
       return {
         kind: "fn",
@@ -88,6 +89,19 @@ function substitute(type: Type, mapping: ReadonlyMap<number, Type>): Type {
     default:
       return t;
   }
+}
+
+/**
+ * A pair keeps its positions, or it silently stops being a pair and every
+ * position of it goes back to answering the whole union.
+ */
+function substituteList(t: ListType, mapping: ReadonlyMap<number, Type>): ListType {
+  const element = substitute(t.element, mapping);
+  if (!t.positions) return { kind: "list", element };
+  return positional(
+    element,
+    t.positions.map((held) => substitute(held, mapping)),
+  );
 }
 
 function substituteFields(

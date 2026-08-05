@@ -1,6 +1,7 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import { shownColumn } from "../lang/index.js";
 import type { Problem, Span } from "../problem/index.js";
+import { spanAt } from "./at-an-offset.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
 import { bracketTheDeco } from "./bracket-the-deco.js";
 import { bracketTheTry } from "./bracket-the-try.js";
@@ -90,19 +91,13 @@ function spanFor(args: {
   if (text === undefined) return tokenSpan({ error, uri });
   if (said.offset !== undefined) {
     const length = said.length ?? RELOCATED_LENGTH;
-    return placed({ uri, text, offset: said.offset, length });
+    return spanAt({ text, uri, offset: said.offset, length });
   }
   // A file the parser ran off the end of leaves `NaN` on the token, which used
   // to fall back to the top of the file, so "found the end of the file" read as
   // a claim about line one however far down the mistake actually was.
   if (Number.isFinite(error.token.startOffset)) return tokenSpan({ error, uri, text });
-  return placed({ uri, text, offset: text.length, length: 0 });
-}
-
-/** A span whose line and column are read from the source, since no token holds them. */
-function placed(args: { uri: string; text: string; offset: number; length: number }): Span {
-  const { line, column } = locate(args.text, args.offset);
-  return { uri: args.uri, offset: args.offset, length: args.length, line, column };
+  return spanAt({ text, uri, offset: text.length, length: 0 });
 }
 
 /** A span over the token the parser stopped at. */
@@ -128,14 +123,6 @@ function tokenSpan(args: { error: RecognitionError; uri: string; text?: string }
 function shown(args: { text?: string; line: number; column: number }): number {
   if (args.text === undefined) return args.column;
   return shownColumn({ text: args.text, line: args.line, column: args.column });
-}
-
-/** The 1-based line and column of an offset, for a span an explainer relocated. */
-function locate(text: string, offset: number): { line: number; column: number } {
-  const before = text.slice(0, offset);
-  const line = (before.match(/\n/g)?.length ?? 0) + 1;
-  const column = offset - before.lastIndexOf("\n");
-  return { line, column: shownColumn({ text, line, column }) };
 }
 
 /**

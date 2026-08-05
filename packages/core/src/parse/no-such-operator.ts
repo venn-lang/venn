@@ -13,8 +13,8 @@
  */
 
 import { buildProblem, CODES } from "../codes/index.js";
-import { shownColumn } from "../lang/index.js";
-import type { Problem, Span } from "../problem/index.js";
+import type { Problem } from "../problem/index.js";
+import { lineStart, spanAt } from "./at-an-offset.js";
 import { noSuchSpelling } from "./removed-syntax.js";
 
 /** A name, or a dotted one: what may stand on the left of a plain assignment. */
@@ -64,7 +64,7 @@ function operatorAt(offset: number, args: { text: string; uri: string }): Proble
   if (arithmetic === undefined) return undefined;
   return buildProblem({
     spec: CODES.VN1005_NO_SUCH_OPERATOR,
-    span: spanAt(offset, written, args),
+    span: spanAt({ text: args.text, uri: args.uri, offset, length: written.length }),
     title: noSuchSpelling(written),
     help: instead({ written, arithmetic, text: args.text, offset }),
   });
@@ -92,23 +92,4 @@ const SPELL_IT_OUT = "Write the assignment out in full: the name, `=`, then the 
 function rightOf(text: string, from: number): string {
   const end = text.indexOf("\n", from);
   return text.slice(from, end === -1 ? undefined : end).trim();
-}
-
-/** Where the line holding an offset begins. */
-function lineStart(text: string, offset: number): number {
-  return text.lastIndexOf("\n", offset - 1) + 1;
-}
-
-/** A span over the operator itself, which is the thing that does not exist. */
-function spanAt(offset: number, written: string, args: { text: string; uri: string }): Span {
-  const start = lineStart(args.text, offset);
-  const line = args.text.slice(0, start).split("\n").length;
-  const column = offset - start + 1;
-  return {
-    uri: args.uri,
-    offset,
-    length: written.length,
-    line,
-    column: shownColumn({ text: args.text.slice(start), line, column }),
-  };
 }

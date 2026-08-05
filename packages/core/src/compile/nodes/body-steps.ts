@@ -14,7 +14,7 @@ import { checkedCount, checkedList } from "./loop-bound.js";
 import { refuseACall } from "./pure-body.js";
 import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 import { tryStep } from "./try-step.js";
-import { compileVerb } from "./verb-step.js";
+import { compileBoundRaise, compileVerb } from "./verb-step.js";
 import { overCount, overItems, overPasses, runSteps } from "./walk-steps.js";
 
 /**
@@ -86,7 +86,7 @@ function letStep(stmt: ast.LetStmt, scope: LexScope, compile: CompileIn): Step {
   refuseACall(stmt);
   // The value first and the name after, so `let x = x` reads the one already in
   // view, which is what the same line does everywhere else.
-  const value = compile(stmt.value, scope);
+  const value = compileBoundRaise(stmt, scope, compile) ?? compile(stmt.value, scope);
   if (!stmt.pattern) {
     const slot = declare(scope, stmt.name as string);
     // A captured binding is a cell, minted here, so this `let` inside a loop

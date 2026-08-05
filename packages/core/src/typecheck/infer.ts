@@ -23,9 +23,8 @@ import type { InterpolationSlot } from "../interpolation/index.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { markSlotIn } from "../span/index.js";
-import { positionKey } from "../value/index.js";
 import { callType } from "./action-signature.js";
-import { positionType } from "./at-a-position.js";
+import { readAt } from "./at-a-position.js";
 import { argumentsFit } from "./call-arguments.js";
 import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
@@ -56,7 +55,6 @@ import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
 import { prune, unify } from "./unify.js";
 import { combinedType, literalType } from "./unit-types.js";
-import { isWritten } from "./written-into.js";
 
 /** One `${…}`: what it parsed to, and whether the source had to be repaired. */
 export interface Slot {
@@ -350,39 +348,11 @@ function verbCall(expr: Call, env: TypeEnv, infer: Infer): Type | undefined {
   return callType({ target, args }, env, infer);
 }
 
-/**
- * `xs[0]` and `m["name"]`.
- *
- * A position is read as one wherever the receiver holds positions, so `xs[0]`
- * and `xs["0"]` are the same element and have the same type, and `s[0]` is the
- * character it reads at run time rather than a member nobody declared.
- *
- * Everything else the source spelled out is the member read written with
- * brackets, and is typed as one. That used to be true of a record and not of a
- * list, which left the wrong promise standing over one spelling:
- * `const s: string = names["len"]` was accepted for a value that is the number
- * 2, while `const n: number = names["len"]` was refused.
- *
- * A key the run works out (`m[k]`, `stats[stat]`) is nobody's mistake and stays
- * `dynamic`: that is what reading a map by a computed key means.
- */
+/** `xs[0]` and `m["name"]`, both answered by `at-a-position`. */
 function inferIndex(expr: Index, env: TypeEnv, infer: Infer): Type {
   const receiver = prune(inferExpr(expr.receiver, env, infer));
   inferExpr(expr.index, env, infer);
-  const name = writtenKey(expr.index);
-  const spot = name === undefined || positionKey(name) !== undefined;
-  const held = spot ? positionType(receiver, isWritten(expr)) : undefined;
-  if (held) return held;
-  if (name === undefined) return DYNAMIC;
-  return memberRead(receiver, { node: expr, name, asking: false }, infer);
-}
-
-/** The key when the source spelled it out, as against one the run works out. */
-function writtenKey(index: Expr): string | undefined {
-  if (index.$type !== "StringLit") return undefined;
-  // A `${…}` inside makes the key a run-time value, and nothing here to be
-  // right or wrong about yet.
-  return scanInterpolations(index.value).length > 0 ? undefined : index.value;
+  return readAt(receiver, expr, infer);
 }
 
 const ARITHMETIC = new Set(["+", "-", "*", "/", "%"]);
@@ -447,9 +417,15 @@ function mismatched(infer: Infer, node: AstNode, left: Type, right: Type, op: st
   });
 }
 
-function numeric(infer: Infer, node: AstNode, left: Type, right: Type, compare = false): Type {
-  expect(infer, node, left, NUMBER);
-  expect(infer, node, right, NUMBER);
+/**
+ * Both operands against `number`, each reported on the operand itself.
+ *
+ * The operand is what carries the type that clashed, so a way out written from
+ * the node describes the value rather than the arithmetic standing around it.
+ */
+function numeric(infer: Infer, expr: Binary, left: Type, right: Type, compare = false): Type {
+  expect(infer, expr.left, left, NUMBER);
+  expect(infer, expr.right, right, NUMBER);
   return compare ? BOOL : NUMBER;
 }
 

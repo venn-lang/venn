@@ -17,6 +17,14 @@ const STATEMENTS =
 
 const ENTRIES = "A newline or a `,` separates one entry from the next, and there is neither here.";
 
+/** The separator the sentence named, written into the gap it pointed at. */
+function repaired(source: string): string {
+  const [problem] = parse(source).problems;
+  const separator = problem?.title === ENTRIES ? "," : ";";
+  const offset = problem?.span.offset ?? 0;
+  return `${source.slice(0, offset)}${separator}${source.slice(offset)}`;
+}
+
 /**
  * Two statements written with nothing between them.
  *
@@ -71,11 +79,51 @@ describe("a statement separator nobody wrote", () => {
     expect(titles("const a = 1 const b = 2")).toEqual([]);
     expect(titles("namespace N { const a = 1 const b = 2 }")).toEqual([]);
   });
+});
 
-  /** A `;` is an `NL` token, so the sentence is advice that compiles. */
-  it("says nothing once the separator is written", () => {
-    expect(titles('flow "F" { step "s" { if true { print 1 }; print 2 } }')).toEqual([]);
-    expect(titles("fn f() { let a = 1; return a }")).toEqual([]);
+/** A member read on a line of its own, which `FnStmt` does not admit. */
+const A_READ_IN_A_FN = "fn f(x) {\n  x.toString\n  return x\n}\nprint f(1)\n";
+
+/**
+ * A gap already holding a newline or a `;` is not a gap a separator is missing
+ * from, whatever else the parser refused there.
+ *
+ * `FnStmt` admits a bare-argument call and no other, so a member call written as
+ * a statement in a `fn` body fails on the statement after it, with the newline
+ * between them right where a reader put it. Writing the `;` the sentence asked
+ * for returned the same two errors one column along.
+ */
+describe("a separator the reader already wrote", () => {
+  it.each([
+    ["a discarded read", A_READ_IN_A_FN],
+    ["a verb call", 'fn f(x) {\n  io.eprint("x")\n  return x\n}\n'],
+    ["a method call", "fn f(xs) {\n  xs.push(3)\n  return xs\n}\n"],
+  ])("says nothing about %s on a line of its own", (_what, source) => {
+    expect(titles(source)).not.toContain(STATEMENTS);
+  });
+
+  it("leaves the parser's own line, which names the token it refused", () => {
+    expect(titles(A_READ_IN_A_FN)[0]).toBe("Expected a closing brace here, found `return`.");
+    expect(at(A_READ_IN_A_FN)).toBe("3:3");
+  });
+});
+
+/**
+ * The sentence names a separator instead of rewriting the reader's line, so
+ * what has to hold is that writing one where it pointed leaves nothing at all.
+ *
+ * The separator goes in at the explainer's own offset rather than by hand, so a
+ * span that drifts off the gap fails here instead of shipping advice that lands
+ * inside a token.
+ */
+describe("the separator written where the sentence pointed", () => {
+  it.each([
+    'flow "F" { step "s" { if true { print 1 } print 2 } }',
+    'const r = match 1 { 1 => "a" _ => "b" }',
+    "loop n = 0 { if n > 3 { break } continue n + 1 }",
+    "fn f() { let a = 1 return a }",
+  ])("repairs the line that earned it, reporting nothing (%s)", (source) => {
+    expect(titles(repaired(source))).toEqual([]);
   });
 });
 

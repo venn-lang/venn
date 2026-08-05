@@ -13,12 +13,9 @@
  * a pair is, not about which two types failed to meet.
  */
 
-import * as ast from "../generated/ast.js";
+import { receiverAsWritten } from "./as-written.js";
 import type { MemberRead } from "./member-read.types.js";
 import type { Type } from "./type.types.js";
-
-/** How long a receiver may be written before quoting it back stops helping. */
-const TOO_LONG = 24;
 
 /**
  * Where the pairs come from, and what each position holds when they do.
@@ -48,23 +45,7 @@ export function pairIsAList(receiver: Type, read: MemberRead): string | undefine
   // and a paragraph about keys and values would answer a question nobody asked.
   if (receiver.kind !== "list") return undefined;
   if (read.name !== "key" && read.name !== "value") return undefined;
-  const it = written(read);
+  const it = receiverAsWritten(read);
   const how = it ? `\`${it}[0]\`, \`${it}[1]\`, and so on` : "by position, from `[0]`";
   return `A list is read by position, not by name: ${how}. ${SOURCES}`;
-}
-
-/**
- * The receiver as the source spelled it, when it is short enough to quote.
- *
- * A lambda's parameter is what this is nearly always reading, and `e[0]` beside
- * the reader's own `e` is a line they can copy. Anything longer, or an
- * expression parsed out of a `${…}` and so carrying no source of its own, is
- * left to the wording that names no name.
- */
-function written(read: MemberRead): string | undefined {
-  const node = read.node;
-  if (!ast.isMember(node) && !ast.isIndex(node)) return undefined;
-  const text = node.receiver.$cstNode?.text?.trim();
-  if (!text || text.length > TOO_LONG || /\s/.test(text)) return undefined;
-  return text;
 }

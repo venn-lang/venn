@@ -27,7 +27,8 @@ const END = "EOF";
  *
  * @param stop Where the parser gave up, and what it was inside when it did.
  * @returns The line to print and the gap to point it at, or nothing when the
- * rule the parser was in has no list a separator could be missing from.
+ * rule the parser was in has no list a separator could be missing from, or when
+ * the gap already holds one.
  */
 export function missingSeparator(stop: ParserStop): Explained | undefined {
   if (!Number.isFinite(stop.offset)) return undefined;
@@ -35,11 +36,25 @@ export function missingSeparator(stop: ParserStop): Explained | undefined {
   if (!list?.separators.has(NEWLINE) || !list.starts.has(stop.tokenType)) return undefined;
   if (!ranOut({ message: stop.message, ending: list.closer ?? END })) return undefined;
   const written = stop.text.slice(0, stop.offset).replace(/\s+$/, "").length;
+  if (separated(stop.text.slice(written, stop.offset))) return undefined;
   return {
     title: list.separators.has(COMMA) ? ITEMS_SEPARATED : STATEMENTS_SEPARATED,
     offset: written,
     length: Math.max(stop.offset - written, 1),
   };
+}
+
+/**
+ * Whether the gap between the two statements already separates them.
+ *
+ * The sentence would otherwise be printed at a newline the reader wrote, and a
+ * reader who takes it gets the same pair of errors one column along. What the
+ * parser refused there is a statement the rule does not admit, which is a
+ * different mistake with a different answer, and advice that leaves an error it
+ * created is worse than the parser's own line.
+ */
+function separated(gap: string): boolean {
+  return /[\n;]/.test(gap);
 }
 
 /**

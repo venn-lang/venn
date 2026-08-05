@@ -4,15 +4,15 @@ import { buildProblem, CODES, type Problem, type Span } from "@venn-lang/core";
  * A name used in a file that never imported it, in the one place the words are
  * written.
  *
- * Three checks said this and each spelled the help itself, so one of them
- * printed a literal ellipsis where the path belongs: the first hour of the
- * first program written in this language went on two package READMEs to learn
- * that the answer was `"venn/io"`, which the diagnostic was already holding.
+ * The words live here rather than at the three checks that report it, because a
+ * help line each caller spells is a help line one caller spells wrong: a literal
+ * ellipsis where the module path belongs. The path is the whole of what the
+ * reader is missing, and the diagnostic is already holding it.
  *
  * It is a hint rather than a refusal because every run loads every plugin, so
- * the name resolves either way and refusing it made the compiler contradict
- * itself. What is left is worth saying: the top of a file should be the answer
- * to where a name came from.
+ * the name resolves either way and refusing it would make the compiler
+ * contradict itself. What is left is worth saying: the top of a file should be
+ * the answer to where a name came from.
  *
  * @param args The name as this file writes it, the module path it comes from,
  * and where to put the squiggle.

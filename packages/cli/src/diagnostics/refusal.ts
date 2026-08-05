@@ -19,8 +19,9 @@ export function isError(problem: Problem): boolean {
 /**
  * Whether this list refuses the file.
  *
- * The question every caller of `runFile` used to ask as `problems.length > 0`,
- * back when the outcome carried nothing but errors.
+ * The one question to ask of a `runFile` outcome, whose problem list carries
+ * hints as well as errors: a length is not the answer, because a file whose
+ * only problems are hints ran.
  */
 export function refuses(problems: readonly Problem[]): boolean {
   return problems.some(isError);

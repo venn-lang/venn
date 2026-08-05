@@ -86,7 +86,7 @@ describe("`+` between strings", () => {
    * lines above it about the same column.
    */
   it("does not then tell the binding the opposite", () => {
-    expect(said('let problem: string = "a" + "b"')).toHaveLength(1);
+    expect(said('let problem: string = "a" + "b"')).toEqual([`${TITLE} // ${WAY} Write \`"ab"\`.`]);
   });
 
   it("leaves arithmetic alone", () => {

@@ -71,9 +71,17 @@ export function mayBeNothing(receiver: Type, read: MemberRead): TypeMismatch {
     expected: receiver,
     actual: NULL,
     code: CODES.VN3025_MAY_BE_NOTHING,
-    sentence: `${it ?? "This value"} may be nothing here, so "${read.name}" cannot be read from it.`,
+    sentence: `${it ?? "This value"} may be nothing here, so ${theRead(read)} cannot be read from it.`,
     help: wayPast(read, it),
   };
+}
+
+/**
+ * The read as the reader will recognise it: a name in its quotes, a position in
+ * its brackets, because those are the two things the file itself contains.
+ */
+function theRead(read: MemberRead): string {
+  return read.spelled ? `\`${read.spelled}\`` : `"${read.name}"`;
 }
 
 /**
@@ -81,8 +89,7 @@ export function mayBeNothing(receiver: Type, read: MemberRead): TypeMismatch {
  *
  * A guard narrows a NAME. So where the receiver is one, the shared sentence is
  * right and is imported rather than restated. Where it is anything else, both
- * halves of that sentence are advice that does not work, and this was measured
- * rather than reasoned:
+ * halves of that sentence are advice that does not work:
  *
  * - `if xs[5] != null { print xs[5].len }` reports VN3025 again, because there is
  *   no name for the narrowed scope to bind. Advice that leaves behind the error
@@ -90,13 +97,12 @@ export function mayBeNothing(receiver: Type, read: MemberRead): TypeMismatch {
  * - `let n = xs[5] ?? "z".len` checks clean and means `xs[5] ?? ("z".len)`. The
  *   stand-in has to be bracketed around the receiver, and a reader told only
  *   ``?? …`` writes the version that compiles and answers something else.
- *
- * Both spellings printed below were run before they were written down.
  */
 function wayPast(read: MemberRead, it: string | undefined): string {
   const node = read.node;
   const receiver = ast.isMember(node) || ast.isIndex(node) ? node.receiver : undefined;
   if (receiver && ast.isRef(receiver)) return PAST_THE_NOTHING;
   const named = it ?? "it";
-  return `It may be nothing. Bind it to a name and ask \`if … != null\` first, or bracket a stand-in around it: \`(${named} ?? …).${read.name}\`.`;
+  const tail = read.spelled ?? `.${read.name}`;
+  return `It may be nothing. Bind it to a name and ask \`if … != null\` first, or bracket a stand-in around it: \`(${named} ?? …)${tail}\`.`;
 }

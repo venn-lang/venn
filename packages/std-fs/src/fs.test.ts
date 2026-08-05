@@ -96,6 +96,17 @@ describe("what a directory holds", () => {
     ]);
   });
 
+  /**
+   * `exists` then `list` is the pairing the README walks, so the verb has to
+   * say yes about the directory it is about to hand to `list`.
+   */
+  it("is something `fs.exists` says yes about", async () => {
+    const fs = createMemoryFs();
+    await run(fs, "write", "data/one.json", "{}");
+
+    expect(await run(fs, "exists", "data")).toBe(true);
+  });
+
   /** Asking what is inside something that holds nothing has an answer, and it is not a failure. */
   it("reads a directory that is not there as empty", async () => {
     expect(await run(createMemoryFs(), "list", "nowhere")).toEqual([]);

@@ -14,7 +14,7 @@ export function createMemoryFs(): FileSystem {
       files.set(path, bytes.slice());
     },
     async exists(path) {
-      return files.has(path);
+      return files.has(path) || holdsADirectory(files, path);
     },
     async remove(path) {
       if (!files.delete(path)) throw fsNotFound({ path });
@@ -49,6 +49,22 @@ function listUnder(paths: readonly string[], directory: string): DirEntry[] {
     if (rest !== "") seen.set(slash < 0 ? rest : rest.slice(0, slash), slash >= 0);
   }
   return [...seen].map(([name, isDirectory]) => ({ name, directory: isDirectory }));
+}
+
+/**
+ * Whether a directory stands at this path.
+ *
+ * `exists` answers for anything a path names, and a directory is a thing a path
+ * names: `list` takes one, and the pairing a reader writes is `exists` then
+ * `list`. Here a directory is only ever implied by the paths written, so the
+ * prefix that makes `list` non-empty is the prefix that makes this true. The
+ * root is the one directory a file system has without being written to.
+ */
+function holdsADirectory(files: ReadonlyMap<string, unknown>, path: string): boolean {
+  if (path === "" || path === ".") return true;
+  const under = `${withoutTrailingSlashes(path)}/`;
+  for (const held of files.keys()) if (held.startsWith(under)) return true;
+  return false;
 }
 
 /**

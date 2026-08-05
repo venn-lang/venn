@@ -1,11 +1,10 @@
 /**
  * Reading an argument that has to be a count, a size, a width or a position.
  *
- * Every one of these positions used to be read with `Math.max(0, Math.trunc(
- * Number(value ?? 0)))`, which turns `-1` into `0`, `1.5` into `1`, `NaN` into
- * `0` and a missing argument into `0`. Four different mistakes, one answer, and
- * the answer is an empty list that reads as "no results" rather than as "you
- * asked wrongly". One reader instead, and it refuses.
+ * Coercing a value into one of these positions collapses `-1`, `1.5`, `NaN` and
+ * a missing argument onto `0`. Four different mistakes, one answer, and the
+ * answer is an empty list that reads as "no results" rather than as "you asked
+ * wrongly". One reader for all of them instead, and it refuses.
  */
 
 import { notACount, notANumber, notAPosition } from "./argument-refusal.js";

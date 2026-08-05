@@ -13,8 +13,8 @@
  */
 
 import { buildProblem, CODES } from "../codes/index.js";
-import { shownColumn } from "../lang/index.js";
-import { JOINED_WITH_PLUS, joinInstead, type Problem, type Span } from "../problem/index.js";
+import { JOINED_WITH_PLUS, joinInstead, type Problem } from "../problem/index.js";
+import { lineStart, spanAt } from "./at-an-offset.js";
 
 /** What can be called: a name, or a dotted one such as `io.print`. */
 const CALLED = /^[A-Za-z_][\w.]*$/;
@@ -56,7 +56,7 @@ function joinAt(
   if (!operands) return undefined;
   return buildProblem({
     spec: CODES.VN3024_JOINED_WITH_PLUS,
-    span: spanAt({ offset, start, text: args.text, uri: args.uri }),
+    span: spanAt({ text: args.text, uri: args.uri, offset, length: 1 }),
     title: JOINED_WITH_PLUS,
     help: joinInstead(operands),
   });
@@ -113,23 +113,4 @@ function operatorsIn(argument: string): number[] {
     else if (char === "+" && depth === 0) at.push(index);
   }
   return at;
-}
-
-/** Where the line holding an offset begins. */
-function lineStart(text: string, offset: number): number {
-  return text.lastIndexOf("\n", offset - 1) + 1;
-}
-
-/** A span over the `+` itself, which is the character that is wrong. */
-function spanAt(args: { offset: number; start: number; text: string; uri: string }): Span {
-  const { offset, start, text, uri } = args;
-  const line = text.slice(0, start).split("\n").length;
-  const column = offset - start + 1;
-  return {
-    uri,
-    offset,
-    length: 1,
-    line,
-    column: shownColumn({ text: text.slice(start), line, column }),
-  };
 }

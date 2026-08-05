@@ -2,6 +2,7 @@ import {
   buildProblem,
   CODES,
   type Document,
+  didYouMeanQuoted,
   isPackageSpecifier,
   isValueImport,
   nearestName,
@@ -64,7 +65,7 @@ function refuse(args: { decl: ValueImport; uri: string; loaded: readonly string[
     title: `No package is called "${args.decl.path}".`,
   });
   const near = kindred(args.decl.path, args.loaded);
-  return near ? { ...found, help: `Did you mean "${near}"?` } : found;
+  return near ? { ...found, help: didYouMeanQuoted(near) } : found;
 }
 
 /**

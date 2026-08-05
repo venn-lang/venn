@@ -52,9 +52,8 @@ export interface ActionDefinition {
    * It is checked rather than trusted. `requires` was a promise nobody verified
    * and was silently wrong in four plugins; this would be the same shape with a
    * worse failure direction, since an over-claimed `pure` admits a verb
-   * deliberately. `a-plugin-declares-what-it-reaches.test.ts` in
-   * `@venn-lang/stdlib` drives every verb and refuses any that claims this while
-   * asking for a port.
+   * deliberately. `a-verb-may-claim-purity.test.ts` in `@venn-lang/stdlib` drives
+   * every verb and refuses any that claims this while asking for a port.
    */
   pure?: true;
   run(ctx: ActionContext, input: ActionInput<unknown>): unknown | Promise<unknown>;

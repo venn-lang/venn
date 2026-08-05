@@ -4,7 +4,13 @@
 export * from "./ast/index.js";
 export * from "./codes/index.js";
 export type { CompiledBody, StopCheck, Thunk } from "./compile/index.js";
-export { closureOfDecl, compileExpr, pureBodyCannotCall, setStopCheck } from "./compile/index.js";
+export {
+  closureOfDecl,
+  compileExpr,
+  pureBodyCannotCall,
+  RAISES,
+  setStopCheck,
+} from "./compile/index.js";
 export * from "./events/index.js";
 // Decorators: the expansion phase, run between parsing and everything else.
 export * from "./expand/index.js";

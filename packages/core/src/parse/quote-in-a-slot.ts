@@ -11,8 +11,8 @@
 
 import { buildProblem, CODES } from "../codes/index.js";
 import { placeholderEnd, unclosedPlaceholder } from "../interpolation/index.js";
-import { shownColumn } from "../lang/index.js";
-import type { Problem, Span } from "../problem/index.js";
+import type { Problem } from "../problem/index.js";
+import { spanAt } from "./at-an-offset.js";
 
 /**
  * A comment or a string literal, in the order the lexer tries them, so that a
@@ -131,7 +131,7 @@ function reaching(args: {
 function problem(cut: CutShort, args: { text: string; uri: string }): Problem {
   return buildProblem({
     spec: CODES.VN1004_STRING_CUT_SHORT,
-    span: quoteSpan(cut.at, args),
+    span: spanAt({ text: args.text, uri: args.uri, offset: cut.at, length: 1 }),
     title: `The string ends at this \`${cut.quote}\`, in the middle of a \`\${…}\`.`,
     help: helpFor(cut),
   });
@@ -167,18 +167,4 @@ function rewritten(cut: CutShort): string | undefined {
   const other = cut.quote === '"' ? "'" : '"';
   if (cut.slot.includes(other) || cut.slot.includes("\\")) return undefined;
   return cut.slot.split(cut.quote).join(other);
-}
-
-/** The quote itself, one character, placed by counting the lines above it. */
-function quoteSpan(at: number, args: { text: string; uri: string }): Span {
-  const before = args.text.slice(0, at);
-  const line = (before.match(/\n/g)?.length ?? 0) + 1;
-  const column = at - before.lastIndexOf("\n");
-  return {
-    uri: args.uri,
-    offset: at,
-    length: 1,
-    line,
-    column: shownColumn({ text: args.text, line, column }),
-  };
 }

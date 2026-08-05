@@ -36,7 +36,7 @@ export function mismatchProblem(mismatch: TypeMismatch, uri: string): Problem {
 /** The nothing is only the fault where the two types are otherwise the same. */
 function wayOut(mismatch: TypeMismatch): string | undefined {
   if (mismatch.sentence) return undefined;
-  return helpAboutNothing(mismatch.actual, mismatch.expected);
+  return helpAboutNothing(mismatch);
 }
 
 /** Some clashes read better as a sentence than as the two types that clashed. */

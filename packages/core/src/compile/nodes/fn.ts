@@ -21,6 +21,7 @@ import { allocate, declare, type LexScope, scopeOf, stayedBare } from "../lex-sc
 import { boxedParams, paramLocals, paramSlotName, unpack } from "../unpack.js";
 import { compileStep } from "./body-steps.js";
 import { refuseACall } from "./pure-body.js";
+import { compileBoundRaise } from "./verb-step.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
 export type CompileIn = (expr: Expr, scope: LexScope) => Thunk;
@@ -182,7 +183,7 @@ function localsOf(args: {
 }): CompiledLocal[] {
   const { local, scope, compileIn } = args;
   refuseACall(local);
-  const value = compileIn(local.value, scope);
+  const value = compileBoundRaise(local, scope, compileIn) ?? compileIn(local.value, scope);
   if (!local.pattern) {
     const slot = declare(scope, local.name as string);
     return [{ slot, value: boundValue(value, scope, slot) }];

@@ -132,6 +132,50 @@ promise nobody checked: `venn/math` declared nothing while publishing
 not declare, and an action may declare itself pure only if it reaches no port at
 all. Neither is a promise any more.
 
+## What two adversarial reviews found, and what closed it
+
+Both reviewers returned `overall_correctness: incorrect` against this branch and
+both verdicts were accepted before anything shipped. Twenty findings, five of
+them P1, every one reproduced against the built CLI rather than argued from the
+diff. The four that changed behaviour rather than prose:
+
+**A raise bound to a name had two types and neither fitted.** `let stop = fail
+"no"` compiles through `compileBoundRaise`, which answered a `Step`, while the
+binding it feeds wants a `Thunk`. A raise never returns, so it is neither: it is
+`(env: EvalEnv) => never`, which satisfies both without a cast. Typing it as
+either one alone would have forced a cast at the other, and a cast there asserts
+exactly the thing the signature exists to prove.
+
+**A lambda with a name was told to rewrite itself as a loop.** The way out of a
+pure body was chosen by asking whether the node was inside a lambda at all, so
+`let f = fn () { io.print "x" }` got the advice written for
+`rows.map(fn (n) => …)`: build a `let xs = []` and a `forEach`. It has a name, so
+it can simply be lifted. The choice now walks to the nearest body and asks
+whether that body is an argument of a call, which is the thing that actually
+decides whether a `fragment` is reachable. Two copies of that sentence existed,
+in `core` and in `runtime`; the one in `runtime` is deleted and the one beside
+the walk that chooses it is the owner.
+
+**A closer that closed the wrong bracket reported twice.** `print(1}` earned the
+sentence about the `}` and then a second about the file ending at the `(`. Both
+bracket faults leave the opener standing, so both swallow the rest of the file,
+and the cut that already existed for one now answers for both. It has to cut
+from the **opener**, not from the error: a mismatch is raised at the closer while
+the parser's complaint about the same bracket sits earlier in the file, so
+cutting at the closer would have kept the second sentence.
+
+**`VN3010` printed the name-only advice on an index read.** `read-through-nothing.ts`
+had already solved this: `wayPast` returns the shared line only for a plain
+reference and builds the tailored clause otherwise. `helpAboutNothing` took the
+two types and never the node, so the caller could not reach the fix in its own
+file. It takes the node now.
+
+The last one is the one worth keeping. Its test ran both spellings and passed,
+because running a spelling proves the spelling exists; it does not prove the
+repaired program is silent. That is the distinction this changeset draws at
+length two sections below, and this is the case that slipped through it inside
+the file that documents it.
+
 ## Two things this deliberately does not do
 
 `+` still does not join strings. The compiler used to suggest
@@ -196,6 +240,17 @@ and costs a restructure the sentence gives no hint of: ``a verb belongs in a
 `fragment`, or at the top level of a file`` is honest for a `fn` whose caller you
 control and misleading for one woven into other `fn`s, where following it moves
 five files.
+
+And a last one, found by a consolidation rather than by a defect. Routing two
+`Did you mean` sites through one owner proposed rendering both with backticks,
+as every other caller does. Backticks here mean *this is the code, write it*,
+and for every other caller the token shown is the token typed. A module path is
+the one offered name a reader substitutes **inside quotes they already wrote**,
+so the shared spelling would have shipped ``Did you mean `venn/io`?`` and, taken
+at its word, `import { io } from venn/io`, which does not parse. The owner grew
+the distinction instead of being bypassed. **The same words in a different
+syntactic slot are a different claim**, which is how a consolidation ships
+wrong advice with no sentence changed and nobody careless.
 
 The usable form of the rule is cheap. **A rewrite that touches only identifiers
 is safe. A rewrite that touches punctuation must be applied to a real earning

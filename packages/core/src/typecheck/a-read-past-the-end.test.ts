@@ -131,15 +131,98 @@ describe("what a position read stays quiet about", () => {
   });
 });
 
-/** A pair is `list<A | B>`, so a position answers `dynamic`, and bare. */
+/**
+ * A pair says which of its positions holds what, because `entries`, `zip` and
+ * `pairwise` all know. There is no tuple here to write that down with, so the
+ * list carries it beside the union every message still prints.
+ */
 describe("a position of a pair", () => {
-  it("says nothing, because nothing here knows the position", () => {
-    const pairs = ['let counts = ["a", "b"].countBy(w => w)', "let rows = counts.entries"];
+  const PAIRS = ['let counts = ["a", "b"].countBy(w => w)', "let rows = counts.entries"];
 
-    expect(said(...pairs, "print rows[0][1]")).toEqual([]);
+  it("answers the key at 0 and the count at 1", () => {
+    const both = ["let k: string = rows.first[0]", "let n: number = rows.first[1]"];
+
+    expect(said(...PAIRS, ...both)).toEqual([]);
+  });
+
+  it("refuses the two of them the other way round", () => {
+    expect(said(...PAIRS, "let n: number = rows.first[0]")[0]).toBe(
+      "VN3010 Type mismatch: expected number, found string.",
+    );
+  });
+
+  /** The pair knows its positions; the list of pairs still knows nothing of its length. */
+  it("carries the nothing on the list the pairs are in", () => {
+    expect(said(...PAIRS, "print rows[0][1]")[0]).toBe(
+      "VN3025 rows[0] may be nothing here, so `[1]` cannot be read from it.",
+    );
   });
 
   it("says nothing when the element is not known yet", () => {
     expect(said("let raw = [1].map(n => n)[0]", "print raw")).toEqual([]);
+  });
+});
+
+/**
+ * A union the reader wrote down is a promise about every position of that list,
+ * and it is checked. The carve-out that let a pair through answered `dynamic`
+ * for this one too, so a `number` held a string and the run printed it.
+ */
+describe("a union somebody declared", () => {
+  const PEEK = [
+    "type Cell = string | number",
+    "fn peek(xs: list<Cell>) {",
+    "  let n: number = xs[0]",
+    "  return n",
+    "}",
+  ];
+
+  it("is refused at a position", () => {
+    expect(said(...PEEK, 'print peek(["a", 1])')[0]).toBe(
+      "VN3010 Type mismatch: expected number, found string | number | null.",
+    );
+  });
+
+  it("is refused by name, in the sentence it has always used", () => {
+    const byName = [...PEEK.slice(0, 2), "  let n: number = xs.first", ...PEEK.slice(3)];
+
+    expect(said(...byName)[0]).toBe(
+      "VN3010 Type mismatch: expected number, found string | number.",
+    );
+  });
+});
+
+/**
+ * One question, two spellings. `positionType` answers nothing for a receiver
+ * that may be nothing, and the position spelling returned `dynamic` before
+ * anything had asked about the nothing at all.
+ */
+describe("the nothing, whichever way the read was spelled", () => {
+  const ROWS = "let rows = [[1, 2], [3, 4]]";
+
+  it("reports a read by position where it reports one by name", () => {
+    expect(said(ROWS, "print rows[9][0]")[0]).toBe(
+      "VN3025 rows[9] may be nothing here, so `[0]` cannot be read from it.",
+    );
+    expect(said(ROWS, "print rows[9].len")[0]).toBe(
+      'VN3025 rows[9] may be nothing here, so "len" cannot be read from it.',
+    );
+  });
+
+  it("carries it through a string the same way", () => {
+    expect(said('let s = ["ab"]', "print s[9][0]")[0]).toBe(
+      "VN3025 s[9] may be nothing here, so `[0]` cannot be read from it.",
+    );
+  });
+
+  it("brackets the stand-in, because `.0` is not a spelling", () => {
+    expect(helped(ROWS, "print rows[9][0]")).toContain("`(rows[9] ?? …)[0]`");
+  });
+
+  it("promises only a way out that reports nothing", () => {
+    const guarded = [ROWS, "let row = rows[9]", "if row != null {", "  print row[0]", "}"];
+
+    expect(problems(ROWS, "print (rows[9] ?? [0])[0]")).toEqual([]);
+    expect(problems(...guarded)).toEqual([]);
   });
 });

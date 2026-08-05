@@ -150,7 +150,8 @@ describe("a quote written inside a `${…}` of the string that holds it", () => 
   });
 
   it("reports every placeholder a quote cut short, not just the first", () => {
-    expect(said('print "a ${m["x"]} b ${m["y"]} c"')).toHaveLength(2);
+    const both = [`${DOUBLE}: \`\${m['x']}\`.`, `${DOUBLE}: \`\${m['y']}\`.`];
+    expect(said('print "a ${m["x"]} b ${m["y"]} c"')).toEqual(both);
   });
 });
 

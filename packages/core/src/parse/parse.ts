@@ -9,7 +9,7 @@ import { noSuchOperator } from "./no-such-operator.js";
 import type { ParseOutput } from "./parse-output.types.js";
 import { quoteInASlot } from "./quote-in-a-slot.js";
 import { removedSyntax } from "./removed-syntax.js";
-import { isUnclosedBracket } from "./said-error.js";
+import { wakeStartsAt } from "./said-error.js";
 import { spacedMinus } from "./spaced-minus.js";
 import { verbInALambda } from "./verb-in-a-lambda.js";
 
@@ -170,17 +170,19 @@ function lexicalProblems(args: {
 /**
  * Where the parser's own errors stop being about the line they are on.
  *
- * A statement the language no longer has cannot parse, and an unclosed `(`
+ * A statement the language no longer has cannot parse, and a `(` left open
  * takes the newlines out of everything after it, so past either one what the
- * parser reached is the wake of that one mistake, reported somewhere else.
+ * parser reached is the wake of that one mistake, reported somewhere else. A
+ * closer that closes the wrong bracket leaves the `(` open too, which is why
+ * both bracket faults are one question here rather than two.
  */
 function cutoff(args: {
   errors: readonly { offset: number; message: string }[];
   removed: readonly Problem[];
 }): number {
-  const swallowed = args.errors.find((error) => isUnclosedBracket(error.message));
+  const swallowed = args.errors.map(wakeStartsAt).filter((at) => at !== undefined);
   const gone = args.removed[0]?.span.offset ?? Number.POSITIVE_INFINITY;
-  return Math.min(gone, swallowed?.offset ?? Number.POSITIVE_INFINITY);
+  return Math.min(gone, ...swallowed);
 }
 
 /**

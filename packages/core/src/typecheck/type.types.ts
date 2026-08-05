@@ -40,6 +40,15 @@ export interface ExactType {
 export interface ListType {
   readonly kind: "list";
   readonly element: Type;
+  /**
+   * What each position holds, for a list whose layout is settled: the pair
+   * `entries`, `zip` and `pairwise` hand back, and nothing else.
+   *
+   * There is no tuple here, so `element` stays the union a reader sees and every
+   * message prints. This says which member position 0 really is, which is the
+   * difference between `e[1]` being a number and being either of two things.
+   */
+  readonly positions?: readonly Type[];
 }
 
 /** One of several. What makes `"GET" | "POST"` more than a string. */
@@ -116,6 +125,24 @@ export const VOID: PrimType = prim("void");
 
 export function list(element: Type): ListType {
   return { kind: "list", element };
+}
+
+/**
+ * A pair: a list whose every position is known one by one.
+ *
+ * The element is passed rather than worked out, because it is what the reader
+ * already sees and has to keep seeing. `entries` prints `list<string | number>`
+ * either way, and `[1, 2].pairwise` prints `list<list<number>>` only while its
+ * element stays the element it started as.
+ *
+ * @param element What the list holds throughout, for printing, fitting and
+ * unifying, all of which know nothing about positions.
+ * @param positions What each position holds, in order. Every one of them has to
+ * fit `element`, and there have to be as many as the list is long.
+ * @returns The list, carrying both answers.
+ */
+export function positional(element: Type, positions: readonly Type[]): ListType {
+  return { kind: "list", element, positions };
 }
 
 export function fn(params: readonly Type[], result: Type): FnType {

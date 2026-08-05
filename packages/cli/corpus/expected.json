@@ -830,7 +830,7 @@
     },
     "fnExpr": {
       "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb needs a statement of its own. To keep what it answers, write `let xs = []` and then `forEach n in ns { xs = xs.push(…) }`."
+        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
       ],
       "out": null,
       "refused": {
@@ -860,26 +860,22 @@
       }
     },
     "fnDecl": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
+      "problems": [],
       "out": null,
       "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "code": "VN6002",
+        "title": "the guard fired",
         "help": null,
         "uri": "memory://corpus.vn",
         "column": 1
       }
     },
     "fnExpr": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `fail`. A verb needs a statement of its own. To keep what it answers, write `let xs = []` and then `forEach n in ns { xs = xs.push(…) }`."
-      ],
+      "problems": [],
       "out": null,
       "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "code": "VN6002",
+        "title": "the guard fired",
         "help": null,
         "uri": "memory://corpus.vn",
         "column": 1
@@ -918,7 +914,7 @@
     },
     "fnExpr": {
       "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb needs a statement of its own. To keep what it answers, write `let xs = []` and then `forEach n in ns { xs = xs.push(…) }`."
+        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
       ],
       "out": null,
       "refused": {

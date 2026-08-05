@@ -73,15 +73,30 @@ interface Verdict {
 function suppressBracketedNewlines(tokens: Token[]): Walked {
   const kept: Token[] = [];
   const open: Token[] = [];
+  const named = new Set<Token>();
   const errors: LexingError[] = [];
   for (const [index, token] of tokens.entries()) {
-    const verdict = weigh({ token, tokens, index, open });
+    const verdict = weigh({ token, tokens, index, open, named });
     if (verdict.error) errors.push(verdict.error);
     if (verdict.kept) kept.push(token);
   }
-  const swallowed = open.filter((token) => DROPS_NEWLINES.includes(token.tokenType.name));
-  errors.push(...swallowed.map(unclosedError));
+  errors.push(...unreported({ open, named }).map(unclosedError));
   return { tokens: kept, errors: errors.sort((one, other) => one.offset - other.offset) };
+}
+
+/**
+ * The swallowing brackets left standing with no report of their own beside them.
+ *
+ * A bracket a mismatched closer has already named is not one of them. That
+ * report points at a closer the walk reached and names the character that
+ * closes the bracket, so writing it closes the bracket too: one mistake, one
+ * report. The sentence about an unclosed bracket says the rest of the file is
+ * read as part of it, which is the one thing the report beside it disproves.
+ */
+function unreported(args: { open: Token[]; named: Set<Token> }): Token[] {
+  const { open, named } = args;
+  const swallows = (token: Token) => DROPS_NEWLINES.includes(token.tokenType.name);
+  return open.filter((token) => swallows(token) && !named.has(token));
 }
 
 /**
@@ -90,12 +105,18 @@ function suppressBracketedNewlines(tokens: Token[]): Walked {
  * `open` is pushed and popped here, since that stack is the only state the walk
  * carries from one token to the next.
  */
-function weigh(args: { token: Token; tokens: Token[]; index: number; open: Token[] }): Verdict {
-  const { token, open } = args;
+function weigh(args: {
+  token: Token;
+  tokens: Token[];
+  index: number;
+  open: Token[];
+  named: Set<Token>;
+}): Verdict {
+  const { token, open, named } = args;
   const name = token.tokenType.name;
   if (name === "NL") return newline(args);
   if (OPENERS.includes(name)) open.push(token);
-  else if (CLOSERS.includes(name)) return { kept: true, error: discharge({ token, open }) };
+  else if (CLOSERS.includes(name)) return { kept: true, error: discharge({ token, open, named }) };
   return { kept: true };
 }
 
@@ -138,23 +159,41 @@ function closerAfter(args: { tokens: Token[]; index: number; top: string }): str
   return tokens[at]?.tokenType.name === wanted ? wanted : undefined;
 }
 
+/** A closer, the brackets standing open above it, and the ones spoken for. */
+interface Closing {
+  token: Token;
+  open: Token[];
+  named: Set<Token>;
+}
+
 /**
  * A closer, which discharges the bracket on top only when it is that bracket's.
  *
  * Popping on any closer let a stray `}` cancel an open `(`, and with the `(`
- * gone so was the one report the rest of that file could still earn.
+ * gone so was the one report the rest of that file could still earn. The
+ * bracket stays open, and `named` carries which brackets have been spoken for,
+ * so the report about a bracket nobody closed is not written beside a report
+ * that just pointed at the closer for it.
+ *
+ * With nothing open, nothing was being suppressed and nothing is missing: the
+ * parser's own line about the closer is the better one, and a second report
+ * beside it would only crowd the file with the same news twice.
  */
-function discharge(args: { token: Token; open: Token[] }): LexingError | undefined {
-  const { token, open } = args;
+function discharge(args: Closing): LexingError | undefined {
+  const { token, open, named } = args;
   const top = open.at(-1);
-  if (top && top.tokenType.name === OPENERS[CLOSERS.indexOf(token.tokenType.name)]) {
+  if (!top) return undefined;
+  if (closes({ closer: token, opener: top })) {
     open.pop();
     return undefined;
   }
-  // With nothing open, nothing was being suppressed and nothing is missing: the
-  // parser's own line about the closer is the better one, and a second report
-  // beside it would only crowd the file with the same news twice.
-  return top ? mismatchError({ closer: token, opener: top }) : undefined;
+  named.add(top);
+  return mismatchError({ closer: token, opener: top });
+}
+
+/** Whether this closer is the one the bracket standing open is waiting for. */
+function closes(args: { closer: Token; opener: Token }): boolean {
+  return args.opener.tokenType.name === OPENERS[CLOSERS.indexOf(args.closer.tokenType.name)];
 }
 
 /**
@@ -249,11 +288,12 @@ function mismatchError(args: { closer: Token; opener: Token }): LexingError {
   const { closer, opener } = args;
   const wanted = CLOSERS[OPENERS.indexOf(opener.tokenType.name)] ?? "";
   const said = `->${closer.image}<- against ->${opener.image}<- expected ->${wanted}<-`;
+  const opened = `opened at offset: ${opener.startOffset}`;
   return {
     offset: closer.startOffset,
     length: closer.image.length,
     line: closer.startLine ?? 1,
     column: closer.startColumn ?? 1,
-    message: `mismatched bracket: ${said} at offset: ${closer.startOffset}`,
+    message: `mismatched bracket: ${said} ${opened} at offset: ${closer.startOffset}`,
   };
 }

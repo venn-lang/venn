@@ -48,12 +48,17 @@ describe("a mistake inside a lambda", () => {
 /** Every member that hands its callback an element hands over the real one. */
 describe("the members that know their element", () => {
   const XS = "const xs = [1, 2, 3]";
+  const EACH = ["map", "filter", "sortBy", "sumBy", "countBy", "groupBy", "keyBy", "forEach"];
 
-  it("hands it over through each of them", () => {
-    const each = ["map", "filter", "sortBy", "sumBy", "countBy", "groupBy", "keyBy", "forEach"];
-    const lines = each.map((name, at) => `const r${at} = xs.${name}(x => x.nope)`);
-
-    expect(titles([XS, ...lines].join("\n"))).toHaveLength(each.length);
+  /**
+   * One row per member, because the count does not tell them apart: a member
+   * handing its callback the whole list reports once per line too, and only the
+   * type named in the sentence says which of the two happened.
+   */
+  it.each(EACH)("hands it over through %s", (name) => {
+    expect(titles([XS, `const r = xs.${name}(x => x.nope)`].join("\n"))).toEqual([
+      'Type number has no member "nope".',
+    ]);
   });
 
   it("hands a map's value over to mapValues and filterValues", () => {

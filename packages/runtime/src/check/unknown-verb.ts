@@ -1,4 +1,11 @@
-import { type AstNode, buildProblem, CODES, nearestName, type Problem } from "@venn-lang/core";
+import {
+  type AstNode,
+  buildProblem,
+  CODES,
+  didYouMean,
+  nearestName,
+  type Problem,
+} from "@venn-lang/core";
 import { nodeSpan, resolveTarget, splitTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 
@@ -27,7 +34,7 @@ export function unknownVerb(args: { node: AstNode; target: string; ctx: CheckCon
     title: `"${written}" does not publish "${real.name}".`,
   });
   const near = nearestName(real.name, verbsOf(real.namespace, ctx));
-  return near ? { ...found, help: `Did you mean \`${written}.${near}\`?` } : found;
+  return near ? { ...found, help: didYouMean(`${written}.${near}`) } : found;
 }
 
 /** Every verb of one namespace, which is the candidate set for the suggestion. */

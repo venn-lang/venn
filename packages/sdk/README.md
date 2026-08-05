@@ -129,6 +129,11 @@ Capabilities are negotiated when the registry is built, before a single line run
 requires `net` on a host that does not offer it fails with `VN2010` naming the plugin and the
 missing capability, never with a `TypeError` halfway through a test.
 
+`requires` decides one more thing: a `fn` is pure, and the checker reads it to know what pure
+means, so a verb whose plugin requires anything is refused inside a `fn` with `VN2024`. A single
+verb that does not use what its namespace asked for says so with `pure: true`; see
+[Actions](#actions).
+
 A plugin with no verbs at all is legitimate. `@venn-lang/env` contributes only its namespace, so that a
 file reading configuration still has to declare `import { env } from "venn/env"`.
 
@@ -146,6 +151,16 @@ file reading configuration still has to declare `import { env } from "venn/env"`
 the checker reads, via `signatureOf`. Pass `signature` yourself for a shape `args` cannot describe,
 and it wins. Write neither and the call stays `dynamic`: a plugin that says nothing about types is
 still a working plugin.
+
+`pure` says this verb reaches nothing, so a `fn` may call it. Without it purity is read from the
+plugin's `requires`, which is the right answer per plugin and too coarse per verb: `date.now` reads
+the clock while `date.format` writes out a moment it was handed, from the same namespace. `true` is
+the only value, because "not pure" has one spelling and that is leaving the field out; absent means
+the verb inherits its plugin's capabilities, so an author who says nothing never gets permission to
+do I/O inside something the language calls pure. The claim is verified rather than believed:
+`a-verb-may-claim-purity.test.ts` in `@venn-lang/stdlib` drives every verb of every plugin with a
+context that records the ports it asks for, and fails any verb that claims `pure` while asking for
+one.
 
 `run(ctx, input)` receives `input.args` (the evaluated positional values) and `input.params` (the
 options, already parsed by the schema). Validation happens before `run` is entered, and it fails in
@@ -327,8 +342,24 @@ optional, as the WHATWG forgiving-base64 rules have it.
 
 ## The CryptoEngine port
 
-`venn.port.crypto-engine`, contract version 2, no capability required, four methods: `digest`,
+`venn.port.crypto-engine`, contract version 2, capability `random`, four methods: `digest`,
 `hmac`, `derive`, `randomBytes`. Every one answers in lowercase hex.
+
+`randomBytes` draws, so `random` is what the port asks the host for. A port binds as a whole, and a
+plugin declares what its ports require, so `@venn-lang/crypto` and `@venn-lang/auth` require
+`random` as well. That is what decides where their verbs may be called: a `fn` is pure, and a verb
+whose plugin asks the host for anything is refused inside one.
+
+<!-- venn-check: the refusal this port's capability produces, which is the point of the block -->
+
+```ruby
+import { crypto } from "venn/crypto"
+fn digest(text) { return crypto.hash(text) }   # VN2024, a `fn` cannot call a verb that reaches
+```
+
+A digest is deterministic and pays for the draw's declaration anyway. The same call in a `fragment`
+or at the top level is fine, and a verb that reaches nothing says so per verb with `pure: true`; see
+[Actions](#actions).
 
 This is the one port declared in the SDK rather than in the package whose verbs use it. Both
 `@venn-lang/crypto` and `@venn-lang/auth` need it, a plugin may not depend on another plugin, and

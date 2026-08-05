@@ -1,49 +1,33 @@
 import { describe, expect, it } from "vitest";
-import type { Closure, EvalEnv } from "../expr/index.js";
-import { callClosure } from "../expr/index.js";
-import type { Document, FnDecl } from "../generated/ast.js";
-import { isFnDecl } from "../generated/ast.js";
-import { parse } from "../parse/index.js";
-import { type Caught, caughtValue, type Problem, ProblemError } from "../problem/index.js";
-import { closureOfDecl } from "./compile.js";
+import { ProblemError } from "../problem/index.js";
+import { call, evaluated, program, raised, said } from "./a-fn-may-fail.suite.js";
 
-const NEWLINE = String.fromCharCode(10);
-
-/** A program written as lines, the way a body has to be. */
-function program(...lines: string[]): string {
-  return lines.join(NEWLINE);
-}
-
-/** Parse a program and call one of its `fn`s, letting whatever it raises out. */
-function call(source: string, name: string, args: unknown[] = []): unknown {
-  const parsed = parse(source);
-  expect(parsed.problems.map((problem) => problem.title)).toEqual([]);
-  const bindings: Record<string, Closure> = {};
-  const env: EvalEnv = { lookup: (bound) => bindings[bound] };
-  for (const decl of (parsed.ast as Document).decls) {
-    if (isFnDecl(decl)) bindings[decl.name] = closureOfDecl(decl as FnDecl, env);
-  }
-  return callClosure(bindings[name] as Closure, args);
-}
-
-/** What a caller reads out of the failure a call raised. */
-function raised(source: string, args: unknown[] = []): Caught {
+/**
+ * What a verb in a pure body draws here: the type checker's sentences, then the
+ * compiler's refusal.
+ *
+ * The type checker is `core`'s and says nothing about a verb, because the check
+ * that does lives in `@venn-lang/runtime`, which this package cannot import: a
+ * `core` test reaches the compiler half only. That is why the list below holds
+ * one sentence rather than two, and why `check-pure-verb.test.ts` next door owns
+ * proving the other half says the same words. Both are asked here anyway, so a
+ * type error raised beside the refusal would show up rather than be filtered.
+ */
+function refusal(source: string): string[] {
   try {
-    call(source, "f", args);
-  } catch (failure) {
-    return caughtValue(failure);
-  }
-  throw new Error("the call did not raise");
-}
-
-/** The problem a compile refused with, for the verbs a pure body may not run. */
-function refusal(source: string): Problem | undefined {
-  try {
-    call(source, "f");
+    evaluated({ source, name: "f" });
   } catch (thrown) {
-    if (thrown instanceof ProblemError) return thrown.problem;
+    if (!(thrown instanceof ProblemError)) throw thrown;
+    return [...said(source), `${thrown.problem.code} ${thrown.problem.title}`];
   }
-  return undefined;
+  return said(source);
+}
+
+/** The one sentence a verb in a pure body earns from the compiler. */
+function refused(verb: string): string[] {
+  return [
+    `VN2024 A \`fn\` is pure, so it cannot call \`${verb}\`. A verb belongs in a \`fragment\`, or at the top level of a file.`,
+  ];
 }
 
 /**
@@ -192,23 +176,19 @@ describe("a fn that catches", () => {
  */
 describe("a verb that touches the world", () => {
   it("is refused in a body written on one line", () => {
-    expect(refusal('fn f() { print "x" }')).toMatchObject({
-      code: "VN2024",
-      title:
-        "A `fn` is pure, so it cannot call `print`. A verb belongs in a `fragment`, or at the top level of a file.",
-    });
+    expect(refusal('fn f() { print "x" }')).toEqual(refused("print"));
   });
 
   it("is refused in a body written over several", () => {
     const source = program("fn f() {", '  print "x"', "  return 1", "}");
 
-    expect(refusal(source)?.code).toBe("VN2024");
+    expect(refusal(source)).toEqual(refused("print"));
   });
 
   it("is refused one level into the body", () => {
     const source = program("fn f(c) {", '  if c { log "x" }', "  return c", "}");
 
-    expect(refusal(source)?.code).toBe("VN2024");
+    expect(refusal(source)).toEqual(refused("log"));
   });
 
   it("is refused inside a forEach, and inside an else", () => {
@@ -231,13 +211,13 @@ describe("a verb that touches the world", () => {
       "}",
     );
 
-    expect([refusal(looped)?.code, refusal(otherwise)?.code]).toEqual(["VN2024", "VN2024"]);
+    expect([refusal(looped), refusal(otherwise)]).toEqual([refused("print"), refused("print")]);
   });
 
   it("is refused when its result is bound", () => {
     const source = program("fn f() {", '  let a = print "x"', "  return a", "}");
 
-    expect(refusal(source)?.code).toBe("VN2024");
+    expect(refusal(source)).toEqual(refused("print"));
   });
 });
 

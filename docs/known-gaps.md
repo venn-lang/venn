@@ -673,6 +673,78 @@ no offset reads the host's own timezone, so the same text is a different moment 
 a different machine, which is the same class as the path separator and has not
 been ruled on.
 
+## 18. An import hint inside `"${…}"` is repeated once per slot
+
+**Severity: low.** The promise is one hint per file for a missing import. A read
+written only inside an interpolation slot gets one per slot instead.
+
+```ruby
+print "${env.HOME}"
+print "${env.PATH}"
+```
+```
+VN2007 · "env" is not imported in this file.
+  at    …\e.vn:1:8
+  help  Write `import { env } from "venn/env"`.
+VN2007 · "env" is not imported in this file.
+  at    …\e.vn:2:8
+  help  Write `import { env } from "venn/env"`.
+```
+
+Written as `print env.HOME` twice, the same file earns the sentence once. A slot
+is parsed apart from the document that holds it, so the pass that remembers
+having already said this never sees the second one coming. It is strictly better
+than it was everywhere else, and this is the one shape where the once-per-file
+promise does not hold.
+
+## 19. A package name nobody could resolve is silent about the name
+
+**Severity: medium.** A misspelt namespace of the language is caught by a family
+rule and answered with the spelling; a misspelt npm dependency is not answered at
+all.
+
+```ruby
+import { x } from "lodashh"
+print 1
+```
+```
+VN5005 · "x" is imported and never used.
+  at    …\f.vn:1:1
+  help  Take it out of the import, or use it.
+```
+
+Nothing says `lodashh` was never found. The one sentence printed is about the
+binding being unused, which is true and is not the mistake: the reader is told to
+delete the import they were trying to write. `VN2028` answers for `venn/*`
+because the set of those is known at check time and can be searched for a near
+spelling. A package resolves through the host, the checker has no resolver
+answer, and the difference is invisible from the line.
+
+## 20. Reading a namespace is the only way to see what it holds, and is undocumented
+
+**Severity: low, and it is the entry most likely to save an hour.**
+
+```ruby
+print io
+```
+```
+{ print: <fn>, write: <fn>, eprint: <fn>, args: <fn>, readLine: <fn>, readAll: <fn>, readKey: <fn>, ask: <fn>, size: <fn>, isTerminal: <fn>, cursor: { to: <fn>, move: <fn>, hide: <fn>, show: <fn> }, clearLine: <fn>, clear: <fn> }
+```
+
+That is the whole surface of a namespace, printed by a program, with no import
+and no tooling. It is the only discovery mechanism the language has outside an
+editor, and it appears in no document: it was found by guessing that a namespace
+might be a value. Entry 1 explains why that matters more here than it would
+elsewhere.
+
+It works for a namespace nobody imported, which is the case that matters, and
+the line beside it does not. `print math` prints all thirty-five names; `print
+math.pi` on the very next line reports `VN2007 · "math" is not imported in this
+file.` So the whole is readable and a part of it is not, and a reader who has
+just been shown `pi` exists is refused when they ask for it. That is the gap
+rather than the discovery: two answers about one name in one file, and the
+shorter question is the one that works.
+
 ---
 
 Nothing here is a promise that the list is complete, and an empty list would not

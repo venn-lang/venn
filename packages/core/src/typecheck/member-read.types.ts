@@ -19,4 +19,11 @@ export interface MemberRead {
    * ask, so it always tells.
    */
   asking: boolean;
+  /**
+   * How the read is written after the receiver, where writing the name after a
+   * dot would not compile: a position is `[0]`, and `.0` is not Venn. Set only
+   * for a read by position, and preferred over `name` by everything that prints
+   * a sentence about the read.
+   */
+  spelled?: string;
 }

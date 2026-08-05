@@ -125,11 +125,13 @@
     "packages/core/src/interpolation/join-template.test.ts": 1,
     "packages/core/src/interpolation/scan-interpolations.test.ts": 1,
     "packages/core/src/interpolation/stringify-value.test.ts": 4,
-    "packages/core/src/lang/venn-lexer.test.ts": 4,
+    "packages/core/src/lang/venn-lexer-brackets.test.ts": 2,
+    "packages/core/src/lang/venn-lexer.test.ts": 3,
     "packages/core/src/module/module-file.test.ts": 1,
     "packages/core/src/parse/a-scan-stays-linear.test.ts": 1,
     "packages/core/src/parse/an-operator-that-is-not-here.test.ts": 1,
     "packages/core/src/parse/arrow-fn.test.ts": 1,
+    "packages/core/src/parse/at-an-offset.test.ts": 1,
     "packages/core/src/parse/bracket-the-argument.test.ts": 2,
     "packages/core/src/parse/bracket-the-deco.test.ts": 1,
     "packages/core/src/parse/bracket-the-try.test.ts": 1,
@@ -154,6 +156,7 @@
     "packages/core/src/problem/caught.test.ts": 3,
     "packages/core/src/problem/problem-of.test.ts": 4,
     "packages/core/src/span/slot-span.test.ts": 1,
+    "packages/core/src/suggest/did-you-mean.test.ts": 1,
     "packages/core/src/suggest/nearest-name.ts": 1,
     "packages/core/src/typecheck/a-block-body-and-its-returns.test.ts": 2,
     "packages/core/src/typecheck/a-continue-still-fits.test.ts": 4,
@@ -162,6 +165,7 @@
     "packages/core/src/typecheck/a-member-nearly-spelled.test.ts": 1,
     "packages/core/src/typecheck/a-nullable-is-not-the-plain-type.test.ts": 5,
     "packages/core/src/typecheck/a-position-is-not-a-name.test.ts": 3,
+    "packages/core/src/typecheck/a-read-past-the-end.test.ts": 3,
     "packages/core/src/typecheck/a-result-nobody-kept.test.ts": 1,
     "packages/core/src/typecheck/a-type-nothing-declares.test.ts": 4,
     "packages/core/src/typecheck/an-arity-is-counted.test.ts": 2,
@@ -304,6 +308,7 @@
     "packages/project/src/workspace/inherit.test.ts": 1,
     "packages/runtime/src/analyze/analyze.test.ts": 1,
     "packages/runtime/src/analyze/create-front-end.ts": 1,
+    "packages/runtime/src/check/a-verb-inside-a-lambda.test.ts": 1,
     "packages/runtime/src/check/check-assign.test.ts": 2,
     "packages/runtime/src/check/check-calls.ts": 1,
     "packages/runtime/src/check/check-decorator-target.test.ts": 1,
@@ -327,7 +332,6 @@
     "packages/runtime/src/check/deco-body.test.ts": 1,
     "packages/runtime/src/check/default-import.test.ts": 1,
     "packages/runtime/src/check/import-cycle.test.ts": 2,
-    "packages/runtime/src/check/instead-of-a-lambda.test.ts": 1,
     "packages/runtime/src/check/one-namespace-one-answer.test.ts": 3,
     "packages/runtime/src/check/the-lint-family.test.ts": 5,
     "packages/runtime/src/check/three-callers-agree.test.ts": 2,
@@ -641,29 +645,13 @@
     "packages/vscode/src/vscode.stub.ts": 6
   },
   "more than 3 arguments": {
-    "packages/contracts/src/ports/manifest-provider/edit/edit-dependency.ts": [
-      "replaced"
-    ],
-    "packages/core/src/compile/nodes/map-fields.ts": [
-      "waiting4"
-    ],
-    "packages/core/src/expand/expand.ts": [
-      "refuse"
-    ],
-    "packages/core/src/expr/invoke.ts": [
-      "callClosure3",
-      "invoke3"
-    ],
-    "packages/core/src/graph/to-graph.ts": [
-      "addStatement"
-    ],
-    "packages/core/src/typecheck/check-cases.ts": [
-      "report"
-    ],
-    "packages/core/src/typecheck/check-stmts.ts": [
-      "bound",
-      "iterating"
-    ],
+    "packages/contracts/src/ports/manifest-provider/edit/edit-dependency.ts": ["replaced"],
+    "packages/core/src/compile/nodes/map-fields.ts": ["waiting4"],
+    "packages/core/src/expand/expand.ts": ["refuse"],
+    "packages/core/src/expr/invoke.ts": ["callClosure3", "invoke3"],
+    "packages/core/src/graph/to-graph.ts": ["addStatement"],
+    "packages/core/src/typecheck/check-cases.ts": ["report"],
+    "packages/core/src/typecheck/check-stmts.ts": ["bound", "iterating"],
     "packages/core/src/typecheck/infer.ts": [
       "expect",
       "mismatched",
@@ -671,51 +659,24 @@
       "report",
       "takenApart"
     ],
-    "packages/core/src/typecheck/named-types.ts": [
-      "collectNamedTypes"
-    ],
-    "packages/core/src/typecheck/pattern-types.ts": [
-      "notA"
-    ],
-    "packages/core/src/typecheck/poured-into.ts": [
-      "field"
-    ],
-    "packages/lsp/src/completion/completion.ts": [
-      "afterDot",
-      "argument",
-      "itemsFor"
-    ],
-    "packages/lsp/src/hover/render-decl.ts": [
-      "signatureOf"
-    ],
-    "packages/runtime/src/scheduler/run-assign.ts": [
-      "place"
-    ],
-    "packages/runtime/src/scheduler/run-block.ts": [
-      "resume"
-    ],
+    "packages/core/src/typecheck/named-types.ts": ["collectNamedTypes"],
+    "packages/core/src/typecheck/pattern-types.ts": ["notA"],
+    "packages/core/src/typecheck/poured-into.ts": ["field"],
+    "packages/lsp/src/completion/completion.ts": ["afterDot", "argument", "itemsFor"],
+    "packages/lsp/src/hover/render-decl.ts": ["signatureOf"],
+    "packages/runtime/src/scheduler/run-assign.ts": ["place"],
+    "packages/runtime/src/scheduler/run-block.ts": ["resume"],
     "packages/runtime/src/scheduler/run-foreach.ts": [
       "iterate",
       "resume",
       "sequential",
       "slowSequential"
     ],
-    "packages/runtime/src/scheduler/run-if.ts": [
-      "taken"
-    ],
-    "packages/runtime/src/scheduler/run-match.ts": [
-      "taken"
-    ],
-    "packages/std-assert/src/assert.test.ts": [
-      "message",
-      "run"
-    ],
-    "packages/std-browser/src/actions/browser-actions.test.ts": [
-      "run"
-    ],
-    "packages/std-math/src/actions/functions.ts": [
-      "binary"
-    ]
+    "packages/runtime/src/scheduler/run-if.ts": ["taken"],
+    "packages/runtime/src/scheduler/run-match.ts": ["taken"],
+    "packages/std-assert/src/assert.test.ts": ["message", "run"],
+    "packages/std-browser/src/actions/browser-actions.test.ts": ["run"],
+    "packages/std-math/src/actions/functions.ts": ["binary"]
   },
   "imports past a barrel": {
     "packages/cli/src/cli.ts": 9,

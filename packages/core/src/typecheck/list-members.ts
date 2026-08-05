@@ -10,6 +10,7 @@ import {
   mapOf,
   NUMBER,
   optional,
+  positional,
   STRING,
   type Type,
   type TypeVar,
@@ -93,7 +94,7 @@ function listTable(element: Type, ctx: TypeContext): Record<string, () => Type> 
     partition: () => fn([predicate], list(self)),
     chunk: () => fn([NUMBER], list(self)),
     windows: () => fn([NUMBER], list(self)),
-    pairwise: () => list(self),
+    pairwise: () => list(positional(element, [element, element])),
     zip: () => zipType(element, u()),
     unzip: () => list(list(flattened(element))),
     map: () => mapType(over, u()),
@@ -128,9 +129,15 @@ function flattened(element: Type): Type {
   return t;
 }
 
-/** `[1, 2].zip(["a"])` gives `[[1, "a"]]`: pairs of one side and the other. */
+/**
+ * `[1, 2].zip(["a"])` gives `[[1, "a"]]`: pairs of one side and the other.
+ *
+ * The element stays the union, so the type reads and fits as it always has, and
+ * the positions say which side each half came from.
+ */
 function zipType(element: Type, other: Type): Type {
-  return fn([list(other)], list(list(union([element, other]))));
+  const pair = positional(union([element, other]), [element, other]);
+  return fn([list(other)], list(pair));
 }
 
 function mapType(over: Over, into: Type): Type {

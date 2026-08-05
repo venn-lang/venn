@@ -18,7 +18,6 @@ import type { ResolvedAction } from "../registry/index.js";
 import { actionTarget, nodeSpan, PRELUDE, resolveTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 import { bindsItself } from "./check-verb-as-a-value.js";
-import { IN_A_STATEMENT } from "./instead-of-a-lambda.js";
 
 /**
  * The one verb a pure body may run.
@@ -49,14 +48,11 @@ export function checkPureVerb(node: AstNode, ctx: CheckContext): Problem[] {
   if (!insideAPureBody(node)) return [];
   const called = verbNamedBy(node, ctx);
   if (called === undefined) return [];
-  // A lambda is a pure body with nowhere to move a verb to, so it names its own
-  // way out; a `fn` somebody declared takes the one the sentence has always had.
-  const instead = insideALambda(node) ? IN_A_STATEMENT : undefined;
   return [
     buildProblem({
       spec: CODES.VN2024_VERB_IN_A_PURE_BODY,
       span: nodeSpan(node, ctx.uri),
-      title: pureBodyCannotCall(called, instead),
+      title: pureBodyCannotCall(called, node),
     }),
   ];
 }
@@ -81,11 +77,22 @@ function verbNamedBy(node: AstNode, ctx: CheckContext): string | undefined {
  * of the file's own can legitimately stand there. `fn after(x) { let a = x  a }`
  * is a missing separator, not a verb: it parses as `let a = (x a)`, and calling
  * a parameter a verb would one day tell a reader their callback is one.
+ *
+ * `fail` is asked about first, for the reason the other two spellings already
+ * give: a raise is control flow, so a pure body may run it at any depth and in
+ * any layout. This spelling was the one that forgot, and it refused
+ * `let stop = fail "the guard"` under a sentence saying a `fn` may not `fail`,
+ * which is the opposite of the rule, pointing at a `fragment` where the line is
+ * already legal exactly as written. The binding is dead, because nothing comes
+ * back from a raise, and it is dead in the same way at the top level and inside
+ * a `fragment`. Being dead is not this rule's business: VN2027 looks at what a
+ * `let` may hold and permits this one on purpose.
  */
 function boundVerb(stmt: LetStmt, ctx: CheckContext): string | undefined {
   if (stmt.args.length === 0 && stmt.opts === undefined) return undefined;
   const target = actionTarget(stmt.value);
   if (target === undefined) return "a verb";
+  if (target === RAISES) return undefined;
   const { namespace } = resolveTarget(target, ctx.aliases);
   return bindsItself(namespace, ctx) ? undefined : target;
 }
@@ -142,7 +149,7 @@ function verbInAValue(call: Call, ctx: CheckContext): string | undefined {
  * The default is the safe one and is unchanged: an unannotated verb inherits its
  * plugin, so a plugin author who says nothing never accidentally gets permission
  * to do I/O inside something the language calls pure. The claim is not taken on
- * trust either. `a-plugin-declares-what-it-reaches.test.ts` in `@venn-lang/stdlib`
+ * trust either. `a-verb-may-claim-purity.test.ts` in `@venn-lang/stdlib`
  * drives every verb and refuses any that claims `pure` while asking for a port,
  * which is the check `requires` itself went without until today.
  */
@@ -157,20 +164,6 @@ function reachesTheWorld(resolved: ResolvedAction | undefined): boolean {
 function insideAPureBody(node: AstNode): boolean {
   for (let at: AstNode | undefined = node.$container; at; at = at.$container) {
     if (isFnDecl(at) || isFnExpr(at)) return true;
-  }
-  return false;
-}
-
-/**
- * Whether the pure body around this node is a lambda rather than a declared `fn`.
- *
- * The nearest one wins, which is what makes `fn f(ns) => ns.map(n => …)` a
- * lambda: the way out a reader can take is decided by the body they are
- * standing in, not by the outermost one they happen to be nested inside.
- */
-function insideALambda(node: AstNode): boolean {
-  for (let at: AstNode | undefined = node.$container; at; at = at.$container) {
-    if (isFnDecl(at) || isFnExpr(at)) return isFnExpr(at);
   }
   return false;
 }

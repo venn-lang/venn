@@ -18,8 +18,8 @@
  */
 
 import { buildProblem, CODES } from "../codes/index.js";
-import { shownColumn } from "../lang/index.js";
 import type { Problem, Span } from "../problem/index.js";
+import { spanAt } from "./at-an-offset.js";
 import { KEYWORDS } from "./keywords.js";
 
 /**
@@ -64,7 +64,7 @@ export function verbInALambda(args: {
   let start = 0;
   for (const [index, text] of args.text.split("\n").entries()) {
     const line = { text, start, number: index + 1 };
-    const problem = args.stopped.has(line.number) ? verbOn(line, args.uri) : undefined;
+    const problem = args.stopped.has(line.number) ? verbOn(line, args) : undefined;
     if (problem) found.push(problem);
     start += text.length + 1;
   }
@@ -86,12 +86,12 @@ interface Handed {
 }
 
 /** The problem for one line, pointed at the spelling rather than at the verb. */
-function verbOn(line: Line, uri: string): Problem | undefined {
+function verbOn(line: Line, args: { text: string; uri: string }): Problem | undefined {
   const handed = handedAVerb(line.text);
   if (!handed) return undefined;
   return buildProblem({
     spec: CODES.VN5010_VERB_IN_A_LAMBDA,
-    span: spanOf(line, uri, handed.called),
+    span: methodSpan({ line, called: handed.called, text: args.text, uri: args.uri }),
     title: `A lambda body is one value, and \`${handed.verb}\` is a verb, so it cannot go in one.`,
     help: helpFor(line.text, handed),
   });
@@ -111,16 +111,20 @@ function handedAVerb(text: string): Handed | undefined {
   return { called, body, verb };
 }
 
-/** Where the method spelling sits: the receiver and the name after its dot. */
-function spanOf(line: Line, uri: string, called: RegExpExecArray): Span {
-  const receiver = called[1] ?? "";
-  return {
-    uri,
-    offset: line.start + called.index,
-    length: receiver.length + 1 + (called[2] ?? "").length,
-    line: line.number,
-    column: shownColumn({ text: line.text, line: line.number, column: called.index + 1 }),
-  };
+/** How wide the method spelling is: the receiver, its dot, and the name after it. */
+function methodSpan(args: {
+  line: Line;
+  called: RegExpExecArray;
+  text: string;
+  uri: string;
+}): Span {
+  const length = (args.called[1] ?? "").length + 1 + (args.called[2] ?? "").length;
+  return spanAt({
+    text: args.text,
+    uri: args.uri,
+    offset: args.line.start + args.called.index,
+    length,
+  });
 }
 
 /**

@@ -160,3 +160,59 @@ describe("a pure body that reaches the world", () => {
     expect(codes(source)).toEqual(["VN2024"]);
   });
 });
+
+/**
+ * A raise is control flow rather than an effect on the world, so a pure body may
+ * run one at any depth and in every spelling that reaches this rule.
+ *
+ * Two of the three spellings knew that and the third did not, so
+ * `let stop = fail "the guard"` was refused inside a `fn` while the same line
+ * checked clean at the top level, inside a `fragment`, and one line over as
+ * `if n < 0 { fail "negative" }`. The sentence it was refused under said a `fn`
+ * cannot `fail`, which is this release's headline inverted, and the way out it
+ * named was a `fragment`, where the line was already legal exactly as written.
+ *
+ * The binding is dead, because nothing comes back from a raise. It is dead in
+ * the same way at the top level, so it is left legal there and here alike:
+ * VN2027 owns what a `let` may hold and permits this one on purpose.
+ */
+const A_FN_MAY_FAIL: Record<string, string> = {
+  "a raise as a statement of the body": 'fn g(n) {\n  fail "no"\n}\nprint g(1)\n',
+  "a raise inside an if": 'fn g(n) {\n  if n < 0 { fail "negative" }\n  return n\n}\nprint g(1)\n',
+  "a raise inside an if inside an if":
+    'fn g(n) {\n  if n < 0 { if n < -9 { fail "way off" } }\n  return n\n}\nprint g(1)\n',
+  "a raise bound to a name, which binds nothing":
+    'fn g(n) {\n  let stop = fail "the guard"\n  return n\n}\nprint g(1)\n',
+  "a raise bound to a name, carrying options too":
+    'fn g(n) {\n  let stop = fail "the guard" { code: "app.guard" }\n  return n\n}\nprint g(1)\n',
+  "a raise bound to a name in a lambda, which is the shape the corpus writes":
+    'const g = fn (n) {\n  let stop = fail "the guard"\n  return n\n}\nprint g(1)\n',
+  "a raise inside an if in a lambda, which has nowhere to move a verb to":
+    'const g = fn (n) {\n  if n < 0 { fail "negative" }\n  return n\n}\nprint g(1)\n',
+};
+
+describe("a fn that fails", () => {
+  it.each(Object.entries(A_FN_MAY_FAIL))("says nothing about %s", (_name, source) => {
+    expect(check(source)).toEqual([]);
+  });
+});
+
+/**
+ * And the same three spellings for a verb that does reach the world, so the
+ * clause above cannot be read as an opening. `wire.send` is the only verb here
+ * whose plugin asked the host for anything.
+ */
+const A_VERB_IS_STILL_REFUSED: Record<string, string> = {
+  "bound with a trailing argument, which is what makes a `let` a call":
+    'import { wire } from "@t/net"\nfn f() {\n  let a = wire.send "x"\n  return a\n}\nprint f()\n',
+  "called as a statement, whose value nothing keeps":
+    'import { wire } from "@t/net"\nfn f() {\n  wire.send "x"\n  return 1\n}\nprint f()\n',
+  "read where a value is wanted":
+    'import { wire } from "@t/net"\nfn f() {\n  let a = wire.send("x")\n  return a\n}\nprint f()\n',
+};
+
+describe("a verb that reaches the world, in each spelling", () => {
+  it.each(Object.entries(A_VERB_IS_STILL_REFUSED))("refuses one %s", (_name, source) => {
+    expect(codes(source)).toEqual(["VN2024"]);
+  });
+});

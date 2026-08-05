@@ -37,6 +37,9 @@ const MISMATCHED = /mismatched bracket: ->(.)<- against ->(.)<- expected ->(.)<-
 /** `dangling separator: ->;<- before ->]<-`: a `;` with nothing after it. */
 const DANGLING = /dangling separator: ->;<- before ->(.)<-/;
 
+/** `opened at offset: 5`: where the bracket a mismatch left standing begins. */
+const OPENED = /opened at offset: (\d+)/;
+
 /**
  * A parse error, in the language's own voice.
  *
@@ -102,13 +105,29 @@ function saidDangling(closer: string): string {
 }
 
 /**
- * Whether a lexing error is a bracket nobody closed.
+ * Where the parser stops being believed, given one lexing error, or nothing.
  *
- * @param message The lexer's message.
- * @returns true when everything the parser said past it is the wake of this.
+ * Both bracket faults answer, and for one reason: the `(` is still open. A
+ * bracket nobody closed obviously swallows the rest of the file, and a closer
+ * that closes the wrong one leaves the opener standing exactly as it was, so
+ * the newlines after it go on being read as part of the bracket. What the
+ * parser reaches from there is the wake of the character already reported, and
+ * a second sentence about it is a second mistake the reader has not made.
+ *
+ * The two answer with different offsets, which is the whole reason this returns
+ * one rather than a yes. An unclosed bracket is raised AT its opener, so the
+ * error's own offset is where the wake begins. A mismatch is raised at the
+ * closer, and the parser's complaint about the opener sits earlier than that:
+ * `print(1}` reports the `}` at column 8 and wants the file to have ended at
+ * the `(` in column 6. Cutting from the closer would keep that second sentence.
+ *
+ * @param error The lexer's message and the offset it was raised at.
+ * @returns The offset past which the parser is echoing this, or `undefined`.
  */
-export function isUnclosedBracket(message: string): boolean {
-  return UNCLOSED.test(message);
+export function wakeStartsAt(error: { message: string; offset: number }): number | undefined {
+  const opened = OPENED.exec(error.message);
+  if (opened) return Number(opened[1]);
+  return UNCLOSED.test(error.message) ? error.offset : undefined;
 }
 
 /**

@@ -98,4 +98,45 @@ describe("a type the file declares", () => {
     expect(said(hover)).toContain("type Summary");
     expect(said(hover)).toContain("rows: list<Sale>");
   });
+
+  /**
+   * A hover has an edge, and a record with forty fields would run past it. The
+   * count is in the card so the cut reads as a cut rather than as the whole
+   * type: a reader who sees four fields and no more has been told a lie about
+   * the shape they are about to use.
+   */
+  it("cuts a body too tall for the card, and says how much it cut", async () => {
+    const fields = Array.from({ length: 30 }, (_, at) => `  f${at}: number`);
+    const { services, document, uri } = await fixture(
+      ["type Wide {", ...fields, "}", "const w: Wide = {}"].join(NEWLINE),
+    );
+
+    const hover = await services.lsp.HoverProvider?.getHoverContent(document, {
+      textDocument: { uri },
+      position: positionOf(document, "Wide = {}"),
+    });
+
+    expect(said(hover)).toContain("f0: number");
+    expect(said(hover)).toContain("more");
+    expect(said(hover)).not.toContain("f29: number");
+  });
+
+  /** The way to pass every test above is to answer for anything at all. */
+  it("says nothing about a name no type declares", async () => {
+    const { services, document, uri } = await fixture(
+      ["const rows: list<Missing> = []", "print rows"].join(NEWLINE),
+    );
+
+    const hover = await services.lsp.HoverProvider?.getHoverContent(document, {
+      textDocument: { uri },
+      position: positionOf(document, "Missing"),
+    });
+    const links = await services.lsp.DefinitionProvider?.getDefinition(document, {
+      textDocument: { uri },
+      position: positionOf(document, "Missing"),
+    });
+
+    expect(hover?.contents).toBeUndefined();
+    expect(links ?? []).toEqual([]);
+  });
 });

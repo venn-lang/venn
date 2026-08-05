@@ -8,8 +8,13 @@ import { date } from "venn/date"
 
 ## Where everyone is. An IANA name, because an offset is not a place: the offset
 ## changes twice a year and the place does not.
+##
+## The first host is named on its own so `turnAt` can stand in with it: see the
+## note there.
+const HOST_ZERO = { who: "ana", zone: "Europe/Lisbon" }
+
 pub const TEAM = [
-  { who: "ana", zone: "Europe/Lisbon" },
+  HOST_ZERO,
   { who: "bruno", zone: "America/Sao_Paulo" },
   { who: "cleo", zone: "Asia/Tokyo" }
 ]
@@ -27,7 +32,12 @@ pub const WEEK = 168h
 ## The team list is the rota, so adding a person changes the rota and nothing
 ## else. Counting from zero here because it is arithmetic rather than a count of
 ## passes: the first meeting is meeting zero.
-pub fn turnAt(index: number) => TEAM[index % TEAM.len]
+##
+## `?? HOST_ZERO` is what keeps this total. A read by position may find nothing
+## there, `index % TEAM.len` never can, and nothing in the type says so, so the
+## stand-in is written once here rather than at each of the eight places that ask
+## whose turn it is.
+pub fn turnAt(index: number) => TEAM[index % TEAM.len] ?? HOST_ZERO
 
 pub fn meetingAt(index: number) -> instant => FIRST.plus(WEEK * index)
 

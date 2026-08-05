@@ -1,4 +1,5 @@
 import { kindOf, positionKey } from "../value/index.js";
+import { position } from "./counted-argument.js";
 import { INVOKE } from "./invoke.js";
 import { builtinMember, NO_METHOD } from "./methods/index.js";
 import { nativeFn } from "./native.types.js";
@@ -53,9 +54,11 @@ export function memberValue(receiver: unknown, member: string): unknown {
  */
 export function indexValue(receiver: unknown, at: unknown): unknown {
   if (isWaiting(receiver) || isWaiting(at)) return whenBothReady(receiver, at, indexValue);
-  // The one fast path worth keeping: a list read by position never has to go
-  // through a name, and this is the hottest read in a loop.
-  if (Array.isArray(receiver) && typeof at === "number") return orNothing(receiver[at]);
+  // A list or a string read by position, which is the hottest read in a loop.
+  if (typeof at === "number") {
+    const held = sequence(receiver);
+    if (held) return orNothing(held[position(at)]);
+  }
   const key = typeof at === "string" ? at : String(at);
   const spot = positionKey(key);
   if (spot !== undefined) {

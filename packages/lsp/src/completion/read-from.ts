@@ -20,7 +20,22 @@ export interface ReadFromArgs {
 export function receiverTypeAt(args: ReadFromArgs): Type | undefined {
   const node = holderOf(args.host, args.at);
   const found = args.types.get(node) ?? groupType(args);
-  return found && prune(found);
+  return found && withoutNothing(prune(found));
+}
+
+/**
+ * What the value may be, with absence set aside.
+ *
+ * A read by position answers `T | null`, and the checker refuses reading through
+ * one without a guard. The editor still has to say what `T` holds: offering
+ * nothing teaches nothing, and the reader is about to write the guard the
+ * diagnostic asks them for. Absence carries no members of its own, so setting it
+ * aside cannot invent one.
+ */
+export function withoutNothing(type: Type): Type {
+  if (type.kind !== "union") return type;
+  const there = type.members.filter((one) => !(one.kind === "prim" && one.name === "null"));
+  return there.length === 1 ? (there[0] as Type) : type;
 }
 
 /**

@@ -40,14 +40,14 @@ describe("calling something that is not a function", () => {
   });
 
   /**
-   * A function called with the wrong number of arguments is a type mismatch, and
-   * naming the two types is exactly what a reader needs there. This must not
-   * swallow that.
+   * A function called with the wrong number of arguments is an arity mistake,
+   * counted rather than shown as two function types. This must not swallow it
+   * into "not a function", which is a different and wrong thing to be told.
    */
-  it("keeps the type mismatch when the callee is a function of another shape", () => {
+  it("counts the arguments when the callee is a function of another shape", () => {
     const said = titles("fn f(n) => n\nprint f(1, 2)");
 
-    expect(said[0]).toContain("Type mismatch");
+    expect(said[0]).toContain("`f` takes 1 argument, and got 2.");
     expect(said[0]).not.toContain("cannot be called");
   });
 

@@ -196,29 +196,27 @@ describe("a file that starts with a byte-order mark", () => {
   });
 });
 
+/** The three ways of writing a leading `.` that are a mistake and stay one. */
+const NOT_A_CHAIN: [string, string][] = [
+  ["across a blank line, which is how a reader separates two things", "const n = xs\n\n  .len\n"],
+  ["past a `;`, which is the writer ending the statement", "const n = xs;\n  .len\n"],
+  ["for a keyword, since one opens a statement", "const n = xs\n  .return 1\n"],
+];
+
 /**
- * A newline is dropped inside `(` and `[`, so one nobody closed runs the rest
- * of the file into a single statement: every other mistake in it stops being
- * reportable, and what came out was one line about the end of the file.
+ * Breaking a long chain over lines is what a reader does the moment the line
+ * gets long, and the only way to write one was brackets that defeat this walk.
  */
-describe("a bracket nobody closed", () => {
-  it("says which bracket it was, where it was opened", () => {
-    const found = parse("print (1\nprint 2\nprint 3\n").problems;
-
-    expect(found).toHaveLength(1);
-    expect(found[0]?.code).toBe("VN1001");
-    expect(found[0]?.title).toBe(
-      "This `(` is never closed, so the rest of the file is read as part of it.",
-    );
-    expect(found[0]?.span.line).toBe(1);
-    expect(found[0]?.span.column).toBe(7);
+describe("a chain broken across lines", () => {
+  it.each([
+    ["a wrapped chain", "const n = xs\n  .filter(x => x > 1)\n  .len\n"],
+    ["the optional spelling", "const n = xs\n  .filter(x => x > 1)\n  ?.len\n"],
+    ["a comment line between, where a note about it goes", "const n = xs\n  # why\n  .len\n"],
+  ])("reads as the one expression it looks like, %s", (_what, source) => {
+    expect((ast(source).decls[0] as LetStmt).value.$type).toBe("Member");
   });
 
-  it("says the same for a list nobody closed", () => {
-    expect(parse("print a[1\n").problems[0]?.title).toContain("`[` is never closed");
-  });
-
-  it("leaves a file whose brackets all close alone", () => {
-    expect(parse("print (1)\nprint [2]\n").problems).toEqual([]);
+  it.each(NOT_A_CHAIN)("does not reach %s", (_what, source) => {
+    expect(parse(source).problems[0]?.title).toContain("found a dot");
   });
 });

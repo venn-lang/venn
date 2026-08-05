@@ -1,20 +1,26 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import type { CompiledBody, Thunk } from "../compile/compile.types.js";
-import { LEFT, runSteps } from "../compile/nodes/index.js";
+import { LEFT, raisedAt, runSteps } from "../compile/nodes/index.js";
+import type { Expr } from "../generated/ast.js";
 import { ProblemError, UNLOCATED } from "../problem/index.js";
+import { kindOf } from "../value/index.js";
 import { isClosure } from "./closure.js";
 import type { Closure } from "./closure.types.js";
 import { Frame, writeSlot } from "./frame.js";
-import { type Invoke, isNativeFn } from "./native.types.js";
+import { type Invoke, isNativeFn, type NativeFn } from "./native.types.js";
 
 /**
  * Call any Venn callable, a `fn` closure or a built-in method, with values.
  *
  * A callee declaring fewer parameters than it is handed ignores the rest.
  *
+ * @param callee What to call.
+ * @param values What to call it with.
+ * @param site The call as it was written, for a failure to point at. Absent
+ * where there is no node, which is every call a built-in method makes.
  * @throws ProblemError VN3013 when the value is not callable.
  */
-export function invoke(callee: unknown, values: readonly unknown[]): unknown {
+export function invoke(callee: unknown, values: readonly unknown[], site?: Expr): unknown {
   if (isClosure(callee)) {
     const body = callee.body;
     if (body.bare) return (body.result as Thunk)(values[0] as never);
@@ -24,8 +30,8 @@ export function invoke(callee: unknown, values: readonly unknown[]): unknown {
     fill(callee, frame);
     return finish(body, frame);
   }
-  if (isNativeFn(callee)) return callee.call(values);
-  throw notCallable(callee);
+  if (isNativeFn(callee)) return site ? placed(callee, values, site) : callee.call(values);
+  throw notCallable(callee, site);
 }
 
 /** Whether {@link invoke} can call this, asked before committing to a call. */
@@ -46,9 +52,12 @@ export const INVOKE: Invoke = Object.assign(invoke, {
  * One argument is what most calls carry, and the array holding it would live
  * exactly as long as the call takes to read it out again.
  *
+ * @param callee What to call.
+ * @param arg The one value it takes.
+ * @param site The call as it was written, for a failure to point at.
  * @throws ProblemError VN3013 when the value is not callable.
  */
-export function invoke1(callee: unknown, arg: unknown): unknown {
+export function invoke1(callee: unknown, arg: unknown, site?: Expr): unknown {
   if (isClosure(callee)) {
     const body = callee.body;
     if (body.bare) return (body.result as Thunk)(arg as never);
@@ -57,8 +66,8 @@ export function invoke1(callee: unknown, arg: unknown): unknown {
     fill(callee, frame);
     return finish(body, frame);
   }
-  if (isNativeFn(callee)) return callee.call([arg]);
-  throw notCallable(callee);
+  if (isNativeFn(callee)) return site ? placed(callee, [arg], site) : callee.call([arg]);
+  throw notCallable(callee, site);
 }
 
 /**
@@ -70,13 +79,13 @@ export function invoke1(callee: unknown, arg: unknown): unknown {
 export function invoke2(callee: unknown, a: unknown, b: unknown): unknown {
   if (isClosure(callee)) return callClosure2(callee, a, b);
   if (isNativeFn(callee)) return callee.call([a, b]);
-  throw notCallable(callee);
+  throw notCallable(callee, undefined);
 }
 
 export function invoke3(callee: unknown, a: unknown, b: unknown, c: unknown): unknown {
   if (isClosure(callee)) return callClosure3(callee, a, b, c);
   if (isNativeFn(callee)) return callee.call([a, b, c]);
-  throw notCallable(callee);
+  throw notCallable(callee, undefined);
 }
 
 /**
@@ -148,12 +157,41 @@ function finish(body: CompiledBody, frame: Frame): unknown {
   return body.result ? body.result(frame) : null;
 }
 
-function notCallable(value: unknown): ProblemError {
-  return new ProblemError(
+/**
+ * A built-in method or a plugin verb, with the call it came from behind it.
+ *
+ * Only this branch needs it. A `fn` raises through the compiled nodes of its
+ * own body, and each of those places its failure at the line that wrote it,
+ * which is nearer than the call. What has no node at all is everything below
+ * the language: `json.parse` refusing text, `fs.read` refusing a path.
+ *
+ * Both halves are here because a verb that answers later fails later, by which
+ * time the handler has returned and the failure is a rejection instead.
+ */
+function placed(callee: NativeFn, values: readonly unknown[], site: Expr): unknown {
+  try {
+    const value = callee.call(values);
+    if (!(value instanceof Promise)) return value;
+    return value.catch((thrown: unknown) => {
+      throw raisedAt(thrown, site);
+    });
+  } catch (thrown) {
+    throw raisedAt(thrown, site);
+  }
+}
+
+/**
+ * The kind is the language's own word for what the value is. `typeof` answered
+ * here, so a member that is not there reported `undefined`, which is not a type
+ * a reader can write and not a word this language has.
+ */
+function notCallable(value: unknown, site: Expr | undefined): ProblemError {
+  const refusal = new ProblemError(
     buildProblem({
       spec: CODES.VN3013_NOT_CALLABLE,
       span: UNLOCATED,
-      title: `This value is not a function, so it cannot be called: ${typeof value}.`,
+      title: `This value is not a function, so it cannot be called: ${kindOf(value)}.`,
     }),
   );
+  return site ? (raisedAt(refusal, site) as ProblemError) : refusal;
 }

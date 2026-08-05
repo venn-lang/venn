@@ -74,7 +74,10 @@ const STRING: Record<string, MemberDoc> = {
   trimStart: { doc: "Without leading blanks." },
   trimEnd: { doc: "Without trailing blanks." },
   reverse: { doc: "The characters back to front." },
-  toNumber: { doc: "Read as a number." },
+  toNumber: {
+    doc: "Read as a number, refusing text that is not one.",
+    example: "try raw.toNumber else 0",
+  },
   isEmpty: { doc: "True when it has no characters." },
   isBlank: { doc: "True when it is empty or only blanks." },
   split: { doc: "Cut into a list on a separator.", example: "'a,b'.split(',')  # ['a', 'b']" },

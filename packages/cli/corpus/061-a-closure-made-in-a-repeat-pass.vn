@@ -3,7 +3,8 @@ repeat 3 as i {
   let doubled = i * 2
   made = made.push(fn () => doubled)
 }
-let a = made[0]()
-let b = made[1]()
-let c = made[2]()
-seen = "${a} ${b} ${c}"
+let out = []
+forEach one in made {
+  out = out.push(one())
+}
+seen = out.join(" ")

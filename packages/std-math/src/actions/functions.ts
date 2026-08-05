@@ -1,19 +1,52 @@
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { VennError } from "@venn-lang/contracts";
+import { type ActionDefinition, arg, defineAction, PLUGIN_CODES } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 
 const of = (value: unknown): number => Number(value ?? 0);
 
-/** One function of one number, which is most of what trigonometry is. */
+/**
+ * A verb run over its arguments, or a refusal when there is no answer.
+ *
+ * `math.log(0)` was `-Infinity`, `math.asin(2)` was `NaN` and
+ * `math.factorial(-1)` was `NaN`. All three are values that survive every sum
+ * after them, so a wrong number reaches the reader looking like a right one.
+ * There is no logarithm of zero, and the verb is the only place a caller can
+ * still act on that.
+ */
+function answered(
+  name: string,
+  given: readonly number[],
+  run: (...values: number[]) => number,
+): number {
+  const value = run(...given);
+  if (Number.isFinite(value)) return value;
+  throw new VennError({
+    code: PLUGIN_CODES.VN7005_BAD_ARGUMENT,
+    message: `There is no answer to \`math.${name}(${given.join(", ")})\`.`,
+  });
+}
+
+/**
+ * One function of one number, which is most of what trigonometry is.
+ *
+ * `pure` here covers every verb built through this factory, which is the point:
+ * the plugin declares `random` for `math.random` and `math.randomInt`, and
+ * without the override every function in the namespace is refused inside a `fn`
+ * for a draw it does not make. Each one computes from `input.args` alone and
+ * ignores its context, so none can reach a port.
+ */
 function unary(name: string, doc: string, run: (value: number) => number): ActionDefinition {
   return defineAction({
     name,
     doc,
     args: [arg("value", t.number, "The number to work on.")],
     result: t.number,
-    run: (_ctx, input) => run(of(input.args[0])),
+    pure: true,
+    run: (_ctx, input) => answered(name, [of(input.args[0])], run),
   });
 }
 
+/** Two numbers in, one out, and nothing else read. See {@link unary} on `pure`. */
 function binary(
   name: string,
   doc: string,
@@ -25,7 +58,8 @@ function binary(
     doc,
     args: [arg(names[0], t.number, "The first."), arg(names[1], t.number, "The second.")],
     result: t.number,
-    run: (_ctx, input) => run(of(input.args[0]), of(input.args[1])),
+    pure: true,
+    run: (_ctx, input) => answered(name, [of(input.args[0]), of(input.args[1])], run),
   });
 }
 
@@ -84,7 +118,7 @@ export const functions: ActionDefinition[] = [
   ),
 ];
 
-/** Whole numbers only, and nothing at all below zero, where it has no meaning. */
+/** Whole numbers only. Below zero there is no answer, and `answered` says so. */
 function factorial(value: number): number {
   const whole = Math.trunc(value);
   if (whole < 0) return Number.NaN;

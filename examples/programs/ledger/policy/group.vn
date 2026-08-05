@@ -37,16 +37,22 @@ fn add(line: Line, claim: Claim) -> Line => {
   count: line.count + 1
 }
 
-## A name that starts as nothing has to say what it will hold, or the first
-## assignment is refused: `let found = null` is a binding whose type is `null`.
-##
 ## `repeat … as` counts the passes from one, so the pass minus one is the
 ## position, the same here as at the top of a file.
+##
+## `let found = null` needs no annotation: a name that starts out holding nothing
+## takes what the first assignment writes into it. The read by position does need
+## the guard, because a position past the end is nothing and only the `repeat`
+## count says this one is not.
 fn indexOf(lines: list<Line>, category: string) -> number | null {
-  let found: number | null = null
+  let found = null
   repeat lines.len as pass {
     const at = pass - 1
-    if lines[at].category == category {
+    const line = lines[at]
+    if line == null {
+      continue
+    }
+    if line.category == category {
       found = at
     }
   }
@@ -57,7 +63,10 @@ fn replace(lines: list<Line>, at: number, line: Line) -> list<Line> {
   let out = []
   repeat lines.len as pass {
     const index = pass - 1
-    out = out.push(index == at ? line : lines[index])
+    const here = lines[index]
+    if here != null {
+      out = out.push(index == at ? line : here)
+    }
   }
   return out
 }

@@ -38,11 +38,11 @@ describe("a shape another file published", () => {
     );
   });
 
+  /** The names are the whole of it, so the two shapes are not printed at all. */
   it("refuses a field the shape does not have", () => {
     const said = titles({ ...SHAPES, "main.vn": IMPORT + 'const u: User = { nome: "ana" }' });
 
-    expect(said[0]).toContain("expected { name: string }");
-    expect(said[0]).toContain("nome");
+    expect(said[0]).toBe('This map is missing "name", and has "nome" instead.');
   });
 
   it("refuses a field of the wrong type", () => {
@@ -86,10 +86,17 @@ describe("a shape another file published", () => {
     expect(titles(files)[0]).toContain("expected { lead: { name: string } }");
   });
 
-  it("says nothing about a name no file published", () => {
+  /**
+   * A name no file published is a name nothing declares, and it is refused the
+   * way an unbound value name is. It used to be silence, which read as approval
+   * and switched checking off for whatever it annotated.
+   */
+  it("refuses a name no file published", () => {
     const source = `${IMPORT}const u: Unpublished = { anything: 1 }`;
 
-    expect(titles({ ...SHAPES, "main.vn": source })).toEqual([]);
+    expect(titles({ ...SHAPES, "main.vn": source })).toEqual([
+      'Nothing is named "Unpublished" here.',
+    ]);
   });
 });
 

@@ -97,11 +97,18 @@ describe("a word the language used to have", () => {
     }
   });
 
+  /**
+   * What this holds is that the word is not read as a removed one, not which
+   * sentence the parser's own explainers reach for. That sentence has an owner
+   * in `separator-words.ts` and pinning it here would make one wording change
+   * two files to edit.
+   */
   it("leaves a real syntax error as one, whatever the word is called", () => {
-    const said = parse('flow "x" constructor').problems[0];
+    const found = parse('flow "x" constructor').problems;
 
-    expect(said?.code).toBe("VN1002");
-    expect(said?.title).toBe("Expected an opening brace here, found `constructor`.");
+    expect(found.map((problem) => problem.code)).not.toContain("VN5001");
+    expect(found[0]?.code).toBe("VN1002");
+    expect(found[0]?.title.length).toBeGreaterThan(0);
   });
 
   /** A name somebody bound is a name, wherever the word came from. */
@@ -109,6 +116,77 @@ describe("a word the language used to have", () => {
     expect(parse("const m = { a: 1 }\nprint m.while").problems).toEqual([]);
   });
 });
+
+/**
+ * The words a newcomer types for a loop, none of which this language ever had.
+ *
+ * Each lexes as a name, so the line reads as a call and the parser gets inside
+ * the block before it fails. `for r in rows {` earned `An argument is one
+ * value, so `in` has to be bracketed`, which named the brackets when the
+ * brackets were fine: the first program written in this language paid for that
+ * sentence with five hand-rolled counter loops across three files.
+ *
+ * The `help` is what is asserted, because the help is the part that has to be
+ * a spelling that runs. Every one below was run against the built CLI.
+ */
+const NEVER_HAD: [word: string, opens: string, says: string][] = [
+  ["for", "for r in rows {", "`forEach r in rows { print r }`"],
+  ["foreach", "foreach r in rows {", "with a capital E"],
+  ["each", "each r in rows {", "The word is `forEach`"],
+  ["until", "until n > 3 {", "`loop n <= 3 { n = n + 1 }`"],
+  ["do", "do {", "`loop { break }`"],
+  ["switch", "switch n {", "in a block rather than after a `=>`"],
+];
+
+describe("a word this language never had", () => {
+  it.each(NEVER_HAD)("names `%s` and says what to write instead", (word, opens, says) => {
+    const found = parse(["let n = 0", opens, "  print n", "}"].join(NEWLINE)).problems;
+
+    expect(found.map((problem) => problem.code)).toEqual(["VN5001"]);
+    expect(found[0]?.title).toBe(`Venn has no \`${word}\`.`);
+    expect(found[0]?.help).toContain(says);
+    expect(found[0]?.span.line).toBe(2);
+    expect(found[0]?.span.column).toBe(1);
+  });
+});
+
+/**
+ * `while` is the one word that was removed rather than never had, so it keeps
+ * the sentence it shipped with, whole and in the title, and a reader who has
+ * already googled those words finds the same page.
+ */
+describe("the word that was removed rather than never had", () => {
+  it("leaves `while`'s own sentence exactly where it was", () => {
+    const found = parse(["let n = 0", "while n < 3 {", "  n = n + 1", "}"].join(NEWLINE))
+      .problems[0];
+
+    expect(found?.title).toBe(
+      "`while` was removed, `loop` while the condition holds, `repeat` a known number of times, `forEach` over a collection.",
+    );
+    expect(found?.help).toBeUndefined();
+  });
+});
+
+/**
+ * A help line is a claim, so what is tested is the repaired program and not the
+ * words. Every backticked span carrying a `{` is a program the help promises;
+ * anything shorter is a word. Each one was run by hand before it shipped, which
+ * the next person to edit the sentence cannot benefit from: this can.
+ */
+describe("what a help line promises", () => {
+  it.each(NEVER_HAD)("hands `%s` a program that parses", (_word, opens) => {
+    const source = ["let n = 0", opens, "  print n", "}"].join(NEWLINE);
+    const promised = programsIn(parse(source).problems[0]?.help ?? "");
+
+    expect(promised.length).toBeGreaterThan(0);
+    for (const snippet of promised) expect(parse(snippet).problems, snippet).toEqual([]);
+  });
+});
+
+/** The runnable spans of a sentence: backticked, and carrying a block. */
+function programsIn(help: string): string[] {
+  return [...help.matchAll(/`([^`]*\{[^`]*)`/g)].map((found) => found[1] ?? "");
+}
 
 describe("what the removals left alone", () => {
   /** The two spellings that do work, so the removal took nothing else with it. */

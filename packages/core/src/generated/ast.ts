@@ -259,7 +259,7 @@ export interface Call extends langium.AstNode {
     readonly $container: ActionCall | Arg | AssignStmt | Binary | Call | CaptureStmt | ContinueStmt | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListItem | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReturnStmt | Ternary | TryExpr | Unary;
     readonly $type: 'Call';
     args?: ArgList;
-    callee: Expr;
+    callee: BoolLit | Expr | FnExpr | InstantLit | NullLit | NumberLit | Ref | StringLit;
 }
 
 export const Call = {
@@ -356,6 +356,17 @@ export function isDecoDecl(item: unknown): item is DecoDecl {
     return reflection.isInstance(item, DecoDecl.$type);
 }
 
+/**
+ * Statements and declarations are separated by `NL` (a newline or `;`).
+ * `NL` is suppressed inside `( )` and `[ ]` by the lexer, so calls, arg lists
+ * and list literals may still span multiple physical lines. A `{ }` opened in
+ * there gives the newline back, because a block has no other separator: a
+ * function body written as an argument would otherwise be able to hold nothing
+ * but the expression it returns.
+ * Newlines follow each item rather than preceding it, so there is a single
+ * leading `NL*` and no two unbounded newline consumers meet at a decision
+ * point, which Chevrotain reports as ambiguous.
+ */
 export interface Document extends langium.AstNode {
     readonly $type: 'Document';
     decls: Array<Declaration>;
@@ -516,7 +527,7 @@ export interface FnExpr extends langium.AstNode {
     readonly $container: ActionCall | Arg | AssignStmt | Binary | Call | CaptureStmt | ContinueStmt | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListItem | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReturnStmt | Ternary | TryExpr | Unary;
     readonly $type: 'FnExpr';
     body: FnBody;
-    params: ParamList;
+    params?: ParamList;
     returns?: TypeRef;
 }
 
@@ -645,7 +656,7 @@ export interface Index extends langium.AstNode {
     readonly $container: ActionCall | Arg | AssignStmt | Binary | Call | CaptureStmt | ContinueStmt | ExpectStmt | FnBody | ForEachStmt | IfStmt | Index | LetStmt | LifecycleDecl | ListItem | LiteralPattern | LoopState | LoopStmt | MapEntry | MatchArm | MatchExpr | MatcherClause | Member | RepeatStmt | ReturnStmt | Ternary | TryExpr | Unary;
     readonly $type: 'Index';
     index: Expr;
-    receiver: Expr | Ref;
+    receiver: BoolLit | Expr | FnExpr | InstantLit | NullLit | NumberLit | Ref | StringLit;
 }
 
 export const Index = {
@@ -973,7 +984,7 @@ export interface Member extends langium.AstNode {
     readonly $type: 'Member';
     member: Word;
     optional: boolean;
-    receiver: Expr | Ref;
+    receiver: BoolLit | Expr | FnExpr | InstantLit | NullLit | NumberLit | Ref | StringLit;
 }
 
 export const Member = {
@@ -1280,7 +1291,11 @@ export function isSingleType(item: unknown): item is SingleType {
     return reflection.isInstance(item, SingleType.$type);
 }
 
-/** What a pure function may do: bind, decide, loop, and give a value back. */
+/**
+ * What a pure function body may hold: bind, decide, loop, catch, give a value
+ * back, and call. The call is here so that a verb written in a `fn` reaches the
+ * checker, which refuses every one of them except `fail`.
+ */
 export interface Statement extends langium.AstNode {
     readonly $type: 'ActionCall' | 'AssignStmt' | 'BreakStmt' | 'CaptureStmt' | 'ContinueStmt' | 'ExpectStmt' | 'ForEachStmt' | 'GroupDecl' | 'IfStmt' | 'LetStmt' | 'LifecycleDecl' | 'LoopStmt' | 'MatchExpr' | 'ParallelStmt' | 'RaceStmt' | 'RepeatStmt' | 'ReturnStmt' | 'RunStmt' | 'Statement' | 'StepDecl' | 'TryStmt';
     annotations: Array<Annotation>;
@@ -1968,7 +1983,8 @@ export class VennAstReflection extends langium.AbstractAstReflection {
                     name: FnExpr.body
                 },
                 params: {
-                    name: FnExpr.params
+                    name: FnExpr.params,
+                    optional: true
                 },
                 returns: {
                     name: FnExpr.returns,

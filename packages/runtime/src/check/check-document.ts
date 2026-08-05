@@ -13,7 +13,12 @@ import {
   walkAst,
 } from "@venn-lang/core";
 import { readImports } from "../imports/index.js";
-import { collectAliases, collectBoundNames, collectNamespaces } from "../scheduler/index.js";
+import {
+  collectAliases,
+  collectBoundNames,
+  collectNamespaces,
+  nodeSpan,
+} from "../scheduler/index.js";
 import type { CheckArgs, CheckContext } from "./check.types.js";
 import { checkArgumentCount } from "./check-argument-count.js";
 import { checkAssign } from "./check-assign.js";
@@ -41,9 +46,11 @@ import { checkSwallowedArgument } from "./check-swallowed-argument.js";
 import { checkUnbound } from "./check-unbound.js";
 import { checkUncalledAction } from "./check-uncalled.js";
 import { checkUnusedImport } from "./check-unused-import.js";
+import { checkVerbAsAValue } from "./check-verb-as-a-value.js";
 import { checkVerbCall } from "./check-verb-call.js";
 import { everyBoundName } from "./every-bound-name.js";
 import { loudestFirst } from "./loudest-first.js";
+import { notImportedHere } from "./not-imported-here.js";
 import { problemAt } from "./problem-at.js";
 
 /**
@@ -76,6 +83,7 @@ export function checkDocument(args: CheckArgs): Problem[] {
     ...checkAssign(args.document, ctx),
     ...checkUnusedImport(args.document, ctx),
     ...checkDecoReach(args.document, ctx),
+    ...checkNamespaceUse(args.document, ctx),
   ];
   for (const node of walkAst(args.document)) {
     // Outside the branch below, because a `deco` body sends every node it holds
@@ -102,10 +110,10 @@ function structuralChecks(node: AstNode, ctx: CheckContext): Problem[] {
   return [
     ...checkNode(node, ctx),
     ...checkNamespaceBody(node, ctx),
-    ...checkNamespaceUse(node, ctx),
     ...checkEnv(node, ctx),
     ...checkInterpolation(node, ctx),
     ...checkUnbound(node, ctx),
+    ...checkVerbAsAValue(node, ctx),
     ...checkVerbCall(node, ctx),
     ...checkPureVerb(node, ctx),
     ...checkArgumentCount(node, ctx),
@@ -144,8 +152,8 @@ function one(problem: Problem | undefined): Problem[] {
 
 /**
  * A matcher is brought in by its own name, like anything else a package
- * publishes. Resolving against the whole loaded stdlib would make the import
- * decorative, and a file would read as though `contains` came from nowhere.
+ * publishes. The registry answers whether it exists at all; the import is what
+ * makes a file say where `contains` came from, and saying so is a hint.
  */
 function checkMatcher(clause: MatcherClause, ctx: CheckContext): Problem | undefined {
   const owner = ctx.registry.matcher(clause.name);
@@ -154,10 +162,8 @@ function checkMatcher(clause: MatcherClause, ctx: CheckContext): Problem | undef
     return problemAt({ node: clause, ctx, spec: CODES.VN2004_UNKNOWN_MATCHER, title });
   }
   if (ctx.matchers.has(clause.name)) return undefined;
-  const title = `"${clause.name}" is not imported in this file.`;
-  const spec = CODES.VN2007_NAMESPACE_NOT_IMPORTED;
-  const problems = problemAt({ node: clause, ctx, spec, title });
-  return { ...problems, help: `Write \`import { ${clause.name} } from "${owner.plugin.name}"\`.` };
+  const span = nodeSpan(clause, ctx.uri);
+  return notImportedHere({ name: clause.name, pkg: owner.plugin.name, span });
 }
 
 function checkFragment(stmt: RunStmt, ctx: CheckContext): Problem | undefined {

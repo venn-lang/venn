@@ -2,9 +2,9 @@ import { ALL_CAPABILITIES } from "@venn-lang/contracts";
 import { parse } from "@venn-lang/core";
 import { defineAction, definePlugin, z } from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
-import { checkDocument } from "../check/index.js";
 import { buildRegistry } from "../registry/index.js";
 import { collectFragments } from "../scheduler/index.js";
+import { checkDocument } from "./index.js";
 
 /** One action taking the two keys the cases are typos of, and `env` to read. */
 const plugin = definePlugin({

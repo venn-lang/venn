@@ -37,7 +37,7 @@ flow "Orders survive a snapshot" {
     expect rows.len == 2
 
     const grace = db.query "SELECT * FROM users" { where: { id: 2 } }
-    expect grace[0].name == "Grace"
+    expect grace[0]?.name == "Grace"
   }
 
   step "a snapshot undoes a mutation" {

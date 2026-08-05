@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { Closure } from "../expr/closure.types.js";
 import type { EvalEnv } from "../expr/eval-env.types.js";
-import type { Frame } from "../expr/frame.js";
 import { callClosure } from "../expr/invoke.js";
 import type { Document, FnDecl, FragmentDecl, Statement } from "../generated/ast.js";
 import { isFnDecl } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
 import { closureOfDecl } from "./compile.js";
 import { rootScope } from "./lex-scope.js";
-import { compileStep, RAN } from "./nodes/index.js";
+import { compileStep } from "./nodes/index.js";
 
 const NEWLINE = String.fromCharCode(10);
 
@@ -44,48 +43,14 @@ function call(source: string, name: string, args: unknown[]): unknown {
  *
  * The blocks inside a body are made of the body's own statements now, so a verb
  * is refused wherever it is written, which is the one rule said once instead of
- * once per depth.
+ * once per depth. Where that refusal comes from is no longer here: the grammar
+ * parses the verb and the checker names it, and the compiler's own floor under
+ * both is exercised in `a-fn-may-fail.test.ts`. What is left here is the other
+ * half of the same rule, that everything a pure body MAY hold still runs at
+ * every depth.
  */
 describe("a fn body that is pure all the way down", () => {
-  it("refuses a verb inside an if, where it used to be ignored", () => {
-    const source = program(
-      "fn shouts(n) {",
-      "  if n > 10 {",
-      '    print "inside a fn"',
-      "  }",
-      "  return n",
-      "}",
-    );
-
-    expect(refusals(source)[0]).toContain("A `fn` is pure, so it cannot call `print`.");
-  });
-
-  it("refuses one inside a loop, and inside an else", () => {
-    const looped = program(
-      "fn f(xs) {",
-      "  forEach x in xs {",
-      "    print x",
-      "  }",
-      "  return xs",
-      "}",
-    );
-    const otherwise = program(
-      "fn f(n) {",
-      "  if n > 10 {",
-      "    return n",
-      "  } else {",
-      '    print "small"',
-      "  }",
-      "  return 0",
-      "}",
-    );
-
-    expect(refusals(looped)[0]).toContain("it cannot call `print`");
-    expect(refusals(otherwise)[0]).toContain("it cannot call `print`");
-  });
-
-  /** The refusal in #221 was written as `fail`, which is a verb like any other. */
-  it("refuses a fail, since deciding it is not a verb is a language decision", () => {
+  it("fails from inside an if, where a verb is still refused", () => {
     const source = program(
       "fn average(mark) {",
       "  if mark > 100 {",
@@ -95,7 +60,8 @@ describe("a fn body that is pure all the way down", () => {
       "}",
     );
 
-    expect(refusals(source)[0]).toContain("it cannot call `fail`");
+    expect(refusals(source)).toEqual([]);
+    expect(call(source, "average", [50])).toBe(50);
   });
 
   it("still runs the statements a pure body may hold, however deep they sit", () => {
@@ -143,20 +109,22 @@ describe("a fn body that is pure all the way down", () => {
 });
 
 /**
- * The floor under the rule: a statement the body compiler has no case for stands
- * still, rather than answering that the block it is in has stopped.
+ * The floor under the rule: a statement the body compiler has no case for is
+ * refused where it is compiled, rather than standing still.
  *
- * Standing still is the only safe answer. Stopping is what a `return` says, and
- * a body that stops without having left a value hands back `null`, which is the
- * failure in #221 read from the other end.
+ * Standing still is what it used to do, and it is what made a verb inside an
+ * `if` compile to nothing: the block carried on, the body reported success, and
+ * nothing anywhere said a word. Loud at compile time instead, so the next person
+ * to widen `FnStmt` meets it where they are working.
  */
 describe("a statement the body compiler does not know", () => {
-  it("stands still rather than stopping the block it is in", () => {
+  it("refuses a verb rather than compiling it to nothing", () => {
     const source = program("fragment shouts() {", '  print "loud"', "}");
     const body = (parse(source).ast as Document).decls[0] as FragmentDecl;
+    const stmt = body.body.stmts[0] as Statement;
 
-    const step = compileStep(body.body.stmts[0] as Statement, rootScope(), () => () => null);
-
-    expect(step({ left: undefined } as unknown as Frame)).toBe(RAN);
+    expect(() => compileStep(stmt, rootScope(), () => () => null)).toThrow(
+      "it cannot call `print`",
+    );
   });
 });

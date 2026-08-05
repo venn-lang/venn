@@ -4,9 +4,10 @@ import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer } from "@venn-lang/http/node";
 import type { RunFilter } from "@venn-lang/runtime";
+import { createDiagnostics, type Diagnostics, isError, refuses } from "../diagnostics/index.js";
 import { declaredEnv, loadEnv, loadManifest, manifestProblems } from "../manifest/index.js";
 import type { Reporter, RunTotals } from "../reporters/index.js";
-import { pickReporter } from "../reporters/index.js";
+import { pickReporter, reportProblems } from "../reporters/index.js";
 import { collectSourceFiles } from "../run/collect-files.js";
 import { problemStream, watchForAStuckRun } from "../run/index.js";
 import { createNodeModuleIo } from "../run/node-io.js";
@@ -14,7 +15,7 @@ import { createNpmLoader } from "../run/npm-loader.js";
 import { type RunFileArgs, type RunFileOutcome, runFile } from "../run/run-file.js";
 import { createShutdown, installHooks, type Shutdown } from "../shutdown/index.js";
 import { setProgramTitle } from "../title/index.js";
-import { isError, projectsOf } from "./check.js";
+import { projectsOf } from "./check.js";
 
 /** Everything `venn run` accepts. */
 export interface RunOptions {
@@ -33,6 +34,8 @@ interface RunPass {
   options: RunOptions;
   reporter: Reporter;
   shutdown: Shutdown;
+  /** The whole command's list, so a mistake two files lead into is said once. */
+  diagnostics: Diagnostics;
 }
 
 /**
@@ -46,16 +49,23 @@ export async function runCommand(options: RunOptions): Promise<number> {
   const files = await collectSourceFiles(resolve(options.file));
   if (files.length === 0) return noFiles(options.file);
   const reporter = pickReporter(options.reporter);
-  const shutdown = createShutdown();
-  setProgramTitle({ command: "test", target: options.file });
-  installHooks({ signals: createNodeSignals(), shutdown, exit: (code) => process.exit(code) });
+  const shutdown = hooked(options.file);
   const settled = watchForAStuckRun((line) => process.stderr.write(line));
-  const totals = await runAll({ files, options, reporter, shutdown });
+  const diagnostics = createDiagnostics();
+  const totals = await runAll({ files, options, reporter, shutdown, diagnostics });
   settled();
   reporter.finish(totals);
   // A suite that called `exit` named its own verdict, even `exit 0` after a
   // failure, which is the point of saying it.
   return totals.exitCode ?? (totals.failed === 0 ? 0 : 1);
+}
+
+/** Give the process its hooks and this run its name, as `venn run` also does. */
+function hooked(target: string): Shutdown {
+  const shutdown = createShutdown();
+  setProgramTitle({ command: "test", target });
+  installHooks({ signals: createNodeSignals(), shutdown, exit: (code) => process.exit(code) });
+  return shutdown;
 }
 
 async function runAll(pass: RunPass): Promise<RunTotals> {
@@ -111,7 +121,12 @@ async function runOne(args: { pass: RunPass; file: string; totals: RunTotals }):
   const servers = createNodeServer();
   const forget = args.pass.shutdown.add(() => servers.closeAll());
   try {
-    tally(args.totals, await runFile(await buildArgs(args.file, args.pass, servers)));
+    const outcome = await runFile(await buildArgs(args.file, args.pass, servers));
+    // Errors went to the reporter, on the channel a failure uses. What is left
+    // is worth reading and worth nobody's exit code, and stdout belongs to the
+    // report, so it is said on the other stream.
+    reportProblems(outcome.problems.filter((one) => !isError(one)));
+    tally(args.totals, outcome);
   } finally {
     await servers.closeAll();
     forget();
@@ -119,8 +134,7 @@ async function runOne(args: { pass: RunPass; file: string; totals: RunTotals }):
 }
 
 function tally(totals: RunTotals, outcome: RunFileOutcome): void {
-  // What refused the file went to the reporter, on the channel a failure uses.
-  if (outcome.problems.length > 0) {
+  if (refuses(outcome.problems)) {
     totals.files += 1;
     totals.failed += 1;
     return;
@@ -143,6 +157,7 @@ async function buildArgs(
   const manifest = found?.manifest;
   return {
     source: await readFile(file, "utf8"),
+    diagnostics: pass.diagnostics,
     uri: file,
     host: createNodeHost(),
     sink: pass.reporter.sink,

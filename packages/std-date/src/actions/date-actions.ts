@@ -60,6 +60,9 @@ export const dateActions: ActionDefinition[] = [
     doc: "A moment from its parts, in UTC. Anything left out is the smallest it can be.",
     args: [arg("parts", PARTS_TYPE, "Year and month and day, and the time of day if it matters.")],
     result: t.instant,
+    // `Date.UTC` over the parts given, defaulting to 1970-01-01T00:00:00Z. No
+    // clock is read, so the same parts are the same moment on every machine.
+    pure: true,
     run: (_ctx, input) => at(fromParts(input.args[0])),
   }),
   defineAction({
@@ -78,6 +81,9 @@ export const dateActions: ActionDefinition[] = [
       optionalArg("zone", t.string, "Where to read it, as `Europe/Lisbon`. UTC by default."),
     ],
     result: t.string,
+    // Handed the moment it writes. The zone defaults to UTC rather than to the
+    // machine's, so nothing here reads the clock or the host's own timezone.
+    pure: true,
     run: (_ctx, input) => written(input.args),
   }),
   defineAction({
@@ -88,6 +94,9 @@ export const dateActions: ActionDefinition[] = [
       arg("zone", t.string, "An IANA name, as `America/Sao_Paulo`."),
     ],
     result: PARTS_TYPE,
+    // Both the moment and the zone are arguments, and the conversion is the
+    // bundled IANA table. Same answer everywhere, so a `fn` may call it.
+    pure: true,
     run: (_ctx, input) => somewhere(epochOf(input.args[0]), input.args[1]),
   }),
 ];

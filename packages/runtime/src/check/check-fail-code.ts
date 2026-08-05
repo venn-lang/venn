@@ -1,12 +1,15 @@
 import {
   type ActionCall,
   type AstNode,
+  beginsWithVN,
   buildProblem,
   CODES,
   isActionCall,
   isMapLit,
   isStringLit,
+  NAME_IT_AFTER_WHAT_HAPPENED,
   type Problem,
+  reservedCodeTitle,
 } from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
@@ -20,20 +23,22 @@ import type { CheckContext } from "./check.types.js";
  * business: no registry, and no range to claim.
  *
  * Only a code written out is caught here. One computed is refused where it is
- * raised, which is the same refusal a beat later.
+ * raised, which is the same refusal a beat later, in the same words: the
+ * predicate and both sentences come from `failError`'s own module, so a code the
+ * checker lets past cannot be one the raiser would have refused.
  */
 export function checkFailCode(node: AstNode, ctx: CheckContext): Problem[] {
   if (!isActionCall(node) || node.target !== "fail") return [];
   const written = writtenCode(node);
-  if (!written || !/^vn\d/i.test(written.value)) return [];
+  if (!written || !beginsWithVN(written.value)) return [];
   return [
     {
       ...buildProblem({
         spec: CODES.VN3022_RESERVED_CODE,
         span: nodeSpan(written.node, ctx.uri),
-        title: `"${written.value}" begins with VN, and those codes belong to the language.`,
+        title: reservedCodeTitle(written.value),
       }),
-      help: "Name it after what happened: `pay.declined`, `cart.empty`.",
+      help: NAME_IT_AFTER_WHAT_HAPPENED,
     },
   ];
 }

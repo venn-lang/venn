@@ -13,6 +13,9 @@ const TOO_LONG = 60;
 /** A verb, then `try`, then the token the parser stopped at. */
 const VERB_THEN_TRY = /^\s*([A-Za-z_][\w.]*)\s+try\s+$/;
 
+/** The word itself and the air after it, where the parser stopped on the `try`. */
+const PAST_TRY = /^try[ \t]+/;
+
 /**
  * A title in the language's own words, when this is that error.
  *
@@ -31,17 +34,23 @@ export function bracketTheTry(args: { text: string; offset: number }): string | 
   return `An argument is one value, so a \`try\` has to be bracketed. Write \`${called} (try ${line.after.trim()})\`.`;
 }
 
-/** The line the parser stopped on, split at the token it stopped at. */
+/**
+ * The line the parser stopped on, split just past the `try`.
+ *
+ * Where the parser stops depends on whether what came before the `try` was
+ * already a whole statement. `print try f() else 0` leaves `print` complete, so
+ * the parser stops on the `try`; a verb still waiting for an argument carries
+ * it one token further. Both are the one mistake, so the split goes past the
+ * word either way and the two shapes get the same sentence.
+ */
 function lineAt(args: { text: string; offset: number }): Line | undefined {
   const start = args.text.lastIndexOf("\n", args.offset) + 1;
   const end = args.text.indexOf("\n", args.offset);
   const whole = args.text.slice(start, end === -1 ? undefined : end);
   if (/[{}#]/.test(whole)) return undefined;
-  return {
-    whole,
-    before: whole.slice(0, args.offset - start),
-    after: whole.slice(args.offset - start),
-  };
+  const at = args.offset - start;
+  const cut = at + (PAST_TRY.exec(whole.slice(at))?.[0].length ?? 0);
+  return { whole, before: whole.slice(0, cut), after: whole.slice(cut) };
 }
 
 interface Line {

@@ -17,8 +17,11 @@ flow "What the shelf holds" {
     expect onShelf("saffron") equals 0
   }
 
+  # `?.` asks. `recipeFor` answers nothing for a meal nobody wrote down, which is
+  # what the second line is about, so the first one may not read straight through
+  # it.
   step "a meal nobody wrote down is null" {
-    expect recipeFor("khichdi").takes.len equals 3
+    expect recipeFor("khichdi")?.takes.len equals 3
     expect recipeFor("pizza") == null
   }
 }

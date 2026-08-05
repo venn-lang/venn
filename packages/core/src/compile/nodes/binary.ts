@@ -1,8 +1,9 @@
-import { applyBinary, negate } from "../../expr/operators.js";
+import { negate } from "../../expr/operators.js";
 import { isWaiting } from "../../expr/pending.js";
 import type { Binary, Unary } from "../../generated/ast.js";
 import { isNumeric, truthy } from "../../value/index.js";
 import type { Compile, Thunk } from "../compile.types.js";
+import { slowBinary } from "./binary-slow.js";
 import { FAST_BINARY } from "./fast-binary.js";
 
 /** A binary operation, with its operator resolved at compile time. */
@@ -12,10 +13,11 @@ export function compileBinary(expr: Binary, compile: Compile): Thunk {
   const left = compile(expr.left);
   const right = compile(expr.right);
   // Two plain numbers take the short way, in a thunk written for this operator
-  // alone; anything else falls back to units.
+  // alone; anything else falls back to units, pointing at this node if it fails.
+  const slow = slowBinary(op, expr);
   const fast = FAST_BINARY[op];
-  if (fast) return fast(left, right);
-  return (env) => applyBinary(op, left(env), right(env));
+  if (fast) return fast(left, right, slow);
+  return (env) => slow(left(env), right(env));
 }
 
 /**

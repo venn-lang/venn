@@ -207,16 +207,17 @@ describe("a function a decorator reshapes", () => {
     expect(codes(source)).toEqual(["VN3010"]);
   });
 
+  /** A call of the wrong arity, so the count is what it is refused for. */
   it("leaves a function alone when its decorator changes no shape", () => {
     const source = [TAGGED, "@tagged", "fn one(x) => x", 'const r = one("a", "b")'];
 
-    expect(codes(source.join("\n"))).toEqual(["VN3010"]);
+    expect(codes(source.join("\n"))).toEqual(["VN3002"]);
   });
 
   it("leaves every undecorated function alone", () => {
     const source = [INJECT, "fn plain(g) => g", 'const r = plain("a", "b")'];
 
-    expect(codes(source.join("\n"))).toEqual(["VN3010"]);
+    expect(codes(source.join("\n"))).toEqual(["VN3002"]);
   });
 });
 

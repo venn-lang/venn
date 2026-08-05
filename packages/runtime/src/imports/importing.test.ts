@@ -126,28 +126,33 @@ describe("what an import of a package brings", () => {
   });
 });
 
-describe("what the checker refuses", () => {
-  it("refuses a namespace nobody imported", () => {
+/**
+ * Every plugin is loaded whatever a file imports, so a name resolves either
+ * way and none of these refuses. What is left is worth saying once: the top of
+ * a file should be the answer to where a name came from.
+ */
+describe("what the checker says about a name nobody imported", () => {
+  it("hints at a namespace nobody imported", () => {
     expect(said('flow "f" { step "s" { kit.shout "hi" } }')[0]).toContain(
       'VN2007 "kit" is not imported',
     );
   });
 
-  it("refuses it inside an expression, where it hid before", () => {
+  it("says it of an expression too, where it hid before", () => {
     expect(said('print kit.shout("hi")')[0]).toContain('VN2007 "kit" is not imported');
   });
 
-  it("refuses a matcher nobody imported", () => {
+  it("says it of a matcher nobody imported", () => {
     const source = 'import { kit } from "@t/kit"\nflow "f" { step "s" { expect 1 louder 1 } }';
 
-    expect(said(source)[0]).toContain('VN2007 "louder" is not imported');
+    expect(said(source)).toContain('VN2007 "louder" is not imported in this file.');
   });
 
-  it("refuses the namespace's own name once it was renamed", () => {
+  it("says it of the namespace's own name once it was renamed", () => {
     const source =
       'import { kit as tools } from "@t/kit"\nflow "f" { step "s" { kit.shout "hi" } }';
 
-    expect(said(source)[0]).toContain('VN2007 "kit" is not imported');
+    expect(said(source)).toContain('VN2007 "kit" is not imported in this file.');
   });
 
   it("says `use` is gone, and what to write", () => {

@@ -7,13 +7,22 @@ import { runCommand } from "../commands/index.js";
 
 const NEWLINE = String.fromCharCode(10);
 
-/** Issue #304, verbatim: `@timeout` decorates a flow, a step or a group. */
+/**
+ * Issue #304, verbatim but for one character per step: `@timeout` decorates a
+ * flow, a step or a group.
+ *
+ * The issue was filed with `log "one started"  wait 500ms`, two spaces and no
+ * separator, and until VN2027 existed nothing said so: `wait` and its argument
+ * were read as two more arguments to `log`, so neither "slow" step ever waited.
+ * The `;` is what the report was always meant to say. It changes nothing this
+ * file tests, because VN2014 refuses the run before either step is reached.
+ */
 const REFUSED = [
   'flow "cut by a timeout" {',
   "  @timeout(30ms)",
   "  parallel {",
-  '    step "slow one" { log "one started"  wait 500ms }',
-  '    step "slow two" { log "two started"  wait 500ms }',
+  '    step "slow one" { log "one started"; wait 500ms }',
+  '    step "slow two" { log "two started"; wait 500ms }',
   "  }",
   "}",
 ].join(NEWLINE);

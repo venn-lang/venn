@@ -35,28 +35,41 @@ describe("a key written out against a list", () => {
     ]);
   });
 
-  /** `xs[0]` and `xs["0"]` are one key, so they have to be one type. */
-  it("is the element when the key spells a position", () => {
-    expect(problems(`${names}\nconst a: string = names[0]\nconst b: string = names["0"]`)).toEqual(
-      [],
-    );
+  /**
+   * `xs[0]` and `xs["0"]` are one key, so they have to be one type, and both
+   * carry the nothing a position answers with when there is nothing there:
+   * `["a", "b"][7]` is `null` at run time. So the annotation has to admit it, or
+   * the read has to be guarded or given a stand-in.
+   */
+  it("is the element and the nothing, when the key spells a position", () => {
+    const held = 'const a: string | null = names[0]\nconst b: string | null = names["0"]';
+
+    expect(problems(`${names}\n${held}`)).toEqual([]);
+    expect(problems(`${names}\nconst a: string = names[0] ?? "z"`)).toEqual([]);
     expect(problems(`${names}\nconst n: number = names["0"]`)).toEqual([
-      "Type mismatch: expected number, found string.",
+      "Type mismatch: expected number, found string | null.",
     ]);
   });
 
-  it("is the character when the receiver is a string", () => {
+  it("is the character and the nothing, when the receiver is a string", () => {
     const word = 'const word = "abc"';
 
-    expect(problems(`${word}\nconst a: string = word[0]\nconst b: string = word["0"]`)).toEqual([]);
+    expect(problems(`${word}\nconst a: string = word[0] ?? ""`)).toEqual([]);
+    expect(problems(`${word}\nconst b: string | null = word["0"]`)).toEqual([]);
     expect(problems(`${word}\nconst n: number = word[0]`)).toEqual([
-      "Type mismatch: expected number, found string.",
+      "Type mismatch: expected number, found string | null.",
     ]);
   });
 
-  /** A key the run works out is nobody's mistake, and stays nobody's mistake. */
+  /**
+   * A key the run works out is nobody's mistake about which member it names, and
+   * stays nobody's mistake. It is still a position, so it still carries the
+   * nothing: `args[i + 1]` is where a flag written without its value arrives, and
+   * this read answering the plain element is what let a malformed invocation run
+   * to the end and print a plausible wrong report.
+   */
   it("leaves a computed key alone", () => {
-    expect(problems(`${names}\nconst k = "len"\nconst s: string = names[k]`)).toEqual([]);
+    expect(problems(`${names}\nconst k = "len"\nconst s: string | null = names[k]`)).toEqual([]);
   });
 });
 

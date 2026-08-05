@@ -16,7 +16,7 @@ import { findBinding } from "../document/index.js";
 import type { TypeService } from "../types/index.js";
 import { ICON } from "./icons.js";
 import { item } from "./items.js";
-import { receiverTypeAt } from "./read-from.js";
+import { receiverTypeAt, withoutNothing } from "./read-from.js";
 
 export interface MemberArgs {
   /** The dotted path before the cursor's dot: `p`, `cfg.server`. */
@@ -47,9 +47,9 @@ function receiverType(args: MemberArgs): Type | undefined {
   let type = binding && args.types.of(args.document).types.get(binding);
   for (const name of segments.slice(1)) {
     if (!type) return undefined;
-    type = resolveMember(type, name, createContext());
+    type = resolveMember(withoutNothing(type), name, createContext());
   }
-  return type && prune(type);
+  return type && withoutNothing(prune(type));
 }
 
 /**

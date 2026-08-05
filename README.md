@@ -375,12 +375,12 @@ what makes an integration test a single file with no fixtures around it. See
 
 ## The standard library
 
-Nineteen namespaces, two hundred verbs, none of them known to the grammar. Each
-arrives through `use`:
+Twenty-four namespaces, more than two hundred verbs, none of them known to the
+grammar. Each arrives through `import`:
 
-`artifacts` · `assert` · `auth` · `browser` · `crypto` · `data` · `db` · `env` ·
-`fmt` · `gql` · `grpc` · `http` · `io` · `load` · `mail` · `mock` · `mqtt` ·
-`notify` · `ws`
+`artifacts` · `assert` · `auth` · `browser` · `crypto` · `data` · `date` · `db` ·
+`env` · `fmt` · `fs` · `gql` · `grpc` · `http` · `io` · `json` · `load` · `mail` ·
+`math` · `mock` · `mqtt` · `notify` · `path` · `ws`
 
 Plugins are ordinary packages. Writing one means calling `definePlugin` from
 [`@venn-lang/sdk`](packages/sdk), and a single `defineAction` feeds the runtime, the

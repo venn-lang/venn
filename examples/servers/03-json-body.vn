@@ -2,13 +2,16 @@
 # Run: venn run examples/servers/03-json-body.vn
 
 import { http } from "venn/http"
-import { data } from "venn/data"
+import { json } from "venn/json"
 
 const api = http.serve { port: 0 }
 const base = "http://127.0.0.1:${api.port}"
 
 # `req.body` is the raw text that arrived, whatever it was, so parse it here.
-http.on api req => receipt(data.json(req.body))
+# `json.parse` and not `data.json`: both read text into a value, but `venn/data`
+# also draws random names, so it asks the host for randomness and a `fn` may not
+# call anything that asks the host for anything. `venn/json` asks for nothing.
+http.on api req => receipt(json.parse(req.body))
 
 fn receipt(order) => {
   status: 201,

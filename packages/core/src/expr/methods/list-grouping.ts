@@ -1,6 +1,12 @@
+import { counted } from "../counted-argument.js";
+import type { Counted } from "../counted-argument.types.js";
 import { type Invoke, type Method, nativeFn } from "../native.types.js";
 
 type Dict = Record<string, unknown>;
+
+/** Both cut a list into runs, and a run of nothing is not a run. */
+const CHUNK: Counted = { verb: "chunk", what: "chunk size", least: 1 };
+const WINDOWS: Counted = { verb: "windows", what: "window size", least: 1 };
 
 /**
  * A grouping key: what `groupBy`, `countBy` and `keyBy` file an item under.
@@ -32,8 +38,9 @@ export const LIST_GROUPING: Record<string, Method> = {
     nativeFn((args) => keyed(list, (item, i) => key(invoke.two(args[0], item, i)))),
   partition: (list: readonly unknown[], invoke: Invoke) =>
     nativeFn((args) => split(list, (item, i) => Boolean(invoke.two(args[0], item, i)))),
-  chunk: (list: readonly unknown[]) => nativeFn((args) => chunk(list, Number(args[0] ?? 1))),
-  windows: (list: readonly unknown[]) => nativeFn((args) => windows(list, Number(args[0] ?? 2))),
+  chunk: (list: readonly unknown[]) => nativeFn((args) => chunk(list, counted(args[0], CHUNK))),
+  windows: (list: readonly unknown[]) =>
+    nativeFn((args) => windows(list, counted(args[0], WINDOWS))),
   pairwise: (list: readonly unknown[]) => windows(list, 2),
   zip: (list: readonly unknown[]) => nativeFn((args) => zip(list, asList(args[0]))),
   unzip: (list: readonly unknown[]) => unzip(list),
@@ -97,22 +104,30 @@ function split(list: readonly unknown[], keep: (item: unknown, i: number) => boo
 }
 
 function chunk(list: readonly unknown[], size: number): unknown[][] {
-  const step = Math.max(1, Math.trunc(size));
   const out: unknown[][] = [];
-  for (let index = 0; index < list.length; index += step) out.push(list.slice(index, index + step));
+  for (let index = 0; index < list.length; index += size) out.push(list.slice(index, index + size));
   return out;
 }
 
 /** Every consecutive run of `size` items: `[1,2,3].windows(2)` gives `[[1,2],[2,3]]`. */
 function windows(list: readonly unknown[], size: number): unknown[][] {
-  const width = Math.max(1, Math.trunc(size));
   const out: unknown[][] = [];
-  for (let index = 0; index + width <= list.length; index += 1) {
-    out.push(list.slice(index, index + width));
+  for (let index = 0; index + size <= list.length; index += 1) {
+    out.push(list.slice(index, index + size));
   }
   return out;
 }
 
+/**
+ * Pairs of one list and the other, stopping at the shorter.
+ *
+ * Deliberately total, and the one truncation in this file that stays. Zipping
+ * two lists of different lengths is the ordinary case, not the mistake:
+ * `names.zip(scores)` where one is short is how a caller asks for the overlap,
+ * and Python, Rust, Kotlin and Swift all answer the overlap. What the shorter
+ * one holds is a question about the caller's data, not about `zip`. Ask
+ * `a.len == b.len` where the lengths are supposed to match.
+ */
 function zip(list: readonly unknown[], other: readonly unknown[]): unknown[][] {
   return list.slice(0, Math.min(list.length, other.length)).map((item, i) => [item, other[i]]);
 }

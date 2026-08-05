@@ -1,6 +1,12 @@
-import { type AstNode, buildProblem, CODES, isLifecycleDecl, type Problem } from "@venn-lang/core";
+import {
+  type AstNode,
+  buildProblem,
+  CODES,
+  isLifecycleDecl,
+  nearestName,
+  type Problem,
+} from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
-import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
 
 /**

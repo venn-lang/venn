@@ -45,8 +45,6 @@ describe("an imported deco, in the editor", () => {
       'const r = plain("a", "b")',
     ].join("\n");
 
-    expect(await diagnostics(source)).toEqual([
-      "Type mismatch: expected fn(string, string) -> a, found fn(a) -> a.",
-    ]);
+    expect(await diagnostics(source)).toEqual(["`plain` takes 1 argument, and got 2."]);
   });
 });

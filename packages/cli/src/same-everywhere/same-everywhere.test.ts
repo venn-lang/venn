@@ -94,7 +94,7 @@ async function agreesEverywhere(): Promise<void> {
 }
 
 /**
- * `VENN_WRITE_CORPUS=1 pnpm --filter @venn-lang/runtime test` records what the
+ * `VENN_WRITE_CORPUS=1 pnpm --filter @venn-lang/cli test` records what the
  * tree does now, the way `scripts/examples-run.mjs --write` does. Without it the
  * recorded answers are the assertion, so a fix is a reviewable diff in that file
  * and a regression is a failure here.

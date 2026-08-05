@@ -7,11 +7,21 @@ const multiples = range(0, 100, 3)
 ##
 ## `lo` and `hi` are parameters rather than variables because a binding never
 ## changes: every halving is a fresh call carrying a fresh pair of bounds.
+##
+## Both ways out are written as guards. A read by position may find nothing
+## there, and the bounds are what stop it happening, so the checker is told the
+## same thing the bounds say.
 fn search(xs: list<number>, target: number, lo: number, hi: number) -> number {
-  let mid = ((lo + hi) / 2).floor
-  return (lo > hi ? -1
-    : xs[mid] == target ? mid
-    : xs[mid] < target ? search(xs, target, mid + 1, hi)
+  if lo > hi {
+    return -1
+  }
+  const mid = ((lo + hi) / 2).floor
+  const here = xs[mid]
+  if here == null {
+    return -1
+  }
+  return (here == target ? mid
+    : here < target ? search(xs, target, mid + 1, hi)
     : search(xs, target, lo, mid - 1))
 }
 

@@ -9,6 +9,12 @@ const of = (value: unknown): number => Number(value ?? 0);
  *
  * `nan` is the reason: it equals nothing, itself included, so `x == math.nan` is
  * false however wrong the sum went. Asking has to be a verb.
+ *
+ * All three are `pure`. They read `input.args` and nothing else, so they are
+ * refused inside a `fn` only because `math.random` shares their namespace, and
+ * `math.isClose` is exactly the sort of thing a pure body wants: the whole point
+ * of `examples/basics/11-math.vn`'s float comparison is that it is a question
+ * about two numbers you already have.
  */
 export const checks: ActionDefinition[] = [
   defineAction({
@@ -16,6 +22,7 @@ export const checks: ActionDefinition[] = [
     doc: "Whether this is the not-a-number, which no comparison can find.",
     args: [arg("value", t.number, "The number to ask about.")],
     result: t.bool,
+    pure: true,
     run: (_ctx, input) => Number.isNaN(of(input.args[0])),
   }),
   defineAction({
@@ -23,6 +30,7 @@ export const checks: ActionDefinition[] = [
     doc: "Whether it is a real number: not infinite, and not a mistake.",
     args: [arg("value", t.number, "The number to ask about.")],
     result: t.bool,
+    pure: true,
     run: (_ctx, input) => Number.isFinite(of(input.args[0])),
   }),
   defineAction({
@@ -34,6 +42,7 @@ export const checks: ActionDefinition[] = [
       optionalArg("within", t.number, "How far apart they may be. A very small number by default."),
     ],
     result: t.bool,
+    pure: true,
     run: (_ctx, input) => close(of(input.args[0]), of(input.args[1]), input.args[2]),
   }),
 ];

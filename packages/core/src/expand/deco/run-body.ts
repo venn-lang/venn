@@ -3,7 +3,7 @@ import { callArgs } from "../../ast/index.js";
 import { buildProblem, CODES } from "../../codes/index.js";
 import { evaluate, invoke, memberValue } from "../../expr/index.js";
 import type { ActionCall, Block, IfStmt, LetStmt, Statement } from "../../generated/ast.js";
-import { patternSlots, slotValue } from "../../pattern/index.js";
+import { patternMisfit, patternSlots, slotValue } from "../../pattern/index.js";
 import { type Problem, ProblemError, UNLOCATED } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
 import { truthy } from "../../value/index.js";
@@ -52,7 +52,10 @@ function bind(stmt: LetStmt, args: DecoBodyArgs): void {
   if (stmt.args.length > 0 || stmt.opts) throw refuse(IMPURE_LET);
   const value = evaluate(stmt.value, args.env);
   if (stmt.name) return void args.env.bind(stmt.name, value);
-  for (const bound of stmt.pattern ? patternSlots(stmt.pattern) : []) {
+  if (!stmt.pattern) return;
+  const misfit = patternMisfit(stmt.pattern, value);
+  if (misfit) throw new ProblemError(misfit);
+  for (const bound of patternSlots(stmt.pattern)) {
     args.env.bind(bound.name, slotValue(value, bound));
   }
 }

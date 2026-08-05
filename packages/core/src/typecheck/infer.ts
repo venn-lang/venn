@@ -23,8 +23,8 @@ import type { InterpolationSlot } from "../interpolation/index.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { markSlotIn } from "../span/index.js";
-import { positionKey } from "../value/index.js";
 import { callType } from "./action-signature.js";
+import { readAt } from "./at-a-position.js";
 import { argumentsFit } from "./call-arguments.js";
 import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
@@ -37,6 +37,7 @@ import { ERROR_TYPE } from "./error-type.js";
 import { fits } from "./fits.js";
 import { identityComparison } from "./identity-comparison.js";
 import type { ImportedType } from "./imported-types.js";
+import { lambdaParams } from "./lambda-params.js";
 import { either, logicalType } from "./logical-type.js";
 import { memberRead } from "./member-read.js";
 import { mergedCall } from "./merged-call.js";
@@ -48,6 +49,7 @@ import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
 import { showType } from "./show.js";
+import { insideAJoin, joinedWithPlus, joinsStrings } from "./string-plus.js";
 import { BOOL, DYNAMIC, fn, NULL, NUMBER, STRING, type Type } from "./type.types.js";
 import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
@@ -86,6 +88,12 @@ export interface Infer {
   fragments?: ReadonlyMap<string, FragmentDecl>;
   /** Where the `return`s of the body being walked report what they hand back. */
   returns?: ReturnSink;
+  /**
+   * What the innermost `loop` carries, so a `continue` can be checked against
+   * it. Absent where the enclosing loop holds no state, which is also what a
+   * `continue` with a value has to be told about.
+   */
+  carried?: Type;
 }
 
 /** Infer an expression's type, recording it for hover and reporting mismatches. */
@@ -128,7 +136,7 @@ function inferKind(expr: Expr, env: TypeEnv, infer: Infer): Type {
     case "MapLit":
       return inferMap({ expr, env, infer });
     case "FnExpr":
-      return inferFn({ params: expr.params, body: expr.body, returns: expr.returns }, env, infer);
+      return inferFn({ decl: expr, env, infer });
     case "MatchExpr":
       return checkMatch({ expr, env, infer, wantsValue: true });
     default:
@@ -210,9 +218,16 @@ function slotExpr(source: string): Slot {
   return { expr: repaired === source ? undefined : parseExpression(repaired), guess: true };
 }
 
-/** Infer without accusing: a repaired expression is a guess, not what was written. */
+/**
+ * Infer without accusing: a repaired expression is a guess, not what was
+ * written.
+ *
+ * Both sinks are emptied, not only the mismatches. A type name in a guessed
+ * slot is as much a guess as a clash in one, and refusing a name the reader
+ * never wrote is exactly the accusation this exists to avoid.
+ */
 function quiet(infer: Infer): Infer {
-  return { ...infer, ctx: { ...infer.ctx, mismatches: [] } };
+  return { ...infer, ctx: { ...infer.ctx, mismatches: [], unknownTypes: [] } };
 }
 
 /**
@@ -333,48 +348,11 @@ function verbCall(expr: Call, env: TypeEnv, infer: Infer): Type | undefined {
   return callType({ target, args }, env, infer);
 }
 
-/**
- * `xs[0]` and `m["name"]`.
- *
- * A position is read as one wherever the receiver holds positions, so `xs[0]`
- * and `xs["0"]` are the same element and have the same type, and `s[0]` is the
- * character it reads at run time rather than a member nobody declared.
- *
- * Everything else the source spelled out is the member read written with
- * brackets, and is typed as one. That used to be true of a record and not of a
- * list, which left the wrong promise standing over one spelling:
- * `const s: string = names["len"]` was accepted for a value that is the number
- * 2, while `const n: number = names["len"]` was refused.
- *
- * A key the run works out (`m[k]`, `stats[stat]`) is nobody's mistake and stays
- * `dynamic`: that is what reading a map by a computed key means.
- */
+/** `xs[0]` and `m["name"]`, both answered by `at-a-position`. */
 function inferIndex(expr: Index, env: TypeEnv, infer: Infer): Type {
   const receiver = prune(inferExpr(expr.receiver, env, infer));
   inferExpr(expr.index, env, infer);
-  const name = writtenKey(expr.index);
-  const spot = name === undefined || positionKey(name) !== undefined;
-  const held = spot ? positionType(receiver) : undefined;
-  if (held) return held;
-  if (name === undefined) return DYNAMIC;
-  return memberRead(receiver, { node: expr, name, asking: false }, infer);
-}
-
-/**
- * What a read by position answers: an element, a character, or nothing, for a
- * receiver that holds no positions and is read by name instead.
- */
-function positionType(receiver: Type): Type | undefined {
-  if (receiver.kind === "list") return receiver.element;
-  return receiver.kind === "prim" && receiver.name === "string" ? STRING : undefined;
-}
-
-/** The key when the source spelled it out, as against one the run works out. */
-function writtenKey(index: Expr): string | undefined {
-  if (index.$type !== "StringLit") return undefined;
-  // A `${…}` inside makes the key a run-time value, and nothing here to be
-  // right or wrong about yet.
-  return scanInterpolations(index.value).length > 0 ? undefined : index.value;
+  return readAt(receiver, expr, infer);
 }
 
 const ARITHMETIC = new Set(["+", "-", "*", "/", "%"]);
@@ -398,6 +376,9 @@ function inferBinary(expr: Binary, env: TypeEnv, infer: Infer): Type {
  * decides, and a mismatch is a compile error rather than something the run finds
  * out later. When either side is still an unsolved variable this falls back to
  * plain numbers, which is what teaches `fn double(x) => x * 2` that `x` is one.
+ *
+ * A `+` with a string of either side never gets that far: it is a reach for
+ * concatenation, and the unit rule has nothing to say about it.
  */
 function arithmetic(args: {
   infer: Infer;
@@ -407,11 +388,21 @@ function arithmetic(args: {
   right: Type;
 }): Type {
   const { infer, expr, op, left, right } = args;
+  if (joinsStrings(op, left, right)) return joined(infer, expr);
   const combined = combinedType(op, prune(left), prune(right));
   if (!combined) return numeric(infer, expr, left, right, COMPARISON.has(op));
   if (combined.ok) return combined.type;
   mismatched(infer, expr, prune(left), prune(right), op);
   return DYNAMIC;
+}
+
+/**
+ * A string, because that is what was meant, so the binding it goes into is not
+ * told a second and contradictory thing about the same line.
+ */
+function joined(infer: Infer, expr: Binary): Type {
+  if (!insideAJoin(expr)) infer.ctx.mismatches.push(joinedWithPlus(expr));
+  return STRING;
 }
 
 function mismatched(infer: Infer, node: AstNode, left: Type, right: Type, op: string): void {
@@ -426,9 +417,15 @@ function mismatched(infer: Infer, node: AstNode, left: Type, right: Type, op: st
   });
 }
 
-function numeric(infer: Infer, node: AstNode, left: Type, right: Type, compare = false): Type {
-  expect(infer, node, left, NUMBER);
-  expect(infer, node, right, NUMBER);
+/**
+ * Both operands against `number`, each reported on the operand itself.
+ *
+ * The operand is what carries the type that clashed, so a way out written from
+ * the node describes the value rather than the arithmetic standing around it.
+ */
+function numeric(infer: Infer, expr: Binary, left: Type, right: Type, compare = false): Type {
+  expect(infer, expr.left, left, NUMBER);
+  expect(infer, expr.right, right, NUMBER);
   return compare ? BOOL : NUMBER;
 }
 
@@ -451,29 +448,22 @@ function inferTernary(expr: Ternary, env: TypeEnv, infer: Infer): Type {
   return unify(then, otherwise) ? then : DYNAMIC;
 }
 
-/**
- * What a parameter is: what it was annotated with, what the callers said, or an
- * open question for the body to answer.
- */
-function paramType(param: Param, infer: Infer): Type {
-  if (param.paramType) {
-    const { ctx, named, catalog } = infer;
-    return typeRefToType({ ref: param.paramType, ctx, named, catalog });
-  }
-  return infer.seeds?.get(param) ?? infer.ctx.fresh();
-}
-
 /** Infer a function type: params, body, and an inferred (or annotated) result. */
-export function inferFn(
-  decl: { params?: ParamList; body: FnBody; returns?: TypeRef },
-  env: TypeEnv,
-  infer: Infer,
-): Type {
-  const params = (decl.params?.params ?? []).map((param) => ({
-    node: param,
-    type: paramType(param, infer),
-  }));
-  let scope = env;
+export function inferFn(args: {
+  decl: { params?: ParamList; body: FnBody; returns?: TypeRef };
+  env: TypeEnv;
+  infer: Infer;
+  /**
+   * What the place it was written asks it to be, when there is such a place.
+   * `xs.map(x => …)` is where `x` learns it is a number, and it has to learn it
+   * before the body is walked rather than from the unification afterwards.
+   */
+  wanted?: Type;
+}): Type {
+  const { decl, infer } = args;
+  const nodes = decl.params?.params ?? [];
+  const params = lambdaParams({ nodes, infer, wanted: args.wanted });
+  let scope = args.env;
   for (const param of params) scope = inScope(param, scope, infer);
   const declared = declaredType(decl.returns, infer);
   const result = inferBody({ body: decl.body, env: scope, infer, wanted: declared });

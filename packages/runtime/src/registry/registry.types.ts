@@ -24,6 +24,10 @@ export interface Registry {
   hasNamespace(namespace: string): boolean;
   /** The namespace a package contributes, which is what an import of it brings. */
   namespaceOf(pkg: string): string | undefined;
+  /** The module path a namespace comes from, which is what an import of it writes. */
+  packageOf(namespace: string): string | undefined;
+  /** Every package the run loaded, which is the candidate set for a misspelt import. */
+  packages(): readonly string[];
   /** What a package publishes, for reading an import of it name by name. */
   plugin(pkg: string): PluginDefinition | undefined;
   /** Every action, for binding namespaces as values in the evaluator scope. */

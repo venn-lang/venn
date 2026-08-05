@@ -14,10 +14,9 @@ describe("type inference", () => {
     expect(check("const a = 1 + 2 * 3\nconst b = a > 5")).toEqual([]);
   });
 
-  it("rejects adding a string to a number", () => {
+  it("names the join, and not the two types, when `+` meets a string", () => {
     const errors = check("const x = 1 + 'oops'");
-    expect(errors[0]).toContain("VN3010");
-    expect(errors[0]).toContain("number");
+    expect(errors).toEqual(["VN3024 `+` adds numbers; it does not join strings."]);
   });
 
   it("infers a function's parameter and return types from its body", () => {
@@ -33,8 +32,10 @@ describe("type inference", () => {
 
   it("checks list methods through their element type", () => {
     expect(check("const xs = [1, 2, 3]\nconst ys = xs.map(fn (n) => n > 0)")).toEqual([]);
+    // `trim` is a string's, so reading it off `s` is only wrong if `s` is known
+    // to be the number the list holds, which is what this asks.
     expect(
-      check("const xs = [1, 2, 3]\nconst bad = xs.map(fn (n) => n).filter(fn (s) => s + 'x')")[0],
+      check("const xs = [1, 2, 3]\nconst bad = xs.map(fn (n) => n).filter(fn (s) => s.trim)")[0],
     ).toContain("VN3010");
   });
 
@@ -62,6 +63,8 @@ describe("type inference", () => {
   });
 
   it("checks types inside string interpolation", () => {
-    expect(check("const x = 1\nconst s = \"${x + 'no'}\"")[0]).toContain("VN3010");
+    // Reported at all is the point; a `+` reaching for a join inside a `${…}`
+    // is answered by the same sentence it gets anywhere else.
+    expect(check("const x = 1\nconst s = \"${x + 'no'}\"")[0]).toContain("VN3024");
   });
 });

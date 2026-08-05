@@ -43,18 +43,19 @@ describe("running a fragment with what it does not take", () => {
 });
 
 describe("running a fragment with the wrong number of arguments", () => {
+  /** The words a call with the wrong count uses, since it is the same fact. */
   it("refuses too few", () => {
-    expect(said(...SHOW, "run show()")[0]).toContain("`show` takes 1 argument, and 0 were given");
+    expect(said(...SHOW, "run show()")[0]).toContain("`show` takes 1 argument, and got 0");
   });
 
   it("refuses too many", () => {
-    expect(said(...SHOW, 'run show("a", "b")')[0]).toContain("takes 1 argument, and 2 were given");
+    expect(said(...SHOW, 'run show("a", "b")')[0]).toContain("takes 1 argument, and got 2");
   });
 
   it("counts more than one in the plural", () => {
     const pair = ["fragment pair(a: string, b: string) {", "  print a", "}"];
 
-    expect(said(...pair, 'run pair("a")')[0]).toContain("takes 2 arguments, and 1 was given");
+    expect(said(...pair, 'run pair("a")')[0]).toContain("takes 2 arguments, and got 1");
   });
 
   it("takes none where none are declared", () => {
@@ -65,7 +66,7 @@ describe("running a fragment with the wrong number of arguments", () => {
   it("refuses an argument to one that declares none", () => {
     const none = ["fragment none() {", '  print "x"', "}"];
 
-    expect(said(...none, "run none(1)")[0]).toContain("`none` takes 0 arguments, and 1 was given");
+    expect(said(...none, "run none(1)")[0]).toContain("`none` takes no arguments, and got 1");
   });
 });
 

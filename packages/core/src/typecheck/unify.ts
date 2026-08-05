@@ -144,8 +144,11 @@ function unifyVariadic(a: FnType, b: FnType): boolean {
  * How many parameters the two sides must agree on. Normally all of them, but a
  * callback offered more than it takes agrees on the ones it took, which is how
  * `people.map(p => p.age)` type-checks against a `map` that also passes an index.
+ *
+ * Exported so the message and the rule cannot drift: a call reported as the
+ * wrong number of arguments is exactly one this answered `undefined` for.
  */
-function sharedArity(a: FnType, b: FnType): number | undefined {
+export function sharedArity(a: FnType, b: FnType): number | undefined {
   if (a.params.length === b.params.length) return a.params.length;
   const [shorter, longer] = a.params.length < b.params.length ? [a, b] : [b, a];
   const ignorable = longer.ignorableFrom;
@@ -192,8 +195,11 @@ function restHolds(from: RecordType, into: RecordType): boolean {
  * `nickname?: string` is read as `string | null`, a value that may be nothing.
  * Absent and null are the same thing to a reader of the map, so a record that
  * left it out still satisfies one that allows it.
+ *
+ * Exported so a rule about a missing field asks the same question this does:
+ * a `continue` leaving out a field that may be nothing has left out nothing.
  */
-function omittable(type: Type): boolean {
+export function omittable(type: Type): boolean {
   const t = prune(type);
   if (t.kind === "prim") return t.name === "null";
   return t.kind === "union" && t.members.some(omittable);

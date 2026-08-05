@@ -22,12 +22,19 @@ const OPEN = "```langium";
 const CLOSE = "```";
 
 /**
- * The grammar without its prose.
+ * The grammar without the argument for why it is shaped as it is.
  *
- * The comments in `venn.langium` explain why each rule is shaped as it is, at
- * length, and that argument belongs beside the rule and not in a specification
- * appendix. What is left is every rule, in order, which is what the section
- * claims to be.
+ * Two comment styles, and the difference between them is the whole rule. A
+ * line comment in `venn.langium` explains a decision at length, and that
+ * argument belongs beside the rule rather than in a specification appendix, so
+ * it is dropped here. A block comment states something a reader of the
+ * specification needs, and it survives into the section.
+ *
+ * The distinction is not decoration. The language states its termination rule,
+ * that a statement ends at a newline or a `;`, in exactly two places, and both
+ * of them were line comments. So section 21 shipped `terminal NL` as a bare
+ * regex, and nothing in the specification said what a `;` did, while nine
+ * files in `examples/` and seven of its own code fences leaned on one.
  */
 export async function grammarBlock() {
   const text = await readFile(GRAMMAR, "utf8");

@@ -72,13 +72,17 @@ describe("a check error stops a run", () => {
   });
 
   /**
-   * A hint is untidiness rather than a mistake, and a run that stopped for one,
-   * or even mentioned one, would teach people to stop reading them.
+   * A hint is untidiness rather than a mistake, so it does not stop anything.
+   *
+   * It is still said. It used to be dropped here and printed by `venn check`
+   * alone, so a program ran clean and then failed a check for something the run
+   * had already found and swallowed. Two commands reading one file and
+   * answering differently is two compilers wearing one name.
    */
-  it("runs anyway when the only thing found is a hint", async () => {
+  it("says a hint and runs anyway", async () => {
     const outcome = await refusals('import { equals } from "venn/assert"', 'print "ran"');
 
-    expect(outcome.problems.map((one) => one.code)).toEqual([]);
+    expect(outcome.problems.map((one) => one.severity)).toEqual(["hint"]);
     expect(outcome.result).toBeDefined();
   });
 

@@ -1,4 +1,5 @@
 export { type BindsValue, boundNames, loopBinding } from "./bound-names.js";
+export { patternMisfit } from "./pattern-fits.js";
 export {
   type PatternSlot,
   patternNames,

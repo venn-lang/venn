@@ -25,9 +25,9 @@ describe("callbacks that ignore what they are handed", () => {
   });
 
   it("still types the item it did take", () => {
-    const errors = check(`${PEOPLE}const bad = people.map((p, at) => p.age + "x")`);
+    const errors = check(`${PEOPLE}const bad = people.map((p, at) => p.age.trim)`);
 
-    expect(errors[0]).toContain("VN3010");
+    expect(errors[0]).toContain('Type number has no member "trim"');
   });
 
   it("refuses to take more than it is handed", () => {

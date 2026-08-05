@@ -26,6 +26,30 @@ export function fileSystemConformance(spec: ConformanceSpec<FileSystem>): void {
       expect(await fs.exists("k.bin")).toBe(false);
     });
 
+    /**
+     * A directory is something a path names, so `exists` answers for one. The
+     * shape a reader writes is `exists` then `list`, and `list` takes a
+     * directory: an implementation that says no here would send that reader
+     * past a directory it can list. The double holds only the paths written,
+     * which is why this is asked of both.
+     */
+    it("says a directory is there, and gone once nothing is under it", async () => {
+      const fs = await spec.factory();
+      await fs.write("holds/one.bin", new Uint8Array([1]));
+
+      expect(await fs.exists("holds")).toBe(true);
+      expect((await fs.list("holds")).map((entry) => entry.name)).toEqual(["one.bin"]);
+
+      await fs.removeAll("holds");
+      expect(await fs.exists("holds")).toBe(false);
+    });
+
+    /** The root is the one directory a file system has before anything is written. */
+    it("says the root is there", async () => {
+      const fs = await spec.factory();
+      expect(await fs.exists(".")).toBe(true);
+    });
+
     it("removeAll takes a tree, and the files under it", async () => {
       const fs = await spec.factory();
       await fs.write("tree/a.bin", new Uint8Array([1]));

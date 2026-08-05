@@ -8,9 +8,10 @@ import {
   relativeTo,
   writeBuildRecord,
 } from "@venn-lang/project";
+import { isError } from "../diagnostics/index.js";
 import { selectPackages, unknownPackage } from "../project/index.js";
 import { reportProblems } from "../reporters/index.js";
-import { checkProblems, isError } from "./check.js";
+import { checkProblems } from "./check.js";
 
 export interface BuildArgs {
   release?: boolean;

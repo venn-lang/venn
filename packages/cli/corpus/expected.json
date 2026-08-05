@@ -287,22 +287,30 @@
   },
   "023-continue-in-a-repeat-carries-nothing": {
     "top": {
-      "problems": [],
+      "problems": [
+        "VN3027 error@23 Nothing carries this value to the next pass, so it is dropped."
+      ],
       "out": "1 2 3 ",
       "refused": null
     },
     "fnDecl": {
-      "problems": [],
+      "problems": [
+        "VN3027 error@23 Nothing carries this value to the next pass, so it is dropped."
+      ],
       "out": "1 2 3 ",
       "refused": null
     },
     "fnExpr": {
-      "problems": [],
+      "problems": [
+        "VN3027 error@23 Nothing carries this value to the next pass, so it is dropped."
+      ],
       "out": "1 2 3 ",
       "refused": null
     },
     "fragment": {
-      "problems": [],
+      "problems": [
+        "VN3027 error@23 Nothing carries this value to the next pass, so it is dropped."
+      ],
       "out": "1 2 3 ",
       "refused": null
     }
@@ -852,26 +860,22 @@
       }
     },
     "fnDecl": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
+      "problems": [],
       "out": null,
       "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "code": "VN6002",
+        "title": "the guard fired",
         "help": null,
         "uri": "memory://corpus.vn",
         "column": 1
       }
     },
     "fnExpr": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
+      "problems": [],
       "out": null,
       "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
+        "code": "VN6002",
+        "title": "the guard fired",
         "help": null,
         "uri": "memory://corpus.vn",
         "column": 1
@@ -897,36 +901,28 @@
     },
     "fnDecl": {
       "problems": [
-        "VN1002 error@10 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
-        "VN1002 error@1 Expected a closing brace here, found `seen`.",
-        "VN1002 error@1 Expected the end of the file here, found `return`.",
-        "VN1002 error@1 Expected the end of the file here, found a closing brace.",
-        "VN2008 error@1 `io.print` is a verb, not a value: write `io.print()` to call it."
+        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
       ],
       "out": null,
       "refused": {
-        "code": "",
-        "title": "Unknown action \"seen\".",
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
         "help": null,
-        "uri": "",
-        "column": -1
+        "uri": "memory://corpus.vn",
+        "column": 1
       }
     },
     "fnExpr": {
       "problems": [
-        "VN1002 error@10 Expected a closing brace here, found `\"the verb ran\"`.",
-        "VN1002 error@1 Expected the end of the file here, found `return`.",
-        "VN1002 error@1 Expected the end of the file here, found a closing brace.",
-        "VN2003 error@1 This is not an action to call.",
-        "VN2008 error@1 `io.print` is a verb, not a value: write `io.print()` to call it."
+        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
       ],
       "out": null,
       "refused": {
-        "code": "",
-        "title": "Unknown action \"seen\".",
+        "code": "VN2024",
+        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
         "help": null,
-        "uri": "",
-        "column": -1
+        "uri": "memory://corpus.vn",
+        "column": 1
       }
     },
     "fragment": {

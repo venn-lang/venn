@@ -1,14 +1,18 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import { shownColumn } from "../lang/index.js";
 import type { Problem, Span } from "../problem/index.js";
+import { spanAt } from "./at-an-offset.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
 import { bracketTheDeco } from "./bracket-the-deco.js";
 import { bracketTheTry } from "./bracket-the-try.js";
-import type { Explained } from "./explained.types.js";
+import { commaInBrackets } from "./comma-in-brackets.js";
+import type { Explained, ParserStop } from "./explained.types.js";
+import { missingSeparator } from "./missing-separator.js";
+import { optionsAteTheBody } from "./options-then-body.js";
 import { saidLexerError, saidParserError } from "./said-error.js";
-import { verbInAFn } from "./verb-in-a-fn.js";
 
-/** The length, in characters, of the word a relocated span points at: `try`. */
+/** How much a relocated span underlines when the explainer named no width: the
+ * word `try`, which is what the first of them ever pointed at. */
 const RELOCATED_LENGTH = 3;
 
 /** Structural view of a Chevrotain lexer error (avoids importing chevrotain). */
@@ -20,10 +24,23 @@ interface LexerError {
   message: string;
 }
 
-/** Structural view of a Chevrotain parser (recognition) error. */
+/**
+ * Structural view of a Chevrotain parser (recognition) error.
+ *
+ * `context` carries the rules the parser was inside, which is the only thing
+ * that tells a missing statement separator from a missing map entry: the token
+ * and the column are identical in both.
+ */
 interface RecognitionError {
-  token: { startOffset: number; startLine?: number; startColumn?: number; image: string };
+  token: {
+    startOffset: number;
+    startLine?: number;
+    startColumn?: number;
+    image: string;
+    tokenType?: { name: string };
+  };
   message: string;
+  context?: { ruleStack: string[] };
 }
 
 /**
@@ -56,7 +73,7 @@ export function parserErrorToProblem(args: {
   text?: string;
 }): Problem {
   const said = titleFor(args);
-  const span = spanFor({ error: args.error, uri: args.uri, text: args.text, offset: said.offset });
+  const span = spanFor({ ...args, said });
   return buildProblem({ spec: CODES.VN1002_PARSE, span, title: said.title });
 }
 
@@ -68,24 +85,19 @@ function spanFor(args: {
   error: RecognitionError;
   uri: string;
   text?: string;
-  offset?: number;
+  said: Explained;
 }): Span {
-  const { error, uri, text } = args;
+  const { error, uri, text, said } = args;
   if (text === undefined) return tokenSpan({ error, uri });
-  if (args.offset !== undefined) {
-    return placed({ uri, text, offset: args.offset, length: RELOCATED_LENGTH });
+  if (said.offset !== undefined) {
+    const length = said.length ?? RELOCATED_LENGTH;
+    return spanAt({ text, uri, offset: said.offset, length });
   }
   // A file the parser ran off the end of leaves `NaN` on the token, which used
   // to fall back to the top of the file, so "found the end of the file" read as
   // a claim about line one however far down the mistake actually was.
   if (Number.isFinite(error.token.startOffset)) return tokenSpan({ error, uri, text });
-  return placed({ uri, text, offset: text.length, length: 0 });
-}
-
-/** A span whose line and column are read from the source, since no token holds them. */
-function placed(args: { uri: string; text: string; offset: number; length: number }): Span {
-  const { line, column } = locate(args.text, args.offset);
-  return { uri: args.uri, offset: args.offset, length: args.length, line, column };
+  return spanAt({ text, uri, offset: text.length, length: 0 });
 }
 
 /** A span over the token the parser stopped at. */
@@ -113,14 +125,6 @@ function shown(args: { text?: string; line: number; column: number }): number {
   return shownColumn({ text: args.text, line: args.line, column: args.column });
 }
 
-/** The 1-based line and column of an offset, for a span an explainer relocated. */
-function locate(text: string, offset: number): { line: number; column: number } {
-  const before = text.slice(0, offset);
-  const line = (before.match(/\n/g)?.length ?? 0) + 1;
-  const column = offset - before.lastIndexOf("\n");
-  return { line, column: shownColumn({ text, line, column }) };
-}
-
 /**
  * A position, or where to point when there is none.
  *
@@ -135,10 +139,24 @@ function at(value: number | undefined, fallback: number): number {
  * What the language can say about this error, and the parser's own message put
  * into words when it can say nothing more.
  *
- * Each explainer looks at the source rather than at the token, because recovery
- * lands where it can and not where the mistake is. The purity of a `fn` comes
- * first: inside one there are no arguments to bracket, so the two after it
- * would explain a mistake nobody made.
+ * The order is the order the keys narrow in, and it is load bearing.
+ *
+ * The first three read the source rather than the token, because recovery lands
+ * where it can and not where the mistake is. A verb written in a `fn` used to
+ * come first here, reading the line the parser stopped on; the grammar parses
+ * one now and the checker refuses it off the AST, which is right at every
+ * layout rather than only where the verb began its line. `bracketTheDeco` comes
+ * before the separator three because `@timeout print` is a decorator missing its
+ * brackets and not a statement missing its newline, and only the line above the
+ * token says which.
+ *
+ * The last three come last because they are keyed on the parser's own state,
+ * which is the narrowest key there is: what it wanted, what it was inside, and
+ * whether the token it stopped at could begin another item of the list it was
+ * reading. Nothing they claim is a shape any of the four above recognises.
+ * `commaInBrackets` runs before `missingSeparator` because a `[ … ]` pattern
+ * offers a newline in the grammar that the lexer has already deleted, so only
+ * the comma is true inside brackets.
  */
 function titleFor(args: { error: RecognitionError; text?: string }): Explained {
   const token = args.error.token.image;
@@ -148,13 +166,27 @@ function titleFor(args: { error: RecognitionError; text?: string }): Explained {
   const offset = args.error.token.startOffset;
   const imported = importSaid({ token, text, offset });
   if (imported) return { title: imported };
-  const verb = verbInAFn({ text, offset });
-  if (verb) return verb;
-  const explained =
-    bracketTheDeco({ token, text, offset }) ??
-    bracketTheArgument({ operator: token, text, offset }) ??
-    bracketTheTry({ text, offset });
-  return { title: explained ?? said };
+  const worded = bracketTheDeco({ token, text, offset }) ?? readAsAValue({ token, text, offset });
+  return worded ? { title: worded } : (stopped(args) ?? { title: said });
+}
+
+/** The two that read a line as one value written where the grammar wanted one. */
+function readAsAValue(args: { token: string; text: string; offset: number }): string | undefined {
+  const { token, text, offset } = args;
+  return bracketTheArgument({ operator: token, text, offset }) ?? bracketTheTry({ text, offset });
+}
+
+/** The three keyed on what the parser wanted and what it was inside when it stopped. */
+function stopped(args: { error: RecognitionError; text?: string }): Explained | undefined {
+  const at: ParserStop = {
+    message: args.error.message,
+    offset: args.error.token.startOffset,
+    ruleStack: args.error.context?.ruleStack ?? [],
+    text: args.text ?? "",
+    token: args.error.token.image,
+    tokenType: args.error.token.tokenType?.name ?? "",
+  };
+  return optionsAteTheBody(at) ?? commaInBrackets(at) ?? missingSeparator(at);
 }
 
 /** What an `import` written below the first declaration is told, since the

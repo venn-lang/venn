@@ -11,6 +11,7 @@ import { runCommand } from "./commands/run.js";
 import { scriptCommand } from "./commands/script.js";
 import { verifyPluginCommand } from "./commands/verify-plugin.js";
 import { targetsOrExit, worst } from "./project/index.js";
+import { quietPipe } from "./shutdown/index.js";
 import { VERSION } from "./version.js";
 
 /**
@@ -276,4 +277,8 @@ const main = defineCommand({
   },
 });
 
+// Before any command, because every one of them prints and any of them may be
+// piped into `head` or `less`. One place, so no command can be the one that
+// forgot.
+quietPipe({ exit: (code) => process.exit(code) });
 void runMain(main);

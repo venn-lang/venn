@@ -71,10 +71,13 @@ forEach row in perSeller(sales).sortBy(s => -s.total) {
 }
 
 # `partition` splits in one pass and hands back both halves, so nothing is
-# filtered twice and nothing is dropped on the floor.
+# filtered twice and nothing is dropped on the floor. A read by position may find
+# nothing there, so each half is named once with a stand-in and used by name.
 const split = sales.partition(s => s.amount >= 1000)
-print "big tickets:" split[0].len "worth" split[0].sumBy(s => s.amount)
-print "everything else:" split[1].len "worth" split[1].sumBy(s => s.amount)
+const big = split[0] ?? []
+const rest = split[1] ?? []
+print "big tickets:" big.len "worth" big.sumBy(s => s.amount)
+print "everything else:" rest.len "worth" rest.sumBy(s => s.amount)
 
 # Two levels of grouping: the rows of a region, counted by what sold there.
 print "product mix"

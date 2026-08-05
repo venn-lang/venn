@@ -221,6 +221,69 @@ db.exec "TRUNCATE orders CASCADE"
 
 > **Mudança em relação ao protótipo.** Caminhos deixam de ser bare tokens (`POST /api/auth/login`) e passam a ser strings. Isso remove a ambiguidade fatal entre caminho e regex, `/success` versus `/Order #(\d+)/`, que impediria o lexer de decidir sem lookahead semântico. O açúcar `POST "/x"` continua disponível como alias do `http`.
 
+### Onde uma instrução termina
+
+Uma instrução termina numa quebra de linha ou num `;`. Para a gramática os dois
+são a mesma coisa, um token só, e ele engole qualquer sequência de quebras, de
+ponto e vírgulas e dos espaços entre elas. `print 1; print 2` e as mesmas duas
+chamadas uma embaixo da outra são o mesmo programa.
+
+Dentro de `{ }` ele é obrigatório: duas instruções não correm juntas ali. No topo
+do arquivo e dentro de um `namespace` ele é opcional hoje, e essa é a única
+irregularidade da regra. Está em aberto, com o preço dos dois lados escrito em
+[`docs/known-gaps.md`](known-gaps.md).
+
+| Onde | O que separa duas instruções |
+| --- | --- |
+| Dentro de `{ }` | Uma quebra de linha ou um `;`, e é obrigatório |
+| No topo do arquivo e dentro de um `namespace` | Uma quebra de linha ou um `;`, e hoje é opcional |
+| Dentro de `( )` e de `[ ]` | Nada: ali quem separa é a vírgula |
+
+Dentro de `( )` e de `[ ]` o lexer apaga a quebra de linha antes que o parser a
+veja. É isso que deixa uma chamada, uma lista de argumentos e uma lista literal
+ocuparem várias linhas físicas. O `;` escrito sozinho ali não é apagado junto:
+ele é recusado com todas as letras, porque entre parênteses e colchetes não há
+instrução para separar, e `[1; 2]` não descreve uma lista de dois. Um `{ }`
+aberto lá dentro devolve a quebra de linha, senão um corpo de função escrito
+como argumento não poderia ter mais de uma instrução.
+
+Um mapa e os braços de um `match` aceitam os dois, vírgula ou quebra de linha,
+porque ali não há instrução nenhuma: há itens.
+
+Faltar o separador entre duas instruções é um erro de sintaxe, e a mensagem diz
+qual caractere está faltando. Há um caso em que não é: uma chamada com argumentos
+sem parênteses continua lendo o que vier depois dela, então `print 1 print 2` não
+são duas instruções sem separador, é **uma** com três argumentos. O verificador
+nomeia isso à parte, em `VN2027`, apontando a palavra que foi engolida:
+
+```
+VN2027 · `print` is an action, not a value, so this line is read as one statement.
+  at    exemplo.vn:1:9
+  help  Put a `;` or a newline before `print` to start the next statement.
+```
+
+#### Uma linha que começa com ponto continua a de cima
+
+A exceção, e é uma só. Uma quebra de linha não termina a instrução quando a
+linha seguinte começa com um `.`, para que uma corrente possa ser quebrada onde
+ela se lê melhor:
+
+```venn
+const grandes = [1, 2, 3, 4]
+  .filter(x => x > 2)
+  .len
+
+print grandes
+```
+
+Três coisas não continuam a corrente, e cada uma por um motivo: uma linha em
+branco entre as duas metades, porque é assim que um leitor separa duas coisas;
+um `;` no fim da primeira, porque é o escritor terminando a instrução com um
+caractere; e uma palavra reservada depois do ponto, porque uma palavra dessas no
+começo de uma linha é como uma instrução começa. Uma linha de comentário entre
+as metades continua, porque é exatamente ali que um comentário sobre a linha de
+baixo é escrito.
+
 
 ---
 
@@ -250,6 +313,22 @@ true   false   null
 { chave: "valor", aninhado: { a: 1 } }
 2026-07-23T12:00:00Z          # instante ISO-8601 é literal de primeira classe
 ```
+
+**Dentro de um `${…}` o texto se escreve com aspas simples.** A aspa dupla ali
+fecha a string em volta, porque um terminal de expressão regular não conta
+aninhamento, e a linguagem prefere recusar com todas as letras a adivinhar:
+
+```venn
+const m = { core: 1 }
+
+print "core: ${m['core']}"       # core: 1
+```
+
+Escrito `${m["core"]}`, o resultado é `VN1004`, dizendo que a string terminou
+naquela aspa e nomeando a grafia com aspas simples. Vale igual para uma string
+crua e para o título de um step, e a aspa simples faz o mesmo com uma string
+escrita com aspas simples. A única que não pode ser terminada assim é a de três
+aspas, porque ela fecha em três.
 
 **Padrão não tem literal próprio, tem tipo.** `regex(…)` compila um, e `regex` é
 o tipo dele. A string crua é como o padrão se escreve, porque preserva cada barra
@@ -422,16 +501,51 @@ fn classifica(n) {
 ```
 
 O bloco termina no valor que devolve, e `return` devolve antes. Dentro dele
-cabem `let`, atribuição, `if`, `forEach`, `repeat`, `loop`, `break` e `continue`.
+cabem `let`, atribuição, `if`, `forEach`, `repeat`, `loop`, `break`, `continue`,
+um `try`/`catch` de bloco, e `fail`.
 
-O que **não** cabe é um step, um `expect` ou um verbo de plugin, e isso está na
-gramática do corpo em vez de numa regra para lembrar: uma `fn` é pura, então ela
-decide, liga, itera e devolve. O que alcança o mundo mora num `flow` ou num
-`fragment`.
+**Uma `fn` pode falhar.** Levantar não é um efeito sobre o mundo, é controle de
+fluxo: uma função que valida o que recebeu recusa ali mesmo, e quem chama
+escolhe entre `try … else …` para ter um valor e `try … catch e => …` para ter o
+motivo. Uma `fn` que só sabe devolver `null` obriga quem chama a adivinhar por
+quê.
 
-E vale em qualquer profundidade: os blocos que o `if` e os laços de um corpo
-puro seguram são feitos das mesmas declarações, então um verbo dentro de um `if`
-é o mesmo erro de sintaxe que um verbo na primeira linha do corpo.
+```venn
+fn metade(n) {
+  if n < 0 { fail "sem negativos." { code: "demo.negativo" } }
+  return n / 2
+}
+
+print metade(8)
+const motivo = try metade(-1) catch e => e.code
+print motivo
+```
+
+O que **não** cabe é um verbo que alcança o mundo, e a linguagem já dizia quais
+são: um plugin declara em `requires` de que portas do host precisa, e é essa
+declaração que a regra lê. Um plugin que não precisa de nada não alcança nada, e
+os verbos dele são conta, não efeito: `try json.parse(texto).porta else 8080`
+dentro de uma `fn` é exatamente a forma que um programa mais quer, receber,
+transformar e recusar o que está errado.
+
+`print 1` dentro de uma `fn` é `VN2024 · A `fn` is pure, so it cannot call
+`print`. A verb belongs in a `fragment`, or at the top level of a file.` E vale
+escrito de qualquer jeito, porque a regra pergunta quem é o chamado e não como a
+linha foi digitada: `io.eprint(m)` é a mesma recusa que `print m`. Antes ela
+morava na forma da gramática, que só conseguia ver a segunda, e uma regra que
+valia para uma grafia e não para a outra não era uma regra.
+
+A capacidade pertence ao plugin e a pureza pertence ao verbo, então um verbo pode
+se declarar puro e isso vence a declaração do pacote dele. O padrão não muda: sem
+dizer nada, um verbo herda o que o plugin pediu, e um verbo de um pacote que pede
+uma porta continua recusado. Quem se declara é a exceção, não a regra, e é assim
+que `date.format`, que só trabalha no instante que recebeu, cabe numa `fn` sem que
+`venn/date` deixe de pedir o relógio.
+
+Um step e um `expect` continuam fora pela gramática, porque nenhum dos dois tem
+sentido sem um `flow` em volta. E vale em qualquer profundidade: os blocos que o
+`if` e os laços de um corpo seguram são feitos das mesmas declarações, então um
+verbo dentro de um `if` é a mesma recusa que um verbo na primeira linha.
 
 Um corpo é um escopo só. Um `let` dentro de um `if` é um nome da função, porque
 uma chamada tem um frame e não uma corrente deles.
@@ -658,7 +772,7 @@ Mini-linguagem completa, com precedência definida. É a parte que todo projeto 
 
 ```venn
 let elegivel = user.plan != "free" && (user.credits ?? 0) > 10
-let saudacao = "Olá, ${user.name ?? "visitante"}"
+let saudacao = "Olá, ${user.name ?? 'visitante'}"
 let numero   = mail.body ~= r"Order #(\d+)"
 let dentro   = res.time < 300ms && res.size < 2mb
 let membro   = user.plan in ["pro", "enterprise"]
@@ -681,6 +795,24 @@ print (fim > inicio)      # true
 
 Qualquer outra combinação, um instante vezes dois ou um instante mais um número
 sem unidade, é recusada com VN3012, nomeando os dois lados.
+
+### Juntar dois textos
+
+`+` soma números, e não junta texto. A interpolação é como esta linguagem junta
+texto, e `"a" + "b"` é recusado:
+
+```venn
+const a = "pear"
+const b = "fig"
+
+print "${a}${b}"          # pearfig
+print "${a} and ${b}"     # pear and fig
+```
+
+Uma forma só, e não duas, porque um segundo jeito de juntar texto não seria uma
+melhoria: seria mais uma escolha a fazer num lugar onde ela não muda nada. Vale
+para um nome, para uma constante e para o que sair de uma conta, sempre a mesma
+coisa entre as chaves.
 
 ### O que `${}` escreve
 
@@ -1183,7 +1315,7 @@ pub const TIMEOUT_LOGIN = 10s
 
 # privado: só este módulo enxerga
 fn cabecalhoBasico(u: User) -> map {
-  return { Authorization: "Basic ${auth.base64("${u.email}:${secrets.pw}")}" }
+  return { Authorization: "Basic ${auth.base64('${u.email}:${secrets.pw}')}" }
 }
 
 # público: exportado
@@ -1293,17 +1425,28 @@ implementações e o host a ligar a que quer. Embrulhar é local e honesto:
 
 ```venn
 import { http } from "venn/http"
-fn get(url) => log("indo para ${url}"); http.get(url)
+
+fragment get(url) {
+  log "indo para ${url}"
+  return http.get(url)
+}
 ```
 
 ### fn versus fragment
 
 |   | fn | fragment |
 | --- | --- | --- |
-| Contém | expressões | steps e controle de fluxo |
-| Efeitos | puro | executa ações |
+| Contém | expressões, `let`, atribuição, `if`, os laços, `try` de bloco e `fail` | tudo isso mais steps, `expect` e verbos |
+| Alcance | decide, liga, itera, devolve, levanta, e chama verbo que não precisa do host | chega ao mundo: rede, disco, browser, relógio |
 | Chamada | dentro de expressão | `run nome(args)` |
 | No grafo | invisível | nó-container colapsável |
+
+A linha entre as duas é o mundo, e só ele. Uma `fn` que falha continua pura,
+porque levantar é decidir não devolver, e uma `fn` que chama `json.parse` também,
+porque um plugin que não pede nenhuma porta ao host não alcança nada. Uma `fn`
+que chama um verbo que pede uma porta é `VN2024`, onde estiver escrita. Um
+`fragment` é onde esse verbo mora, e é por isso que ele aparece no grafo: o que
+sai do processo é o que vale desenhar.
 
 Os dois leem o arquivo em que foram escritos, e nada mais. Um fragment importado
 lê o arquivo **dele**, não o de quem o chama, exatamente como uma `pub fn`:
@@ -1510,21 +1653,64 @@ Cada pacote registra um namespace, matchers e tipos. Todos usam a mesma API púb
 
 | Pacote | Namespace | Ações principais | Registra também |
 | --- | --- | --- | --- |
-| @venn-lang/http | http | get post put patch delete head request reset | tipo `Response`; matchers `status`, `header` |
-| @venn-lang/browser | browser | launch visit click fill select hover press upload download screenshot waitFor waitForUrl evaluate frame newContext | recurso `Browser`, `Page`; matchers `visible`, `text` |
+| @venn-lang/http | http | get post put patch delete head options on serve | tipo `Response`; matcher `header` |
+| @venn-lang/browser | browser | launch visit click fill select hover press upload download screenshot waitFor waitForUrl evaluate frame newContext clearCookies | recurso `Browser`, `Page`; matchers `visible`, `text` |
 | @venn-lang/graphql | gql | query mutate subscribe | matcher `noGraphqlErrors` |
 | @venn-lang/grpc | grpc | call stream reflect | carrega `.proto`, tipa a resposta |
-| @venn-lang/ws | ws | connect send expect close | tipo `Message` |
-| @venn-lang/mqtt | mqtt | connect publish subscribe expect | QoS, retain, last-will |
+| @venn-lang/ws | ws | connect send expect close | tipo `Message`; matcher `type` |
+| @venn-lang/mqtt | mqtt | connect publish subscribe expect | QoS, retain, last-will; matcher `topic` |
 | @venn-lang/mail | mail | inbox waitFor read attachments clear | backends mailpit, mailhog, IMAP |
 | @venn-lang/db | db | connect query exec seed snapshot restore | tipo `Row`; recurso transacional |
 | @venn-lang/mock | mock | start stop intercept respond clock.freeze clock.advance flag reset | controle de tempo e feature flags |
 | @venn-lang/auth | auth | oauth2 bearer basic apikey hmac totp jwt | refresh automático de token |
+| @venn-lang/crypto | crypto | hash hmac randomBytes uuid jwt.sign jwt.verify jwt.decode password.hash password.verify | digests, codificações e JWT |
 | @venn-lang/data | data | csv json faker.* oneOf range shuffle | seed determinístico por worker |
-| @venn-lang/assert | - | (só matchers) | `schema`, `contract`, `closeTo`, `noViolations`, `matchesBaseline` |
-| @venn-lang/load | load | ramp constant spike | anotação `@load`; métricas p50/p95/p99 |
+| @venn-lang/assert | - | (só matchers) | `equals`, `contains`, `oneOf`, `closeTo` |
+| @venn-lang/io | io | print write eprint args readLine readAll readKey ask size isTerminal clear clearLine cursor.to cursor.move cursor.hide cursor.show | a entrada, a saída e os argumentos de um programa |
+| @venn-lang/fs | fs | read write exists list | um arquivo que não existe levanta `VN8010` |
+| @venn-lang/json | json | parse tryParse isValid | `parse` levanta, `tryParse` devolve `null` |
+| @venn-lang/fmt | fmt | json table yaml csv xml | valor para texto, puro |
+| @venn-lang/math | math | sin cos tan asin acos atan atan2 log log2 log10 exp hypot trunc cbrt sinh cosh tanh factorial degrees radians min max gcd lcm isNaN isFinite isClose random randomInt | 29 verbos; `sqrt` é membro de um número, não verbo. Sem resposta finita, o verbo recusa em vez de devolver `NaN` |
+| @venn-lang/date | date | now of parse format in | contas entre instantes estão em §04 |
+| @venn-lang/path | path | join resolve normalize relative cwd dirname basename stem extension withExtension split isAbsolute isInside | fala sobre um caminho, não toca no que está na ponta dele |
+| @venn-lang/env | env | (só o nome) | `env.NOME`, lido das tabelas `[env.*]` do manifesto |
+| @venn-lang/load | load | ramp constant spike run | anotação `@load`; métricas p50/p95/p99 |
 | @venn-lang/artifacts | artifacts | save flush attach | trace, video, HAR, screenshot |
 | @venn-lang/notify | notify | slack webhook email | reporter de saída |
+
+### Arquivos
+
+`fs` é o namespace que toca o disco, e são quatro verbos:
+
+| Verbo | Devolve | Regra |
+| --- | --- | --- |
+| `fs.read(caminho)` | texto | O único que levanta: `VN8010` quando não existe |
+| `fs.write(caminho, texto)` | nada | Cria as pastas de que precisa e substitui o arquivo inteiro |
+| `fs.exists(caminho)` | booleano | Responde `false`, nunca levanta |
+| `fs.list(pasta)` | lista de `{ name, directory }` | Um nível, nomes e não caminhos, sem ordem prometida |
+
+**Um caminho relativo é resolvido a partir de onde o comando foi digitado, não de
+onde o arquivo `.vn` está.** É a raiz que o host recebeu, e para `venn run` ela é
+o diretório atual do processo. É a primeira coisa que um leitor erra.
+
+Ler e escrever são UTF-8, sempre, e um valor que não é texto é escrito como a
+linguagem o escreve, o mesmo renderizador que está atrás de `print` e de `${…}`.
+Juntar um nome de `fs.list` à pasta dele é `path.join`, porque `fs` fala de
+arquivos e `path` fala de caminhos.
+
+```venn
+import { fs } from "venn/fs"
+
+try {
+  print fs.read("nowhere.json")
+} catch e {
+  print "${e.code}: ${e.message}"
+}
+```
+
+Isso escreve `VN8010: File not found: "nowhere.json".` Dentro de um `catch`, para
+esta falha, `e.code`, `e.message` e `e.docs` têm valor; o nome do arquivo vive
+dentro de `e.message` e não em `e.data`.
 
 
 ---
@@ -1824,6 +2010,25 @@ engolir o valor. Ponha-o entre parênteses e ele volta a ser um argumento.
 O `VN5005` é dica e não erro de propósito: é desarrumação, não erro, e um
 `venn check` que reprova por causa dela é um `venn check` que se deixa de
 correr.
+
+### Quem reporta o quê
+
+Três regras, e as três valem para `venn run`, `venn check` e `venn test` igual.
+
+**Todo comando que lê um arquivo reporta todo problema dele, em qualquer
+severidade; só um erro para alguma coisa.** Uma dica como `VN5005` é impressa
+pelos três, antes da saída do programa, e não custa código de saída a ninguém. Um
+programa que corre limpo e reprova no `check` era a pior coisa que a linguagem
+fazia com quem estava chegando.
+
+**A ordem é a de leitura: por arquivo, e depois por onde no arquivo.** É uma
+inversão deliberada: a análise ordena por severidade, então um erro na linha 21
+saía antes de uma dica na linha 1. Uma pessoa lê de cima para baixo e arruma a
+primeira coisa que está errada. O editor continua recebendo a ordem por
+severidade, que é o que um painel de problemas quer.
+
+**Um pipe fechado não é falha.** `venn run programa.vn | head -2` escreve duas
+linhas e sai com 0.
 
 ### Diff estruturado, nunca `toString`
 
@@ -2597,8 +2802,10 @@ on failure { notify.slack "#qa" { mention: "@oncall" } }
 
 ## 21 · Gramática Langium
 
-O arquivo inteiro, sem os comentários. Repare que não existe uma única palavra de
-protocolo aqui: `ActionCall` absorve todas.
+O arquivo inteiro. Ficaram de fora os comentários de linha, que argumentam por
+que cada regra tem a forma que tem; os comentários de bloco, que enunciam uma
+regra em vez de defendê-la, estão aqui. Repare que não existe uma única palavra
+de protocolo: `ActionCall` absorve todas.
 
 Este bloco é gerado a partir de `packages/core/src/grammar/venn.langium` e um
 teste recusa qualquer diferença entre os dois. Antes era um esqueleto mantido à
@@ -2612,6 +2819,17 @@ autoridade.
 ```langium
 grammar Venn
 
+/**
+ * Statements and declarations are separated by `NL` (a newline or `;`).
+ * `NL` is suppressed inside `( )` and `[ ]` by the lexer, so calls, arg lists
+ * and list literals may still span multiple physical lines. A `{ }` opened in
+ * there gives the newline back, because a block has no other separator: a
+ * function body written as an argument would otherwise be able to hold nothing
+ * but the expression it returns.
+ * Newlines follow each item rather than preceding it, so there is a single
+ * leading `NL*` and no two unbounded newline consumers meet at a decision
+ * point, which Chevrotain reports as ambiguous.
+ */
 entry Document:
     NL*
     ('module' name=QualifiedName NL*)?
@@ -2651,12 +2869,34 @@ FnDecl:
 
 FnBody:
     '=>' result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)* ('return'? result=Expr NL*)? '}';
+  | '{' NL* (stmts+=FnStmt NL+)*
+      ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
-/** What a pure function may do: bind, decide, loop, and give a value back. */
+/**
+ * What a pure function body may hold: bind, decide, loop, catch, give a value
+ * back, and call. The call is here so that a verb written in a `fn` reaches the
+ * checker, which refuses every one of them except `fail`.
+ */
 FnStmt infers Statement:
     LetStmt | AssignStmt | FnIfStmt | FnForEachStmt | FnRepeatStmt | FnLoopStmt
-  | ReturnStmt | BreakStmt | ContinueStmt;
+  | FnTryStmt | ReturnStmt | BreakStmt | ContinueStmt | FnVerbCall;
+
+FnVerbCall infers ActionCall:
+    target=QualifiedName ((args+=FnArg)+ (opts=MapLit)? | opts=MapLit);
+
+FnArg infers Expr:
+    ( {infer NumberLit} raw=NUMBER
+    | {infer InstantLit} value=INSTANT
+    | {infer StringLit} value=STRING
+    | {infer StringLit} value=BLOCK_STRING
+    | {infer StringLit} value=RAW_STRING
+    | {infer BoolLit} value=('true' | 'false')
+    | {infer NullLit} 'null'
+    | {infer FnExpr} 'fn' '(' (params=ParamList)? ')' ('->' returns=TypeRef)? body=FnBody
+    | {infer Ref} name=RefName )
+    ( {infer Member.receiver=current} (optional?='?.' | '.') member=Word
+    | {infer Index.receiver=current} '[' index=Expr ']'
+    | {infer Call.callee=current} '(' (args=ArgList)? ')' )*;
 
 FnBlock infers Block: '{' NL* (stmts+=FnStmt (NL+ stmts+=FnStmt)* NL*)? '}';
 
@@ -2665,6 +2905,11 @@ FnForEachStmt infers ForEachStmt:
     'forEach' (item=ID | pattern=ShapePattern) 'in' source=Expr (opts=MapLit)? body=FnBlock;
 FnRepeatStmt infers RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=FnBlock;
 FnLoopStmt infers LoopStmt: 'loop' (state=LoopState | cond=Expr)? body=FnBlock;
+
+FnTryStmt infers TryStmt:
+    'try' body=FnBlock
+    ('catch' (error=ID)? handler=FnBlock)?
+    ('finally' finalizer=FnBlock)?;
 
 DecoDecl:
     (export?='pub')? 'deco' name=ID '(' (params=ParamList)? ')' body=Block;
@@ -2791,6 +3036,8 @@ Expr: TryExpr;
 TryExpr infers Expr:
     {infer TryExpr} 'try' attempt=Ternary
       ('else' fallback=Ternary | 'catch' error=ID '=>' fallback=Ternary)
+  | {infer TryExpr} 'try' '{' NL* attempt=Expr NL* '}'
+      ('else' | 'catch' (error=ID)?) '{' NL* fallback=Expr NL* '}'
   | Ternary;
 
 Ternary infers Expr:
@@ -2889,14 +3136,37 @@ Word returns string:
   | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
   | 'all' | 'soft' | 'not' | 'match' | 'true' | 'false' | 'null';
 
+/**
+ * A statement terminator: one or more newlines or `;`, plus adjacent blanks.
+ * Not hidden, because the parser consumes it. The lexer drops it inside ( ) and [ ].
+ */
 terminal NL: /([ \t]*(\r?\n|;)[ \t]*)+/;
 hidden terminal WS: /[ \t]+/;
 hidden terminal COMMENT: /#[^\n\r]*/;
 
 terminal INSTANT: /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
+/**
+ * Three quotes, and the order matters: a `"""` would otherwise lex as two
+ * empty strings. A block keeps the newlines inside it, so a long body reads as
+ * itself rather than as one line with escapes in it.
+ */
 terminal BLOCK_STRING: /"""[\s\S]*?"""/;
+/**
+ * `r"C:\path"`: a backslash is a backslash. For Windows paths and for
+ * patterns, which are the two places where escaping every one of them is the
+ * whole cost. Interpolation still works in all three forms.
+ */
 terminal RAW_STRING: /r"[^"]*"/;
+/**
+ * Double- or single-quoted. Single quotes let a string appear inside a `${…}`
+ * that is itself inside a double-quoted string, without escaping.
+ */
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+/**
+ * A number with an optional unit suffix, parsed in TS (units/): "200","300ms","2mb","0.1%".
+ * `_` may group digits (`1_000_000`, `9_999.999_9`) but only between them, so
+ * `_1`, `1_` and `1__0` are not numbers.
+ */
 terminal NUMBER: /[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(ms|kb|mb|gb|b|s|m|h|%)?/;
 terminal ID: /[_a-zA-Z]\w*/;
 ```

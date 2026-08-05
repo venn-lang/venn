@@ -4,7 +4,9 @@ forEach n in [1, 2, 3] {
   let doubled = n * 2
   made = made.push(fn () => doubled)
 }
-let a = made[0]()
-let b = made[1]()
-let c = made[2]()
-seen = "${a} ${b} ${c} outer=${doubled}"
+let out = []
+forEach one in made {
+  out = out.push(one())
+}
+let shown = out.join(" ")
+seen = "${shown} outer=${doubled}"

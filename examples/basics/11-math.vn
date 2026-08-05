@@ -23,8 +23,13 @@ print "lcm(4, 6) = ${math.lcm(4, 6)}"
 print "hypot(3, 4) = ${math.hypot(3, 4)}"
 
 # Randomness comes from the run's own source, so this file prints the same
-# numbers every time it runs, and a failure can be replayed.
-const rolls = range(5).map(fn (i) => math.randomInt(1, 6))
+# numbers every time it runs, and a failure can be replayed. Drawn here rather
+# than inside a `fn`: a body that answers differently for the same arguments is
+# not pure, and `venn/math` says so by asking the host for randomness.
+let rolls = []
+repeat 5 {
+  rolls = rolls.push(math.randomInt(1, 6))
+}
 print "five rolls: ${rolls}"
 
 # Imported by name, it reads as itself.

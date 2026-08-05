@@ -8,6 +8,7 @@ import {
   list,
   mapOf,
   NUMBER,
+  positional,
   type RecordType,
   STRING,
   type Type,
@@ -60,7 +61,9 @@ function recordTable(value: Type, into: Type): Record<string, Type> {
   return {
     keys: list(STRING),
     values: list(value),
-    entries: list(list(union([STRING, value]))),
+    // A pair, and the checker is told which position is which: `e[0]` is the
+    // key and `e[1]` is the value, where the union alone says either of both.
+    entries: list(positional(union([STRING, value]), [STRING, value])),
     len: NUMBER,
     has: fn([KEY], BOOL),
     get: fn([KEY], value),

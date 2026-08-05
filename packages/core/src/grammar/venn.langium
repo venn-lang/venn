@@ -1,14 +1,16 @@
 grammar Venn
 
-// Statements and declarations are separated by `NL` (a newline or `;`).
-// `NL` is suppressed inside `( )` and `[ ]` by the lexer, so calls, arg lists
-// and list literals may still span multiple physical lines. A `{ }` opened in
-// there gives the newline back, because a block has no other separator: a
-// function body written as an argument would otherwise be able to hold nothing
-// but the expression it returns.
-// Newlines follow each item rather than preceding it, so there is a single
-// leading `NL*` and no two unbounded newline consumers meet at a decision
-// point, which Chevrotain reports as ambiguous.
+/**
+ * Statements and declarations are separated by `NL` (a newline or `;`).
+ * `NL` is suppressed inside `( )` and `[ ]` by the lexer, so calls, arg lists
+ * and list literals may still span multiple physical lines. A `{ }` opened in
+ * there gives the newline back, because a block has no other separator: a
+ * function body written as an argument would otherwise be able to hold nothing
+ * but the expression it returns.
+ * Newlines follow each item rather than preceding it, so there is a single
+ * leading `NL*` and no two unbounded newline consumers meet at a decision
+ * point, which Chevrotain reports as ambiguous.
+ */
 entry Document:
     NL*
     ('module' name=QualifiedName NL*)?
@@ -62,26 +64,77 @@ FnDecl:
 
 // One expression after `=>`, or a block: statements, then the value.
 //
-// The statements are named rather than taken from `Statement`, and that is what
-// keeps "the last expression is the value" a rule. A bare expression is not one
-// of them, so the last line of a block can only be the value, whether or not a
-// newline follows it. It is also where a function's purity lives: a step, an
-// `expect` and a plugin verb are absent because a `fn` cannot reach the world,
-// and saying so here is shorter than saying it in a check.
+// The list is a repetition rather than an alternative, so a body the parser
+// cannot read fails where the mistake is. Four alternatives reported every
+// malformed body at its opening token instead, with the expected set of whatever
+// alternative died last: `{ let a = 1 return a }` said "Expected `pub`, `let` or
+// `const` here, found `let`", which lists the token it found among the tokens it
+// wanted. Entered as a loop, the same body fails at the `NL+` it is missing, and
+// the separator explainer can say so.
+//
+// Each statement of the list carries the separator that follows it, which is what
+// leaves the last line to the value: `{ let a = 1 NEWLINE a }` binds and then
+// answers `a`. The value comes before the single statement in the group so a body
+// which is one expression stays one expression, `{ g(1) }` and `{ xs[0] }`
+// included, and the single statement is there for the body that is one and ends
+// without a separator: `{ fail "no" }` on one line.
+//
+// Purity is no longer in this shape. It was, and a shape can only refuse what
+// it can see: `print "x"` on its own line, never `io.eprint("x")`, which is an
+// ordinary expression and always will be. One rule enforced in two places is
+// one rule with two qualities of message, so all of it moved to the checker,
+// which reads the callee rather than the token and so speaks at every layout.
 FnBody:
     '=>' result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)* ('return'? result=Expr NL*)? '}';
+  | '{' NL* (stmts+=FnStmt NL+)*
+      ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
-/** What a pure function may do: bind, decide, loop, and give a value back. */
+/**
+ * What a pure function body may hold: bind, decide, loop, catch, give a value
+ * back, and call. The call is here so that a verb written in a `fn` reaches the
+ * checker, which refuses every one of them except `fail`.
+ */
 FnStmt infers Statement:
     LetStmt | AssignStmt | FnIfStmt | FnForEachStmt | FnRepeatStmt | FnLoopStmt
-  | ReturnStmt | BreakStmt | ContinueStmt;
+  | FnTryStmt | ReturnStmt | BreakStmt | ContinueStmt | FnVerbCall;
+
+// A verb called in a pure body, which the checker refuses by name: `fail` is the
+// one it lets through, and every other one belongs where the world can be
+// reached.
+//
+// Narrower than `ActionCall` on purpose, and it is the shape of the difference
+// rather than a shortening: a bare argument after a name, or an options map
+// behind it, is what no expression can be.
+FnVerbCall infers ActionCall:
+    target=QualifiedName ((args+=FnArg)+ (opts=MapLit)? | opts=MapLit);
+
+// The bare argument of one, and what it deliberately cannot begin with.
+//
+// A `(` after a name is a call, a `[` is an index and a `-` is a subtraction, so
+// none of the three can start an argument here. Reading them as arguments took
+// `g(1)`, `xs[0]` and `a - 1` away from every body that ends in one: the loop
+// above claimed the line and the value it should have been was gone. Everything
+// after the first token is the ordinary postfix, so `print user.name` and
+// `print f(1)` are still the verb calls they look like.
+FnArg infers Expr:
+    ( {infer NumberLit} raw=NUMBER
+    | {infer InstantLit} value=INSTANT
+    | {infer StringLit} value=STRING
+    | {infer StringLit} value=BLOCK_STRING
+    | {infer StringLit} value=RAW_STRING
+    | {infer BoolLit} value=('true' | 'false')
+    | {infer NullLit} 'null'
+    | {infer FnExpr} 'fn' '(' (params=ParamList)? ')' ('->' returns=TypeRef)? body=FnBody
+    | {infer Ref} name=RefName )
+    ( {infer Member.receiver=current} (optional?='?.' | '.') member=Word
+    | {infer Index.receiver=current} '[' index=Expr ']'
+    | {infer Call.callee=current} '(' (args=ArgList)? ')' )*;
 
 // A body is pure all the way down, so the blocks its statements hold are made of
 // `FnStmt` too. Written out rather than reusing `IfStmt` and the loops, because
-// those hold a `Block`, which is any `Statement` and so a verb: the purity said
-// at the top of the body was true of the top of the body only, and a `print` one
-// level in parsed, compiled to nothing, and stopped the body where it stood.
+// those hold a `Block`, which is any `Statement`: a `step`, an `expect` or a
+// `run` one level in would parse where nothing compiles it, and a statement
+// nobody compiled stops nothing and reports nothing.
 FnBlock infers Block: '{' NL* (stmts+=FnStmt (NL+ stmts+=FnStmt)* NL*)? '}';
 
 FnIfStmt infers IfStmt: 'if' cond=Expr then=FnBlock ('else' otherwise=(FnIfStmt | FnBlock))?;
@@ -89,6 +142,16 @@ FnForEachStmt infers ForEachStmt:
     'forEach' (item=ID | pattern=ShapePattern) 'in' source=Expr (opts=MapLit)? body=FnBlock;
 FnRepeatStmt infers RepeatStmt: 'repeat' count=Expr ('as' index=ID)? body=FnBlock;
 FnLoopStmt infers LoopStmt: 'loop' (state=LoopState | cond=Expr)? body=FnBlock;
+
+// `try { … } catch e { … }` written as a statement of a pure body, where the
+// blocks run rather than give a value back. A `fn` that can `fail` and cannot
+// catch is half a feature, and this is the half that holds statements: the
+// braced `try` expression holds one expression per brace, so `return` inside a
+// block belongs here and a value belongs there.
+FnTryStmt infers TryStmt:
+    'try' body=FnBlock
+    ('catch' (error=ID)? handler=FnBlock)?
+    ('finally' finalizer=FnBlock)?;
 
 // A decorator written in the language itself. The first parameter *is* the
 // target, and the type on it (`Fn`, `Flow`, `Step`, `Binding`, `Type`,
@@ -337,6 +400,12 @@ Expr: TryExpr;
 TryExpr infers Expr:
     {infer TryExpr} 'try' attempt=Ternary
       ('else' fallback=Ternary | 'catch' error=ID '=>' fallback=Ternary)
+  // The braced spelling, which is how a `try` is written in every language a
+  // reader arrives from. Each brace holds one expression, the same one the
+  // arrow form holds: braces here are a spelling, not a body, so nothing about
+  // where a value comes from changes with them.
+  | {infer TryExpr} 'try' '{' NL* attempt=Expr NL* '}'
+      ('else' | 'catch' (error=ID)?) '{' NL* fallback=Expr NL* '}'
   | Ternary;
 
 Ternary infers Expr:
@@ -472,29 +541,37 @@ Word returns string:
   | 'catch' | 'finally' | 'capture' | 'run' | 'break' | 'continue' | 'expect'
   | 'all' | 'soft' | 'not' | 'match' | 'true' | 'false' | 'null';
 
-// A statement terminator: one or more newlines or `;`, plus adjacent blanks.
-// Not hidden, because the parser consumes it. The lexer drops it inside ( ) and [ ].
+/**
+ * A statement terminator: one or more newlines or `;`, plus adjacent blanks.
+ * Not hidden, because the parser consumes it. The lexer drops it inside ( ) and [ ].
+ */
 terminal NL: /([ \t]*(\r?\n|;)[ \t]*)+/;
 hidden terminal WS: /[ \t]+/;
 hidden terminal COMMENT: /#[^\n\r]*/;
 
 // ISO-8601 instant is a first-class literal (matched before NUMBER by maximal munch).
 terminal INSTANT: /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
-// Double- or single-quoted. Single quotes let a string appear inside a `${…}`
-// that is itself inside a double-quoted string, without escaping.
-// Three quotes, and the order matters: a `"""` would otherwise lex as two
-// empty strings. A block keeps the newlines inside it, so a long body reads as
-// itself rather than as one line with escapes in it.
+/**
+ * Three quotes, and the order matters: a `"""` would otherwise lex as two
+ * empty strings. A block keeps the newlines inside it, so a long body reads as
+ * itself rather than as one line with escapes in it.
+ */
 terminal BLOCK_STRING: /"""[\s\S]*?"""/;
-// `r"C:\path"`: a backslash is a backslash. For Windows paths and for
-// patterns, which are the two places where escaping every one of them is the
-// whole cost. Interpolation still works in all three forms.
+/**
+ * `r"C:\path"`: a backslash is a backslash. For Windows paths and for
+ * patterns, which are the two places where escaping every one of them is the
+ * whole cost. Interpolation still works in all three forms.
+ */
 terminal RAW_STRING: /r"[^"]*"/;
-// Double- or single-quoted. Single quotes let a string appear inside a `${…}`
-// that is itself inside a double-quoted string, without escaping.
+/**
+ * Double- or single-quoted. Single quotes let a string appear inside a `${…}`
+ * that is itself inside a double-quoted string, without escaping.
+ */
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
-// A number with an optional unit suffix, parsed in TS (units/): "200","300ms","2mb","0.1%".
-// `_` may group digits (`1_000_000`, `9_999.999_9`) but only between them, so
-// `_1`, `1_` and `1__0` are not numbers.
+/**
+ * A number with an optional unit suffix, parsed in TS (units/): "200","300ms","2mb","0.1%".
+ * `_` may group digits (`1_000_000`, `9_999.999_9`) but only between them, so
+ * `_1`, `1_` and `1__0` are not numbers.
+ */
 terminal NUMBER: /[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(ms|kb|mb|gb|b|s|m|h|%)?/;
 terminal ID: /[_a-zA-Z]\w*/;

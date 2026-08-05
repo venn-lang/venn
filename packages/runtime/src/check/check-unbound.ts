@@ -3,11 +3,11 @@ import {
   CODES,
   insideAnnotation,
   isRef,
+  nearestName,
   type Problem,
   type Ref,
 } from "@venn-lang/core";
 import { isPrelude } from "@venn-lang/prelude";
-import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
 import { paramsADecoratorAdds } from "./decorator-params.js";
 import { problemAt } from "./problem-at.js";

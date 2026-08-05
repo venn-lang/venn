@@ -1,3 +1,4 @@
+import { CODES } from "../codes/index.js";
 import type { Param, RunStmt } from "../generated/ast.js";
 import { eachFits } from "./call-arguments.js";
 // Type-only, so the cycle with `infer.ts` is erased at build.
@@ -34,17 +35,23 @@ export function checkRunArguments(args: {
   eachFits({ written, given: args.given, wanted, infer: args.infer });
 }
 
-/** Too few or too many, which is the other thing nobody was checking. */
+/**
+ * Too few or too many, which is the other thing nobody was checking.
+ *
+ * Under the same code and in the same words as a call with the wrong number of
+ * arguments, because it is the same fact about a different callable.
+ */
 function countIsWrong(args: { node: RunStmt; infer: Infer; takes: number; given: number }): void {
-  const { given } = args;
   args.infer.ctx.mismatches.push({
     node: args.node,
     expected: DYNAMIC,
     actual: DYNAMIC,
-    sentence: `\`${args.node.target}\` takes ${count(args.takes)}, and ${given} ${given === 1 ? "was" : "were"} given.`,
+    code: CODES.VN3002_ARGUMENT_COUNT,
+    sentence: `\`${args.node.target}\` takes ${count(args.takes)}, and got ${args.given}.`,
   });
 }
 
 function count(many: number): string {
+  if (many === 0) return "no arguments";
   return many === 1 ? "1 argument" : `${many} arguments`;
 }

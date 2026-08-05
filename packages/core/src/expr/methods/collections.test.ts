@@ -97,7 +97,16 @@ describe("list selection", () => {
     expect(run("", "[1, 2, 3].sum")).toBe(6);
     expect(run("", "[1, 2, 3, 4].average")).toBe(2.5);
     expect(run(PEOPLE, "people.sumBy(fn (p) => p.age)")).toBe(135);
-    expect(run("", "[].average")).toBe(0);
+  });
+
+  /**
+   * Zero is the sum of nothing and it is not the average of nothing. This test
+   * asserted `[].average` was 0, which is a plausible number and the reason a
+   * report of no rows read as a day when everything was free.
+   */
+  it("refuses the average of nothing, and still sums it to zero", () => {
+    expect(run("", "[].sum")).toBe(0);
+    expect(() => run("", "[].average")).toThrow("There is no average of an empty list.");
   });
 
   it("flattens as it maps", () => {

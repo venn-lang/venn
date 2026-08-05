@@ -58,6 +58,20 @@ describe("the walk over a file's literals", () => {
     expect(quoteInASlot({ text: source, uri: "memory://x.vn" })).toEqual([]);
   });
 
+  /**
+   * A backslash takes the next character, and a line break is the one it cannot
+   * take, because an escape is `\\.` and a `.` declines a line terminator. So a
+   * string whose last character is a backslash is not a string that swallows
+   * the newline: it is not a string, and the walk has to stop rather than read
+   * the line below as its contents. The fuzz against the regex spelling found
+   * this on 478 of 394717 start positions before it was fixed.
+   */
+  it("does not let a trailing backslash swallow the line under it", () => {
+    const source = ['print "a\\', 'print "k ${m["a"]}"'].join("\n");
+
+    expect(quoteInASlot({ text: source, uri: "memory://x.vn" })).toEqual([]);
+  });
+
   /** A block string that does close holds anything, placeholders included. */
   it("says nothing about a placeholder inside a closed block string", () => {
     const source = ['print """k ${m["a"]}"""'].join("\n");

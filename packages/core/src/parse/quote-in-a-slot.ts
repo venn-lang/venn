@@ -15,19 +15,28 @@ import type { Problem } from "../problem/index.js";
 import { spanAt } from "./at-an-offset.js";
 
 /**
- * A comment or a single-quote string literal, in the order the lexer tries
- * them, so that a `#` inside a string is text.
+ * Where a comment stops, which is the only literal here with no closing mark.
  *
- * Sticky rather than global: the walk below anchors it at each delimiter it
- * finds, so a literal nothing closes costs one scan instead of one per quote.
- *
- * The block string is not in here. Its end is the next `"""`, which `indexOf`
- * finds in one pass, where a regex has to spell it `[\s\S]*?"""` and grow a
- * backtracking construct inside a five-way alternation for a delimiter that
- * cannot be escaped. The scan was already linear, measured; what the index
- * spelling buys is that a reader can see it is.
+ * Every other form is walked character by character below rather than matched.
+ * A `.vn` file is library input, and each of the quoted forms spells out as a
+ * regex with a backtracking construct in it: `"(?:\\.|[^"\\])*"` on a string of
+ * escaped quotes that never closes is the shape CodeQL reports as a polynomial
+ * denial of service, twice now on this file. The walk was already linear,
+ * because it is anchored at each delimiter and stops at the first literal
+ * nothing closes, and `a-scan-stays-linear.test.ts` measures that. Reading the
+ * characters says the same thing without a construct that has to be argued
+ * about, and the two spellings were run against each other at every start
+ * position of forty thousand strings built from these delimiters.
  */
-const LITERAL = /#[^\n\r]*|r"[^"]*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/y;
+const ENDS_A_COMMENT = /[\n\r]/;
+
+/**
+ * What a `.` in an escape cannot take, which is every line terminator.
+ *
+ * A separate class from the comment's, and the difference is real: a comment
+ * ends at `\n` or `\r` only, while `.` also declines `\u2028` and `\u2029`.
+ */
+const BREAKS_AN_ESCAPE = /[\n\r\u2028\u2029]/;
 
 /** The delimiter a block string opens and closes with, which holds anything. */
 const BLOCK = '"""';
@@ -98,10 +107,41 @@ function literalsIn(text: string): { literal: string; start: number }[] {
  * minds about where the file's literals are.
  */
 function literalAt(text: string, start: number): string | undefined {
-  const closed = text.startsWith(BLOCK, start) ? text.indexOf(BLOCK, start + BLOCK.length) : -1;
-  if (closed !== -1) return text.slice(start, closed + BLOCK.length);
-  LITERAL.lastIndex = start;
-  return LITERAL.exec(text)?.[0];
+  if (text[start] === "#") return text.slice(start, endOfLine(text, start));
+  const block = text.startsWith(BLOCK, start) ? text.indexOf(BLOCK, start + BLOCK.length) : -1;
+  if (block !== -1) return text.slice(start, block + BLOCK.length);
+  if (text.startsWith('r"', start)) {
+    const end = text.indexOf('"', start + 2);
+    return end === -1 ? undefined : text.slice(start, end + 1);
+  }
+  return quotedAt(text, start);
+}
+
+/** Where the line this comment is on ends, or the end of the file. */
+function endOfLine(text: string, start: number): number {
+  const found = text.slice(start).search(ENDS_A_COMMENT);
+  return found === -1 ? text.length : start + found;
+}
+
+/**
+ * A `"` or `'` string, ending at the first delimiter no backslash precedes.
+ *
+ * A backslash takes the next character, and a line break is the one character
+ * it cannot take: an escape is written `\\.` and a `.` does not match a line
+ * terminator, so `"a\` with a newline under it is not a string at all rather
+ * than a string that swallows the break. Getting that wrong is what the fuzz
+ * against the old spelling caught, on 478 of 394717 start positions.
+ */
+function quotedAt(text: string, start: number): string | undefined {
+  const quote = text[start];
+  if (quote !== '"' && quote !== "'") return undefined;
+  for (let at = start + 1; at < text.length; at += 1) {
+    if (text[at] === quote) return text.slice(start, at + 1);
+    if (text[at] !== "\\") continue;
+    if (BREAKS_AN_ESCAPE.test(text[at + 1] ?? "\n")) return undefined;
+    at += 1;
+  }
+  return undefined;
 }
 
 /** Whether this quote is the one a raw string opens with, one character along. */

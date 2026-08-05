@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/mail",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "The mail namespace: five verbs for waiting on an inbox and reading what arrived.",
   "keywords": [
     "venn",

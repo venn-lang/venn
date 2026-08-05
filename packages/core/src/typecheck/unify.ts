@@ -1,7 +1,7 @@
 import type {
+  ExactType,
   FnType,
   ListType,
-  LiteralType,
   RecordType,
   Type,
   TypeVar,
@@ -48,7 +48,7 @@ export function unify(left: Type, right: Type): boolean {
 /** `"GET"` is a string wherever a string is wanted, and itself where it is not. */
 function unifyLiteral(a: Type, b: Type): boolean {
   if (a.kind === "literal" && b.kind === "literal") return a.value === b.value;
-  const lit: LiteralType = a.kind === "literal" ? a : (b as LiteralType);
+  const lit: ExactType = a.kind === "literal" ? a : (b as ExactType);
   const other = a.kind === "literal" ? b : a;
   return other.kind === "prim" && other.name === baseOf(lit.value);
 }

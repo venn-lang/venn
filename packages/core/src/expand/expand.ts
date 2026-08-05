@@ -6,9 +6,9 @@ import type { Problem } from "../problem/index.js";
 import { spanOf } from "../span/index.js";
 import type { DocumentDecoArgs, ImportedDeco } from "./deco/index.js";
 import { withDocumentDecos } from "./deco/index.js";
-import type { DecoratorDefinition, DecoratorSource, ExpandResult } from "./expand.types.js";
+import type { DecoratorSource, ExpandResult } from "./expand.types.js";
 import { makeContext } from "./make-context.js";
-import { wrongKind, wrongTargetTitle } from "./wrong-kind.js";
+import { wrongPlace } from "./wrong-kind.js";
 
 /** What one decorated node needs for its decorators to run. */
 interface Site {
@@ -98,7 +98,7 @@ function applyOne(site: Site, annotation: Annotation): void {
     refuse(site, annotation, unknownTitle(annotation), CODES.VN2013_UNKNOWN_DECORATOR.code);
     return;
   }
-  const misplaced = wrongPlace(found, site.node, annotation);
+  const misplaced = wrongPlace({ found, node: site.node, name: annotation.name });
   if (misplaced) {
     refuse(site, annotation, misplaced, CODES.VN2014_DECORATOR_TARGET.code);
     return;
@@ -106,25 +106,6 @@ function applyOne(site: Site, annotation: Annotation): void {
   found.expand(
     makeContext({ node: site.node, annotation, uri: site.uri, problems: site.problems }),
   );
-}
-
-/**
- * Why a decorator does not belong here, if it does not.
- *
- * A `deco` says what it decorates by typing its first parameter, so the answer
- * is phrased in the words the author used. A plugin's decorator still names node
- * types, because it is handed the raw node and nothing shorter describes what it
- * is able to read.
- */
-function wrongPlace(
-  found: DecoratorDefinition,
-  node: AstNode,
-  annotation: Annotation,
-): string | undefined {
-  const name = annotation.name;
-  if (found.accepts) return wrongKind({ name, kinds: found.accepts, node });
-  if (!found.targets || found.targets.includes(node.$type)) return undefined;
-  return wrongTargetTitle({ name, targets: found.targets, node });
 }
 
 function unknownTitle(annotation: Annotation): string {

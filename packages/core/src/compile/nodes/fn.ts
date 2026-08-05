@@ -4,6 +4,7 @@ import { closureWith, makeClosure } from "../../expr/closure.js";
 import type { Closure } from "../../expr/closure.types.js";
 import type { EvalEnv } from "../../expr/eval-env.types.js";
 import { INLINE_SLOTS } from "../../expr/frame.js";
+import { refuseForwardReads } from "../../forward-read/index.js";
 import {
   type Expr,
   type FnBody,
@@ -28,9 +29,12 @@ export type CompileIn = (expr: Expr, scope: LexScope) => Thunk;
  * `fn (…) => …` as a value: the body is compiled here, not on every evaluation.
  *
  * Where its free names live is settled here too, against the block the `fn` is
- * written in, so making the closure reads a list rather than the source.
+ * written in, so making the closure reads a list rather than the source. A name
+ * with no binding in view yet is refused rather than resolved, because there is
+ * nothing here that could be right.
  */
 export function compileFnExpr(expr: FnExpr, scope: LexScope, compileIn: CompileIn): Thunk {
+  refuseForwardReads(expr);
   const params = paramNames(expr.params);
   // No `cellOf`: this body is compiled once and shared by every closure the
   // expression makes, so it cannot hold cells belonging to one of them.

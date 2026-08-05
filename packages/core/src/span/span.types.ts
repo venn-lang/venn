@@ -5,6 +5,8 @@ export interface SpanNode {
     length?: number;
     text?: string;
     range?: { start?: { line?: number; character?: number } };
+    /** The whole file the node was parsed in, which says whether a mark opens it. */
+    root?: { fullText?: string };
   };
 }
 

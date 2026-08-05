@@ -45,7 +45,7 @@ export function parseProblems(args: {
   const { result, uri, text } = args;
   const removed = removedSyntax({ text, uri });
   const cut = cutoff({ errors: result.lexerErrors, removed });
-  const lexical = result.lexerErrors.map((error) => lexerErrorToProblem({ error, uri }));
+  const lexical = result.lexerErrors.map((error) => lexerErrorToProblem({ error, uri, text }));
   const syntactic = ownErrors({ result, uri, text, cut });
   // After the parse, since the grammar accepts what this refuses: a `-` written
   // apart from what follows it is an operator, and an argument holds no operator.

@@ -1,3 +1,4 @@
+import { shownPlace } from "./shown-place.js";
 import type { SlotOrigin, SpanNode } from "./span.types.js";
 
 /**
@@ -17,19 +18,20 @@ const DEPTH = 64;
  * walking out, and the root's own container is the string literal, so the walk
  * stops there rather than wandering into the file.
  *
+ * The place is read off the host and not off the slot, because the file that
+ * says whether a byte-order mark opens it is the host's own.
+ *
  * @param args The parsed expression, the string literal that holds it, and
  * where the slot's source begins inside that literal's text.
  */
 export function markSlotIn(args: { expr: object; host: SpanNode; start: number }): void {
   const cst = args.host.$cstNode;
   if (!cst || cst.text === undefined) return;
-  const start = cst.range?.start;
   const origin: SlotOrigin = {
     offset: cst.offset ?? 0,
     text: cst.text,
     start: args.start,
-    line: (start?.line ?? 0) + 1,
-    column: (start?.character ?? 0) + 1,
+    ...shownPlace(cst),
   };
   Object.defineProperty(args.expr, ORIGIN, { value: origin, configurable: true });
 }

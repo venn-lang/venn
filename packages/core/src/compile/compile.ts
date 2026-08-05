@@ -142,8 +142,8 @@ function operation(expr: Expr, compile: Compile): Thunk {
  * resolved when it was built, which is an index too.
  *
  * The lookup fallback stays for the names neither can answer: an expression
- * compiled at the root has no closure at all, and a closure written above the
- * `let` that binds the name it reads has no cell to be given.
+ * compiled at the root has no closure at all, and a closure recursing on the
+ * `let` that binds it has no cell yet to be given.
  */
 function compileRef(name: string, scope: LexScope): Thunk {
   const body = rootOf(scope);

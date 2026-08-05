@@ -1,4 +1,5 @@
 import { buildProblem, CODES } from "../codes/index.js";
+import { shownColumn } from "../lang/index.js";
 import type { Problem, Span } from "../problem/index.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
 import { bracketTheDeco } from "./bracket-the-deco.js";
@@ -25,17 +26,22 @@ interface RecognitionError {
   message: string;
 }
 
-/** Map a lexer error to VN1001. */
-export function lexerErrorToProblem(args: { error: LexerError; uri: string }): Problem {
-  const e = args.error;
-  const span: Span = {
-    uri: args.uri,
-    offset: e.offset,
-    length: e.length,
-    line: e.line ?? 1,
-    column: e.column ?? 1,
-  };
-  return buildProblem({ spec: CODES.VN1001_LEX, span, title: saidLexerError(e.message) });
+/**
+ * Map a lexer error to VN1001.
+ *
+ * @param args The error, the uri for the span, and the source, which is what
+ * says whether a byte-order mark is standing in the column the lexer counted.
+ */
+export function lexerErrorToProblem(args: {
+  error: LexerError;
+  uri: string;
+  text?: string;
+}): Problem {
+  const { error, uri, text } = args;
+  const line = error.line ?? 1;
+  const column = shown({ text, line, column: error.column ?? 1 });
+  const span: Span = { uri, offset: error.offset, length: error.length, line, column };
+  return buildProblem({ spec: CODES.VN1001_LEX, span, title: saidLexerError(error.message) });
 }
 
 /**
@@ -65,14 +71,14 @@ function spanFor(args: {
   offset?: number;
 }): Span {
   const { error, uri, text } = args;
-  if (text === undefined) return tokenSpan(error, uri);
+  if (text === undefined) return tokenSpan({ error, uri });
   if (args.offset !== undefined) {
     return placed({ uri, text, offset: args.offset, length: RELOCATED_LENGTH });
   }
   // A file the parser ran off the end of leaves `NaN` on the token, which used
   // to fall back to the top of the file, so "found the end of the file" read as
   // a claim about line one however far down the mistake actually was.
-  if (Number.isFinite(error.token.startOffset)) return tokenSpan(error, uri);
+  if (Number.isFinite(error.token.startOffset)) return tokenSpan({ error, uri, text });
   return placed({ uri, text, offset: text.length, length: 0 });
 }
 
@@ -83,22 +89,36 @@ function placed(args: { uri: string; text: string; offset: number; length: numbe
 }
 
 /** A span over the token the parser stopped at. */
-function tokenSpan(error: RecognitionError, uri: string): Span {
-  const t = error.token;
+function tokenSpan(args: { error: RecognitionError; uri: string; text?: string }): Span {
+  const t = args.error.token;
+  const line = at(t.startLine, 1);
   return {
-    uri,
+    uri: args.uri,
     offset: at(t.startOffset, 0),
     length: t.image?.length ?? 1,
-    line: at(t.startLine, 1),
-    column: at(t.startColumn, 1),
+    line,
+    column: shown({ text: args.text, line, column: at(t.startColumn, 1) }),
   };
+}
+
+/**
+ * The column a reader sees, when the source is at hand to say so.
+ *
+ * A mark at the top of a file is a character the lexer counts and no editor
+ * draws. Taken off here rather than off the token, because the token's columns
+ * are what an editor's ranges are built from and those must keep counting it.
+ */
+function shown(args: { text?: string; line: number; column: number }): number {
+  if (args.text === undefined) return args.column;
+  return shownColumn({ text: args.text, line: args.line, column: args.column });
 }
 
 /** The 1-based line and column of an offset, for a span an explainer relocated. */
 function locate(text: string, offset: number): { line: number; column: number } {
   const before = text.slice(0, offset);
   const line = (before.match(/\n/g)?.length ?? 0) + 1;
-  return { line, column: offset - before.lastIndexOf("\n") };
+  const column = offset - before.lastIndexOf("\n");
+  return { line, column: shownColumn({ text, line, column }) };
 }
 
 /**

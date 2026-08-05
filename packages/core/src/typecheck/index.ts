@@ -15,8 +15,8 @@ export { showType, showTypes } from "./show.js";
 export type { ResolveRef } from "./spec-to-type.js";
 export { specToType } from "./spec-to-type.js";
 export type {
+  ExactType,
   FnType,
-  LiteralType,
   OpaqueType,
   RecordType,
   Type,

@@ -1,4 +1,5 @@
 import type { AstNode } from "langium";
+import type { DecoratorDefinition } from "./expand.types.js";
 import { TARGET_KINDS, type TargetKind, targetKindOf } from "./handles/index.js";
 
 /** What each kind is called in a sentence someone reads. */
@@ -99,4 +100,33 @@ export function wrongKind(args: {
   if (kinds.length === 0 || kinds.includes("Node") || kinds.includes(targetKindOf(node)))
     return undefined;
   return wrongKindTitle(args);
+}
+
+/**
+ * Why a decorator does not belong where it is written, if it does not.
+ *
+ * A `deco` says what it decorates by typing its first parameter, so the answer
+ * is phrased in the words the author used. A plugin's or a built-in's decorator
+ * still names node types, because it is handed the raw node and nothing shorter
+ * describes what it is able to read.
+ *
+ * Expansion asks this before it runs a decorator, and the static check asks it
+ * before anything runs at all. One question, one answer, one sentence: a
+ * decorator in the wrong place must not read differently depending on which of
+ * the two found it.
+ *
+ * @param args `found` is the definition the name resolved to, `node` is what it
+ * was written on, and `name` is what the author wrote after the `@`.
+ * @returns The sentence to refuse it with, or nothing when it belongs here.
+ * @throws Nothing.
+ */
+export function wrongPlace(args: {
+  found: DecoratorDefinition;
+  node: AstNode;
+  name: string;
+}): string | undefined {
+  const { found, node, name } = args;
+  if (found.accepts) return wrongKind({ name, kinds: found.accepts, node });
+  if (!found.targets || found.targets.includes(node.$type)) return undefined;
+  return wrongTargetTitle({ name, targets: found.targets, node });
 }

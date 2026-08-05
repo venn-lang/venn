@@ -1,5 +1,6 @@
 import type { InterpolationSlot } from "../interpolation/index.js";
 import type { Span } from "../problem/index.js";
+import { shownPlace } from "./shown-place.js";
 import type { SpanNode } from "./span.types.js";
 
 /**
@@ -21,12 +22,12 @@ import type { SpanNode } from "./span.types.js";
  */
 export function slotSpan(args: { slot: InterpolationSlot; host: SpanNode; uri: string }): Span {
   const cst = args.host.$cstNode;
-  const start = cst?.range?.start;
+  const place = shownPlace(cst);
   return {
     uri: args.uri,
     offset: (cst?.offset ?? 0) + args.slot.start,
     length: args.slot.end - args.slot.start,
-    line: (start?.line ?? 0) + 1,
-    column: (start?.character ?? 0) + 1 + args.slot.start,
+    line: place.line,
+    column: place.column + args.slot.start,
   };
 }

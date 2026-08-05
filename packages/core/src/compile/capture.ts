@@ -45,8 +45,10 @@ export function capturePlan(
 function captureOf(name: string, scope: LexScope): Capture {
   const slot = slotOf(scope, name);
   if (slot !== -1) return fromSlot(scope, slot);
-  // Bound further down this body: which slot is settled, but the cell it will
-  // hold does not exist yet, so this one name goes on being asked for by name.
+  // Bound by the `let` this closure is the value of: which slot is settled, but
+  // the cell it will hold does not exist yet, so this one name goes on being
+  // asked for by name. A name bound *below* the closure never reaches here; the
+  // compiler refuses it where it is written.
   if (bindsName(scope, name)) return LATE;
   const own = rootOf(scope).cellOf?.(name);
   if (own) return () => own;

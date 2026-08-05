@@ -20,9 +20,9 @@ export const INLINE_SLOTS = 3;
  * function binds three names or fewer, and a frame plus an array is two
  * allocations per call. Beyond three, `rest` holds the remainder.
  *
- * `lookup` stays for the one name the compiler cannot place: a closure written
- * above the `let` that binds the name it reads. Scanning a handful of names
- * beats walking a chain of maps, and everything else is an index by then.
+ * `lookup` stays for one shape, and one only: a closure recursing on the `let`
+ * that binds it. Scanning a handful of names beats walking a chain of maps, and
+ * everything else is an index by then.
  */
 export class Frame implements EvalEnv {
   s0: unknown;
@@ -51,11 +51,16 @@ export class Frame implements EvalEnv {
    * The outermost slot with this name, or the same question one frame out.
    *
    * Which slot a closure meant is a question about where it was written, and
-   * this asks by name at call time, so it cannot answer it. It is no longer
-   * asked to: a closure resolves its free names where it is written and reaches
-   * them through `up`. What is left over is a closure written above the `let`
-   * that binds the name it reads, where the binding has no cell yet and the
-   * outermost slot of that spelling is the answer the source gives.
+   * this asks by name at call time, so it cannot answer it. It is asked for one
+   * shape now: `let fact = fn (n) => … fact(n - 1)`, where the `let` above the
+   * closure is the binding meant, and the value is compiled before the slot is
+   * declared so there is no cell to hand over yet. Declaring first instead would
+   * make `let x = x + 1` read the slot it is about to fill rather than the `x`
+   * around it, which is why the search survives.
+   *
+   * A name bound *below* the closure no longer arrives here: the compiler
+   * refuses it where it is written (`VN2026`), because whichever slot this found
+   * was a guess, and the compiled body and the interpreted one guessed apart.
    */
   lookup(name: string): unknown {
     const body = this.closure.body;

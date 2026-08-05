@@ -67,9 +67,9 @@ export interface LexScope {
   /**
    * Every name the body binds anywhere, as the pass before this one left it.
    *
-   * A closure reading a name this body binds but has not bound yet is the one
-   * question the source cannot answer where the closure is written, so it keeps
-   * asking by name at call time.
+   * A closure recursing on the `let` that binds it is the one question the
+   * source cannot answer where the closure is written, so it keeps asking by
+   * name at call time. A name bound below the closure is refused instead.
    */
   binds?: ReadonlySet<string>;
   /**

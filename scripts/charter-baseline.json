@@ -388,6 +388,7 @@
     "packages/runtime/src/types/create-type-catalog.test.ts": 1,
     "packages/runtime/src/types/create-type-catalog.ts": 1,
     "packages/runtime/src/types/generic-signatures.test.ts": 1,
+    "packages/sdk/src/bytes/padding-is-walked.test.ts": 1,
     "packages/sdk/src/crypto-engine/crypto-engine.suite.ts": 2,
     "packages/sdk/src/sdk.test.ts": 2,
     "packages/std-artifacts/src/actions/actions.test.ts": 1,

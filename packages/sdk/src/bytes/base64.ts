@@ -75,12 +75,27 @@ function triple(args: { digits: string; at: number; into: Bytes }): void {
 
 /** Whitespace and padding dropped, and what is left checked for being decodable. */
 function digitsOf(text: string): string {
-  const digits = text.replace(/[\t\n\f\r ]/g, "").replace(/=+$/, "");
+  const digits = unpadded(text.replace(/[\t\n\f\r ]/g, ""));
   // Four digits carry three bytes, three carry two and two carry one. One digit
   // carries six bits, which is part of a byte and no byte.
   if (digits.length % 4 === 1) throw unreadable(`${digits.length} digits spell no whole byte`);
   return digits;
 }
+
+/**
+ * The trailing `=` dropped, walked from the end rather than matched.
+ *
+ * `/=+$/` is the obvious spelling and it backtracks: the engine retries the run
+ * at every position, so a payload of many `=` with anything after them costs
+ * time in the square of its length. Base64 arrives from whoever sent it.
+ */
+function unpadded(digits: string): string {
+  let end = digits.length;
+  while (end > 0 && digits.charCodeAt(end - 1) === EQUALS) end -= 1;
+  return digits.slice(0, end);
+}
+
+const EQUALS = 61;
 
 /**
  * The six-bit value of each digit, by character code, and `-1` for the rest.

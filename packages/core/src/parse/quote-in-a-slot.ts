@@ -16,10 +16,18 @@ import type { Problem, Span } from "../problem/index.js";
 
 /**
  * A comment or a string literal, in the order the lexer tries them, so that a
- * `#` inside a string is text and `"""` is one literal rather than two. The
- * lookbehind is what keeps the `r` of `var"x"` from opening a raw string.
+ * `#` inside a string is text and `"""` is one literal rather than two.
+ *
+ * Sticky rather than global: the walk below anchors it at each delimiter it
+ * finds, so a literal nothing closes costs one scan instead of one per quote.
  */
-const LITERALS = /#[^\n\r]*|"""[\s\S]*?"""|(?<!\w)r"[^"]*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g;
+const LITERAL = /#[^\n\r]*|"""[\s\S]*?"""|r"[^"]*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/y;
+
+/** A character that opens one of the forms above. */
+const OPENS = /[#"']/g;
+
+/** What keeps the `r` of `var"x"` from opening a raw string. */
+const WORD = /\w/;
 
 /** A string the quote ended early, and the placeholder that outlived it. */
 interface CutShort {
@@ -41,11 +49,41 @@ interface CutShort {
 export function quoteInASlot(args: { text: string; uri: string }): Problem[] {
   if (!args.text.includes("${")) return [];
   const found: Problem[] = [];
-  for (const match of args.text.matchAll(LITERALS)) {
-    const cut = cutShort({ literal: match[0], start: match.index, text: args.text });
+  for (const match of literalsIn(args.text)) {
+    const cut = cutShort({ literal: match.literal, start: match.start, text: args.text });
     if (cut) found.push(problem(cut, args));
   }
   return found;
+}
+
+/**
+ * Every literal in the file, up to the first one nothing closes.
+ *
+ * A global regex alone is quadratic on a file whose quotes do not pair: every
+ * failed start rescans the tail, so a run of `\"` costs one scan per quote, and
+ * a `.vn` file is library input. Here each delimiter is found once and the
+ * literal is matched sticky from it, so a literal nothing closes costs one scan
+ * and then stops the walk. Everything after such a literal is inside it, and
+ * the lexer already refuses the file for it, so there is nothing left to read.
+ */
+function literalsIn(text: string): { literal: string; start: number }[] {
+  const found: { literal: string; start: number }[] = [];
+  OPENS.lastIndex = 0;
+  for (let opener = OPENS.exec(text); opener; opener = OPENS.exec(text)) {
+    const start = opener.index - (rawAt(text, opener) ? 1 : 0);
+    LITERAL.lastIndex = start;
+    const match = LITERAL.exec(text);
+    if (!match) return found;
+    found.push({ literal: match[0], start });
+    OPENS.lastIndex = start + match[0].length;
+  }
+  return found;
+}
+
+/** Whether this quote is the one a raw string opens with, one character along. */
+function rawAt(text: string, opener: RegExpExecArray): boolean {
+  if (opener[0] !== '"' || text[opener.index - 1] !== "r") return false;
+  return !WORD.test(text[opener.index - 2] ?? "");
 }
 
 /** The delimiter that closes this literal, or nothing when it cannot be cut. */

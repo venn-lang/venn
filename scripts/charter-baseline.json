@@ -127,6 +127,7 @@
     "packages/core/src/interpolation/stringify-value.test.ts": 4,
     "packages/core/src/lang/venn-lexer.test.ts": 4,
     "packages/core/src/module/module-file.test.ts": 1,
+    "packages/core/src/parse/a-scan-stays-linear.test.ts": 1,
     "packages/core/src/parse/an-operator-that-is-not-here.test.ts": 1,
     "packages/core/src/parse/arrow-fn.test.ts": 1,
     "packages/core/src/parse/bracket-the-argument.test.ts": 2,
@@ -640,13 +641,29 @@
     "packages/vscode/src/vscode.stub.ts": 6
   },
   "more than 3 arguments": {
-    "packages/contracts/src/ports/manifest-provider/edit/edit-dependency.ts": ["replaced"],
-    "packages/core/src/compile/nodes/map-fields.ts": ["waiting4"],
-    "packages/core/src/expand/expand.ts": ["refuse"],
-    "packages/core/src/expr/invoke.ts": ["callClosure3", "invoke3"],
-    "packages/core/src/graph/to-graph.ts": ["addStatement"],
-    "packages/core/src/typecheck/check-cases.ts": ["report"],
-    "packages/core/src/typecheck/check-stmts.ts": ["bound", "iterating"],
+    "packages/contracts/src/ports/manifest-provider/edit/edit-dependency.ts": [
+      "replaced"
+    ],
+    "packages/core/src/compile/nodes/map-fields.ts": [
+      "waiting4"
+    ],
+    "packages/core/src/expand/expand.ts": [
+      "refuse"
+    ],
+    "packages/core/src/expr/invoke.ts": [
+      "callClosure3",
+      "invoke3"
+    ],
+    "packages/core/src/graph/to-graph.ts": [
+      "addStatement"
+    ],
+    "packages/core/src/typecheck/check-cases.ts": [
+      "report"
+    ],
+    "packages/core/src/typecheck/check-stmts.ts": [
+      "bound",
+      "iterating"
+    ],
     "packages/core/src/typecheck/infer.ts": [
       "expect",
       "mismatched",
@@ -654,24 +671,51 @@
       "report",
       "takenApart"
     ],
-    "packages/core/src/typecheck/named-types.ts": ["collectNamedTypes"],
-    "packages/core/src/typecheck/pattern-types.ts": ["notA"],
-    "packages/core/src/typecheck/poured-into.ts": ["field"],
-    "packages/lsp/src/completion/completion.ts": ["afterDot", "argument", "itemsFor"],
-    "packages/lsp/src/hover/render-decl.ts": ["signatureOf"],
-    "packages/runtime/src/scheduler/run-assign.ts": ["place"],
-    "packages/runtime/src/scheduler/run-block.ts": ["resume"],
+    "packages/core/src/typecheck/named-types.ts": [
+      "collectNamedTypes"
+    ],
+    "packages/core/src/typecheck/pattern-types.ts": [
+      "notA"
+    ],
+    "packages/core/src/typecheck/poured-into.ts": [
+      "field"
+    ],
+    "packages/lsp/src/completion/completion.ts": [
+      "afterDot",
+      "argument",
+      "itemsFor"
+    ],
+    "packages/lsp/src/hover/render-decl.ts": [
+      "signatureOf"
+    ],
+    "packages/runtime/src/scheduler/run-assign.ts": [
+      "place"
+    ],
+    "packages/runtime/src/scheduler/run-block.ts": [
+      "resume"
+    ],
     "packages/runtime/src/scheduler/run-foreach.ts": [
       "iterate",
       "resume",
       "sequential",
       "slowSequential"
     ],
-    "packages/runtime/src/scheduler/run-if.ts": ["taken"],
-    "packages/runtime/src/scheduler/run-match.ts": ["taken"],
-    "packages/std-assert/src/assert.test.ts": ["message", "run"],
-    "packages/std-browser/src/actions/browser-actions.test.ts": ["run"],
-    "packages/std-math/src/actions/functions.ts": ["binary"]
+    "packages/runtime/src/scheduler/run-if.ts": [
+      "taken"
+    ],
+    "packages/runtime/src/scheduler/run-match.ts": [
+      "taken"
+    ],
+    "packages/std-assert/src/assert.test.ts": [
+      "message",
+      "run"
+    ],
+    "packages/std-browser/src/actions/browser-actions.test.ts": [
+      "run"
+    ],
+    "packages/std-math/src/actions/functions.ts": [
+      "binary"
+    ]
   },
   "imports past a barrel": {
     "packages/cli/src/cli.ts": 9,

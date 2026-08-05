@@ -2,6 +2,7 @@ import { type Document, isFragmentDecl, isValueImport } from "@venn-lang/core";
 import { type LangiumDocuments, URI } from "langium";
 import type { ImportResolver } from "../workspace/index.js";
 import { documentRoot } from "./document-root.js";
+import { handsOn } from "./hands-on.js";
 
 export interface ModuleGraphScope {
   root: Document;
@@ -74,13 +75,37 @@ export function importedFragments(args: {
   const found = new Set<string>();
   for (const decl of args.document.imports) {
     if (!isValueImport(decl)) continue;
-    const module = args.graph.modules.get(args.graph.resolve(args.uri, decl.path));
-    if (!module) continue;
+    const uri = args.graph.resolve(args.uri, decl.path);
     for (const one of decl.names) {
-      if (declaresFragment(module, one.name)) found.add(one.alias ?? one.name);
+      const at = { uri, name: one.name, graph: args.graph, seen: new Set<string>() };
+      if (offersFragment(at)) found.add(one.alias ?? one.name);
     }
   }
   return found;
+}
+
+/**
+ * Whether a module offers this name as a fragment, through what it hands on.
+ *
+ * A folder with a face declares nothing of its own, so stopping at the file an
+ * import names answers no for every name behind one. `seen` is per question
+ * rather than shared: two files may hand each other different names without
+ * either being a cycle, and only the same name in the same file is one.
+ */
+function offersFragment(args: {
+  uri: string;
+  name: string;
+  graph: ModuleGraph;
+  seen: Set<string>;
+}): boolean {
+  const module = args.graph.modules.get(args.uri);
+  if (!module || args.seen.has(args.uri)) return false;
+  args.seen.add(args.uri);
+  if (declaresFragment(module, args.name)) return true;
+  const onward = handsOn(module, args.name);
+  if (!onward) return false;
+  const uri = args.graph.resolve(args.uri, onward.decl.path);
+  return offersFragment({ ...args, uri, name: onward.name });
 }
 
 function declaresFragment(module: Document, name: string): boolean {

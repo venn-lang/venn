@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/mock",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "The mock namespace: named mocks, HTTP interceptors, feature flags and a virtual clock.",
   "keywords": [
     "venn",

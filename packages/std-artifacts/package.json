@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/artifacts",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "The artifacts namespace: record the traces, videos, HARs and screenshots a run produces.",
   "keywords": [
     "venn",

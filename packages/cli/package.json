@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/cli",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "The venn binary: one command for starting, checking, running and testing a Venn project.",
   "keywords": [
     "venn",

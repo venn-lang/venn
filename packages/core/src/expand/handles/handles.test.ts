@@ -7,8 +7,8 @@ import { ProblemError } from "../../problem/index.js";
 import { readDecorations } from "../decorations.js";
 import { readMeta } from "../node-meta.js";
 import type { TargetHandle } from "./handle.types.js";
-import { kindOf } from "./kind-of.js";
 import { makeHandle } from "./make-handle.js";
+import { targetKindOf } from "./target-kind-of.js";
 
 /** Nothing is bound yet, which is exactly the scope expansion evaluates in. */
 const NOTHING = { lookup: () => undefined };
@@ -20,7 +20,7 @@ function firstDecl(source: string): { doc: Document; node: Declaration } {
 
 function handleOf(source: string): { doc: Document; node: AstNode; handle: TargetHandle } {
   const { doc, node } = firstDecl(source);
-  return { doc, node, handle: makeHandle({ node, kind: kindOf(node) }) };
+  return { doc, node, handle: makeHandle({ node, kind: targetKindOf(node) }) };
 }
 
 const call = (handle: TargetHandle, verb: string, ...args: unknown[]): unknown =>
@@ -134,10 +134,10 @@ describe("a verb the kind does not have", () => {
 
 describe("the kind of a node, in the language's own words", () => {
   it("maps each declaration to what a `deco` would call it", () => {
-    expect(kindOf(firstDecl("fn f() => 1").node)).toBe("Fn");
-    expect(kindOf(firstDecl('flow "f" { }').node)).toBe("Flow");
-    expect(kindOf(firstDecl('const x = "1"').node)).toBe("Binding");
-    expect(kindOf(firstDecl("type T = string").node)).toBe("Type");
-    expect(kindOf(firstDecl("fragment f() { }").node)).toBe("Node");
+    expect(targetKindOf(firstDecl("fn f() => 1").node)).toBe("Fn");
+    expect(targetKindOf(firstDecl('flow "f" { }').node)).toBe("Flow");
+    expect(targetKindOf(firstDecl('const x = "1"').node)).toBe("Binding");
+    expect(targetKindOf(firstDecl("type T = string").node)).toBe("Type");
+    expect(targetKindOf(firstDecl("fragment f() { }").node)).toBe("Node");
   });
 });

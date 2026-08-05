@@ -1,8 +1,7 @@
 import { walkAst } from "../../../ast/index.js";
 import type { Expr, StringLit } from "../../../generated/ast.js";
 import { isRef } from "../../../generated/ast.js";
-import type { InterpolationSlot } from "../../../interpolation/index.js";
-import type { Span } from "../../../problem/index.js";
+import { slotSpan } from "../../../span/index.js";
 import type { NameRead, SlotExpr } from "./reach.types.js";
 import { slotExprs } from "./slot-exprs.js";
 
@@ -22,7 +21,7 @@ export function slotReads(node: StringLit, uri: string): NameRead[] {
 }
 
 function inSlot(args: { one: SlotExpr; node: StringLit; uri: string }): NameRead[] {
-  const span = slotSpan(args);
+  const span = slotSpan({ slot: args.one.slot, host: args.node, uri: args.uri });
   return refsIn(args.one.expr).map((name) => ({ name, span }));
 }
 
@@ -30,17 +29,4 @@ function inSlot(args: { one: SlotExpr; node: StringLit; uri: string }): NameRead
 function refsIn(expr: Expr): string[] {
   const inside = walkAst(expr).filter(isRef);
   return [...(isRef(expr) ? [expr] : []), ...inside].map((ref) => ref.name);
-}
-
-function slotSpan(args: { one: SlotExpr; node: StringLit; uri: string }): Span {
-  const cst = args.node.$cstNode;
-  const start = cst?.range?.start;
-  const slot: InterpolationSlot = args.one.slot;
-  return {
-    uri: args.uri,
-    offset: (cst?.offset ?? 0) + slot.start,
-    length: slot.end - slot.start,
-    line: (start?.line ?? 0) + 1,
-    column: (start?.character ?? 0) + 1 + slot.start,
-  };
 }

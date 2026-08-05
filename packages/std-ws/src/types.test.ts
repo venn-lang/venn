@@ -53,9 +53,8 @@ describe("ws signatures", () => {
     expect(connect?.signature?.result).toEqual({ kind: "prim", name: "void" });
   });
 
-  it("publishes Message as the checker's type as well as the runtime's", () => {
+  it("publishes Message to the checker under the name a flow writes", () => {
     expect(wsPlugin.typeDefs).toBe(wsTypeDefs);
     expect(Object.keys(wsTypeDefs)).toEqual(["Message"]);
-    expect(wsPlugin.types?.Message).toBeDefined();
   });
 });

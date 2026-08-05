@@ -13,7 +13,6 @@ import { randomActions } from "./actions/random-actions.js";
  */
 export const mathPlugin: PluginDefinition = definePlugin({
   name: "venn/math",
-  version: "0.0.0",
   namespace: "math",
   actions: [...functions, ...checks, ...randomActions],
   values: constants,

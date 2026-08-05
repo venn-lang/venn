@@ -1,6 +1,6 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { artifactsActions } from "./actions/index.js";
-import { ArtifactRefSchema, artifactsTypeDefs } from "./types/index.js";
+import { artifactsTypeDefs } from "./types/index.js";
 
 /**
  * The `@venn-lang/artifacts` plugin. Registers the `artifacts` namespace: the
@@ -9,10 +9,8 @@ import { ArtifactRefSchema, artifactsTypeDefs } from "./types/index.js";
  */
 export const artifactsPlugin: PluginDefinition = definePlugin({
   name: "venn/artifacts",
-  version: "0.0.0",
   namespace: "artifacts",
   requires: ["fs"],
   actions: artifactsActions,
-  types: { ArtifactRef: ArtifactRefSchema },
   typeDefs: artifactsTypeDefs,
 });

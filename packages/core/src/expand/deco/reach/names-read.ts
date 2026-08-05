@@ -1,5 +1,5 @@
 import type { AstNode } from "langium";
-import { callArgs, walkAst } from "../../../ast/index.js";
+import { callArgs, insideAnnotation, walkAst } from "../../../ast/index.js";
 import type {
   ActionCall,
   Block,
@@ -10,7 +10,6 @@ import type {
 } from "../../../generated/ast.js";
 import {
   isActionCall,
-  isAnnotation,
   isBlock,
   isIfStmt,
   isLetStmt,
@@ -72,10 +71,4 @@ function atNode(node: AstNode, uri: string): NameRead[] {
   if (isStringLit(node)) return slotReads(node, uri);
   if (!isRef(node) || insideAnnotation(node)) return [];
   return [{ name: node.name, span: spanOf(node, uri) }];
-}
-
-/** A bare name inside a `@name(…)` is a word, not a reference to anything. */
-function insideAnnotation(node: AstNode): boolean {
-  for (let at = node.$container; at; at = at.$container) if (isAnnotation(at)) return true;
-  return false;
 }

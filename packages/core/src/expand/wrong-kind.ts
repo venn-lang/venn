@@ -1,5 +1,5 @@
 import type { AstNode } from "langium";
-import { kindOf, TARGET_KINDS, type TargetKind } from "./handles/index.js";
+import { TARGET_KINDS, type TargetKind, targetKindOf } from "./handles/index.js";
 
 /** What each kind is called in a sentence someone reads. */
 const KIND_WORDS: Readonly<Record<TargetKind, string>> = {
@@ -96,7 +96,7 @@ export function wrongKind(args: {
   node: AstNode;
 }): string | undefined {
   const { kinds, node } = args;
-  if (kinds.length === 0 || kinds.includes("Node") || kinds.includes(kindOf(node)))
+  if (kinds.length === 0 || kinds.includes("Node") || kinds.includes(targetKindOf(node)))
     return undefined;
   return wrongKindTitle(args);
 }

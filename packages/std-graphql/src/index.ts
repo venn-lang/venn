@@ -9,4 +9,3 @@
 export * from "./clients/index.js";
 export { gqlPlugin, gqlPlugin as default } from "./plugin.js";
 export * from "./port/index.js";
-export * from "./schema/index.js";

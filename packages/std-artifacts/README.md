@@ -102,7 +102,6 @@ nobody checks at load time, and it would surface as a `TypeError` mid-run instea
 | `createMemoryArtifactStore()` | The in-memory double. |
 | `createRealArtifactStore()` | The real store, stubbed to throw `VN8090`. |
 | `ArtifactRef` | The TypeScript type: `{ name, kind, size? }`. |
-| `ArtifactRefSchema` | The Zod schema registered as the plugin's nominal `ArtifactRef` type. |
 | `artifactsTypeDefs` | The `TypeSpec` for `artifacts.ArtifactRef`, which the checker and the LSP read. |
 
 Binding a different store means one entry in the runner's port list:

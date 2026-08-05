@@ -117,7 +117,6 @@ const binding = {
 | `createFakeClient({ response?, responses? })` | The test double. Returns the canned envelope for a query, or the fallback. |
 | `okGraphqlResponse(overrides?)` | `{ data: {}, errors: undefined }` merged with `overrides`. |
 | `createRealClient()` | The real client's slot. Every method throws `VN8090`. |
-| `graphqlResponseType` | The Zod schema of the envelope, registered as the plugin's `GraphqlResponse` type. |
 | `GqlClient`, `GqlRequest`, `GqlResponse`, `GqlError` | Types only. |
 
 ## See also

@@ -25,8 +25,15 @@ const BY_TYPE: Readonly<Record<string, TargetKind>> = {
   TypeDecl: "Type",
 };
 
-/** What kind of thing a node is, in the language's own words. */
-export function kindOf(node: AstNode): TargetKind {
+/**
+ * Which kind of declaration a node is, in the words a `deco` writes.
+ *
+ * Named for what it answers rather than `kindOf`, which `value/` owns and uses
+ * for the other question entirely: what kind of *value* something is. Two
+ * exported names alike is how `core/src/index.ts`, which is a stack of
+ * `export *`, silently shadows one with the other.
+ */
+export function targetKindOf(node: AstNode): TargetKind {
   return BY_TYPE[node.$type] ?? "Node";
 }
 

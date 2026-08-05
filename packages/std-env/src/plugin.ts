@@ -10,6 +10,5 @@ import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
  */
 export const envPlugin: PluginDefinition = definePlugin({
   name: "venn/env",
-  version: "0.0.0",
   namespace: "env",
 });

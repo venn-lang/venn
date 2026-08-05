@@ -13,7 +13,6 @@ import { questionActions } from "./actions/questions.js";
  */
 export const pathPlugin: PluginDefinition = definePlugin({
   name: "venn/path",
-  version: "0.0.0",
   namespace: "path",
   actions: [...buildActions, ...partActions, ...questionActions],
 });

@@ -36,12 +36,20 @@ describe("the charter's counted rules", () => {
   /**
    * A survey that measured nothing would agree with any baseline at all, and
    * would say so in the same words as a clean tree.
+   *
+   * Held to what the rules MEAN rather than to one file's size. Pinning a named
+   * file at a magic number made the canary go red the day somebody split that
+   * file up, which is the opposite of what this repository wants to encourage.
    */
   it("are measured over a tree the survey really read", { timeout: 60_000 }, async () => {
     const now = await survey();
+    const longest = Object.values(now["over 300 lines"]);
 
-    expect(Object.keys(now["over 300 lines"]).length).toBeGreaterThan(4);
-    expect(now["over 300 lines"]["packages/core/src/typecheck/infer.ts"]).toBeGreaterThan(600);
+    expect(longest.length).toBeGreaterThan(4);
     expect(Object.keys(now["functions over 15 lines"]).length).toBeGreaterThan(100);
+    // Every count agrees with the rule that produced it, so a survey handing
+    // back plausible-looking numbers it never measured cannot pass.
+    expect(longest.filter((lines) => lines <= 300)).toEqual([]);
+    expect(Object.values(now["functions over 15 lines"]).filter((n) => n < 1)).toEqual([]);
   });
 });

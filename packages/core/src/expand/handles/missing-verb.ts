@@ -1,9 +1,6 @@
 import { buildProblem, CODES } from "../../codes/index.js";
-import { ProblemError } from "../../problem/index.js";
+import { ProblemError, UNLOCATED } from "../../problem/index.js";
 import type { TargetKind } from "./handle.types.js";
-
-/** Filled in by the body runner, which knows which statement asked. */
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 
 /**
  * The verb this kind does not have, answered with the ones it does.
@@ -23,5 +20,5 @@ export function missingVerb(args: {
 
 /** A verb this target cannot honour, for a reason of its own. */
 export function verbRefusal(title: string): ProblemError {
-  return new ProblemError(buildProblem({ spec: CODES.VN2017_DECO_VERB, span: NO_SPAN, title }));
+  return new ProblemError(buildProblem({ spec: CODES.VN2017_DECO_VERB, span: UNLOCATED, title }));
 }

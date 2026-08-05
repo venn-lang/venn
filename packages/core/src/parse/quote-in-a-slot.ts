@@ -15,20 +15,23 @@ import type { Problem } from "../problem/index.js";
 import { spanAt } from "./at-an-offset.js";
 
 /**
- * Where a comment stops, which is the only literal here with no closing mark.
+ * The two characters a comment can stop at, searched for one at a time.
  *
- * Every other form is walked character by character below rather than matched.
- * A `.vn` file is library input, and each of the quoted forms spells out as a
- * regex with a backtracking construct in it: `"(?:\\.|[^"\\])*"` on a string of
+ * Every form here is walked character by character rather than matched. A `.vn`
+ * file is library input, and each of the quoted forms spells out as a regex
+ * with a backtracking construct in it: `"(?:\\.|[^"\\])*"` on a string of
  * escaped quotes that never closes is the shape CodeQL reports as a polynomial
- * denial of service, twice now on this file. The walk was already linear,
- * because it is anchored at each delimiter and stops at the first literal
- * nothing closes, and `a-scan-stays-linear.test.ts` measures that. Reading the
- * characters says the same thing without a construct that has to be argued
- * about, and the two spellings were run against each other at every start
- * position of forty thousand strings built from these delimiters.
+ * denial of service, twice now on this file. The walk was already linear, and
+ * `a-scan-stays-linear.test.ts` measures that; what reading the characters buys
+ * is that there is no construct left to argue about. The two spellings answered
+ * identically at every one of 3032392 start positions.
+ *
+ * `indexOf` rather than `slice(start).search(...)` for the same reason one step
+ * further out. The slice was linear too, measured at nothing across four sizes,
+ * but only because V8 hands back a view instead of a copy. That is an engine
+ * optimisation nobody wrote down, and this is the wrong file to rest on one.
  */
-const ENDS_A_COMMENT = /[\n\r]/;
+const ENDS_A_COMMENT = ["\n", "\r"];
 
 /**
  * What a `.` in an escape cannot take, which is every line terminator.
@@ -119,8 +122,8 @@ function literalAt(text: string, start: number): string | undefined {
 
 /** Where the line this comment is on ends, or the end of the file. */
 function endOfLine(text: string, start: number): number {
-  const found = text.slice(start).search(ENDS_A_COMMENT);
-  return found === -1 ? text.length : start + found;
+  const found = ENDS_A_COMMENT.map((mark) => text.indexOf(mark, start)).filter((at) => at !== -1);
+  return found.length === 0 ? text.length : Math.min(...found);
 }
 
 /**

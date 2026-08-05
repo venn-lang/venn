@@ -745,6 +745,81 @@ just been shown `pi` exists is refused when they ask for it. That is the gap
 rather than the discovery: two answers about one name in one file, and the
 shorter question is the one that works.
 
+## 21. `VN2024` names two ways out, and a lambda can be in neither
+
+**Severity: low. The refusal is right; the sentence after it is what cannot be
+followed.** The way out is chosen by asking whether the nearest body is a lambda
+written as an argument of a call. That splits every program in two, and there
+are three cases.
+
+A callback to something that does not iterate is told to write a loop over a
+list that does not exist:
+
+```ruby
+fn apply(f) => f(1)
+let r = apply(fn (x) { print x })
+print r
+```
+```
+VN2024 · A `fn` is pure, so it cannot call `print`. A verb needs a statement of its own. To keep what it answers, write `let xs = []` and then `forEach n in ns { xs = xs.push(…) }`.
+  at    …\a.vn:2:24
+```
+
+There is no `ns`: `apply` calls the lambda once, with `1`. And a lambda used as
+a value, in a map entry, a list element or a `fn`'s answer, gets the other
+sentence, which is no better:
+
+```ruby
+let handlers = { greet: fn (name) { print name } }
+print handlers.greet("ada")
+```
+```
+VN2024 · A `fn` is pure, so it cannot call `print`. A verb belongs in a `fragment`, or at the top level of a file.
+  at    …\b.vn:1:37
+```
+
+A lambda in a map is a real value and it runs: the same program with
+`fn (name) => name` prints `ada`. A `fragment` cannot stand there, which entry
+22 shows costs more than a wrong sentence.
+
+The two shapes are one mechanism. `isArg || isActionCall` asks whether the
+lambda is a callback, and answers the iteration advice for every callback and
+the lifting advice for everything else, when the truth is that a lambda has a
+third way out neither names: answer the value and let the caller do the verb.
+That works for both programs above. It is left here rather than written because
+a third sentence wants the same evidence the first two now have, which is a
+program per shape rather than a plausible rule.
+
+## 22. A `fragment` passes as a value and is refused when it is called
+
+**Severity: medium, and it is a `venn check` that blesses a program `venn run`
+will not take.** Found while checking whether entry 21's advice can be followed.
+
+```ruby
+fragment greet(name) { print name }
+let handlers = { greet: greet }
+handlers.greet("ada")
+```
+```
+✓ no problems found
+```
+```
+VN2003 · Unknown action "handlers.greet".
+  at    …\e.vn:3:1
+  docs  https://venn.dev/e/VN2003
+```
+
+`venn check` exits 0 and `venn run` exits 1. A `fragment` is invoked by
+`run … as` and is not a first-class value, so storing one in a map is the
+mistake; nothing says so until the call is reached, and by then the reader has
+been told twice that the file is fine.
+
+Measured on this branch and on `origin/main`, built from `ae69f51`, with the
+same three lines and the same two exit codes. It is not a regression and it is
+not new. It is written down because the sentence in entry 21 sends a reader
+here, and because "the checker said the file was fine" is the most expensive
+thing this language can be wrong about.
+
 ---
 
 Nothing here is a promise that the list is complete, and an empty list would not

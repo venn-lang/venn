@@ -32,9 +32,9 @@ export type { HandleSurface, TargetHandle, TargetKind } from "./handles/index.js
 export {
   handleSurface,
   isTargetKind,
-  kindOf,
   makeHandle,
   TARGET_KINDS,
+  targetKindOf,
   verbsOfKind,
 } from "./handles/index.js";
 export { metaOf, readMeta, writeMeta } from "./node-meta.js";

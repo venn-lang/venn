@@ -61,11 +61,16 @@ describe("what `venn run` says when a program fails", () => {
   /**
    * The raise site reported it and the sink said it out loud, so the catch at
    * the top is not a second voice: one failure, said once.
+   *
+   * Counted by the headline rather than by the bare code, because one report
+   * now names its code twice on purpose: once at the top, and once inside the
+   * `docs` line that says where to read more about it.
    */
   it("says one failure once", async () => {
     const { said } = await run(FAILS);
 
-    expect(said.match(/VN6001/g)).toHaveLength(1);
+    expect(said.match(/VN6001 ·/g)).toHaveLength(1);
+    expect(said).toContain("docs  https://venn.dev/e/VN6001");
   });
 
   /**

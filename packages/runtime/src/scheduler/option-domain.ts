@@ -1,6 +1,5 @@
-import { typeName } from "@venn-lang/core";
+import { durationMs, typeName } from "@venn-lang/core";
 import type { ParamSpec } from "@venn-lang/sdk";
-import { durationMs } from "./duration-ms.js";
 
 /**
  * What is wrong with a value written against a declared option, in the words a

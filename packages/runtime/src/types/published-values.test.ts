@@ -5,12 +5,11 @@ import { publishedValueTypes } from "./published-values.js";
 
 const WITH = definePlugin({
   name: "@t/kit",
-  version: "0",
   namespace: "kit",
   values: [{ name: "rate", doc: "How fast.", type: t.number, value: 42 }],
 });
 
-const WITHOUT = definePlugin({ name: "@t/bare", version: "0", namespace: "bare" });
+const WITHOUT = definePlugin({ name: "@t/bare", namespace: "bare" });
 
 /**
  * What the checker asks a package for, when the package is a plugin rather than

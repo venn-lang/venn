@@ -21,14 +21,25 @@ export const MAP_EXTRAS: Record<string, Method> = {
   hasPath: (map: Dict) => nativeFn((args) => reach(map, String(args[0] ?? "")) !== ABSENT),
 };
 
-/** The inverse of `entries`: `fromEntries([["a", 1]])` gives `{ a: 1 }`. */
+/**
+ * The inverse of `entries`: `fromEntries([["a", 1]])` gives `{ a: 1 }`.
+ *
+ * Built with `Object.fromEntries`, like `rebuild` and `keepIf` below, because
+ * it defines each key rather than writing to it. A pair naming `__proto__`
+ * comes out of the data, and writing it would have run the inherited setter and
+ * replaced what the new map inherits from instead of storing anything. That
+ * name is refused as a place to write to (VN3023); as a pair's key it names a
+ * value, so it is kept.
+ */
 export function fromEntries(list: readonly unknown[]): Dict {
-  const out: Dict = {};
-  for (const entry of list) {
-    const pair = Array.isArray(entry) ? entry : [];
-    if (pair.length > 0) out[String(pair[0])] = pair[1];
-  }
-  return out;
+  return Object.fromEntries(
+    list.filter(isPair).map((pair): [string, unknown] => [String(pair[0]), pair[1]]),
+  );
+}
+
+/** A pair to make a field from. Anything else in the list names no key. */
+function isPair(entry: unknown): entry is readonly unknown[] {
+  return Array.isArray(entry) && entry.length > 0;
 }
 
 function rebuild(map: Dict, step: (entry: [string, unknown]) => [string, unknown]): Dict {
@@ -44,13 +55,17 @@ function names(args: readonly unknown[]): string[] {
   return args.flatMap((arg) => (Array.isArray(arg) ? arg : [arg])).map(String);
 }
 
+/**
+ * Merged on a tray with nothing above it, so a branch named `__proto__`,
+ * `constructor` or `prototype` is read back and written like any other.
+ */
 function mergeDeep(left: Dict, right: Dict): Dict {
-  const out: Dict = { ...left };
+  const out: Dict = Object.assign(Object.create(null), left);
   for (const [key, value] of Object.entries(right)) {
     const current = out[key];
     out[key] = isDict(current) && isDict(value) ? mergeDeep(current, value) : value;
   }
-  return out;
+  return { ...out };
 }
 
 /** Nothing at all is here, told apart from a field that holds nothing. */

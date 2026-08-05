@@ -59,7 +59,8 @@ function* loosePatterns(args: { ast: Document; text: string; uri: string }): Gen
     // A newline is a token of its own, so a `-` with its number on the next line
     // is a parse error the parser has already reported.
     if (!at || !SPACED.test(args.text.slice(at.offset, at.end))) continue;
-    yield buildProblem({ spec: CODES.VN1002_PARSE, span: spanOf({ ...args, at }), title: TIGHT });
+    const span = minusSpan({ ...args, at });
+    yield buildProblem({ spec: CODES.VN1002_PARSE, span, title: TIGHT });
   }
 }
 
@@ -104,12 +105,19 @@ function placed(node: unknown): Placed | undefined {
 
 function problem(args: { at: Placed; text: string; uri: string }): Problem {
   const title = bracketTheArgument({ operator: MINUS, text: args.text, offset: args.at.offset });
-  const span = spanOf(args);
+  const span = minusSpan(args);
   return buildProblem({ spec: CODES.VN1002_PARSE, span, title: title ?? UNBRACKETED });
 }
 
-/** The `-` itself: one character, wherever the node it opens happens to end. */
-function spanOf(args: { at: Placed; uri: string }): Span {
+/**
+ * The `-` itself: one character, wherever the node it opens happens to end.
+ *
+ * Not `spanOf`, which is the span of a node and would squiggle the whole of
+ * `- 1` when the mistake is the one character before the space. This runs
+ * before the AST exists as anything but a recovery tree, so there is a CST node
+ * to read and nothing else.
+ */
+function minusSpan(args: { at: Placed; uri: string }): Span {
   return {
     uri: args.uri,
     offset: args.at.offset,

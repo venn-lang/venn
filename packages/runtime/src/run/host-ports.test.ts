@@ -17,7 +17,6 @@ import type { RunnerArgs } from "./runner.types.js";
 /** A plugin that reaches for the host's capabilities and nothing else. */
 const REACH = definePlugin({
   name: "@t/reach",
-  version: "0",
   namespace: "reach",
   actions: [
     defineAction({ name: "now", run: (ctx) => ctx.port(ClockPort).now() }),
@@ -35,7 +34,6 @@ async function ran(source: string, over: Partial<RunnerArgs> = {}): Promise<stri
   const out: string[] = [];
   const printer = definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({

@@ -1,9 +1,8 @@
-import type { RaceStmt } from "@venn-lang/core";
+import { durationMs, type RaceStmt } from "@venn-lang/core";
 import { type CancelScope, createCancelScope, unwind } from "../cancel/index.js";
 import type { Scope } from "../scope/index.js";
 import { reportAbandoned } from "./abandoned.js";
 import { branchEngine } from "./branch-engine.js";
-import { durationMs } from "./duration-ms.js";
 import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
 import { readOptions } from "./read-options.js";

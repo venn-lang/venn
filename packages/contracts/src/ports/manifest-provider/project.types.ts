@@ -17,11 +17,20 @@ export interface PackageInfo {
    * is the resolved value, with the default already applied.
    */
   version?: string;
+  /**
+   * Metadata, parsed and inherited but read by nothing in the toolchain yet.
+   *
+   * Kept because they are what a registry is handed: `venn publish` has to send
+   * a description, a licence and an author list, and dropping them now would
+   * mean asking every project to write its `venn.toml` again the day it exists.
+   * `edition` is not here: there is one language revision, so a key naming
+   * which one you wrote against promises a choice nobody has. It stays on the
+   * `stray-keys` allowlist all the same, because a manifest the guide taught
+   * people to write must not start failing `venn check`.
+   */
   description?: string;
   license?: string;
   authors: readonly string[];
-  /** `[package] edition`: which language revision this was written against. */
-  edition?: string;
 }
 
 /** What a project builds. A server is a `bin` that does not end. */

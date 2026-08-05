@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { relative } from "node:path";
 import { formatOptionsFrom, formatText } from "@venn-lang/core";
 import { loadManifest } from "../manifest/index.js";
+import { shorten } from "../paths/index.js";
 import { dim, green, yellow } from "../reporters/colors.js";
 import { everySourceUnder } from "../run/collect-files.js";
 
@@ -47,9 +47,4 @@ function report(changed: readonly string[], total: number, check: boolean): numb
   const verb = check ? "would change" : "formatted";
   process.stdout.write(`\n ${dim(verb)}  ${changed.length}/${total}\n`);
   return check && changed.length > 0 ? 1 : 0;
-}
-
-function shorten(file: string): string {
-  const path = relative(process.cwd(), file);
-  return path && !path.startsWith("..") ? path.replace(/\\/g, "/") : file;
 }

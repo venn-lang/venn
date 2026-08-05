@@ -1,19 +1,25 @@
-import { type ActionContext, type ActionDefinition, arg, defineAction, z } from "@venn-lang/sdk";
+import {
+  type ActionContext,
+  type ActionDefinition,
+  arg,
+  CryptoEnginePort,
+  defineAction,
+  equals,
+  fromHex,
+  JWS_ALGORITHMS,
+  JWS_HASH,
+  jwsHash,
+  toBase64Url,
+  toBytes,
+  z,
+} from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
-import { equals, fromHex, toBase64Url, toBytes } from "../bytes/index.js";
 import { decodeJwt } from "../jwt/index.js";
-import { CryptoEnginePort, type HashAlgorithm } from "../port/index.js";
-
-const ALGORITHMS: Record<string, HashAlgorithm> = {
-  HS256: "sha256",
-  HS384: "sha384",
-  HS512: "sha512",
-};
 
 const signParams = z.object({
   payload: z.record(z.string(), z.unknown()),
   secret: z.string(),
-  algorithm: z.enum(["HS256", "HS384", "HS512"]).default("HS256"),
+  algorithm: z.enum(JWS_ALGORITHMS).default("HS256"),
 });
 const verifyParams = z.object({ secret: z.string() });
 
@@ -49,7 +55,7 @@ async function sign(ctx: ActionContext, params: z.infer<typeof signParams>): Pro
   const header = { alg: params.algorithm, typ: "JWT" };
   const input = `${encode(header)}.${encode(params.payload)}`;
   const mac = await ctx.port(CryptoEnginePort).hmac({
-    algorithm: ALGORITHMS[params.algorithm] as HashAlgorithm,
+    algorithm: JWS_HASH[params.algorithm],
     key: params.secret,
     data: input,
   });
@@ -62,7 +68,7 @@ async function verify(
   params: { secret: string },
 ): Promise<boolean> {
   const decoded = decodeJwt(token);
-  const algorithm = ALGORITHMS[String(decoded.header.alg ?? "")];
+  const algorithm = jwsHash(String(decoded.header.alg ?? ""));
   if (!algorithm) return false;
   const mac = await ctx.port(CryptoEnginePort).hmac({
     algorithm,

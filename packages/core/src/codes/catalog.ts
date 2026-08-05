@@ -37,6 +37,14 @@ export const CODES = {
   VN3010_TYPE_MISMATCH: { code: "VN3010", severity: "error" },
   VN3012_UNIT_MISMATCH: { code: "VN3012", severity: "error" },
   VN3013_NOT_CALLABLE: { code: "VN3013", severity: "error" },
+  /**
+   * Retired: nothing raises it. It named a value read as if it had settled
+   * while it was still on its way, and `expr/pending.ts` made that unreachable
+   * by chaining onto whatever is waiting instead of reading it, which is why
+   * `await` is never written in this language. Kept
+   * declared so the number is never reused for something else, since a code is
+   * meant to stay googlable after it stops being raised.
+   */
   VN3014_STILL_WAITING: { code: "VN3014", severity: "error" },
   VN3015_NOT_A_LIST: { code: "VN3015", severity: "error" },
   VN3016_NOT_A_NUMBER: { code: "VN3016", severity: "error" },
@@ -46,6 +54,11 @@ export const CODES = {
   VN3020_UNREACHABLE_CASE: { code: "VN3020", severity: "error" },
   VN3021_NOT_A_PLACE: { code: "VN3021", severity: "error" },
   VN3022_RESERVED_CODE: { code: "VN3022", severity: "error" },
+  /**
+   * A write whose key is `__proto__`, `constructor` or `prototype`, which
+   * reaches what made the value rather than the value itself.
+   */
+  VN3023_RESERVED_KEY: { code: "VN3023", severity: "error" },
   /** A `race` or a `parallel` with no branches in it, which can decide nothing. */
   VN4001_NOTHING_TO_RUN: { code: "VN4001", severity: "error" },
   VN5001_REMOVED_KEYWORD: { code: "VN5001", severity: "error" },

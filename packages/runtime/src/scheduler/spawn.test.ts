@@ -9,7 +9,6 @@ function harness() {
   const seen: string[] = [];
   const plugin = definePlugin({
     name: "@t/m",
-    version: "0",
     namespace: "t",
     actions: [
       defineAction({

@@ -10,7 +10,6 @@ import { jsonActions } from "./actions/json-actions.js";
  */
 export const jsonPlugin: PluginDefinition = definePlugin({
   name: "venn/json",
-  version: "0.0.0",
   namespace: "json",
   actions: jsonActions,
 });

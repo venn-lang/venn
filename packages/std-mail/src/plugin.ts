@@ -1,6 +1,6 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { mailActions } from "./actions/index.js";
-import { AttachmentSchema, EmailSchema, mailTypeDefs } from "./types/index.js";
+import { mailTypeDefs } from "./types/index.js";
 
 /**
  * The `@venn-lang/mail` plugin. Registers the `mail` namespace: the `inbox`,
@@ -9,10 +9,8 @@ import { AttachmentSchema, EmailSchema, mailTypeDefs } from "./types/index.js";
  */
 export const mailPlugin: PluginDefinition = definePlugin({
   name: "venn/mail",
-  version: "0.0.0",
   namespace: "mail",
   requires: ["net"],
   actions: mailActions,
-  types: { Email: EmailSchema, Attachment: AttachmentSchema },
   typeDefs: mailTypeDefs,
 });

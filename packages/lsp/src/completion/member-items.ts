@@ -62,8 +62,14 @@ function receiverType(args: MemberArgs): Type | undefined {
 const OWN = "0";
 const BUILT_IN = "1";
 
+/**
+ * What the value itself carries: a map's fields, a handle's published verbs.
+ *
+ * `regex` and `task` are left to `builtinItems`, which offers the same names
+ * with the prose and the example beside them. Offering both listed each twice.
+ */
 function fieldItems(type: Type, range: Range): CompletionItem[] {
-  if (type.kind === "opaque") return publishedItems(type, range);
+  if (type.kind === "opaque") return memberKind(type) ? [] : publishedItems(type, range);
   if (type.kind !== "record") return [];
   return [...type.fields].map(([name, field]) => ({
     ...item({

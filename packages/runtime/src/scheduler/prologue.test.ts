@@ -15,7 +15,6 @@ describe("the prologue a test file runs before its flows", () => {
     let closed = false;
     const plugin = definePlugin({
       name: "@test/r",
-      version: "0",
       namespace: "r",
       actions: [
         defineAction({

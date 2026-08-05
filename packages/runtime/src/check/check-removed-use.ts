@@ -13,7 +13,7 @@ export function checkRemovedUse(node: AstNode, ctx: CheckContext): Problem[] {
   if (!isActionCall(node) || node.target !== "use" || !looksLikeAUse(node)) return [];
   const title = "`use` was removed: write `import` for what the package publishes.";
   const help = 'Write `import { … } from "…"` for the names you want.';
-  return [{ ...problemAt(node, ctx, CODES.VN5001_REMOVED_KEYWORD, title), help }];
+  return [{ ...problemAt({ node, ctx, spec: CODES.VN5001_REMOVED_KEYWORD, title }), help }];
 }
 
 /**

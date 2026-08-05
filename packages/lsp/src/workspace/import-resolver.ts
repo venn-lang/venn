@@ -10,7 +10,7 @@ import {
 } from "@venn-lang/contracts";
 import { moduleFileOf } from "@venn-lang/core";
 import { asMember, matchesMember, relativeTo } from "@venn-lang/project";
-import type { TypeSpec } from "@venn-lang/types";
+import { DERIVED_TYPES_DIR, derivedTypesFile, type TypeSpec } from "@venn-lang/types";
 import { URI, UriUtils } from "langium";
 
 /**
@@ -86,7 +86,7 @@ export function createImportResolver(): ImportResolver {
       const out = new Map<string, Record<string, TypeSpec>>();
       if (!found) return out;
       for (const name of packages) {
-        const at = UriUtils.resolvePath(found.root, "target", "types", `${fileName(name)}.json`);
+        const at = UriUtils.resolvePath(found.root, ...DERIVED_TYPES_DIR, derivedTypesFile(name));
         const derived = readDerived(at);
         if (derived) out.set(name, derived);
       }
@@ -241,11 +241,6 @@ function read(uri: URI): Read | undefined {
   } catch {
     return undefined;
   }
-}
-
-/** A scope holds a slash and a file name cannot: `@types/node` becomes `@types__node`. */
-function fileName(name: string): string {
-  return name.replace("/", "__");
 }
 
 function readDerived(uri: URI): Record<string, TypeSpec> | undefined {

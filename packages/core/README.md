@@ -14,7 +14,7 @@ dependencies are Langium (parsing) and [`@venn-lang/types`](../types) (the publi
 ## Usage
 
 ```ts
-import { checkTypes, parse, toGraph } from "@venn-lang/core";
+import { checkTypes, parse } from "@venn-lang/core";
 
 const uri = "file:///hello.vn";
 const source = `flow "Hello" {
@@ -30,8 +30,6 @@ const checked = checkTypes(ast, { uri });
 for (const problem of [...problems, ...checked.problems]) {
   console.log(`${problem.code} ${problem.title} (${problem.span.line}:${problem.span.column})`);
 }
-
-const graph = toGraph(ast); // flow -> step -> action/expect, for the node editor
 ```
 
 `parse` is synchronous and touches no filesystem. Error recovery keeps a partial AST, so a file with
@@ -56,7 +54,6 @@ a syntax error still produces a tree the editor can work with.
 | `units/` | Unit-typed values (`300ms`, `2mb`, `50%`, ISO instants) and the arithmetic that keeps units honest. |
 | `interpolation/` | `${…}` placeholders, described once for both the evaluator and the editor. |
 | `format/` | `formatText`, shared by `venn fmt` and the language server so both agree on the result. |
-| `graph/` | `toGraph`: a pure AST transform into nodes and edges for the visual editor. |
 | `events/` | The event envelope the runner emits and the UI consumes. Types only, no runtime. |
 | `plan/` | `stepTitlesOf`: every step title a flow can reach, so a reporter can draw the tree before anything runs. |
 | `module/` | Which of the three kinds an import specifier is: relative, alias or package. |
@@ -71,6 +68,7 @@ a syntax error still produces a tree the editor can work with.
 | `parseProblems({ result, uri, text })` | The same VN1xxx problems for a parse somebody else ran, so the language server publishes what `venn check` prints instead of Chevrotain's own words. |
 | `parseExpression(source)` | An `Expr` for a standalone expression, or `undefined` when it is not one. |
 | `EXPRESSION_OFFSET` | How far `parseExpression` shifts CST offsets, so a caller can map back onto the `${…}` it came from. |
+| `fileOf(node)` | Which file a node was parsed from, recorded by `parse`. For code that has to place a Problem with no uri to thread: the compiler builds a `fn` body once, away from the document that asked. Empty for a tree that came from anywhere else. |
 | `vennServices()` / `createVennServices()` | The Langium services, cached and fresh respectively. |
 | `VennLexer` | The lexer that suppresses newlines inside brackets. |
 | `VennGeneratedModule`, `VennGeneratedSharedModule`, `VennLanguageMetaData` | The generated Langium modules, for a host that builds its own services. |
@@ -87,6 +85,7 @@ The AST readers exist because the grammar spells some things two ways:
 | `dottedPath(expr)` | The dotted name an expression spells (`http.get`), or `undefined` when it is not a plain chain. |
 | `isRunnable(decl)` | Whether a top-level node runs or merely defines. |
 | `walkAst(root)` | Every descendant, depth first. |
+| `insideAnnotation(node)` | Whether a node is written inside a `@name(…)`, where a bare name is a word and not a reference. |
 
 ### Problems and codes
 
@@ -123,6 +122,11 @@ runner's, in [`@venn-lang/runtime`](../runtime), and grepping the number here fi
 add their own in the same families. `buildDiff` turns two compared values into a structured `Diff`,
 walking them field by field when they line up, so a failure names the field that moved instead of
 printing two renderings side by side. `formatValue` renders a single value for a report.
+`UNLOCATED` is the one span for a failure nobody could place: an empty uri, which every reader
+takes as "print no location" rather than as the file's first line. `spanOf(node, uri)` places a
+node, `${…}` included, and `slotSpan({ slot, host, uri })` places the placeholder itself.
+`orPhrase(items)` says a list the way a title has to: `"a", "b" or "c"`, no serial comma, no
+trailing stop.
 
 ### Type checking
 
@@ -181,12 +185,18 @@ evaluate(subject, env); // true, for `res.status == 200`
 | `invoke`, `invoke1`, `callClosure`, `isCallable` | Calling a Venn callable, with fixed arities for the hot paths. |
 | `Closure`, `isClosure`, `NativeFn`, `nativeFn`, `isNativeFn` | The two kinds of callable. |
 | `memberValue(receiver, member)` | What `.x` means on any value: a map's own data first, then the built-in member tables. |
+| `indexValue(receiver, at)` | What `x[k]` means, which is the same reading with the key worked out first. |
+| `MEMBER_NAMES` | Every member name each kind answers to, taken from the tables that answer them. |
 | `namespaceValue`, `isNamespaceValue` | A plugin namespace as a value, so `fmt.table(rows)` works inside any expression. |
 | `PRELUDE_VALUES` | `range`, `str`, `typeOf`, `pretty`, `spawn`. |
 | `display(value)`, `typeName(value)` | How `print` renders a value, and what the language calls its type. |
 
-`Value` (from `value/`) is the shape a runtime value can take, with `truthy`, `strictEquals` and
-`isNumeric` alongside it. There is no coercion: `"99.00"` never equals `99`.
+`value/` owns what a value is. `kindOf(value)` answers with one of the fourteen `ValueKind`s the
+language has, and everything that dispatches on the shape of a value asks it: the member read, the
+method tables, `typeOf`, and how a value is written into text. `Value` is the shape a runtime value
+can take, with `truthy`, `strictEquals` and `isNumeric` alongside it. There is no coercion: `"99.00"`
+never equals `99`. `isReservedKey` and `reservedKeyProblem` are the one refusal both halves of
+assignment give for a key that would reach past the value into what made it.
 
 ### Decorator expansion
 
@@ -269,10 +279,7 @@ formatText(source, formatOptionsFrom(manifest.format)); // the [format] table of
 never joins or splits lines, and it is idempotent. `organizeHeader` and `reindent` are the two steps
 on their own.
 
-### Graph, events and plans
-
-`toGraph(document)` derives the node graph from the AST: a `flow` contains its steps, a step contains
-its actions and expectations, and sequential edges run between siblings. Pure, with no runtime state.
+### Events and plans
 
 The `events/` module is types only: `Envelope` is the single contract between runner, host and UI,
 carrying a monotonic `seq`, a timestamp, a `RunId`, a kind and its payload. `EventKind` is derived

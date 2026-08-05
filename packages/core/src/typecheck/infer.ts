@@ -23,8 +23,8 @@ import type { InterpolationSlot } from "../interpolation/index.js";
 import { scanInterpolations } from "../interpolation/index.js";
 import { parseExpression } from "../parse/parse-expression.js";
 import { markSlotIn } from "../span/index.js";
+import { positionKey } from "../value/index.js";
 import { callType } from "./action-signature.js";
-import { memberType } from "./builtins.js";
 import { argumentsFit } from "./call-arguments.js";
 import { callingAValue } from "./calling-a-value.js";
 import type { TypeCatalog } from "./catalog.types.js";
@@ -38,6 +38,7 @@ import { fits } from "./fits.js";
 import { identityComparison } from "./identity-comparison.js";
 import type { ImportedType } from "./imported-types.js";
 import { either, logicalType } from "./logical-type.js";
+import { memberRead } from "./member-read.js";
 import { mergedCall } from "./merged-call.js";
 import type { NamedTypes } from "./named-types.js";
 import { narrowed } from "./narrow.js";
@@ -47,20 +48,10 @@ import { instantiate, mono } from "./scheme.js";
 import type { ParamSeeds } from "./seed-params.js";
 import type { ValueSeeds } from "./seed-values.js";
 import { showType } from "./show.js";
-import {
-  BOOL,
-  DYNAMIC,
-  fn,
-  NULL,
-  NUMBER,
-  STRING,
-  type Type,
-  type UnionType,
-  union,
-} from "./type.types.js";
+import { BOOL, DYNAMIC, fn, NULL, NUMBER, STRING, type Type } from "./type.types.js";
 import { type TypeEnv, withAll } from "./type-env.js";
 import { typeRefToType } from "./type-ref.js";
-import { fieldType, prune, unify } from "./unify.js";
+import { prune, unify } from "./unify.js";
 import { combinedType, literalType } from "./unit-types.js";
 
 /** One `${…}`: what it parsed to, and whether the source had to be repaired. */
@@ -241,11 +232,8 @@ function inferMember(expr: Member, env: TypeEnv, infer: Infer): Type {
   if (published) return published;
   const receiver = prune(inferExpr(expr.receiver, env, infer));
   if (receiver.kind === "dynamic") return DYNAMIC;
-  const built = memberType(receiver, expr.member, infer.ctx);
-  if (built) return built;
-  if (receiver.kind === "record") return recordField(receiver, expr, infer);
-  if (receiver.kind === "union") return unionField(receiver, expr, infer);
-  return unknownMember(receiver, expr, infer);
+  const read = { node: expr, name: expr.member, asking: expr.optional === true };
+  return memberRead(receiver, read, infer);
 }
 
 /** `math.pi`, when a plugin published it and nothing local shadows the name. */
@@ -254,90 +242,6 @@ function publishedValue(expr: Member, env: TypeEnv, infer: Infer): Type | undefi
   if (!path || !infer.catalog?.valueOf) return undefined;
   const head = path.slice(0, path.indexOf("."));
   return env.lookup(head) ? undefined : infer.catalog.valueOf(path);
-}
-
-/**
- * A field on a union: every branch's answer, as one type.
- *
- * A field only some shapes carry is the whole reason narrowing exists, so it is
- * reported rather than answered with `dynamic`: inside `if r.kind == "ok"` the
- * value is one shape, and the field is there. Only shapes, though. A
- * `string | number` is a value two things could be rather than a decision
- * somebody has to make, and reading it has always been the run's business.
- */
-function unionField(receiver: UnionType, expr: Member, infer: Infer): Type {
-  const found = receiver.members.map((member) => branchField(member, expr.member));
-  if (found.every((type) => type !== undefined)) return union(found as Type[]);
-  if (asking(expr) || !receiver.members.every(isShape)) return DYNAMIC;
-  infer.ctx.mismatches.push({
-    node: expr,
-    expected: receiver,
-    actual: DYNAMIC,
-    note: `does not carry "${expr.member}" on every branch`,
-  });
-  return DYNAMIC;
-}
-
-/** A branch whose fields are all known, which is what makes a missing one wrong. */
-function isShape(member: Type): boolean {
-  return prune(member).kind === "record";
-}
-
-/** What one branch of a union answers for a field, or nothing when it has none. */
-function branchField(member: Type, name: string): Type | undefined {
-  const t = prune(member);
-  if (t.kind === "dynamic" || t.kind === "var") return DYNAMIC;
-  return t.kind === "record" ? fieldType(t, name) : undefined;
-}
-
-/**
- * Whether a member the shape does not carry is a mistake.
- *
- * `?.` asks whether something is there, so "no" is an answer rather than an
- * error. Reporting one made the operator useless exactly where the shape is
- * known, which is the only place it could have helped. Plain `.` still says the
- * member is there, and is still wrong when it is not.
- */
-function asking(expr: Member): boolean {
-  return expr.optional === true;
-}
-
-/**
- * The kinds whose members are all known: a string, a list, a handle, a literal.
- *
- * There is no shape one of these could turn out to have later, so answering
- * `dynamic` for a member it does not carry is not caution but a wrong answer.
- * Anything still open, `dynamic` above all, is left alone.
- */
-const CLOSED_MEMBERS = new Set(["list", "prim", "opaque", "literal"]);
-
-function unknownMember(receiver: Type, expr: Member, infer: Infer): Type {
-  if (!CLOSED_MEMBERS.has(receiver.kind)) return DYNAMIC;
-  if (asking(expr)) return DYNAMIC;
-  infer.ctx.mismatches.push({
-    node: expr,
-    expected: receiver,
-    actual: DYNAMIC,
-    note: `has no member "${expr.member}"`,
-  });
-  return DYNAMIC;
-}
-
-function recordField(
-  receiver: Extract<Type, { kind: "record" }>,
-  expr: Member,
-  infer: Infer,
-): Type {
-  const found = fieldType(receiver, expr.member);
-  if (found) return found;
-  if (asking(expr)) return DYNAMIC;
-  infer.ctx.mismatches.push({
-    node: expr,
-    expected: receiver,
-    actual: DYNAMIC,
-    note: `has no field "${expr.member}"`,
-  });
-  return DYNAMIC;
 }
 
 /**
@@ -429,11 +333,48 @@ function verbCall(expr: Call, env: TypeEnv, infer: Infer): Type | undefined {
   return callType({ target, args }, env, infer);
 }
 
+/**
+ * `xs[0]` and `m["name"]`.
+ *
+ * A position is read as one wherever the receiver holds positions, so `xs[0]`
+ * and `xs["0"]` are the same element and have the same type, and `s[0]` is the
+ * character it reads at run time rather than a member nobody declared.
+ *
+ * Everything else the source spelled out is the member read written with
+ * brackets, and is typed as one. That used to be true of a record and not of a
+ * list, which left the wrong promise standing over one spelling:
+ * `const s: string = names["len"]` was accepted for a value that is the number
+ * 2, while `const n: number = names["len"]` was refused.
+ *
+ * A key the run works out (`m[k]`, `stats[stat]`) is nobody's mistake and stays
+ * `dynamic`: that is what reading a map by a computed key means.
+ */
 function inferIndex(expr: Index, env: TypeEnv, infer: Infer): Type {
   const receiver = prune(inferExpr(expr.receiver, env, infer));
   inferExpr(expr.index, env, infer);
+  const name = writtenKey(expr.index);
+  const spot = name === undefined || positionKey(name) !== undefined;
+  const held = spot ? positionType(receiver) : undefined;
+  if (held) return held;
+  if (name === undefined) return DYNAMIC;
+  return memberRead(receiver, { node: expr, name, asking: false }, infer);
+}
+
+/**
+ * What a read by position answers: an element, a character, or nothing, for a
+ * receiver that holds no positions and is read by name instead.
+ */
+function positionType(receiver: Type): Type | undefined {
   if (receiver.kind === "list") return receiver.element;
-  return DYNAMIC;
+  return receiver.kind === "prim" && receiver.name === "string" ? STRING : undefined;
+}
+
+/** The key when the source spelled it out, as against one the run works out. */
+function writtenKey(index: Expr): string | undefined {
+  if (index.$type !== "StringLit") return undefined;
+  // A `${…}` inside makes the key a run-time value, and nothing here to be
+  // right or wrong about yet.
+  return scanInterpolations(index.value).length > 0 ? undefined : index.value;
 }
 
 const ARITHMETIC = new Set(["+", "-", "*", "/", "%"]);

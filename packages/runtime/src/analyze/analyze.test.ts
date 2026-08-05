@@ -8,7 +8,6 @@ import { NOTHING_IMPORTED } from "./nothing-imported.js";
 
 const KIT = definePlugin({
   name: "@t/kit",
-  version: "0",
   namespace: "kit",
   actions: [defineAction({ name: "shout", run: () => "HI" })],
   values: [defineValue({ name: "limit", doc: "How many.", type: t.number, value: 10 })],

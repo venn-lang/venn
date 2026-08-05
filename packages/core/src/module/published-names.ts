@@ -38,7 +38,17 @@ function declaredNames(decl: unknown): readonly string[] {
   return ast.isTypeDecl(decl) ? [decl.name] : [];
 }
 
-/** What a `pub import` hands on, under the name this file gave it. */
+/**
+ * The names an import puts in scope, under whichever name this file gave it.
+ *
+ * Two readers ask, and used to ask separately: `publishedNames` for what a
+ * `pub import` hands on, and the check that refuses one name bound twice for
+ * what any import claims. A wildcard binds the one name it was aliased to, a
+ * default binds its own, and everything else binds what it was written as.
+ *
+ * @param decl The import.
+ * @returns The names it binds here, in the order they were written.
+ */
 export function handedOn(decl: ValueImport): readonly string[] {
   if (decl.wildcard) return [decl.wildcard];
   if (decl.default) return [decl.default];

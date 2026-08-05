@@ -11,7 +11,6 @@ import { createTypeCatalog } from "./create-type-catalog.js";
  */
 const GENERIC = definePlugin({
   name: "@t/g",
-  version: "0",
   namespace: "g",
   actions: [
     defineAction({

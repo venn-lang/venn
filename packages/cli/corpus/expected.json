@@ -315,6 +315,7 @@
         "code": "VN3016",
         "title": "repeat needs a number of times, and this is a string.",
         "help": "Give it a count, as in `repeat 3 { … }`.",
+        "uri": "memory://corpus.vn",
         "column": 8
       }
     },
@@ -325,6 +326,7 @@
         "code": "VN3016",
         "title": "repeat needs a number of times, and this is a string.",
         "help": "Give it a count, as in `repeat 3 { … }`.",
+        "uri": "memory://corpus.vn",
         "column": 8
       }
     },
@@ -335,6 +337,7 @@
         "code": "VN3016",
         "title": "repeat needs a number of times, and this is a string.",
         "help": "Give it a count, as in `repeat 3 { … }`.",
+        "uri": "memory://corpus.vn",
         "column": 8
       }
     },
@@ -345,6 +348,7 @@
         "code": "VN3016",
         "title": "repeat needs a number of times, and this is a string.",
         "help": "Give it a count, as in `repeat 3 { … }`.",
+        "uri": "memory://corpus.vn",
         "column": 8
       }
     }
@@ -357,6 +361,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a number.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     },
@@ -367,6 +372,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a number.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     },
@@ -377,6 +383,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a number.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     },
@@ -387,6 +394,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a number.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     }
@@ -399,6 +407,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a map.",
         "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     },
@@ -409,6 +418,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a map.",
         "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     },
@@ -419,6 +429,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a map.",
         "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     },
@@ -429,6 +440,7 @@
         "code": "VN3015",
         "title": "forEach needs a list, and this is a map.",
         "help": "Name the list inside it, as in `forEach item in res.data`.",
+        "uri": "memory://corpus.vn",
         "column": 14
       }
     }
@@ -804,6 +816,7 @@
         "code": "VN2024",
         "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 1
       }
     },
@@ -816,6 +829,7 @@
         "code": "VN2024",
         "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 1
       }
     },
@@ -833,6 +847,7 @@
         "code": "VN6002",
         "title": "the guard fired",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 1
       }
     },
@@ -845,6 +860,7 @@
         "code": "VN2024",
         "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 1
       }
     },
@@ -857,6 +873,7 @@
         "code": "VN2024",
         "title": "A `fn` is pure, so it cannot call `fail`. A verb belongs in a `fragment`, or at the top level of a file.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 1
       }
     },
@@ -867,6 +884,7 @@
         "code": "VN6002",
         "title": "the guard fired",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 1
       }
     }
@@ -890,6 +908,7 @@
         "code": "",
         "title": "Unknown action \"seen\".",
         "help": null,
+        "uri": "",
         "column": -1
       }
     },
@@ -906,6 +925,7 @@
         "code": "",
         "title": "Unknown action \"seen\".",
         "help": null,
+        "uri": "",
         "column": -1
       }
     },
@@ -1227,6 +1247,7 @@
         "code": "VN2025",
         "title": "A namespace groups names, so it cannot hold an assignment.",
         "help": "Move it to the top level of the file.",
+        "uri": "memory://corpus.vn",
         "column": 3
       }
     }
@@ -1239,6 +1260,7 @@
         "code": "VN2025",
         "title": "A namespace groups names, so it cannot hold a `flow`.",
         "help": "Move it to the top level of the file.",
+        "uri": "memory://corpus.vn",
         "column": 3
       }
     }
@@ -1251,6 +1273,7 @@
         "code": "VN3021",
         "title": "There is nothing here to write to.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 3
       }
     },
@@ -1261,6 +1284,7 @@
         "code": "VN3021",
         "title": "There is nothing here to write to.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 3
       }
     },
@@ -1271,6 +1295,7 @@
         "code": "VN3021",
         "title": "There is nothing here to write to.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 3
       }
     },
@@ -1281,6 +1306,7 @@
         "code": "VN3021",
         "title": "There is nothing here to write to.",
         "help": null,
+        "uri": "memory://corpus.vn",
         "column": 3
       }
     }

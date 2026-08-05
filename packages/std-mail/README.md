@@ -110,8 +110,7 @@ Failures are `Problem` objects with stable codes. `VN8091` when no email matched
 | `MailQuery` | The `waitFor` query: `to`, `subject`, `within` in milliseconds. |
 | `createFakeMailClient`, `createRealMailClient` | The two implementations. |
 | `Email`, `Attachment` | The TypeScript types behind the published names. |
-| `EmailSchema`, `AttachmentSchema` | The Zod schemas the plugin registers for them. |
-| `mailTypeDefs` | The same two types as `TypeSpec` data, for the editor and the node graph. |
+| `mailTypeDefs` | The same two types as `TypeSpec` data, which the checker and the editor read. |
 
 ## Binding a client
 

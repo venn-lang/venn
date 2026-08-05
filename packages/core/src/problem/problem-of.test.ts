@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildProblem } from "../codes/index.js";
 import { ProblemError } from "./problem-error.js";
 import { problemOf } from "./problem-of.js";
 
@@ -129,6 +130,35 @@ describe("where a failure says it happened", () => {
       severity: "error",
       title: "from below",
       span: NODE,
+      docs: "https://venn.dev/e/VN7000",
     });
+  });
+});
+
+/**
+ * Two factories make every `Problem` there is, and a program cannot tell which
+ * made its failure: `buildProblem` for what the compiler finds, `problemOf` for
+ * whatever unwound. The link used to be derived in only one of them, so the
+ * whole VN7xxx and VN8xxx surface, which is what a user actually hits, carried
+ * none: `catch e { print e.docs }` printed nothing for a failed `json.parse`
+ * and a URL for a `fail`, one line apart.
+ */
+describe("the page a reader is sent to", () => {
+  it.each(["VN7003", "VN8001"])("is the same for %s whichever factory made it", (code) => {
+    const unwound = problemOf({ thrown: carrying({ code, message: "no" }), span: NODE });
+    const found = buildProblem({ spec: { code, severity: "error" }, span: NODE, title: "no" });
+
+    expect(unwound.docs).toBe(found.docs);
+    expect(unwound.docs).toBe(`https://venn.dev/e/${code}`);
+  });
+
+  /**
+   * A code the language did not catalogue is reported as `VN7000`, which it
+   * did, so the link is to the page that explains exactly that.
+   */
+  it("points at the unknown-failure page for a code of a plugin's own", () => {
+    const thrown = carrying({ code: "pay.declined", message: "declined" });
+
+    expect(problemOf({ thrown, span: NODE }).docs).toBe("https://venn.dev/e/VN7000");
   });
 });

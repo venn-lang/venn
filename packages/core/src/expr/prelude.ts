@@ -1,8 +1,8 @@
 import { displayValue } from "../interpolation/stringify-value.js";
-import { isClosure } from "./closure.js";
+import { kindOf } from "../value/index.js";
 import { invoke } from "./invoke.js";
 import { pattern } from "./methods/regex-methods.js";
-import { isNativeFn, nativeFn } from "./native.types.js";
+import { nativeFn } from "./native.types.js";
 import { startTask } from "./task.js";
 
 /**
@@ -18,17 +18,19 @@ export function display(value: unknown): string {
 }
 
 /**
- * The name of a value's type, as the language talks about it: "null", "list",
- * "fn", "map", "bool", "string", "number", or a unit's own kind.
+ * The name of a value's type, as the language talks about it.
+ *
+ * One of the kinds the language has, and never anything else. It used to hand
+ * back whatever `kind` string an object carried, so an ordinary map written
+ * `{ kind: "size", label: "x" }` answered `"size"` and `typeOf` could name a
+ * type nothing else in the language knows about.
+ *
+ * @param value Anything at all.
+ * @returns "null", "bool", "number", "string", "list", "map", "fn", a unit's
+ * own kind, "instant", "regex", "task", or "handle" for what a plugin made.
  */
 export function typeName(value: unknown): string {
-  if (value === null || value === undefined) return "null";
-  if (Array.isArray(value)) return "list";
-  if (isClosure(value) || isNativeFn(value)) return "fn";
-  const kind = (value as { kind?: unknown }).kind;
-  if (typeof value === "object" && typeof kind === "string") return kind;
-  if (typeof value === "object") return "map";
-  return typeof value === "boolean" ? "bool" : typeof value;
+  return kindOf(value);
 }
 
 /** `range(3)` → [0,1,2]; `range(1, 4)` → [1,2,3]; `range(0, 10, 2)` → [0,2,4,6,8]. */
@@ -67,10 +69,22 @@ export const PRELUDE_VALUES: Readonly<Record<string, unknown>> = {
   regex: nativeFn((args) => pattern(String(args[0] ?? ""), String(args[1] ?? ""))),
 };
 
+/**
+ * The kinds JSON has a shape for. Everything else is shown the way `print`
+ * shows it, because the alternative is the interpreter's own storage: `pretty`
+ * used to answer `{"kind":"duration","ms":250}` for `250ms` while `print 250ms`
+ * two lines away said `250ms`, which is one file contradicting itself.
+ */
+const AS_JSON = new Set(["null", "bool", "number", "string", "list", "map", "handle"]);
+
 function prettyJson(value: unknown): string {
   try {
-    return JSON.stringify(value, null, 2) ?? String(value);
+    return JSON.stringify(value, shown, 2) ?? String(value);
   } catch {
     return String(value);
   }
+}
+
+function shown(_key: string, held: unknown): unknown {
+  return AS_JSON.has(kindOf(held)) ? held : display(held);
 }

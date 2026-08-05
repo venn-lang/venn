@@ -10,7 +10,6 @@ import { assertMatchers } from "./matchers/index.js";
  */
 export const assertPlugin: PluginDefinition = definePlugin({
   name: "venn/assert",
-  version: "0.0.0",
   namespace: "assert",
   matchers: assertMatchers,
 });

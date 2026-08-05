@@ -79,7 +79,6 @@ Each is registered by `createVennLspServices`; export them for direct use or for
 | `findFragment(document, name)` | The fragment a parsed document declares under that name. |
 | `findBinding(from, name)` | The node that binds a name, searched outwards to the document. |
 | `exportedNames(document)` | The names a module marks `pub`, each with its kind (`fragment`, `fn`, `deco`). |
-| `importedNames(document)` | The names a document pulls in through `import { … }`. |
 
 ### Completion, decorators, docs, references
 

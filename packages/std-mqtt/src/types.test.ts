@@ -53,9 +53,8 @@ describe("mqtt signatures", () => {
     expect(publish?.signature?.result).toEqual({ kind: "prim", name: "void" });
   });
 
-  it("publishes Message as the checker's type as well as the runtime's", () => {
+  it("publishes Message to the checker under the name a flow writes", () => {
     expect(mqttPlugin.typeDefs).toBe(mqttTypeDefs);
     expect(Object.keys(mqttTypeDefs)).toEqual(["Message"]);
-    expect(mqttPlugin.types?.Message).toBeDefined();
   });
 });

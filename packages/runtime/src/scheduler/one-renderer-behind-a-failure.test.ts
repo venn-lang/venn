@@ -16,7 +16,6 @@ const NEWLINE = String.fromCharCode(10);
 /** Two matchers that always fail, so that what a failure carries can be read. */
 const showPlugin = definePlugin({
   name: "@t/show",
-  version: "0",
   namespace: "t",
   matchers: [
     // Titles the failure with nothing but `ctx.show`.

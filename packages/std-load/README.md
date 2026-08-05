@@ -50,10 +50,15 @@ the port.
 `load.ramp` takes two positional arguments, the virtual users it starts from and the number it ends
 at. The spec's `0 -> 200` arrow sugar is not in the grammar.
 
-**Durations are written as strings.** `over`, `hold` and `at` are read by the SDK's `Duration`
-schema, which accepts `"30s"`, `"2m"` or a plain count of milliseconds and yields milliseconds. The
-language's own `30s` unit literal is a different value, and passing it is refused before the run
-with `"over" is not a valid option`. Write `{ over: "30s" }` or `{ over: 30000 }`.
+**Durations may be written any of three ways.** `over`, `hold` and `at` are read by the SDK's
+`Duration` schema, which accepts the language's own `30s` literal, the text `"30s"`, or a plain
+count of milliseconds, and yields milliseconds in every case. Write `{ over: 30s }`,
+`{ over: "30s" }` or `{ over: 30000 }`.
+
+This paragraph used to say the opposite: that `30s` was "refused before the run" with
+`"over" is not a valid option`. It was refused, by a schema that took only a string or a number,
+and the sentence was wrong twice over, since the option was declared and it was the value that was
+turned away. Neither is true now.
 
 ## The types it publishes
 
@@ -105,7 +110,6 @@ peak.
 | `createFakeLoadRunner()` | The fake runner. |
 | `createRealLoadRunner()` | The real runner, stubbed to throw `VN8090`. |
 | `LoadMetrics` | The metrics type. |
-| `LoadMetricsSchema` | The Zod schema registered as the plugin's nominal `LoadMetrics` type. |
 
 Binding a different runner means one entry in the runner's port list:
 

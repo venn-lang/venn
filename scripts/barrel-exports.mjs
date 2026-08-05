@@ -115,6 +115,46 @@ export function publishedBy(file, source, seen = new Set()) {
 }
 
 /**
+ * What each clause of a barrel contributes, and which file it came through.
+ *
+ * {@link publishedBy} flattens a barrel to a set of names, which is the right
+ * answer to "what does this package hand out" and the wrong one to "who handed
+ * it out": a name published by two modules is one entry either way, and that is
+ * the case worth catching.
+ *
+ * @param file The barrel, as a slashed path.
+ * @param source Every source file, by path.
+ * @returns One entry per clause, plus one for whatever the barrel declares
+ * itself. `specifier` is null for that one. `starred` marks `export *`, which
+ * is the clause that can publish a name nobody wrote down here. `target` is the
+ * file the clause reads, so a caller can ask where each name really comes from:
+ * two clauses carrying one name are two owners only when the declarations
+ * behind them differ, and a barrel re-exporting a neighbour's re-export reaches
+ * the same declaration twice.
+ */
+export function contributions(file, source) {
+  const text = source.get(file) ?? "";
+  const own = [...ownExports(text), ...plainExports(text)].map((one) => one.outer);
+  const named = reExports(text).map((one) => ({
+    specifier: one.specifier,
+    target: resolveFrom({ from: file, specifier: one.specifier, source }),
+    names: one.names.map((binding) => binding.outer),
+    starred: false,
+  }));
+  const all = [...named, ...starredClauses(file, source, text)];
+  if (own.length === 0) return all;
+  return [{ specifier: null, target: file, names: own, starred: false }, ...all];
+}
+
+/** Each `export *`, resolved and asked what the file behind it publishes. */
+function starredClauses(file, source, text) {
+  return stars(text).map((specifier) => {
+    const target = resolveFrom({ from: file, specifier, source });
+    return { specifier, target, names: target ? publishedBy(target, source) : [], starred: true };
+  });
+}
+
+/**
  * Where a name published by a file is declared, following the chain outwards.
  *
  * Answers `{ file, name }` when the declaration is in the workspace, and

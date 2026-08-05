@@ -10,7 +10,7 @@
 import type { Cell } from "../expr/cell.types.js";
 import type { Closure } from "../expr/closure.types.js";
 import type { EvalEnv } from "../expr/eval-env.types.js";
-import type { Frame } from "../expr/frame.js";
+import { type Frame, INLINE_SLOTS } from "../expr/index.js";
 import type { Expr, FnDecl } from "../generated/ast.js";
 import type { Compile, Thunk } from "./compile.types.js";
 import { boxed, freeSlot, type LexScope, rootOf, rootScope, slotOf } from "./lex-scope.js";
@@ -174,15 +174,25 @@ function named(env: EvalEnv, name: string): unknown {
 /**
  * Reading one slot, written for the slot it reads.
  *
- * The first three are fields of the frame, so each gets a thunk naming that
- * field outright: one property load, and the same one every time this thunk
- * runs, which is what lets V8 settle the site.
+ * `INLINE_SLOTS` of them are fields of the frame, so each gets a thunk naming
+ * that field outright: one property load, and the same one every time this
+ * thunk runs, which is what lets V8 settle the site. `readSlot` answers the
+ * same question with a chain of comparisons, which is the right shape for a
+ * caller that only has a number, and the wrong one here.
+ *
+ * The list is what ties this to the frame: one reader per inline field, in slot
+ * order, so a fourth field is a fourth entry and `INLINE_SLOTS` says so.
  */
+const INLINE: readonly Thunk[] = [
+  (env) => (env as Frame).s0,
+  (env) => (env as Frame).s1,
+  (env) => (env as Frame).s2,
+];
+
 function slotThunk(slot: number): Thunk {
-  if (slot === 0) return (env) => (env as Frame).s0;
-  if (slot === 1) return (env) => (env as Frame).s1;
-  if (slot === 2) return (env) => (env as Frame).s2;
-  const at = slot - 3;
+  const inline = INLINE[slot];
+  if (inline) return inline;
+  const at = slot - INLINE_SLOTS;
   return (env) => ((env as Frame).rest as unknown[])[at];
 }
 

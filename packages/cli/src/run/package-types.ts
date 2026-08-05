@@ -2,11 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type Document, isPackageSpecifier, isValueImport } from "@venn-lang/core";
 import { PROJECT_CODES } from "@venn-lang/project";
-import type { TypeSpec } from "@venn-lang/types";
+import { DERIVED_TYPES_DIR, derivedTypesFile, type TypeSpec } from "@venn-lang/types";
 
-/** Where derived types are kept: derived, so under `target/` with the rest. */
+/** Where derived types are kept, as an absolute path. */
 export function typesDir(root: string): string {
-  return join(root, "target", "types");
+  return join(root, ...DERIVED_TYPES_DIR);
 }
 
 /**
@@ -77,9 +77,8 @@ async function theReader(): Promise<ReadPackageTypes | undefined> {
   }
 }
 
-/** A scope holds a slash and a file name cannot, so `@types/node` becomes `@types__node`. */
 function fileFor(dir: string, name: string): string {
-  return join(dir, `${name.replace("/", "__")}.json`);
+  return join(dir, derivedTypesFile(name));
 }
 
 function parse(text: string): { exports: Record<string, TypeSpec> } | undefined {

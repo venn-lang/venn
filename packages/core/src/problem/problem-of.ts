@@ -1,3 +1,4 @@
+import { docsFor, KERNEL_CODE } from "./docs-for.js";
 import type { Problem } from "./problem.types.js";
 import type { Span } from "./span.types.js";
 import { spanIn } from "./span-in.js";
@@ -24,6 +25,10 @@ export const UNKNOWN_CODE = "VN7000";
  * where it happened keeps that, because the enclosing node is a worse answer
  * than the raiser's own line.
  *
+ * The docs link is derived from whatever code survives that, by the same call
+ * `buildProblem` makes, because a program reading `e.docs` cannot tell which
+ * factory made its failure and should not have to.
+ *
  * @param args.thrown Whatever unwound.
  * @param args.span Where to say it happened, for a failure that does not know.
  * @returns The failure as a `Problem`, never widened and never flattened.
@@ -31,16 +36,16 @@ export const UNKNOWN_CODE = "VN7000";
 export function problemOf(args: { thrown: unknown; span: Span }): Problem {
   const held = args.thrown as Thrown | undefined;
   if (held?.problem) return held.problem;
+  const { code, note } = codeOf(held?.code);
   return {
-    ...codeOf(held?.code),
+    code,
+    note,
     severity: "error",
     title: titleOf(args.thrown, held),
     span: spanIn(held?.detail) ?? args.span,
+    docs: docsFor(code),
   };
 }
-
-/** Every code the language catalogues, and the only shape a reporter may key on. */
-const VENN_CODE = /^VN\d{4}$/;
 
 /**
  * The code to report under, and what to say about the one that was refused.
@@ -61,7 +66,7 @@ const VENN_CODE = /^VN\d{4}$/;
  * maintainer with nothing to search the plugin for.
  */
 function codeOf(code: string | undefined): { code: string; note?: string } {
-  if (code !== undefined && VENN_CODE.test(code)) return { code };
+  if (code !== undefined && KERNEL_CODE.test(code)) return { code };
   if (code === undefined || code === "") return { code: UNKNOWN_CODE };
   const note = `It came with the code "${code}", which is not one of ours.`;
   return { code: UNKNOWN_CODE, note };

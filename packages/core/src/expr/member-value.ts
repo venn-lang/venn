@@ -1,9 +1,8 @@
-import { isInstant, isUnitValue } from "../units/index.js";
+import { kindOf, positionKey } from "../value/index.js";
 import { INVOKE } from "./invoke.js";
 import { builtinMember, NO_METHOD } from "./methods/index.js";
 import { nativeFn } from "./native.types.js";
-import { isWaiting } from "./pending.js";
-import { isTask, TASK } from "./task.js";
+import { isWaiting, whenBothReady } from "./pending.js";
 
 /**
  * One member of a value: `xs.len`, `m.user`, `target.wrap`.
@@ -13,6 +12,8 @@ import { isTask, TASK } from "./task.js";
  * reader: a decorator body reaches a handle's verbs by the same rule, and two
  * spellings of "what does `.x` mean" would drift apart.
  *
+ * @param receiver What is being read, settled or not.
+ * @param member The member's name.
  * @returns The member's value, `null` when there is none, or a promise when the
  * receiver has not arrived yet. Absent is `null` and never `undefined`: the
  * language has one nothing, and a program that reads a member nobody set has to
@@ -20,55 +21,80 @@ import { isTask, TASK } from "./task.js";
  */
 export function memberValue(receiver: unknown, member: string): unknown {
   if (isWaiting(receiver)) return receiver.then((ready) => memberValue(ready, member));
-  // A unit is not a map. Reading it as one would expose how it is stored, with
-  // `300ms.kind` answering "duration", and shadow its own conversions.
-  if (isData(receiver) && Object.hasOwn(receiver as object, member)) {
+  const kind = kindOf(receiver);
+  // A unit is not a map, and neither is a task or a pattern. Reading one as a
+  // map would expose how it is stored, with `300ms.kind` answering "duration"
+  // and `p.compiled` handing over the host's own `RegExp`.
+  if (kind === "map" && Object.hasOwn(receiver as object, member)) {
     const data = own(receiver, member);
     if (data !== undefined) return data;
   }
   const built = builtinMember(receiver, member, INVOKE);
   if (built !== NO_METHOD) return built;
-  if (isOwned(receiver)) return null;
-  const held = own(receiver, member);
+  return kind === "handle" ? published(receiver, member) : null;
+}
+
+/**
+ * `xs[i]` and `m[k]`: the same read, with the key worked out first.
+ *
+ * One reader rather than two. This used to be its own three lines with no
+ * fences at all, so `m["toString"]` handed out a host function while
+ * `m.toString` was null, `xs["push"]` gave `Array.prototype.push` while
+ * `xs.push` gave Venn's own, and `d["kind"]` answered `"duration"`, which is the
+ * exact leak the member read exists to prevent.
+ *
+ * @param receiver What is being indexed, settled or not.
+ * @param at The key, settled or not. On a list or a string a key that spells a
+ * position is one, so `xs[0]` and `xs["0"]` are the same element and `s[0]` and
+ * `s["0"]` are the same character; anything else is read as the name it spells,
+ * so `m[1]` and `m["1"]` are one key.
+ * @returns What is there, `null` when there is nothing, or a promise when either
+ * side is still arriving.
+ */
+export function indexValue(receiver: unknown, at: unknown): unknown {
+  if (isWaiting(receiver) || isWaiting(at)) return whenBothReady(receiver, at, indexValue);
+  // The one fast path worth keeping: a list read by position never has to go
+  // through a name, and this is the hottest read in a loop.
+  if (Array.isArray(receiver) && typeof at === "number") return orNothing(receiver[at]);
+  const key = typeof at === "string" ? at : String(at);
+  const spot = positionKey(key);
+  if (spot !== undefined) {
+    const held = sequence(receiver);
+    if (held) return orNothing(held[spot]);
+  }
+  return memberValue(receiver, key);
+}
+
+/**
+ * The two kinds a position reads into, and nothing else.
+ *
+ * A string is one of them because reading a character is what `s[0]` has always
+ * meant. Routing it through the member table instead answered `null` for a
+ * position and reported only when the same key was spelled `s["0"]`, so the one
+ * mistake was loud in one spelling and silent in the other.
+ */
+function sequence(receiver: unknown): ArrayLike<unknown> | undefined {
+  if (Array.isArray(receiver)) return receiver as readonly unknown[];
+  return typeof receiver === "string" ? receiver : undefined;
+}
+
+/** Absence is the one nothing the language has, never the host's `undefined`. */
+function orNothing(held: unknown): unknown {
   return held === undefined ? null : held;
 }
 
 /**
- * Whether the language, not the host, decides what this value answers to.
+ * What a handle published, which is the one kind whose members the host decides.
  *
- * A list and a string are the language's own, with a published member set and a
- * checker that knows it, so they must never fall through to the host: nothing
- * the runtime happens to store them as is offered by the editor or checked, and
- * it would stop working the day either value is held differently. A plugin's
- * handle is the opposite case, being a host object whose published verbs are
- * exactly what it answers to.
+ * A plugin's handle is a host object whose verbs are exactly what it answers to,
+ * so the read goes through to it. What *every* object inherits is not published
+ * by anybody: `constructor` and `toString` are the host's, they are on the
+ * language's own values too, and handing them over is how a program reaches the
+ * prototype chain.
  */
-const OWNED = new Set(["string", "number", "boolean", "bigint"]);
-
-function isOwned(receiver: unknown): boolean {
-  return (
-    receiver == null ||
-    OWNED.has(typeof receiver) ||
-    Array.isArray(receiver) ||
-    isUnitValue(receiver) ||
-    isInstant(receiver) ||
-    isTask(receiver) ||
-    isPlainMap(receiver)
-  );
-}
-
-/**
- * A map the language made, as against an object a plugin handed over.
- *
- * Both are objects, so the line is drawn where it can be: a map literal
- * inherits from nothing but `Object`, while a handle is built by the host and
- * carries its verbs on its own prototype. Only what a map itself holds is its
- * data; what every object in the runtime inherits is not.
- */
-function isPlainMap(receiver: unknown): boolean {
-  if (typeof receiver !== "object" || receiver === null) return false;
-  const proto = Object.getPrototypeOf(receiver);
-  return proto === Object.prototype || proto === null;
+function published(receiver: unknown, member: string): unknown {
+  if (Object.hasOwn(Object.prototype, member)) return null;
+  return orNothing(own(receiver, member));
 }
 
 /**
@@ -83,24 +109,4 @@ function own(receiver: unknown, member: string): unknown {
   if (typeof value !== "function") return value;
   const method = value as (...args: unknown[]) => unknown;
   return nativeFn((values) => method.apply(receiver, [...values]));
-}
-
-/**
- * Whether this is a map, as against the four objects that are not one.
- *
- * A unit, a moment and a task are all objects, and each is told apart by one
- * property it carries: the three kinds by `kind`, a task by its own symbol. So
- * the question is asked once here rather than through three calls that each
- * begin by re-asking whether this is an object at all.
- *
- * A moment is held as a shape with an `epochMs` in it, and reading it as a map
- * would answer `"instant"` for `.kind`. What it publishes is its own.
- */
-function isData(receiver: unknown): boolean {
-  if (typeof receiver !== "object" || receiver === null || Array.isArray(receiver)) return false;
-  const kind = (receiver as { kind?: unknown }).kind;
-  if (kind === "duration" || kind === "size" || kind === "percent" || kind === "instant") {
-    return false;
-  }
-  return !(TASK in receiver);
 }

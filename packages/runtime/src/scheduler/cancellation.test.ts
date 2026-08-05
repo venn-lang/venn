@@ -45,7 +45,7 @@ function pluginFor(watch: Watch, gate: Promise<void>): PluginDefinition {
     defineAction({ name: "record", run: (_c, i) => void watch.seen.push(String(i.args[0])) }),
     defineAction({ name: "tick", run: tick }),
   ];
-  return definePlugin({ name: "@t/cancel", version: "0", namespace: "t", actions });
+  return definePlugin({ name: "@t/cancel", namespace: "t", actions });
 }
 
 function park(signal: AbortSignal | undefined, gate: Promise<void>): Promise<void> {

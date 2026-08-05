@@ -9,7 +9,6 @@ import { dateActions } from "./actions/date-actions.js";
  */
 export const datePlugin: PluginDefinition = definePlugin({
   name: "venn/date",
-  version: "0.0.0",
   namespace: "date",
   actions: dateActions,
 });

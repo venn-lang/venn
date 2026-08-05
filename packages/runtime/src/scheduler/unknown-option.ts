@@ -1,5 +1,6 @@
 import { buildProblem, CODES, type MapEntry, type MapLit, type Problem } from "@venn-lang/core";
 import { type ParamSpec, paramSpecs } from "@venn-lang/sdk";
+import { nearestName } from "../suggest/index.js";
 import { nodeSpan } from "./node-span.js";
 
 /**
@@ -52,7 +53,10 @@ export function declaredKeys(params: unknown): readonly ParamSpec[] {
  * @returns The sentence, in the words the written form uses.
  */
 export function strayKeyTitle(key: string, specs: readonly ParamSpec[]): string {
-  const hint = nearest(key, specs);
+  const hint = nearestName(
+    key,
+    specs.map((spec) => spec.name),
+  );
   const accepted = specs.map((spec) => spec.name).join(", ");
   return hint
     ? `"${key}" is not an option here. Did you mean "${hint}"?`
@@ -82,32 +86,4 @@ function unknownOption(args: {
     span: nodeSpan(args.entry, args.uri),
     title: strayKeyTitle(args.entry.key as string, args.specs),
   });
-}
-
-/** The closest accepted key, when one is close enough to be worth suggesting. */
-function nearest(key: string, specs: readonly ParamSpec[]): string | undefined {
-  const scored = specs
-    .map((spec) => ({ name: spec.name, distance: distance(key, spec.name) }))
-    .sort((left, right) => left.distance - right.distance)[0];
-  return scored && scored.distance <= Math.max(2, Math.floor(key.length / 2))
-    ? scored.name
-    : undefined;
-}
-
-/** Levenshtein, small enough to keep here and precise enough for a "did you mean". */
-function distance(left: string, right: string): number {
-  let previous = Array.from({ length: right.length + 1 }, (_value, index) => index);
-  for (let i = 1; i <= left.length; i += 1) {
-    const current = [i];
-    for (let j = 1; j <= right.length; j += 1) {
-      const cost = left[i - 1] === right[j - 1] ? 0 : 1;
-      current[j] = Math.min(
-        (current[j - 1] ?? 0) + 1,
-        (previous[j] ?? 0) + 1,
-        (previous[j - 1] ?? 0) + cost,
-      );
-    }
-    previous = current;
-  }
-  return previous[right.length] ?? 0;
 }

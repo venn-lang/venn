@@ -13,7 +13,6 @@ import { dataTypeDefs } from "./types.js";
  */
 export const dataPlugin: PluginDefinition = definePlugin({
   name: "venn/data",
-  version: "0.0.0",
   namespace: "data",
   requires: ["random"],
   actions: dataActions,

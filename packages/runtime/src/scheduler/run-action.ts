@@ -5,6 +5,7 @@ import {
   CODES,
   callArgs,
   display,
+  durationMs,
   evaluate,
   invoke,
   type Span,
@@ -47,10 +48,10 @@ export async function runAction(engine: Engine, call: Invocation, scope: Scope):
     engine.ctx,
     await buildInput({ action: resolved.action, call, scope, uri: engine.uri }),
   );
-  const durationMs = engine.clock.now() - start;
+  const elapsed = engine.clock.now() - start;
   engine.emitter.emit({
     kind: "action.finished",
-    data: { namespace, action: name, status: "passed", durationMs },
+    data: { namespace, action: name, status: "passed", durationMs: elapsed },
   });
   return value;
 }
@@ -127,13 +128,19 @@ function unknownAction(args: { target: string; where: Span }): VennError {
   });
 }
 
-/** Prelude verbs, available without `use` (§12): print, log, wait, skip, fail, exit. */
+/**
+ * Prelude verbs, available without `use` (§12): print, log, wait, skip, fail, exit.
+ *
+ * The prelude types `wait(duration)`, so a value that is not a length of time
+ * has already been refused by the checker. Waiting not at all is the last
+ * resort for a run that got here anyway, not a bound this pretends to honour.
+ */
 async function runPrelude(engine: Engine, call: Invocation, scope: Scope): Promise<void> {
   const args = await Promise.all(call.args.map((arg) => settle(evaluate(arg, scope))));
   if (call.target === "print") return printLine(engine, args);
   if (call.target === "log") return logLine(engine, args);
   const message = String(args[0] ?? "");
-  if (call.target === "wait") await waitFor(engine, waitMs(args[0]));
+  if (call.target === "wait") await waitFor(engine, durationMs(args[0]) ?? 0);
   else if (call.target === "skip") skipLog(engine, message);
   else if (call.target === "exit") throw new ExitSignal(exitCode(args[0]));
   else if (call.target === "fail") {
@@ -190,10 +197,4 @@ function skipLog(engine: Engine, message: string): void {
 async function waitFor(engine: Engine, ms: number): Promise<void> {
   await engine.clock.sleep(ms, engine.cancel?.signal);
   checkpoint(engine);
-}
-
-function waitMs(value: unknown): number {
-  if (typeof value === "number") return value;
-  const duration = value as { kind?: string; ms?: number };
-  return duration?.kind === "duration" ? (duration.ms ?? 0) : 0;
 }

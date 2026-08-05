@@ -8,7 +8,6 @@ import { createRunner } from "../run/index.js";
 
 const KIT = definePlugin({
   name: "@t/kit",
-  version: "0",
   namespace: "kit",
   values: [{ name: "rate", doc: "How fast.", type: t.number, value: 42 }],
 });
@@ -17,7 +16,6 @@ async function ran(source: string): Promise<string[]> {
   const out: string[] = [];
   const printer = definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({

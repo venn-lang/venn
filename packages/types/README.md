@@ -67,6 +67,7 @@ Everything `src/index.ts` exports.
 | `t` | The authoring surface. See below. |
 | `TypeBuilder`, `RecordOptions` | The type of `t`, and the second argument of `t.record`. |
 | `showSpec(spec)` | A spec as one line of text. |
+| `DERIVED_TYPES_DIR`, `derivedTypesFile(name)` | Where an install leaves the types it derived from a package's TypeScript declarations, and what it calls each file. Segments rather than a path: the CLI joins with `node:path` and the language server with Langium's `UriUtils`, and neither may import the other. |
 
 ### `t`
 

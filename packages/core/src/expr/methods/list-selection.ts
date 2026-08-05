@@ -1,5 +1,6 @@
 import { truthy } from "../../value/index.js";
 import { type Invoke, type Method, nativeFn } from "../native.types.js";
+import { fromEntries } from "./map-extras.js";
 
 const num = (value: unknown): number => Number(value);
 
@@ -40,18 +41,9 @@ export const LIST_SELECTION: Record<string, Method> = {
   min: (list: readonly unknown[]) => extreme(list, -1),
   max: (list: readonly unknown[]) => extreme(list, 1),
   /** The inverse of a map's `entries`: `[["a", 1]].toMap` gives `{ a: 1 }`. */
-  toMap: (list: readonly unknown[]) => toMap(list),
+  toMap: (list: readonly unknown[]) => fromEntries(list),
   isEmpty: (list: readonly unknown[]) => list.length === 0,
 };
-
-function toMap(list: readonly unknown[]): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const entry of list) {
-    const pair = Array.isArray(entry) ? entry : [];
-    if (pair.length > 0) out[String(pair[0])] = pair[1];
-  }
-  return out;
-}
 
 function count(value: unknown): number {
   return Math.max(0, Math.trunc(Number(value ?? 0)));

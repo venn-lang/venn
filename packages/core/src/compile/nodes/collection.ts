@@ -81,18 +81,53 @@ export function compileMap(expr: MapLit, compile: Compile): Thunk {
   // Every entry has a key here: a literal with a spread took the path above.
   const keys = expr.entries.map((entry) => entry.key as string);
   const values = expr.entries.map((entry) => compile(entry.value));
-  const build = UNROLLED_MAP[keys.length];
-  if (build) return build(keys, values, settleFields);
+  // The unrolled builders fill by plain assignment, which a `__proto__` key
+  // turns into a prototype swap rather than a field, so that literal is looped.
+  const build = keys.includes(PROTO_KEY) ? undefined : UNROLLED_MAP[keys.length];
+  return build ? build(keys, values, settleFields) : loopedMap(keys, values);
+}
+
+/**
+ * The one key whose plain write is not a write.
+ *
+ * `out.constructor = v` and `out.prototype = v` make an ordinary own field:
+ * `Object.prototype.constructor` is a plain value that an own field shadows,
+ * and nothing inherited answers `prototype` at all. `out.__proto__ = v` instead
+ * runs an inherited setter, so `{ "__proto__": { pwned: 7 } }` came back with
+ * `{ pwned: 7 }` as its prototype: `typeOf` answered `handle` for a value no
+ * plugin made, `.keys` was empty, and reads walked the injected chain.
+ *
+ * All three are refused as assignment TARGETS (VN3023), where the user names a
+ * place that belongs to what made the value. A literal's key names a field of
+ * the map being made, so all three are kept here.
+ */
+const PROTO_KEY = "__proto__";
+
+/**
+ * A literal filled field by field, on a tray when one of its keys is
+ * `__proto__` so that the write cannot reach a setter.
+ *
+ * The tray costs an extra copy at the end, which is why only the literal that
+ * needs it gets one and the unrolled builders never see it.
+ */
+function loopedMap(keys: readonly string[], values: readonly Thunk[]): Thunk {
+  const onATray = keys.includes(PROTO_KEY);
   return (env) => {
-    const out: Record<string, unknown> = {};
+    const out: Record<string, unknown> = onATray ? Object.create(null) : {};
     let waiting = false;
     for (let at = 0; at < keys.length; at += 1) {
       const value = (values[at] as Thunk)(env);
       waiting = waiting || isWaiting(value);
       out[keys[at] as string] = value;
     }
-    return waiting ? settleFields(out, keys) : out;
+    const done = waiting ? settleFields(out, keys) : out;
+    return onATray ? everyday(done) : done;
   };
+}
+
+/** A tray handed back as an ordinary map, whether or not it is still settling. */
+function everyday(done: Record<string, unknown> | Promise<Record<string, unknown>>): unknown {
+  return isWaiting(done) ? done.then((ready) => ({ ...ready })) : { ...done };
 }
 
 /** One entry of a literal: a key and its value, or a map poured in whole. */
@@ -117,15 +152,24 @@ function spreadMap(expr: MapLit, compile: Compile): Thunk {
   };
 }
 
-/** Later wins: a key written after a spread overwrites what the spread poured. */
+/**
+ * Later wins: a key written after a spread overwrites what the spread poured.
+ *
+ * Filled on a tray with nothing above it, because both halves take their key
+ * from somewhere else: the source may spell `__proto__`, and a poured map may
+ * carry it as an own field. Either would run the inherited setter and swap the
+ * new map's prototype rather than store a field. Unlike a literal written out
+ * field by field, a spread's keys are not known until it runs, so the tray is
+ * not something this path can opt out of.
+ */
 function filled(parts: readonly Part[], values: readonly unknown[]): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = Object.create(null);
   parts.forEach((part, at) => {
     const value = values[at];
     if (part.key !== undefined) out[part.key] = value;
     else if (isMap(value)) Object.assign(out, value);
   });
-  return out;
+  return { ...out };
 }
 
 /** Only a map pours into a map. Anything else has no fields to pour. */

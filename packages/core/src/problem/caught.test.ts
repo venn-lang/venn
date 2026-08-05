@@ -20,7 +20,6 @@ function raised(over: Partial<Parameters<typeof buildProblem>[0]> = {}): Problem
   return new ProblemError({
     ...buildProblem({ spec: CODES.VN3013_NOT_CALLABLE, span: SPAN, title: "It blew up.", ...over }),
     help: "Try the other one.",
-    docs: "https://venn-lang.dev/errors/VN3013",
   });
 }
 
@@ -49,10 +48,16 @@ describe("what a catch is handed", () => {
     expect(caughtValue(raised()).where).toBe("orders.vn:12:5");
   });
 
-  it("carries the help and the docs the failure was raised with", () => {
+  /**
+   * The docs link is not written at the raise site and never was reachable from
+   * one: `buildProblem` derives it from the code it already holds, which is what
+   * put a URL in front of a program instead of the `null` this field answered
+   * with for every failure the language raises.
+   */
+  it("carries the help it was raised with and the docs its code has", () => {
     expect(caughtValue(raised())).toMatchObject({
       help: "Try the other one.",
-      docs: "https://venn-lang.dev/errors/VN3013",
+      docs: "https://venn.dev/e/VN3013",
     });
   });
 
@@ -66,7 +71,12 @@ describe("what a catch is handed", () => {
     expect(caughtValue(failure).data).toEqual({ items: 0 });
   });
 
-  /** One nothing, so a program can ask `e.help == null` and be answered. */
+  /**
+   * One nothing, so a program can ask `e.help == null` and be answered.
+   *
+   * `docs` is not among them: whatever unwound is reported under `VN7000`, and
+   * that code has a page saying exactly what an uncatalogued failure is.
+   */
   it("says nothing rather than undefined for what was not carried", () => {
     const bare = caughtValue(new Error("from below the language"));
 
@@ -75,9 +85,26 @@ describe("what a catch is handed", () => {
       message: "from below the language",
       where: null,
       help: null,
-      docs: null,
+      docs: "https://venn.dev/e/VN7000",
       data: null,
     });
+  });
+
+  /**
+   * A plugin that threw a `VennError` carries a code and no problem at all, so
+   * reading the link off the problem left the whole VN7xxx surface without one.
+   */
+  it("finds the page for a code carried by the throw rather than by a problem", () => {
+    const thrown = carrying({ code: "VN7003", message: "This is not JSON: at 1." });
+
+    expect(caughtValue(thrown).docs).toBe("https://venn.dev/e/VN7003");
+  });
+
+  /** A code a program chose for itself is nowhere in the catalogue. */
+  it("offers no page for a code of a program's own", () => {
+    const thrown = carrying({ code: "cart.empty", message: "Nothing to pay for." });
+
+    expect(caughtValue(thrown).docs).toBeNull();
   });
 });
 

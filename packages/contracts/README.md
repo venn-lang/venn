@@ -81,26 +81,32 @@ typed without variance friction.
 
 ## Ports
 
-| Port | `id` | Requires | Methods | Real | Double |
+| Port | Descriptor | Requires | Methods | Real | Double |
 | --- | --- | --- | --- | --- | --- |
 | `FileSystem` | `venn.port.filesystem` | `fs` | `read` `write` `exists` `remove` `list` | `createNodeFs` (`/node`) | `createMemoryFs` |
 | `Clock` | `venn.port.clock` | `clock` | `now` `sleep` | `createSystemClock` | `createVirtualClock` |
 | `Random` | `venn.port.random` | `random` | `next` `int` `restart` | `createSeededRandom` | `createFixedRandom` |
-| `SecretProvider` | `venn.port.secrets` | `secrets` | `get` `has` | `createEnvSecrets` | `createMemorySecrets` |
-| `ProcessProvider` | `venn.port.process` | `process` | `spawn` | `createNodeSpawn` (`/node`) | `createFakeProcess` |
+| `Paths` | `venn.port.paths` | none | `cwd` `join` `resolve` `relative` `normalize` `dirname` `basename` `extension` `isAbsolute` `split` | `createPosixPaths` | `createPosixPaths({ cwd })` |
 | `Console` | `venn.port.console` | `io` | `write` `writeError` `readLine` `args` | `createNodeConsole` (`/node`) | `createMemoryConsole` |
-| `SignalSource` | `venn.port.signals` | `process` | `on` | `createNodeSignals` (`/node`) | `createFakeSignals` |
-| `LockProvider` | `venn.port.lock` | none | `acquire` | `createInProcessLock` | `createFakeLock` |
-| `ManifestProvider` | `venn.port.manifest` | none | `load` | `createTomlManifest` | `createMemoryManifest` |
+| `SecretProvider` | none | `secrets` | `get` `has` | `createEnvSecrets` | `createMemorySecrets` |
+| `ProcessProvider` | none | `process` | `spawn` | `createNodeSpawn` (`/node`) | `createFakeProcess` |
+| `SignalSource` | none | `process` | `on` | `createNodeSignals` (`/node`) | `createFakeSignals` |
+| `LockProvider` | none | none | `acquire` | `createInProcessLock` | `createFakeLock` |
+| `ManifestProvider` | none | none | `load` | `createTomlManifest` | `createMemoryManifest` |
 
 Implementations marked `/node` are reachable only through `@venn-lang/contracts/node`, and are
-deliberately absent from the folder barrels so the main entry stays neutral. Each port also
-exports its descriptor: `FileSystemPort`, `ClockPort`, `RandomPort`, `SecretProviderPort`,
-`ProcessProviderPort`, `ConsolePort`, `SignalSourcePort`, `LockProviderPort`,
-`ManifestProviderPort`.
+deliberately absent from the folder barrels so the main entry stays neutral.
 
-`LockProvider` and `ManifestProvider` require no capability: one is promise chaining, the other is
-parsing. Neither touches the outside world.
+Five ports export a descriptor, and those five are the ones something binds and resolves:
+`FileSystemPort`, `ClockPort`, `RandomPort`, `PathsPort` and `ConsolePort`. A descriptor exists to
+be negotiated, `bindPort` checking the host's capabilities and the implementation's methods at the
+moment a plugin asks for it, so a port nothing resolves has no use for one. The other five are
+reached straight off `Host` by the code that needs them, and no longer publish a descriptor. A host
+embedding this that wants one of them negotiated declares its own `Port<T>` and binds it: the
+interface, both implementations and the conformance suite are all still exported.
+
+`Paths`, `LockProvider` and `ManifestProvider` require no capability: one is string arithmetic, one
+is promise chaining, the last is parsing. None touches the outside world.
 
 ### Notes on individual ports
 
@@ -183,16 +189,14 @@ groups the two neutral ones. The Node assembler is deliberately not on it, becau
 `node:*`.
 
 A worker has no `process`, so its `proc` field is built by `unavailable()`. Every declared method
-on it throws VN2012 with a readable message, rather than a `TypeError` halfway through a test.
+on it throws VN2012 with a readable message, rather than a `TypeError` halfway through a test. The
+method list is written out, because there is no `ProcessProviderPort` to read it off.
 
 ```ts
-import { ProcessProviderPort, unavailable } from "@venn-lang/contracts";
+import { unavailable } from "@venn-lang/contracts";
 import type { ProcessProvider } from "@venn-lang/contracts";
 
-const proc = unavailable<ProcessProvider>({
-  capability: "process",
-  methods: ProcessProviderPort.methods,
-});
+const proc = unavailable<ProcessProvider>({ capability: "process", methods: ["spawn"] });
 ```
 
 ## Conformance

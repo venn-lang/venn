@@ -7,8 +7,8 @@ import {
   type Problem,
 } from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
+import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
-import { nearestName } from "./nearest-name.js";
 
 /**
  * A decorator nothing provides.

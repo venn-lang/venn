@@ -41,18 +41,6 @@ import { runStep } from "./run-step.js";
 import { runTry } from "./run-try.js";
 import { BreakSignal, ContinueSignal } from "./signals.js";
 
-/** Run a block's statements in order. */
-export async function runStatements(
-  engine: Engine,
-  stmts: readonly Statement[],
-  scope: Scope,
-): Promise<void> {
-  for (const stmt of stmts) {
-    const pending = runStatement(engine, stmt, scope);
-    if (pending) await pending;
-  }
-}
-
 /**
  * Dispatch one statement to its handler. This is the single boundary where a
  * cancelled `race` branch stops advancing.

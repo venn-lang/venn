@@ -25,7 +25,6 @@ describe("race cancellation", () => {
     });
     const plugin = definePlugin({
       name: "@t/m",
-      version: "0",
       namespace: "t",
       actions: [
         // Honours `ctx.signal`, which is what an action owes the scope it runs

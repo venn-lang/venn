@@ -1,6 +1,5 @@
 import {
   type AstNode,
-  buildProblem,
   CODES,
   isActionCall,
   isCall,
@@ -14,12 +13,7 @@ import {
   walkAst,
 } from "@venn-lang/core";
 import { readImports } from "../imports/index.js";
-import {
-  collectAliases,
-  collectBoundNames,
-  collectNamespaces,
-  nodeSpan,
-} from "../scheduler/index.js";
+import { collectAliases, collectBoundNames, collectNamespaces } from "../scheduler/index.js";
 import type { CheckArgs, CheckContext } from "./check.types.js";
 import { checkArgumentCount } from "./check-argument-count.js";
 import { checkAssign } from "./check-assign.js";
@@ -49,6 +43,7 @@ import { checkUnusedImport } from "./check-unused-import.js";
 import { checkVerbCall } from "./check-verb-call.js";
 import { everyBoundName } from "./every-bound-name.js";
 import { loudestFirst } from "./loudest-first.js";
+import { problemAt } from "./problem-at.js";
 
 /**
  * Statically resolve every action, matcher and fragment reference in a parsed
@@ -147,24 +142,18 @@ function one(problem: Problem | undefined): Problem[] {
 function checkMatcher(clause: MatcherClause, ctx: CheckContext): Problem | undefined {
   const owner = ctx.registry.matcher(clause.name);
   if (!owner) {
-    return problem(clause, ctx, CODES.VN2004_UNKNOWN_MATCHER, `Unknown matcher "${clause.name}".`);
+    const title = `Unknown matcher "${clause.name}".`;
+    return problemAt({ node: clause, ctx, spec: CODES.VN2004_UNKNOWN_MATCHER, title });
   }
   if (ctx.matchers.has(clause.name)) return undefined;
   const title = `"${clause.name}" is not imported in this file.`;
-  const problems = problem(clause, ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
+  const spec = CODES.VN2007_NAMESPACE_NOT_IMPORTED;
+  const problems = problemAt({ node: clause, ctx, spec, title });
   return { ...problems, help: `Write \`import { ${clause.name} } from "${owner.plugin.name}"\`.` };
 }
 
 function checkFragment(stmt: RunStmt, ctx: CheckContext): Problem | undefined {
   if (ctx.fragments.has(stmt.target)) return undefined;
-  return problem(stmt, ctx, CODES.VN2005_UNKNOWN_FRAGMENT, `Unknown fragment "${stmt.target}".`);
-}
-
-function problem(
-  node: AstNode,
-  ctx: CheckContext,
-  spec: (typeof CODES)[keyof typeof CODES],
-  title: string,
-): Problem {
-  return buildProblem({ spec, span: nodeSpan(node, ctx.uri), title });
+  const title = `Unknown fragment "${stmt.target}".`;
+  return problemAt({ node: stmt, ctx, spec: CODES.VN2005_UNKNOWN_FRAGMENT, title });
 }

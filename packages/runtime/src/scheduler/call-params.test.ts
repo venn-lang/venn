@@ -11,7 +11,6 @@ import { createRunner } from "../run/create-runner.js";
 function plugin(seen: unknown[]) {
   return definePlugin({
     name: "@t/m",
-    version: "0",
     namespace: "t",
     actions: [
       // `crypto.hash`: one enum option with a default, so a dropped key is invisible.
@@ -215,5 +214,37 @@ describe("a matcher's options map", () => {
     const { problem } = await attempt(source("expect 1.0 closeTo 1.5 { within: 1 }"));
 
     expect(problem).toBeUndefined();
+  });
+});
+
+/**
+ * The one written value the two voices still disagreed about.
+ *
+ * The compiler makes an unbound name evaluate to `null` on purpose, because the
+ * language has one nothing, so a written `null` and a name only a run could
+ * resolve reached the checker as the same answer and both were let through.
+ * `true`, `"soon"`, `2mb`, `50%` and `1s / 0` all agreed already; `null` alone
+ * checked clean and then stopped the run on its first line.
+ */
+describe("an option written as null", () => {
+  const nulled = source("t.hmac { key: null }");
+
+  it("stops the run, because a schema refuses it", async () => {
+    const { problem, seen } = await attempt(nulled);
+
+    expect(problem?.code).toBe("VN3010");
+    expect(seen).toEqual([]);
+  });
+
+  it("says exactly what the checker says about the same line", async () => {
+    const { problem } = await attempt(nulled);
+
+    expect(checked(nulled).map((found) => `${found.code} ${found.title}`)).toContain(
+      `${problem?.code} ${problem?.title}`,
+    );
+  });
+
+  it("still leaves a value only the run can know to the run", () => {
+    expect(checked(source('let k = "x"\nt.hmac { key: k }'))).toEqual([]);
   });
 });

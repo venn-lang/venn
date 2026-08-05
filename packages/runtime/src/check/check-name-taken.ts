@@ -4,6 +4,7 @@ import {
   buildProblem,
   CODES,
   type Document,
+  handedOn,
   isDecoDecl,
   isFnDecl,
   isFragmentDecl,
@@ -11,7 +12,6 @@ import {
   isTypeDecl,
   isValueImport,
   type Problem,
-  type ValueImport,
 } from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
@@ -38,7 +38,7 @@ export function checkNameTaken(document: Document, ctx: CheckContext): Problem[]
   const taken = new Map<string, AstNode>();
   const problems: Problem[] = [];
   for (const decl of document.imports) {
-    if (isValueImport(decl)) claim({ names: importNames(decl), at: decl, taken, problems, ctx });
+    if (isValueImport(decl)) claim({ names: handedOn(decl), at: decl, taken, problems, ctx });
   }
   for (const decl of document.decls) {
     claim({ names: declared(decl), at: decl, taken, problems, ctx });
@@ -77,13 +77,6 @@ function refuse(args: {
       { span: nodeSpan(args.first, args.ctx.uri), label: `\`${args.name}\` is bound here` },
     ],
   });
-}
-
-/** What an import puts in scope, under whichever name this file gave it. */
-function importNames(decl: ValueImport): string[] {
-  if (decl.wildcard) return [decl.wildcard];
-  if (decl.default) return [decl.default];
-  return decl.names.map((one) => one.alias ?? one.name);
 }
 
 /**

@@ -6,17 +6,15 @@ import { callClosure } from "../expr/invoke.js";
 import { nativeFn } from "../expr/native.types.js";
 import type { Document, FnDecl, LetStmt } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
-import { ProblemError } from "../problem/index.js";
+import { ProblemError, UNLOCATED } from "../problem/index.js";
 import { closureOfDecl } from "./compile.js";
-
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 
 /** A verb that fails the way a plugin's does, and one that does not. */
 function world(): EvalEnv {
   const bindings: Record<string, unknown> = {
     boom: nativeFn(() => {
       throw new ProblemError(
-        buildProblem({ spec: CODES.VN3013_NOT_CALLABLE, span: NO_SPAN, title: "It blew up." }),
+        buildProblem({ spec: CODES.VN3013_NOT_CALLABLE, span: UNLOCATED, title: "It blew up." }),
       );
     }),
     fine: nativeFn((args) => args[0]),

@@ -23,7 +23,7 @@ function harness(): { seen: string[]; plugin: PluginDefinition } {
   ];
   return {
     seen,
-    plugin: definePlugin({ name: "@t/reach", version: "0", namespace: "t", actions }),
+    plugin: definePlugin({ name: "@t/reach", namespace: "t", actions }),
   };
 }
 

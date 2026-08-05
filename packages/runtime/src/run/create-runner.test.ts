@@ -7,7 +7,6 @@ import { createRunner } from "./create-runner.js";
 
 const echoPlugin = definePlugin({
   name: "@test/echo",
-  version: "0.0.0",
   namespace: "test",
   actions: [defineAction({ name: "echo", run: (_ctx, input) => ({ status: input.args[0] }) })],
   matchers: [
@@ -50,7 +49,6 @@ describe("createRunner", () => {
   it("rejects a plugin whose capabilities the host lacks", () => {
     const netPlugin = definePlugin({
       name: "@test/net",
-      version: "0",
       namespace: "n",
       requires: ["net"],
     });
@@ -62,5 +60,24 @@ describe("createRunner", () => {
       code = (err as { code?: string }).code;
     }
     expect(code).toBe("VN2010");
+  });
+
+  /**
+   * `EventSinkPort` was a descriptor nothing resolved, beside a sink threaded by
+   * hand, so a host handing over the wrong object learned about it at the first
+   * event of the first run, as `sink.emit is not a function`. Bound, it is the
+   * same negotiation every other port gets, with a code and a sentence.
+   */
+  it("refuses a sink that cannot emit, and says which method is missing", async () => {
+    const runner = createRunner({
+      host: createTestHost(),
+      plugins: [echoPlugin],
+      sink: {} as never,
+    });
+
+    await expect(runner.run(parse(SOURCE).ast)).rejects.toMatchObject({
+      code: "VN2011",
+      detail: { portId: "venn.port.event-sink", missing: ["emit"] },
+    });
   });
 });

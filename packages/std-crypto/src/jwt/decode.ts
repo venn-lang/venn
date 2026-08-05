@@ -1,6 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
-import { PLUGIN_CODES } from "@venn-lang/sdk";
-import { fromBase64Url, fromBytes } from "../bytes/index.js";
+import { fromBase64Url, fromBytes, PLUGIN_CODES } from "@venn-lang/sdk";
 import type { DecodedJwt } from "./jwt.types.js";
 
 /**

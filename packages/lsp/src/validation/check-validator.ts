@@ -43,10 +43,14 @@ function emit(
   // because an import nobody used is untidy rather than wrong, and the CLI
   // exits 0 on it; publishing it as an error drew a red line under code that
   // passes, which is how people learn to ignore the editor.
+  //
+  // `codeDescription` makes the code a click through to its page, which is the
+  // same URL the terminal prints and a program's `catch` reads.
   args.accept(problem.severity, saidProblem(problem), {
     node: args.document,
     range: spanRange(problem.span, langiumDocument),
     code: problem.code,
+    codeDescription: problem.docs ? { href: problem.docs } : undefined,
     ...related(problem, langiumDocument),
   });
 }

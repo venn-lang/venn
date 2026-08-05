@@ -47,7 +47,6 @@ Everything below is exported from the package barrel.
 | `MqttClientPort` | `Port<MqttClient>`, id `venn.port.mqtt-client`, version 1, methods `connect`, `publish`, `subscribe`, `expect`. |
 | `createFakeMqttClient({ seed })` | The double: a topic-to-queue map that records publishes and subscriptions. |
 | `createRealMqttClient()` | The real client. Out of scope for this build: every method throws `VN8090`. |
-| `messageSchema` | The Zod schema behind the nominal `Message` type the plugin registers. |
 | `mqttTypeDefs` | What the plugin publishes to the checker, as `TypeSpec` data. |
 
 Types: `MqttClient`, `FakeMqttClient`, `MqttPublishArgs`, `MqttMessage`.

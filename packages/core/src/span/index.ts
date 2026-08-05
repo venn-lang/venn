@@ -9,4 +9,5 @@
 
 export { spanOf } from "./node-span.js";
 export { markSlotIn, slotOrigin } from "./slot-origin.js";
+export { slotSpan } from "./slot-span.js";
 export type { SlotOrigin, SpanNode } from "./span.types.js";

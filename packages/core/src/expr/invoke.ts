@@ -1,13 +1,11 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import type { CompiledBody, Thunk } from "../compile/compile.types.js";
 import { LEFT, runSteps } from "../compile/nodes/index.js";
-import { ProblemError } from "../problem/index.js";
+import { ProblemError, UNLOCATED } from "../problem/index.js";
 import { isClosure } from "./closure.js";
 import type { Closure } from "./closure.types.js";
 import { Frame, writeSlot } from "./frame.js";
 import { type Invoke, isNativeFn } from "./native.types.js";
-
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 
 /**
  * Call any Venn callable, a `fn` closure or a built-in method, with values.
@@ -154,7 +152,7 @@ function notCallable(value: unknown): ProblemError {
   return new ProblemError(
     buildProblem({
       spec: CODES.VN3013_NOT_CALLABLE,
-      span: NO_SPAN,
+      span: UNLOCATED,
       title: `This value is not a function, so it cannot be called: ${typeof value}.`,
     }),
   );

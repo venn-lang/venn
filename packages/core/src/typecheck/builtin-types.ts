@@ -58,9 +58,9 @@ export const BUILTIN_TYPES: Readonly<Record<string, BuiltinType>> = {
     doc: 'A compiled pattern. Made with `regex(r"…")`, and read with `.test`, `.match`, `.source` and `.flags`.',
     example: "matcher: regex",
   },
-  never: {
-    doc: "What a verb that always fails answers with. No value has this type.",
-    example: "-> never",
+  task: {
+    doc: "Work already under way, started with `spawn`. Ask for the value with `.wait`, or ask `.done` and `.failed` without waiting.",
+    example: "job: task",
   },
 };
 

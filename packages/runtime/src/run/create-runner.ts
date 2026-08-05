@@ -10,6 +10,7 @@ import {
 import { createActionContext } from "../context/index.js";
 import { createDecoratorSource } from "../decorators/index.js";
 import { createEmitter, newRunId } from "../emit/index.js";
+import { EventSinkPort } from "../eventsink/index.js";
 import { createPortResolver, type PortBinding } from "../ports/index.js";
 import { buildRegistry } from "../registry/index.js";
 import {
@@ -49,10 +50,15 @@ function hostPorts(host: Host): PortBinding[] {
  */
 export function createRunner(args: RunnerArgs): Runner {
   const registry = buildRegistry({ plugins: args.plugins, caps: args.host.caps });
-  // The host's own capabilities are ports too, and binding them here is what
-  // lets a plugin ask for the run's clock or its random rather than reaching for
-  // the global one and taking repeatability away from every test.
-  const bindings = [...hostPorts(args.host), ...(args.ports ?? [])];
+  // The host's own capabilities are ports too, and so is the event sink.
+  // Binding them here is what lets a plugin ask for the run's clock or its
+  // random rather than reaching for the global one and taking repeatability
+  // away from every test, and it is what puts the sink through the same shape
+  // negotiation: a host handing over something with no `emit` is told so once,
+  // here, instead of failing on the first event of the first run. Both go
+  // before `args.ports`, so a caller who binds one by hand still wins.
+  const sink = { port: EventSinkPort, impl: args.sink };
+  const bindings = [...hostPorts(args.host), sink, ...(args.ports ?? [])];
   const resolver = createPortResolver({ bindings, caps: args.host.caps });
   const decorators = createDecoratorSource(args.plugins);
   const drive = (walk: Walk) => (document: Document) => {
@@ -98,11 +104,12 @@ function resultOf(args: { engine: Engine; run: RunId; problems: Problem[] }): Ru
 
 function buildEngine(input: RunOnceInput, run: RunId): Engine {
   const { args, registry } = input;
+  const clock = args.host.clock;
   return {
     registry,
     plugins: args.plugins,
-    emitter: createEmitter({ sink: args.sink, run, clock: args.host.clock }),
-    clock: args.host.clock,
+    emitter: createEmitter({ sink: input.resolver.resolve(EventSinkPort), run, clock }),
+    clock,
     lock: args.host.lock,
     uri: args.uri ?? "memory://inline.vn",
     result: { passed: 0, failed: 0 },

@@ -1,5 +1,5 @@
-import { relative } from "node:path";
 import type { Problem, Status } from "@venn-lang/core";
+import { shorten } from "../../paths/index.js";
 import { bold, cyan, dim, green, inverse, red, yellow } from "../colors.js";
 import { problemDetail } from "../problem-detail.js";
 import { diffLines } from "./diff-lines.js";
@@ -116,9 +116,4 @@ function block(failure: Failure, index: number): string {
  */
 function where(failure: Failure): string {
   return [failure.flow, failure.step].filter(Boolean).join(` ${dim("›")} `) || "lifecycle";
-}
-
-function shorten(file: string): string {
-  const path = relative(process.cwd(), file);
-  return path && !path.startsWith("..") ? path.replace(/\\/g, "/") : file;
 }

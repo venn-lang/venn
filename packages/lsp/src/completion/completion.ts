@@ -11,6 +11,7 @@ import type {
 import type { SymbolCatalog } from "../catalog/index.js";
 import { decosInScope } from "../deco/index.js";
 import {
+  documentRoot,
   exportedNames,
   hostAt,
   importedFragments,
@@ -167,7 +168,7 @@ export class VennCompletionProvider implements CompletionProvider {
   private scopeNames(host: AstNode, at: number, document: LangiumDocument): ScopedName[] {
     const found = namesInScope(host, at);
     if (!found.some((one) => one.origin === "import")) return found;
-    const root = rootOf(document);
+    const root = documentRoot(document);
     const known = root ? this.publishedTo(root, document) : new Map<string, string>();
     return found.map((one) =>
       one.origin === "import" ? { ...one, origin: known.get(one.name) ?? one.origin } : one,
@@ -196,7 +197,7 @@ export class VennCompletionProvider implements CompletionProvider {
    * the file it came from confirms it is one.
    */
   private fragments(range: Range, document: LangiumDocument): CompletionItem[] {
-    const root = rootOf(document);
+    const root = documentRoot(document);
     if (!root) return [];
     const graph = importedModules({
       root,
@@ -210,7 +211,7 @@ export class VennCompletionProvider implements CompletionProvider {
 
   /** `id: ▮`: the language's own types, this file's, and its imports'. */
   private typeNames(range: Range, document: LangiumDocument): CompletionItem[] {
-    const root = rootOf(document);
+    const root = documentRoot(document);
     return typeNameItems({
       root,
       catalog: this.catalog,
@@ -391,10 +392,6 @@ export class VennCompletionProvider implements CompletionProvider {
 
 function rangeOf(context: CompletionContext, position: Position): Range {
   return { start: { line: position.line, character: context.from }, end: position };
-}
-
-function rootOf(document: LangiumDocument): Document | undefined {
-  return document.parseResult?.value as Document | undefined;
 }
 
 function lineAt(document: LangiumDocument, position: Position): string {

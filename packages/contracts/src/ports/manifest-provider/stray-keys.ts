@@ -6,6 +6,12 @@ import { parseToml } from "./toml/index.js";
  *
  * `undefined` means every key in that table names something, so nothing there
  * can be stray: an environment, a path alias, a dependency, a profile.
+ *
+ * A key nothing reads yet is still listed, because this list is what decides
+ * whether `venn check` and `venn build` exit 1. `description`, `license` and
+ * `authors` are what a registry will be handed; `edition` is what the manifest
+ * example in the guide taught people to write, and removing it from here
+ * turned every project that followed the guide red with no way to have known.
  */
 const TABLES: Readonly<Record<string, readonly string[] | undefined>> = {
   package: ["name", "version", "description", "license", "authors", "edition"],

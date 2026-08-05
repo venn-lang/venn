@@ -1,5 +1,5 @@
 import { buildProblem, CODES } from "../../codes/index.js";
-import { ProblemError } from "../../problem/index.js";
+import { ProblemError, UNLOCATED } from "../../problem/index.js";
 import { nativeFn } from "../native.types.js";
 
 /**
@@ -18,11 +18,21 @@ export interface Pattern {
   readonly compiled: RegExp;
 }
 
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
-
-/** Whether this value is a compiled pattern. */
+/**
+ * Whether this value is a compiled pattern.
+ *
+ * The compiled form is required, not just the `kind`: `kind` is how the
+ * language spells a union, so `{ kind: "regex", source: "x" }` is a map
+ * somebody wrote and reading it as a pattern would answer null for every one of
+ * its own fields.
+ *
+ * @param value Anything at all.
+ * @returns True only for a value carrying both marks.
+ */
 export function isPattern(value: unknown): value is Pattern {
-  return typeof value === "object" && value !== null && (value as Pattern).kind === "regex";
+  if (typeof value !== "object" || value === null) return false;
+  const held = value as Pattern;
+  return held.kind === "regex" && held.compiled instanceof RegExp;
 }
 
 /**
@@ -52,7 +62,7 @@ function badPattern(source: string, error: unknown): ProblemError {
   return new ProblemError(
     buildProblem({
       spec: CODES.VN3018_BAD_PATTERN,
-      span: NO_SPAN,
+      span: UNLOCATED,
       title: `This is not a pattern: ${source}. ${why}`.trim(),
     }),
   );

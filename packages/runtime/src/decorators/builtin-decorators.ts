@@ -1,4 +1,4 @@
-import type { DecoratorDefinition, ExpandContext } from "@venn-lang/core";
+import { type DecoratorDefinition, durationMs, type ExpandContext } from "@venn-lang/core";
 import type { RetrySpec } from "../scheduler/annotations.js";
 
 /** Where each of these may sit. Named once, so a wrong target is caught, not ignored. */
@@ -74,12 +74,6 @@ function retryOf(ctx: ExpandContext): RetrySpec {
 function ratioOf(value: unknown): number {
   if (value === undefined) return 1;
   return typeof value === "number" ? value : 0;
-}
-
-function durationMs(value: unknown): number | undefined {
-  if (typeof value === "number") return value;
-  const duration = value as { kind?: string; ms?: number };
-  return duration?.kind === "duration" ? duration.ms : undefined;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

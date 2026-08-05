@@ -1,5 +1,4 @@
-import { memberValue } from "../../expr/member-value.js";
-import { isWaiting, whenBothReady } from "../../expr/pending.js";
+import { indexValue, memberValue } from "../../expr/member-value.js";
 import type { Index, Member } from "../../generated/ast.js";
 import type { Compile, Thunk } from "../compile.types.js";
 
@@ -11,24 +10,15 @@ export function compileMember(expr: Member, compile: Compile): Thunk {
 }
 
 /**
- * `xs[i]`, reading straight through when neither side is still arriving.
+ * `xs[i]` and `m[k]`, read by the same rule `.` is.
  *
- * Indexing `null`, or reading past the end, gives `null` rather than throwing,
- * so a missing path along a chain reads as absent instead of stopping the flow.
+ * This had three lines and no fences of its own, so `m["toString"]` handed out
+ * a host function while `m.toString` was null. Indexing `null`, or reading past
+ * the end, gives `null` rather than throwing, so a missing path along a chain
+ * reads as absent instead of stopping the flow.
  */
 export function compileIndex(expr: Index, compile: Compile): Thunk {
   const receiver = compile(expr.receiver);
   const key = compile(expr.index);
-  return (env) => {
-    const target = receiver(env);
-    const at = key(env);
-    if (!isWaiting(target) && !isWaiting(at)) return elementAt(target, at);
-    return whenBothReady(target, at, elementAt);
-  };
-}
-
-function elementAt(target: unknown, at: unknown): unknown {
-  if (target == null) return null;
-  const held = (target as Record<string, unknown>)[at as string];
-  return held === undefined ? null : held;
+  return (env) => indexValue(receiver(env), key(env));
 }

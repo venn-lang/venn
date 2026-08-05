@@ -19,7 +19,6 @@ flow "F" {
 function plugin(calls: { noop: number }) {
   return definePlugin({
     name: "@t/m",
-    version: "0",
     namespace: "t",
     actions: [
       defineAction({

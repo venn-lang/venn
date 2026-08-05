@@ -51,9 +51,11 @@ export interface Refusal {
   readonly title: string;
   readonly help: string | null;
   /**
-   * The column only. A compiled body is built with no document behind it, so
-   * its span leaves the URI empty while the scheduler fills it from the engine.
+   * The file the refusal points at. Recorded because a body the compiler built
+   * and a body the scheduler walked have to name the same place, and an empty
+   * uri is one the reporter prints with no location at all.
    */
+  readonly uri: string;
   readonly column: number;
 }
 

@@ -96,9 +96,10 @@ own `signingInput` and compares in constant time, so a payload edited after sign
 
 ## The CryptoEngine port
 
-`venn.port.crypto-engine`, contract version 1, requires no capability, four methods: `digest`,
+`venn.port.crypto-engine`, contract version 2, requires no capability, four methods: `digest`,
 `hmac`, `derive`, `randomBytes`. Everything returns lowercase hex, which is the one shape the
-verbs convert from.
+verbs convert from. `hmac` takes bytes as well as text, because a TOTP counter is eight raw bytes
+and byte `0x80` is not a character; version 1 took text only.
 
 | Implementation | Behaviour |
 | --- | --- |
@@ -108,6 +109,13 @@ verbs convert from.
 Both run the same conformance suite. The stdlib binds the **real** engine by default, even though
 it binds fakes for everything else: hashing is pure computation, not a side effect, so there is
 nothing to isolate a test from.
+
+The descriptor, the two engines, the suite and the byte encoders below are **declared in
+[`@venn-lang/sdk`](../sdk)** and passed on from here. `@venn-lang/auth` needs the same port and the
+same encoders, and a plugin may not depend on another plugin, so the one package both already
+depend on holds them. `auth` used to reach the global `crypto.subtle` instead, which meant binding
+the fake engine changed what `crypto.hmac` answered and left `auth.hmac` on real WebCrypto. Every
+name in the table below still imports from `@venn-lang/crypto` exactly as it did.
 
 ## API
 
@@ -120,9 +128,12 @@ nothing to isolate a test from.
 | `decodeJwt(token)`, `DecodedJwt` | The splitter behind `crypto.jwt.decode`, usable directly. |
 | `toBytes`, `fromBytes` | String to `Uint8Array` and back, UTF-8. |
 | `toHex`, `fromHex` | Bytes to lowercase hex and back. |
-| `toBase64`, `fromBase64` | Bytes to base64 and back. |
+| `toBase64`, `fromBase64` | Bytes to base64 and back. Written out rather than using `btoa`, which is latin-1 only, stack-unsafe when fed a spread, and absent on some targets. |
 | `toBase64Url`, `fromBase64Url` | The same, with `+/` as `-_` and no padding. |
 | `equals(left, right)` | Constant-time string comparison, so a verification cannot be timed. |
+
+Decoding raises `VN7003` on text that is not base64, where `atob` raised a `DOMException` that
+carried no `VNxxxx` code and so reached the reporter with no line under it.
 
 The plugin publishes one named type, `crypto.Jwt`. Every other verb answers with a string or a
 boolean, which the signature says inline.

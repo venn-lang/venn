@@ -22,7 +22,6 @@ export function createActionContext(args: {
     secrets: args.host.secrets,
     config: args.config ?? {},
     log: (message) => args.host.log.log({ level: "info", message }),
-    redact: () => {},
     show: (value) => displayValue(value),
     invoke: (fn, values) => invoke(fn, values),
   };

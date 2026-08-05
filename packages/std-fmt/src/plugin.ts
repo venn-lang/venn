@@ -9,7 +9,6 @@ import { fmtActions } from "./actions/fmt-actions.js";
  */
 export const fmtPlugin: PluginDefinition = definePlugin({
   name: "venn/fmt",
-  version: "0.0.0",
   namespace: "fmt",
   actions: fmtActions,
 });

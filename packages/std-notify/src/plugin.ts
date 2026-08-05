@@ -9,7 +9,6 @@ import { notifyTypeDefs } from "./types.js";
  */
 export const notifyPlugin: PluginDefinition = definePlugin({
   name: "venn/notify",
-  version: "0.0.0",
   namespace: "notify",
   requires: ["net"],
   actions: notifyActions,

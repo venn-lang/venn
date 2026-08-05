@@ -11,7 +11,6 @@ type Decorator = ReturnType<typeof defineDecorator>;
 function recorder(seen: string[], decorators: Decorator[]) {
   return definePlugin({
     name: "@t/rec",
-    version: "0",
     namespace: "rec",
     decorators,
     actions: [

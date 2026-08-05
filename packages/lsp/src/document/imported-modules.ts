@@ -1,6 +1,7 @@
 import { type Document, isFragmentDecl, isValueImport } from "@venn-lang/core";
-import { type LangiumDocument, type LangiumDocuments, URI } from "langium";
+import { type LangiumDocuments, URI } from "langium";
 import type { ImportResolver } from "../workspace/index.js";
+import { documentRoot } from "./document-root.js";
 
 export interface ModuleGraphScope {
   root: Document;
@@ -56,11 +57,7 @@ function walk(args: WalkArgs): void {
 
 function rootAt(uri: string, scope: ModuleGraphScope): Document | undefined {
   const document = scope.documents.getDocument(URI.parse(uri));
-  return document && rootOf(document);
-}
-
-function rootOf(document: LangiumDocument): Document | undefined {
-  return document.parseResult?.value as Document | undefined;
+  return document && documentRoot(document);
 }
 
 /**

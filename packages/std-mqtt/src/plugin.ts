@@ -1,7 +1,7 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { mqttActions } from "./actions/index.js";
 import { mqttMatchers } from "./matchers/index.js";
-import { messageSchema, mqttTypeDefs } from "./types/index.js";
+import { mqttTypeDefs } from "./types/index.js";
 
 /**
  * The `mqtt` namespace: `connect`, `publish`, `subscribe`, `expect`, the `topic`
@@ -12,11 +12,9 @@ import { messageSchema, mqttTypeDefs } from "./types/index.js";
  */
 export const mqttPlugin: PluginDefinition = definePlugin({
   name: "venn/mqtt",
-  version: "0.0.0",
   namespace: "mqtt",
   requires: ["net"],
   actions: mqttActions,
   matchers: mqttMatchers,
-  types: { Message: messageSchema },
   typeDefs: mqttTypeDefs,
 });

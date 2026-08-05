@@ -4,7 +4,7 @@ import { buildProblem, CODES } from "../../codes/index.js";
 import { evaluate, invoke, memberValue } from "../../expr/index.js";
 import type { ActionCall, Block, IfStmt, LetStmt, Statement } from "../../generated/ast.js";
 import { patternSlots, slotValue } from "../../pattern/index.js";
-import { type Problem, ProblemError } from "../../problem/index.js";
+import { type Problem, ProblemError, UNLOCATED } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
 import { truthy } from "../../value/index.js";
 import { handleSurface, missingVerb } from "../handles/index.js";
@@ -109,11 +109,9 @@ export function impure(target: string): string {
   return `A decorator runs before the program exists, so it cannot call \`${target}\`.`;
 }
 
-/** Located later, by the statement that asked. */
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
-
 function refuse(title: string): ProblemError {
-  return new ProblemError(buildProblem({ spec: CODES.VN2016_DECO_IMPURE, span: NO_SPAN, title }));
+  // Located later, by the statement that asked.
+  return new ProblemError(buildProblem({ spec: CODES.VN2016_DECO_IMPURE, span: UNLOCATED, title }));
 }
 
 /** Whatever went wrong, pointed at the line of the body that asked for it. */

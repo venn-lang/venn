@@ -42,7 +42,6 @@ Everything below is exported from the package barrel.
 | `WsClientPort` | `Port<WsClient>`, id `venn.port.ws-client`, version 1, methods `connect`, `send`, `expect`, `close`. |
 | `createFakeWsClient({ incoming })` | The double: preloaded messages in, sent messages recorded on `sent`. |
 | `createRealWsClient()` | The real client. Out of scope for this build: every method throws `VN8090`. |
-| `messageSchema` | The Zod schema behind the nominal `Message` type the plugin registers. |
 | `wsTypeDefs` | What the plugin publishes to the checker, as `TypeSpec` data. |
 
 Types: `WsClient`, `FakeWsClient`, `WsConnectArgs`, `WsExpectQuery`, `Message`.

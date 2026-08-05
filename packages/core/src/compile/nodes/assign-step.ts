@@ -11,8 +11,10 @@ import { buildProblem, CODES } from "../../codes/index.js";
 import { type Cell, type Frame, readSlot, writeNamed, writeSlot } from "../../expr/index.js";
 import type { AssignStmt, Expr } from "../../generated/ast.js";
 import * as ast from "../../generated/ast.js";
+import { fileOf } from "../../parse/index.js";
 import { ProblemError, type Span } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
+import { isReservedKey, reservedKeyProblem } from "../../value/index.js";
 import type { Step, Thunk } from "../compile.types.js";
 import { boxed, freeSlot, type LexScope, rootOf, slotOf } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
@@ -108,7 +110,7 @@ function intoPlace(args: {
   const target = stmt.target;
   const into = compile((target as { receiver: Expr }).receiver, scope);
   const key = keyOf(target, scope, compile);
-  return writeInto({ into, key, value, span: spanOf(stmt, "") });
+  return writeInto({ into, key, value, span: spanOf(stmt, fileOf(stmt)) });
 }
 
 function writeInto(args: { into: Thunk; key: Key; value: Thunk; span: Span }): Step {
@@ -116,7 +118,9 @@ function writeInto(args: { into: Thunk; key: Key; value: Thunk; span: Span }): S
   return (frame) => {
     const holder = into(frame);
     if (holder === null || typeof holder !== "object") throw notAPlace(span);
-    (holder as Record<string, unknown>)[key(frame)] = value(frame);
+    const at = key(frame);
+    if (isReservedKey(at)) throw new ProblemError(reservedKeyProblem({ key: at, span }));
+    (holder as Record<string, unknown>)[at] = value(frame);
     return RAN;
   };
 }

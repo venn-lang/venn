@@ -1,6 +1,9 @@
 import type { TypeContext } from "./context.js";
-import { listMember } from "./list-members.js";
-import { recordMember } from "./map-members.js";
+import { declared } from "./declared.js";
+import { LIST_MEMBER_NAMES, listMember } from "./list-members.js";
+import { MAP_MEMBER_NAMES, recordMember } from "./map-members.js";
+import { REGEX_TYPE } from "./regex-type.js";
+import { TASK_TYPE } from "./task-type.js";
 import {
   BOOL,
   baseOf,
@@ -31,14 +34,27 @@ export function memberType(receiver: Type, name: string, ctx: TypeContext): Type
   if (t.kind === "list") return listMember(t.element, name, ctx);
   if (t.kind === "literal") return memberType(prim(baseOf(t.value)), name, ctx);
   if (t.kind === "union") return unionMember(t, name, ctx);
-  if (t.kind === "prim" && t.name === "string") return stringMember(name);
-  if (t.kind === "prim" && t.name === "number") return numberMember(name);
   if (t.kind === "record") return recordMember(t, name, ctx);
-  if (t.kind === "prim") return unitMember(t.name, name);
+  if (t.kind === "prim") return primMember(t.name, name);
   // A handle answers to what it published, and to nothing else: its inside is
   // none of the reader's business, which is what makes it opaque.
   if (t.kind === "opaque") return t.members?.get(name);
   return undefined;
+}
+
+/**
+ * What a string, a number or a unit answers to, each from its own table.
+ *
+ * Every lookup is fenced, because these are ordinary object literals: an
+ * unfenced `STRING_MEMBERS[name]` answered `"constructor"` with a host
+ * `Function`, which the checker then carried as a `Type` and reported as
+ * `found undefined`.
+ */
+function primMember(base: string, name: string): Type | undefined {
+  if (base === "string") return declared(STRING_MEMBERS, name);
+  if (base === "number") return declared(NUMBER_MEMBERS, name) ?? declared(TO_UNIT, name);
+  const unit = declared(UNIT_MEMBERS, base);
+  return unit && declared(unit, name);
 }
 
 /**
@@ -95,67 +111,62 @@ const UNIT_MEMBERS: Record<string, Record<string, Type>> = {
   instant: INSTANT_MEMBERS,
 };
 
-function unitMember(unit: string, name: string): Type | undefined {
-  return UNIT_MEMBERS[unit]?.[name];
-}
+/**
+ * Held at module level rather than rebuilt inside the lookup: these are fixed
+ * tables with nothing generic in them, and building one per member read meant a
+ * thirty-three entry object allocated for every `.upper` the checker met.
+ */
+const STRING_MEMBERS: Record<string, Type> = {
+  len: NUMBER,
+  upper: STRING,
+  lower: STRING,
+  trim: STRING,
+  reverse: STRING,
+  toNumber: NUMBER,
+  split: fn([STRING], list(STRING)),
+  replace: optional([STRING, STRING], STRING, 1),
+  contains: fn([STRING], BOOL),
+  startsWith: fn([STRING], BOOL),
+  endsWith: fn([STRING], BOOL),
+  slice: optional([NUMBER, NUMBER], STRING, 1),
+  repeat: fn([NUMBER], STRING),
+  padStart: optional([NUMBER, STRING], STRING, 1),
+  padEnd: optional([NUMBER, STRING], STRING, 1),
+  indexOf: fn([STRING], NUMBER),
+  words: list(STRING),
+  lines: list(STRING),
+  chars: list(STRING),
+  capitalize: STRING,
+  title: STRING,
+  slugify: STRING,
+  isEmpty: BOOL,
+  isBlank: BOOL,
+  trimStart: STRING,
+  trimEnd: STRING,
+  count: fn([STRING], NUMBER),
+  matches: fn([STRING], list(STRING)),
+  test: fn([STRING], BOOL),
+  before: fn([STRING], STRING),
+  after: fn([STRING], STRING),
+  ensureStart: fn([STRING], STRING),
+  ensureEnd: fn([STRING], STRING),
+};
 
-function stringMember(name: string): Type | undefined {
-  const table: Record<string, Type> = {
-    len: NUMBER,
-    upper: STRING,
-    lower: STRING,
-    trim: STRING,
-    reverse: STRING,
-    toNumber: NUMBER,
-    split: fn([STRING], list(STRING)),
-    replace: optional([STRING, STRING], STRING, 1),
-    contains: fn([STRING], BOOL),
-    startsWith: fn([STRING], BOOL),
-    endsWith: fn([STRING], BOOL),
-    slice: optional([NUMBER, NUMBER], STRING, 1),
-    repeat: fn([NUMBER], STRING),
-    padStart: optional([NUMBER, STRING], STRING, 1),
-    padEnd: optional([NUMBER, STRING], STRING, 1),
-    indexOf: fn([STRING], NUMBER),
-    words: list(STRING),
-    lines: list(STRING),
-    chars: list(STRING),
-    capitalize: STRING,
-    title: STRING,
-    slugify: STRING,
-    isEmpty: BOOL,
-    isBlank: BOOL,
-    trimStart: STRING,
-    trimEnd: STRING,
-    count: fn([STRING], NUMBER),
-    matches: fn([STRING], list(STRING)),
-    test: fn([STRING], BOOL),
-    before: fn([STRING], STRING),
-    after: fn([STRING], STRING),
-    ensureStart: fn([STRING], STRING),
-    ensureEnd: fn([STRING], STRING),
-  };
-  return table[name];
-}
-
-function numberMember(name: string): Type | undefined {
-  const table: Record<string, Type> = {
-    abs: NUMBER,
-    floor: NUMBER,
-    ceil: NUMBER,
-    sign: NUMBER,
-    sqrt: NUMBER,
-    isEven: BOOL,
-    isOdd: BOOL,
-    round: optional([NUMBER], NUMBER, 0),
-    toFixed: optional([NUMBER], STRING, 0),
-    clamp: fn([NUMBER, NUMBER], NUMBER),
-    pow: fn([NUMBER], NUMBER),
-    times: list(NUMBER),
-    toString: STRING,
-  };
-  return table[name] ?? TO_UNIT[name];
-}
+const NUMBER_MEMBERS: Record<string, Type> = {
+  abs: NUMBER,
+  floor: NUMBER,
+  ceil: NUMBER,
+  sign: NUMBER,
+  sqrt: NUMBER,
+  isEven: BOOL,
+  isOdd: BOOL,
+  round: optional([NUMBER], NUMBER, 0),
+  toFixed: optional([NUMBER], STRING, 0),
+  clamp: fn([NUMBER, NUMBER], NUMBER),
+  pow: fn([NUMBER], NUMBER),
+  times: list(NUMBER),
+  toString: STRING,
+};
 
 /**
  * Reading a plain number as a unit, the way back from {@link UNIT_MEMBERS}. For
@@ -173,6 +184,33 @@ const TO_UNIT: Record<string, Type> = {
   toRatio: PERCENT,
   toPercent: PERCENT,
 };
+
+/**
+ * Every member name the checker knows, by the kind of value it hangs off.
+ *
+ * The checker's half of the three-way agreement: the runtime answers these
+ * names, the editor documents them, and `value/member-tables-agree.test.ts`
+ * refuses a table that drifts from the other two. Assembled from the tables
+ * themselves rather than written out, so adding a member in one place cannot
+ * quietly leave this behind.
+ */
+export const CHECKED_MEMBERS: Readonly<Record<string, readonly string[]>> = {
+  list: LIST_MEMBER_NAMES,
+  string: Object.keys(STRING_MEMBERS),
+  map: MAP_MEMBER_NAMES,
+  number: [...Object.keys(NUMBER_MEMBERS), ...Object.keys(TO_UNIT)],
+  task: opaqueNames(TASK_TYPE),
+  duration: Object.keys(UNIT_MEMBERS.duration ?? {}),
+  size: Object.keys(UNIT_MEMBERS.size ?? {}),
+  percent: Object.keys(UNIT_MEMBERS.percent ?? {}),
+  instant: Object.keys(INSTANT_MEMBERS),
+  regex: opaqueNames(REGEX_TYPE),
+};
+
+/** What an opaque type published, which is the whole of what it answers to. */
+function opaqueNames(type: Type): readonly string[] {
+  return type.kind === "opaque" ? [...(type.members?.keys() ?? [])] : [];
+}
 
 /**
  * A member as the language reads it: the built-in when there is one, otherwise

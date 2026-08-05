@@ -3,7 +3,7 @@ import type { DecoDecl } from "../../generated/ast.js";
 import type { Problem } from "../../problem/index.js";
 import { spanOf } from "../../span/index.js";
 import type { DecoratorDefinition, ExpandContext } from "../expand.types.js";
-import { kindOf, makeHandle } from "../handles/index.js";
+import { makeHandle, targetKindOf } from "../handles/index.js";
 import type { DecoSignature } from "./deco.types.js";
 import { DecoEnv } from "./deco-env.js";
 import { namesOutOfReach } from "./reach/index.js";
@@ -52,7 +52,7 @@ function definition(args: DecoArgs & { sig: DecoSignature }): DecoratorDefinitio
 }
 
 function apply(args: DecoArgs & { sig: DecoSignature; ctx: ExpandContext }): void {
-  const handle = makeHandle({ node: args.ctx.node, kind: kindOf(args.ctx.node) });
+  const handle = makeHandle({ node: args.ctx.node, kind: targetKindOf(args.ctx.node) });
   runDecoBody({
     body: args.decl.body,
     env: new DecoEnv(bindings(args.sig, handle, args.ctx.args)),

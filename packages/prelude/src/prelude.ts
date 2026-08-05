@@ -4,8 +4,8 @@ import type { PreludeEntry } from "./prelude.types.js";
 /**
  * The named types the language brings with it.
  *
- * Neither is a primitive, and both are opaque because how they are held is none
- * of a program's business: what each publishes is the whole of what it offers.
+ * None is a primitive, and all are opaque because how each is held is none of a
+ * program's business: what each publishes is the whole of what it offers.
  */
 export const PRELUDE_TYPES: Readonly<Record<string, TypeSpec>> = {
   /**
@@ -35,6 +35,20 @@ export const PRELUDE_TYPES: Readonly<Record<string, TypeSpec>> = {
     // The whole match first, then each group. Empty when it did not match, so
     // `.match(s).len == 0` is the question without a second shape to handle.
     match: t.fn([t.string], t.list(t.string)),
+  }),
+  /**
+   * What `spawn` hands back.
+   *
+   * Opaque for the same reason a pattern is: the promise inside is deliberately
+   * out of reach, since a promise handed to `let` would be waited for by the
+   * statement, which is exactly what `spawn` exists to avoid. `.wait` is how a
+   * reader asks for the value back.
+   */
+  task: t.opaque("task", {
+    wait: t.dynamic,
+    done: t.bool,
+    failed: t.bool,
+    settle: t.dynamic,
   }),
 };
 
@@ -75,7 +89,7 @@ export const PRELUDE: Readonly<Record<string, PreludeEntry>> = {
     signature: "spawn(fn () -> T) -> task",
     doc: "Start work without waiting for it. Everything else waits by itself, so this is how to carry on: ask for the value later with `.wait`.",
     example: "let job = spawn(fn () => http.get(url))\nlet page = job.wait",
-    type: t.variadic([t.dynamic], t.dynamic),
+    type: t.variadic([t.dynamic], PRELUDE_TYPES.task as TypeSpec),
     args: [
       {
         name: "work",
@@ -178,15 +192,19 @@ export const PRELUDE: Readonly<Record<string, PreludeEntry>> = {
   },
   fail: {
     kind: "verb",
-    signature: "fail(message) -> never",
-    doc: "Fail the current step with a message.",
+    // `-> never` read well and named a type the language does not have: nothing
+    // declared it, so an annotation naming it fell back to `dynamic` and
+    // `const x: never = 1` checked clean. What both of these answer with is the
+    // nothing they are typed as; that they do not come back is in the prose.
+    signature: "fail(message) -> null",
+    doc: "Fail the current step with a message. Nothing after it in the step runs.",
     args: [{ name: "message", type: "string", doc: "What went wrong, in the reader's terms." }],
     type: t.variadic([t.dynamic], NOTHING),
   },
   exit: {
     kind: "verb",
-    signature: "exit(code) -> never",
-    doc: "End the program with an exit code.",
+    signature: "exit(code) -> null",
+    doc: "End the program with an exit code. Nothing after it runs, here or anywhere else.",
     args: [
       {
         name: "code",

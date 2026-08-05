@@ -40,7 +40,6 @@ const probeParams = z.object({
 
 export const uptimePlugin: PluginDefinition = definePlugin({
   name: "@acme/uptime",
-  version: "0.1.0",
   namespace: "uptime",
   requires: ["net"],
   typeDefs: { Probe: t.record({ url: t.string, up: t.bool, ms: t.number }) },
@@ -99,27 +98,32 @@ looks like a plugin) and prints the namespace with the counts of actions and mat
 | `defineAction(def)` | One verb. Derives `signature` from `args` and `result` when you do not write one. |
 | `defineMatcher(def)` | One word usable after `expect`, with its own failure message and diff. |
 | `defineDecorator(def)` | One `@name`, applied to the program's tree before anything reads it. |
-| `Duration` | A `ZodType<number>`: reads `"30s"`, `"2m"`, `1500`, yields milliseconds. |
+| `Duration` | A `ZodType<number>`: reads the language's `30s`, the text `"30s"`, or `1500`, yields milliseconds. |
 | `arg`, `optionalArg`, `restArg` | Build an `ArgSpec`, one named positional argument. |
 | `signatureOf(args, result)` | The `FnSpec` those arguments describe. `defineAction` calls it for you. |
 | `paramSpecs(schema)`, `paramNames(schema)` | Read a Zod options schema into `ParamSpec[]` (or just the key names). |
+| `paramSchema(schema, key)` | The schema declared for one key, so a checker holds a value to what the run will hold it to. |
+| `isUnitLiteral(value)`, `unitBase(value, kind)` | Tell one of the language's literals (`30s`, `2mb`, `50%`, a moment) from an ordinary map, and read the number inside it. |
 | `z`, `ZodType` | Zod 4, re-exported so a plugin depends on `@venn-lang/sdk` alone. |
+| `toBytes`, `fromBytes`, `toHex`, `fromHex`, `toBase64`, `fromBase64`, `toBase64Url`, `fromBase64Url`, `equals` | The byte encoders. See [Bytes](#bytes). |
+| `CryptoEnginePort`, `createWebCryptoEngine`, `createFakeCryptoEngine` | The digest primitives two plugins share. See [The CryptoEngine port](#the-cryptoengine-port). |
+| `HASH_ALGORITHMS`, `hashAlgorithm(written)`, `JWS_ALGORITHMS`, `JWS_HASH`, `jwsHash(alg)` | Which digests exist, and which one a name or a JWS `alg` header names. |
 
 Types are exported alongside: `PluginDefinition`, `ActionDefinition`, `MatcherDefinition`,
 `MatcherDetail`, `DecoratorDefinition`, `DecoratedNode`,
 `ExpandContext`, `ActionContext`, `ActionInput`, `MatcherArgs`, `MatcherContext`, `ArgSpec`,
-`ParamSpec`.
+`ParamSpec`, `Bytes`, `CryptoEngine`, `DeriveArgs`, `HashAlgorithm`, `JwsAlgorithm`, `Signable`.
 
 ## The plugin object
 
 | Field | Meaning |
 | --- | --- |
-| `name`, `version` | The package identity. `name` is what a file writes in `import { … } from "…"`. |
+| `name` | The package identity, and what a file writes in `import { … } from "…"`. |
 | `namespace` | The prefix every verb gets: `namespace` `uptime` plus action `probe` is `uptime.probe`. |
 | `requires` | Host capabilities: `fs`, `process`, `net`, `clock`, `random`, `secrets`, `log`, `io`. |
 | `actions`, `matchers`, `decorators` | The contributions. All optional. |
-| `types` | Zod schemas for the nominal data shapes the plugin publishes. |
-| `typeDefs` | The same shapes as `TypeSpec` data, by short name. `Probe` is reachable from a flow as `uptime.Probe`. |
+| `values` | The constants the namespace publishes, read without brackets: `math.pi`. |
+| `typeDefs` | The nominal data shapes the plugin publishes, as `TypeSpec` data, by short name. `Probe` is reachable from a flow as `uptime.Probe`, and this is what the checker and the editor read. |
 
 Capabilities are negotiated when the registry is built, before a single line runs. A plugin that
 requires `net` on a host that does not offer it fails with `VN2010` naming the plugin and the
@@ -168,7 +172,15 @@ a free-form map, and nothing in it is unknown.
 | `log(message)` | One line into the host log. |
 | `show(value)` | The value as text, the way the language writes it. |
 | `invoke(fn, args)` | Call a function the flow passed in. The only way to run a language closure. |
-| `redact(value)` | Marks a string as secret. Present on the interface; the current runner binds it to a no-op. |
+
+A plugin cannot redact anything after the fact, and nothing here lets it try. Redaction happens at
+the producer: a value that came from `secrets.*` is a `Secret`, and a `Secret` yields `‹redacted›`
+whenever it is written down, before it reaches a log or a reporter. That is every route there is:
+`String(secret)` and a template literal take its `toString`, `JSON.stringify` takes its `toJSON`,
+and `ctx.show` takes whichever it declares, which carries the marker through `print`, `"${…}"` and
+all five `fmt` formats. Only `secret.reveal()` gives the raw value back, and it is the one call a
+reviewer can grep for. A marker applied once a value has been handed out is applied too late, which
+is the failure the `Secret` design exists to prevent.
 
 `invoke` is what makes a handler argument work. `http.on` takes a `fn` and calls it per request:
 
@@ -259,11 +271,80 @@ const rampParams = z.object({ over: Duration.optional(), hold: Duration.optional
 ```ruby
 import { load } from "venn/load"
 
+load.ramp 0 200 { over: 30s, hold: 5m }
 load.ramp 0 200 { over: "30s", hold: "5m" }
+load.ramp 0 200 { over: 30000, hold: 300000 }
 ```
 
-It accepts a unit string (`ms`, `s`, `m`, `h`) or a plain millisecond count, and always yields a
-number of milliseconds. It reads the *string* `"30s"`, not the language's own `30s` duration value.
+All three are the same call. `Duration` accepts the language's own `30s` literal, the string form
+`"30s"` (`ms`, `s`, `m`, `h`), or a plain millisecond count, and always yields a number of
+milliseconds.
+
+It used to take only the string and the number, which meant every option built on it turned away
+the literal the language is written in: `{ over: 30s }` failed both arms of the union and the run
+reported `"over" is not a valid option` about an option that was declared and correct. The literal
+reaches a plugin as `{ kind: "duration", ms: 30000 }`, and this schema is the one place in the SDK
+that knows that shape, since a plugin package may never import `@venn-lang/core`. A cross-package
+test in the runtime holds it against what the compiler produces.
+
+A length of time no clock can honour is refused: `1s / 0` evaluates to a duration whose `ms` is
+`Infinity`, which is still a duration to a renderer and no bound at all here.
+
+`isUnitLiteral(value)` and `unitBase(value, kind)` are the same knowledge without the schema, for a
+plugin that has to tell one of the language's literals (`30s`, `2mb`, `50%`, a moment) from an
+ordinary map. `@venn-lang/fmt` uses them to know it has reached a leaf.
+
+## Bytes
+
+Text, bytes, hex and base64, in one place, because six copies of base64 in this repository
+disagreed on all three axes that matter: UTF-8 handling, stack safety, and what they raise.
+
+| Export | What it does |
+| --- | --- |
+| `toBytes(text)`, `fromBytes(bytes)` | UTF-8 both ways. `Bytes` is `Uint8Array<ArrayBuffer>`, the only shape WebCrypto takes. |
+| `toHex(bytes)`, `fromHex(hex)` | Lowercase hex both ways. |
+| `toBase64(bytes)`, `fromBase64(text)` | Padded base64 (RFC 4648 §4). |
+| `toBase64Url(bytes)`, `fromBase64Url(text)` | The JWT flavour: `+/` as `-_`, no padding. |
+| `equals(left, right)` | Constant-time comparison. Every digest and signature check uses it. |
+
+None of it uses `btoa` or `atob`, and that is the point rather than a detail:
+
+- **`btoa` cannot do UTF-8.** It reads one code unit at a time and refuses anything above U+00FF, so
+  every caller had to flatten bytes to a latin-1 string first. Three callers skipped the step: an
+  accented password went onto the wire as different bytes, the server answered 401, and nothing in
+  Venn said why.
+- **The usual flattening is not stack-safe.** `String.fromCharCode(...bytes)` spreads one argument
+  per byte, so 200 KB of text raised `RangeError: Maximum call stack size exceeded`, which the CLI
+  reporter turns into `VN8003  This went too deep: something calls itself and never stops`, about a
+  program containing no recursion at all.
+- **`btoa` is not everywhere.** It is absent on some targets this has to run on.
+
+Encoding is alphabet arithmetic instead: no intermediate string, no argument list, no platform to be
+missing, and it cannot raise. Decoding raises `VennError` `VN7003` for a character that is not a
+base64 digit, where `atob` raised a `DOMException`, which carries no `VNxxxx` code and so reached the
+reporter as an unrecognised throw with no line under it. ASCII whitespace is ignored and padding is
+optional, as the WHATWG forgiving-base64 rules have it.
+
+## The CryptoEngine port
+
+`venn.port.crypto-engine`, contract version 2, no capability required, four methods: `digest`,
+`hmac`, `derive`, `randomBytes`. Every one answers in lowercase hex.
+
+This is the one port declared in the SDK rather than in the package whose verbs use it. Both
+`@venn-lang/crypto` and `@venn-lang/auth` need it, a plugin may not depend on another plugin, and
+the SDK is the package every plugin already has. `@venn-lang/auth` reached the global
+`crypto.subtle` instead, so a host that bound `createFakeCryptoEngine` made `crypto.hmac`
+reproducible and left `auth.hmac`, `auth.totp` and `auth.jwt` on real WebCrypto: half a run
+replayable, half not.
+
+`createWebCryptoEngine()` is the real one. `createFakeCryptoEngine()` is a deterministic FNV-1a
+stand-in, never secure, so a flow's assertions over a digest replay. Both run
+`cryptoEngineSuite`. `hmac` takes bytes as well as text, because a HOTP counter is eight raw bytes
+and byte `0x80` is not a character.
+
+`HASH_ALGORITHMS` is the one list of digests, `hashAlgorithm(written)` maps whatever a script wrote
+(`SHA-256`, `sha256`) onto one of them or raises `VN7005`, and `jwsHash(alg)` says which digest a
+token's `alg` header names. There were three of those tables and they disagreed.
 
 ## Reaching I/O
 
@@ -274,10 +355,13 @@ the interface:
 run: (ctx, input) => ctx.port(HttpClientPort).request({ method: "GET", url: input.args[0] }),
 ```
 
-The port descriptor (`id`, `version`, `requires`, `methods`) lives in `@venn-lang/contracts`, and the
-implementation is bound at startup. That is what lets the same plugin run against a real client in
-production and a fake one in tests. Every port ships with both, plus a conformance suite they both
-pass.
+The port descriptor (`id`, `version`, `requires`, `methods`) lives in `@venn-lang/contracts`, or in
+the package whose verbs use it, and the implementation is bound at startup. That is what lets the
+same plugin run against a real client in production and a fake one in tests. Every port ships with
+both, plus a conformance suite they both pass.
+
+`CryptoEnginePort` is the one declared here instead, because two plugins need it and neither may
+depend on the other. See [The CryptoEngine port](#the-cryptoengine-port).
 
 ## When a verb fails
 

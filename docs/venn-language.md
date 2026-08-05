@@ -154,8 +154,8 @@ $ venn verify-plugin ./dist/index.js
 ✓ MatcherProvider              9 asserções · mensagens não vazias
 ✓ NodeSpec                     7 asserções · portas e ícone válidos
 ✗ Redação de segredos          1 falha
-    stripe.charge emitiu params.card sem marca de redação
-    → envolva com ctx.redact() antes de retornar
+    stripe.charge devolveu params.card em claro, sem ser um `Secret`
+    → leia-o de `secrets.*`, que devolve um valor que se redige sozinho
 
 80/81 · assinatura não emitida
 ```
@@ -1367,7 +1367,6 @@ version     = "1.4.0"
 description = "Checkout end to end"
 license     = "MIT"
 authors     = ["Acme"]
-edition     = "2026"
 
 # O que este pacote constrói. `[lib]` é o que outros pacotes importam,
 # `[[bin]]` é um programa. Sem nenhum dos dois valem os caminhos por
@@ -1503,7 +1502,6 @@ import { definePlugin, defineAction, defineMatcher, z, Duration } from "@venn-la
 
 export default definePlugin({
   name: "@acme/stripe",
-  version: "1.2.0",
   namespace: "stripe",
   requires: ["@venn-lang/http"],
 
@@ -1543,7 +1541,6 @@ export default definePlugin({
   // 6 · middleware em volta de toda ação do plugin
   middleware: [
     async (next, ctx, call) => {
-      ctx.redact(call.params.card);
       return ctx.span(`stripe.${call.name}`, () => next());
     },
   ],
@@ -2054,7 +2051,7 @@ A linguagem roda sozinha. Um software que queira embuti-la, o seu estúdio em Ta
 | --- | --- | --- | --- |
 | 1 · Processo | venn run --reporter ndjson | subprocesso | App desktop, CI, qualquer linguagem |
 | 2 · Biblioteca | createRunner() · @venn-lang/runtime | dentro do Node do hospedeiro | Serviço Node que já é o dono do processo |
-| 3 · Compilador | parse · check · toGraph · @venn-lang/core | Node **ou** Web Worker | Editor, LSP, canvas do grafo |
+| 3 · Compilador | parse · check · format · @venn-lang/core | Node **ou** Web Worker | Editor, LSP |
 
 > **Um app desktop usa o 1 e o 3, nunca o 2.** Nível 1 para executar, porque a fronteira de processo dá isolamento de crash, `kill` de verdade no botão Parar e teto de memória observável. Nível 3 para editar, porque roda no worker do webview sem tocar em `node:*`. Usar o nível 2 num app desktop significa que um plugin de terceiro mal comportado derruba a janela do usuário junto.
 
@@ -2113,21 +2110,21 @@ pub fn spawn_venn(app: &AppHandle) -> Result<VennHandle> {
 
 ### O compilador no editor
 
-O nível 3 não passa por processo nenhum. O pacote `core` é importado direto pelo bundle do frontend e roda num worker, alimentando LSP e canvas com o mesmo código que o CLI usa.
+O nível 3 não passa por processo nenhum. O pacote `core` é importado direto pelo bundle do frontend e roda num worker, alimentando o LSP com o mesmo código que o CLI usa.
 
 ****ui/lang.worker.ts****
 
 ```ts
-import { createHost, parse, check, toGraph, applyGraphEdit } from "@venn-lang/core";
+import { createHost, parse, check, formatText } from "@venn-lang/core";
 
 const host = createHost.worker();      // fs em memória, sem process, sem node:*
 
-// texto → IR → grafo
-const ir    = check(parse(texto), host);
-const grafo = toGraph(ir);
+// texto → IR → diagnósticos
+const ir      = check(parse(texto), host);
+const errados = ir.problems;
 
-// grafo → edição cirúrgica de texto, preservando comentários
-const edits = applyGraphEdit(ir, { kind: "moveStep", node: "step-cart", after: "step-login" });
+// e a mesma formatação que `venn fmt` aplica, para o editor não discordar do CLI
+const texto2 = formatText(texto);
 ```
 
 ### O que é instalado, e quando

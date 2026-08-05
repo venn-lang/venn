@@ -12,7 +12,6 @@ import { grpcTypeDefs } from "./types.js";
  */
 export const grpcPlugin: PluginDefinition = definePlugin({
   name: "venn/grpc",
-  version: "0.0.0",
   namespace: "grpc",
   requires: ["net"],
   actions: grpcActions,

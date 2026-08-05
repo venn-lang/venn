@@ -43,7 +43,7 @@ function memoised(): PluginDefinition {
     name: "connect",
     run: () => (conn ??= Promise.reject(new Error("connect ECONNREFUSED"))),
   });
-  return definePlugin({ name: "@t/db", version: "0", namespace: "db", actions: [connect] });
+  return definePlugin({ name: "@t/db", namespace: "db", actions: [connect] });
 }
 
 /** The other half of it: one error object, made once and thrown for ever. */
@@ -55,7 +55,7 @@ function shared(): PluginDefinition {
       throw down;
     },
   });
-  return definePlugin({ name: "@t/db", version: "0", namespace: "db", actions: [connect] });
+  return definePlugin({ name: "@t/db", namespace: "db", actions: [connect] });
 }
 
 /**
@@ -105,7 +105,7 @@ describe("one error instance, thrown by three flows", () => {
   });
 });
 
-const NOTHING = definePlugin({ name: "@t/n", version: "0", namespace: "n", actions: [] });
+const NOTHING = definePlugin({ name: "@t/n", namespace: "n", actions: [] });
 
 /**
  * One assertion is one failure.

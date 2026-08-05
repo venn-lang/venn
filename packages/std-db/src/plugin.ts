@@ -1,6 +1,6 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { dbActions } from "./actions/index.js";
-import { dbTypeDefs, RowSchema } from "./types/index.js";
+import { dbTypeDefs } from "./types/index.js";
 
 /**
  * The `db` plugin: connect, query, exec, seed, snapshot and restore.
@@ -11,10 +11,8 @@ import { dbTypeDefs, RowSchema } from "./types/index.js";
  */
 export const dbPlugin: PluginDefinition = definePlugin({
   name: "venn/db",
-  version: "0.0.0",
   namespace: "db",
   requires: ["net"],
   actions: dbActions,
-  types: { Row: RowSchema },
   typeDefs: dbTypeDefs,
 });

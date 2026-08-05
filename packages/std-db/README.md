@@ -98,7 +98,7 @@ structural clone, so restoring never aliases live state.
 | `createFakeDbClient`, `createRealDbClient` | The two implementations. |
 | `QueryArgs`, `ExecArgs` | The argument objects `query` and `exec` take. |
 | `TableMap`, `SeedData`, `DbSnapshot` | Rows keyed by table name. The last two are aliases of the first, named for where they are used. |
-| `Row`, `RowSchema` | The nominal row type and its Zod schema. |
+| `Row`, `RowSchema` | The nominal row type, and the Zod schema `db.query` and `db.exec` validate their own options against. |
 | `dbTypeDefs` | The `db.Row` and `db.Tables` specs the checker and the editor read. |
 
 ## Adding an implementation

@@ -15,7 +15,6 @@ export {
   exportedNames,
   findBinding,
   findFragment,
-  importedNames,
   resolveFragment,
 } from "./document/index.js";
 export { VennFormatter } from "./formatting/index.js";

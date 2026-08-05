@@ -36,6 +36,12 @@ const REFUSED: readonly (readonly [string, string])[] = [
     'forEach n in [1] { concurrency: "3" } { log n }',
     "VN3010 concurrency needs a number, and this is a string.",
   ],
+  // A name only the run can resolve evaluates to `null` too, so this one used
+  // to read as "cannot be known" and check clean while the run refused it.
+  [
+    `race { timeout: null } ${A}`,
+    "VN3010 timeout needs a length of time, as in 10s, and this is a null.",
+  ],
 ];
 
 describe("an option a concurrency block does not accept", () => {

@@ -1,7 +1,6 @@
-type Row = Record<string, unknown>;
+import type { Show } from "./render.types.js";
 
-/** The language's own writer, bound in by the runtime. See `ActionContext.show`. */
-type Show = (value: unknown) => string;
+type Row = Record<string, unknown>;
 
 /**
  * Renders a list of records as an aligned table, for reading in a terminal.
@@ -11,10 +10,16 @@ type Show = (value: unknown) => string;
  *
  * A cell is written with `show`, the same renderer behind `print` and `${}`,
  * so a nested map or list reads the way a person would have typed it rather
- * than the host's `JSON.stringify` shape. `fmt.json`, `fmt.csv`, `fmt.xml`
- * and `fmt.yaml` keep their own writers on purpose: they answer to formats
- * that exist outside this language, and a CSV field written the Venn way
- * would be a broken CSV. A table answers to nobody but the person reading it.
+ * than the host's `JSON.stringify` shape.
+ *
+ * This used to say that `fmt.json`, `fmt.csv`, `fmt.xml` and `fmt.yaml` kept
+ * their own writers on purpose, because they answer to formats that exist
+ * outside this language. They do, and it was still the wrong conclusion: a
+ * format decides how a value is DELIMITED, and this language decides what the
+ * value IS. Four private writers meant four of them answered `250ms` with
+ * `{"kind":"duration","ms":250}`, the interpreter's envelope, which is not a
+ * value any of those formats has an opinion about. They all take `show` now,
+ * and each still quotes, escapes and indents by its own rules.
  *
  * @param rows The records to render. Anything that is not a record is skipped.
  * @param show The language's writer for a single value.

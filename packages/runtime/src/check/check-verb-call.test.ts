@@ -9,7 +9,6 @@ import { checkDocument } from "./check-document.js";
 
 const KIT = definePlugin({
   name: "@t/kit",
-  version: "0",
   namespace: "kit",
   actions: [
     defineAction({ name: "parse", run: () => 1 }),

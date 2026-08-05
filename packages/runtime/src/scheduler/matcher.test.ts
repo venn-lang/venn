@@ -12,7 +12,6 @@ interface Calls {
 function testPlugin(calls: Calls) {
   return definePlugin({
     name: "@t/m",
-    version: "0",
     namespace: "t",
     actions: [
       defineAction({

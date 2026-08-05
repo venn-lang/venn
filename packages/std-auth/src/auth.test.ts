@@ -1,9 +1,22 @@
-import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
+import {
+  type ActionContext,
+  type ActionDefinition,
+  CryptoEnginePort,
+  createFakeCryptoEngine,
+} from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { authActions } from "./actions/index.js";
 import { createFakeAuthClient } from "./clients/index.js";
 
-const ctx = { port: () => createFakeAuthClient() } as unknown as ActionContext;
+const engine = createFakeCryptoEngine();
+
+// Two ports, answered by id. `auth.hmac`, `auth.totp` and `auth.jwt` reached the
+// global `crypto.subtle` before this, so a host binding the deterministic engine
+// could not change what they answered and this file could not have bound one.
+const ctx = {
+  port: (port: { id: string }) =>
+    port.id === CryptoEnginePort.id ? engine : createFakeAuthClient(),
+} as unknown as ActionContext;
 
 function find(name: string): ActionDefinition {
   const action = authActions.find((candidate) => candidate.name === name);
@@ -17,9 +30,28 @@ describe("auth actions", () => {
     expect(out).toEqual({ Authorization: "Bearer abc123" });
   });
 
+  // ASCII, which is the case that always worked, kept beside the one that did not.
   it("basic base64-encodes user:pass", async () => {
     const out = await find("basic").run(ctx, { args: ["alice", "s3cret"], params: {} });
-    expect(out).toEqual({ Authorization: `Basic ${btoa("alice:s3cret")}` });
+    expect(out).toEqual({ Authorization: "Basic YWxpY2U6czNjcmV0" });
+  });
+
+  /**
+   * RFC 7617 §2 says UTF-8, and the exact header is the assertion.
+   *
+   * `btoa` sent latin-1 for `señha`, `dXNlcjpzZfFoYQ==`, which is a different
+   * password: the server answers 401 and nothing in Venn says why. A round trip
+   * through the same wrong encoder agrees with itself, so it has to be spelled out.
+   */
+  it("basic sends the UTF-8 bytes of a non-ASCII credential", async () => {
+    const out = await find("basic").run(ctx, { args: ["user", "señha"], params: {} });
+    expect(out).toEqual({ Authorization: "Basic dXNlcjpzZcOxaGE=" });
+  });
+
+  // Above U+00FF `btoa` threw a DOMException with no code and no line at all.
+  it("basic encodes a credential outside latin-1 at all", async () => {
+    const out = await find("basic").run(ctx, { args: ["user", "パス"], params: {} });
+    expect(out).toEqual({ Authorization: "Basic dXNlcjrjg5Hjgrk=" });
   });
 
   it("apikey uses the given header name", async () => {

@@ -1,8 +1,13 @@
-import type { ActionContext, ActionDefinition } from "@venn-lang/sdk";
+import {
+  type ActionContext,
+  type ActionDefinition,
+  createWebCryptoEngine,
+  fromBytes,
+  toBase64Url,
+  toBytes,
+} from "@venn-lang/sdk";
 import { describe, expect, it } from "vitest";
 import { cryptoActions } from "./actions/index.js";
-import { fromBytes, toBase64Url, toBytes } from "./bytes/index.js";
-import { createWebCryptoEngine } from "./engines/index.js";
 import { decodeJwt } from "./jwt/index.js";
 
 const engine = createWebCryptoEngine();
@@ -10,7 +15,6 @@ const ctx = {
   port: () => engine,
   config: {},
   log: () => {},
-  redact: () => {},
 } as unknown as ActionContext;
 
 function action(name: string): ActionDefinition {
@@ -95,5 +99,55 @@ describe("crypto", () => {
   it("encodes and decodes base64 text", () => {
     expect(fromBytes(toBytes("x"))).toBe("x");
     expect(call("base64.decode", call("base64.encode", "hello"))).toBe("hello");
+  });
+
+  // 200 KB used to raise `RangeError: Maximum call stack size exceeded`, out of
+  // `String.fromCharCode(...bytes)`, and the reporter turned every RangeError
+  // mentioning the call stack into VN8003 "something calls itself and never
+  // stops". No Venn program here recurses at all.
+  it("encodes a 200 KB string without running out of stack", () => {
+    const big = "a".repeat(200_000);
+    const encoded = String(call("base64.encode", big));
+
+    expect(encoded).toHaveLength(266_668);
+    expect(call("base64.decode", encoded)).toBe(big);
+  });
+
+  it("says which code an unreadable base64 string failed under", () => {
+    expect(() => call("base64.decode", "not base64!")).toThrow(
+      expect.objectContaining({ code: "VN7003" }),
+    );
+  });
+
+  /**
+   * The two DOMExceptions WebCrypto can still raise, each now carrying a code.
+   *
+   * An empty HMAC key is a `DataError` and more than 65536 random bytes is a
+   * `QuotaExceededError`. A `DOMException`'s `code` is the number `0`, so
+   * `problemOf` reported both uncatalogued, with the note `It came with the code
+   * "0", which is not one of ours` and nothing to search for. The span is the
+   * runtime's to add, and it adds one for any throw.
+   */
+  it("gives a WebCrypto refusal a code of ours", async () => {
+    await expect(call("hmac", "data", { key: "" })).rejects.toMatchObject({ code: "VN7005" });
+    expect(() => call("randomBytes", undefined, { size: 100_000 })).toThrow(
+      expect.objectContaining({ code: "VN7005" }),
+    );
+  });
+
+  // Every one of the three verifies with the digest its own header names. The
+  // signer used to write `alg` into the header and sign with SHA-256 whatever it
+  // said, so an HS512 token verified as false against an untampered payload.
+  it("verifies a token signed under each algorithm it offers", async () => {
+    for (const algorithm of ["HS256", "HS384", "HS512"]) {
+      const token = await call("jwt.sign", undefined, {
+        payload: { sub: "a" },
+        secret: "k",
+        algorithm,
+      });
+
+      expect(decodeJwt(String(token)).header.alg).toBe(algorithm);
+      expect(await call("jwt.verify", token, { secret: "k" })).toBe(true);
+    }
   });
 });

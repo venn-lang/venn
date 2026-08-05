@@ -80,23 +80,29 @@ strip the keys a caller wrote there.
 | --- | --- |
 | `fmtPlugin` (also the default export) | The `PluginDefinition`: namespace `fmt`, five actions, no required capability, no types of its own. |
 | `fmtActions` | The five `ActionDefinition`s. |
-| `toJson(value, spaces?)` | The renderer behind `fmt.json`. Defaults to 2 spaces. |
-| `toTable(rows, show)` | The renderer behind `fmt.table`. `show` writes a cell the way the language writes it; `fmt.table` passes `ctx.show`. |
-| `toYaml(value, indent?)` | The renderer behind `fmt.yaml`. |
-| `toCsv(rows, separator?)` | The renderer behind `fmt.csv`. Defaults to a comma. |
-| `toXml(value, tag?, indent?)` | The renderer behind `fmt.xml`. Defaults to the tag `root`. |
+| `toJson(value, show, spaces?)` | The renderer behind `fmt.json`. Defaults to 2 spaces. |
+| `toTable(rows, show)` | The renderer behind `fmt.table`. |
+| `toYaml(value, show, indent?)` | The renderer behind `fmt.yaml`. |
+| `toCsv(rows, show, separator?)` | The renderer behind `fmt.csv`. Defaults to a comma. |
+| `toXml({ value, show, tag?, indent? })` | The renderer behind `fmt.xml`. Defaults to the tag `root`. |
+| `Show` | The type of `show`: `(value: unknown) => string`. |
 
-The renderers take no ports and reach for no host capability. `toTable` is the one that takes a
-second argument, since a cell that holds a map or a list needs the language's own writer to read
-right; the other four are usable standalone with nothing but the value:
+The renderers take no ports and reach for no host capability. Every one of them takes `show`, the
+language's own writer, which each verb passes as `ctx.show`. That is not a convenience: a `250ms`
+reaches a plugin as `{ kind: "duration", ms: 250 }`, and four of these five renderers used to write
+that envelope out because each kept a private writer of its own. A format decides how a value is
+delimited; the language decides what the value is.
 
 ```ts
-import { toCsv, toYaml } from "@venn-lang/fmt";
+import { toCsv, type Show, toYaml } from "@venn-lang/fmt";
 
-toCsv([{ text: 'say "hi", now', plain: "ok" }]);
+// Inside an action this is `ctx.show`. Standalone, any writer will do.
+const show: Show = (value) => (typeof value === "string" ? value : JSON.stringify(value));
+
+toCsv([{ text: 'say "hi", now', plain: "ok" }], show);
 // 'text,plain\n"say ""hi"", now",ok'
 
-toYaml({ name: "Ada", tags: ["a", "b"], nested: { n: 1 } });
+toYaml({ name: "Ada", tags: ["a", "b"], nested: { n: 1 } }, show);
 // "name: Ada\ntags:\n  - a\n  - b\nnested:\n  n: 1"
 ```
 

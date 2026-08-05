@@ -39,31 +39,52 @@ export const LIST_GROUPING: Record<string, Method> = {
   unzip: (list: readonly unknown[]) => unzip(list),
 };
 
+/**
+ * An accumulator with nothing above it, handed back as an everyday map.
+ *
+ * The key these three file an item under comes out of the data: a JSON field, a
+ * header, a form value. On an ordinary object that key is not just a key.
+ * Reading `out["constructor"]` answers `Object` rather than "no group yet", so
+ * the first item was appended to a function and the spread threw a host
+ * `TypeError` with no code and no span; writing `out["__proto__"]` runs an
+ * inherited setter and swaps what the accumulator inherits from, so the group
+ * vanished and every later read of it went the same way. With no prototype
+ * there is nothing to inherit and no setter to run, so every name behaves like
+ * every other name.
+ *
+ * These three names are refused as assignment TARGETS (VN3023), because
+ * `m["__proto__"] = 1` names a place belonging to what made the map. A
+ * grouping key names a value, not a place, so here it is kept.
+ */
+function tray(): Dict {
+  return Object.create(null) as Dict;
+}
+
 function group(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
-  const out: Dict = {};
+  const out = tray();
   list.forEach((item, index) => {
     const name = keyOf(item, index);
     out[name] = [...((out[name] as unknown[]) ?? []), item];
   });
-  return out;
+  return { ...out };
 }
 
 function counts(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
-  const out: Dict = {};
+  const out = tray();
   list.forEach((item, index) => {
     const name = keyOf(item, index);
     out[name] = Number(out[name] ?? 0) + 1;
   });
-  return out;
+  return { ...out };
 }
 
 /** Like `groupBy`, but the last item under a key wins: an index, not buckets. */
 function keyed(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
-  const out: Dict = {};
+  const out = tray();
   list.forEach((item, index) => {
     out[keyOf(item, index)] = item;
   });
-  return out;
+  return { ...out };
 }
 
 function split(list: readonly unknown[], keep: (item: unknown, i: number) => boolean): unknown[][] {

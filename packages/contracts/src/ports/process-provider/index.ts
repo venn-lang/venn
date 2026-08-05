@@ -1,5 +1,4 @@
 export { createFakeProcess } from "./fake-process.js";
-export { ProcessProviderPort } from "./process-provider.port.js";
 export type {
   ProcessHandle,
   ProcessProvider,

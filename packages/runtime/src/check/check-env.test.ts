@@ -10,7 +10,6 @@ import { checkDocument } from "./check-document.js";
 // A stand-in for @venn-lang/http: stdlib depends on runtime, so runtime cannot use it.
 const plugin = definePlugin({
   name: "@t/http",
-  version: "0",
   namespace: "http",
   actions: [
     defineAction({
@@ -25,7 +24,7 @@ const plugin = definePlugin({
 });
 
 // `env` is a namespace like any other: reading configuration needs a `use`.
-const envPlugin = definePlugin({ name: "venn/env", version: "0", namespace: "env" });
+const envPlugin = definePlugin({ name: "venn/env", namespace: "env" });
 
 const registry = buildRegistry({ plugins: [plugin, envPlugin], caps: ALL_CAPABILITIES });
 

@@ -16,6 +16,5 @@ describe("venn/env", () => {
   // declares, and `checkEnv`, not a type, is what catches `env.TPYO`.
   it("publishes no types either", () => {
     expect(envPlugin.typeDefs).toBeUndefined();
-    expect(envPlugin.types).toBeUndefined();
   });
 });

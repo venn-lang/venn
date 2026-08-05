@@ -1,11 +1,16 @@
-import { type ActionDefinition, arg, defineAction } from "@venn-lang/sdk";
+import { type ActionDefinition, arg, defineAction, toBase64, toBytes } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 
 /**
  * `auth.basic(username, password)`: an `Authorization: Basic …` header.
  *
- * The credentials are base64 of `user:pass`, which is encoding and not secrecy.
- * A password read from `secrets.*` stays redacted in every diagnostic.
+ * The credentials are base64 of the UTF-8 bytes of `user:pass`, which RFC 7617
+ * §2 requires and `btoa` cannot do. `btoa` read the string one code unit at a
+ * time: an accented password went out as latin-1, which is different bytes, so
+ * the server answered 401 and nothing in Venn said why, and anything above
+ * U+00FF threw a `DOMException` with no code, no line and no product voice.
+ * Encoding, not secrecy: a password read from `secrets.*` stays redacted in
+ * every diagnostic.
  */
 export const basic: ActionDefinition = defineAction({
   name: "basic",
@@ -19,5 +24,5 @@ export const basic: ActionDefinition = defineAction({
 });
 
 function basicHeader(user: string, pass: string): { Authorization: string } {
-  return { Authorization: `Basic ${btoa(`${user}:${pass}`)}` };
+  return { Authorization: `Basic ${toBase64(toBytes(`${user}:${pass}`))}` };
 }

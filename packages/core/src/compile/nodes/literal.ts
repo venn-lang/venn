@@ -2,11 +2,9 @@ import { buildProblem, CODES } from "../../codes/index.js";
 import { isWaiting } from "../../expr/pending.js";
 import type { NumberLit, StringLit } from "../../generated/ast.js";
 import { compileTemplate, joinTemplate, type TemplateHole } from "../../interpolation/index.js";
-import { ProblemError } from "../../problem/index.js";
+import { ProblemError, UNLOCATED } from "../../problem/index.js";
 import { parseInstant, parseNumber } from "../../units/index.js";
 import type { Compile, Thunk } from "../compile.types.js";
-
-const NO_SPAN = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 
 /** A literal is a constant: read the lexeme once, then hand back the value. */
 export function constant(value: unknown): Thunk {
@@ -58,7 +56,7 @@ function compileHole(hole: TemplateHole, compile: Compile): Thunk {
     throw new ProblemError(
       buildProblem({
         spec: CODES.VN1002_PARSE,
-        span: NO_SPAN,
+        span: UNLOCATED,
         title: `Cannot read \`\${${hole.source}}\`, that is not an expression.`,
       }),
     );

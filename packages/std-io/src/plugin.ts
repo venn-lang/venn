@@ -13,7 +13,6 @@ import { screenActions } from "./actions/screen-actions.js";
  */
 export const ioPlugin: PluginDefinition = definePlugin({
   name: "venn/io",
-  version: "0.0.0",
   namespace: "io",
   requires: ["io"],
   actions: [...consoleActions, ...inputActions, ...screenActions],

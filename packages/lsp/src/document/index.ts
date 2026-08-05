@@ -1,3 +1,4 @@
+export { documentRoot } from "./document-root.js";
 export { type ExportedName, exportedNames } from "./exported-names.js";
 export { pathOf, stdlibAction } from "./expression-path.js";
 export { findBinding, findDeclaration, findFragment } from "./find-binding.js";
@@ -8,7 +9,6 @@ export {
   importedModules,
   type ModuleGraph,
 } from "./imported-modules.js";
-export { importedNames } from "./imported-names.js";
 export type { InterpolationHit, SlotHit } from "./interpolation-at.js";
 export { interpolationAt, slotAt } from "./interpolation-at.js";
 export type { ScopedName } from "./names-in-scope.js";

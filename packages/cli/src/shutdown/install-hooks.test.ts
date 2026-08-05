@@ -57,7 +57,9 @@ describe("installHooks · faults", () => {
     );
     off();
 
-    expect(said).toEqual(["VN7020  Port 8099 is already in use."]);
+    expect(said).toEqual([
+      "VN7020  Port 8099 is already in use.\n  docs  https://venn.dev/e/VN7020",
+    ]);
     expect(codes).toEqual([1]);
   });
 

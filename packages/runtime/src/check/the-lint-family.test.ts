@@ -10,7 +10,6 @@ const NEWLINE = String.fromCharCode(10);
 
 const plugin = definePlugin({
   name: "@t/kit",
-  version: "0",
   namespace: "kit",
   actions: [
     defineAction({

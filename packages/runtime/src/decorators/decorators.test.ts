@@ -10,7 +10,6 @@ import { createDecoratorSource } from "./create-decorator-source.js";
 function recorder(seen: string[], decorators: ReturnType<typeof defineDecorator>[]) {
   return definePlugin({
     name: "@t/rec",
-    version: "0",
     namespace: "rec",
     decorators,
     actions: [

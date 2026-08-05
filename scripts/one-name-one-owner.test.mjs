@@ -6,7 +6,7 @@ import { twoOwners } from "./two-owners.mjs";
 
 const BASELINE = join(import.meta.dirname, "two-owners-baseline.json");
 
-/** What already collided when this guard was written, held so it cannot grow. */
+/** What a barrel is still allowed to publish twice, held so it cannot grow. */
 async function baseline() {
   return JSON.parse(await readFile(BASELINE, "utf8"));
 }
@@ -40,9 +40,10 @@ const held = (baseline, path) => baseline[path] ?? [];
  * TS2308's own advice is to re-export explicitly, so a written clause is the
  * compiler's recommended fix and can never be its complaint. The written one
  * wins, and the starred module's `X` is published by its folder and
- * unreachable from the package. `LiteralType` is exactly that and is the only
- * entry in the baseline, filed as venn-lang/venn#308 rather than fixed here,
- * because renaming the generated side changes `$type` on the wire.
+ * unreachable from the package. `LiteralType` was exactly that and was the
+ * only entry in the baseline; venn-lang/venn#308 renamed the checker's side to
+ * `ExactType`, since renaming the generated side would change `$type` on the
+ * wire. The baseline is empty and the second assertion below keeps it that way.
  */
 describe("every name a package barrel publishes", () => {
   it("comes from exactly one module", { timeout: 30_000 }, async () => {

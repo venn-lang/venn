@@ -1,0 +1,42 @@
+## The half that leaves the kitchen: placing an order, and refusing one.
+##
+## A `fragment` rather than a `fn`, because ordering is an act. A `fn` is pure
+## and cannot fail; a `fragment` can, and failing is most of what this file is
+## about.
+module examples.programs.pantry.supplier
+
+## What the supplier carries, and how much one case of it holds. Paneer and
+## spinach are not on it, which is the whole point of the two codes below.
+pub const CATALOGUE = [
+  { item: "rice", caseSize: 1000 },
+  { item: "lentils", caseSize: 500 },
+  { item: "tomato", caseSize: 400 },
+  { item: "cumin", caseSize: 100 }
+]
+
+## The catalogue line for one item, or null when the supplier has none.
+fn listing(item) {
+  forEach one in CATALOGUE {
+    if one.item == item {
+      return one
+    }
+  }
+  return null
+}
+
+## One line of an order, or a refusal the caller can tell apart.
+##
+## Two ways to fail and two codes, because a caller does different things about
+## them: a thing nobody carries needs a different recipe, and an amount above
+## one case needs more cases. One code for both would make the caller read the
+## sentence, and a sentence is not an interface.
+pub fragment order(item, grams) {
+  const carried = listing(item)
+  if carried == null {
+    fail "${item} is not in the catalogue." { code: "pantry.unlisted", data: { item: item } }
+  }
+  if grams > carried.caseSize {
+    fail "one case of ${item} holds ${carried.caseSize}g." { code: "pantry.caseSize", data: { item: item, caseSize: carried.caseSize, asked: grams } }
+  }
+  return { item: item, grams: grams }
+}

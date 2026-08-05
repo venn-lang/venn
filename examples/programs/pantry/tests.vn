@@ -1,0 +1,128 @@
+# The larder, asked questions with no kitchen and no supplier.
+# Run: venn test examples/programs/pantry/tests.vn
+
+import { contains, equals } from "venn/assert"
+import { CATALOGUE, insteadOf, needsFor, onShelf, order, recipeFor, shortOf } from "./larder"
+
+flow "What the shelf holds" {
+  step "a jar somebody bought" {
+    expect onShelf("rice") equals 900
+    expect onShelf("cumin") equals 40
+  }
+
+  ## Zero rather than null, because the arithmetic downstream subtracts it and
+  ## a subtraction against nothing is not a shortfall, it is a crash.
+  step "a jar nobody ever bought is zero, not nothing" {
+    expect onShelf("paneer") equals 0
+    expect onShelf("saffron") equals 0
+  }
+
+  step "a meal nobody wrote down is null" {
+    expect recipeFor("khichdi").takes.len equals 3
+    expect recipeFor("pizza") == null
+  }
+}
+
+flow "What a week takes" {
+  step "one meal takes what its recipe says" {
+    const needs = needsFor(["dal"])
+
+    expect needs.len equals 3
+    expect needs.first.item equals "lentils"
+    expect needs.first.grams equals 250
+  }
+
+  ## The same ingredient in two meals is one line of the shopping list, which is
+  ## the only reason this is a fold and not a concatenation.
+  step "the same thing in two meals is added up" {
+    const needs = needsFor(["dal", "dal", "khichdi"])
+
+    expect needs.first.item equals "lentils"
+    expect needs.first.grams equals 700
+  }
+
+  step "the order the meals were asked for is the order it reads in" {
+    const needs = needsFor(["khichdi", "dal"])
+
+    expect needs.map((one) => one.item) equals ["rice", "lentils", "cumin", "tomato"]
+  }
+
+  step "a meal nobody wrote down takes nothing" {
+    expect needsFor(["pizza"]).len equals 0
+    expect needsFor([]).len equals 0
+  }
+}
+
+flow "What the shelf cannot cover" {
+  step "nothing is short when the shelf covers it" {
+    expect shortOf(needsFor(["khichdi"])).len equals 0
+  }
+
+  step "the gap is what is needed less what is there" {
+    const short = shortOf(needsFor(["saag paneer"]))
+
+    expect short.len equals 2
+    expect short.first.item equals "paneer"
+    expect short.first.gap equals 400
+  }
+
+  step "and the biggest gap is first" {
+    const gaps = shortOf(needsFor(["saag paneer"])).map((one) => one.gap)
+
+    expect gaps equals [400, 50]
+  }
+}
+
+flow "Ordering, and being refused" {
+  step "a thing the supplier carries comes back as a line" {
+    run order("rice", 800) as line
+
+    expect line.item equals "rice"
+    expect line.grams equals 800
+  }
+
+  ## Two codes rather than one sentence, because the caller does two different
+  ## things about them and reading prose to decide is not an interface.
+  step "a thing nobody carries refuses, and says which" {
+    try {
+      run order("paneer", 400) as line
+      fail "ordering a thing nobody carries should have refused"
+    } catch e {
+      expect e.code equals "pantry.unlisted"
+      expect e.data.item equals "paneer"
+      expect e.message contains "paneer"
+    }
+  }
+
+  step "more than one case refuses, and says how big a case is" {
+    try {
+      run order("lentils", 550) as line
+      fail "ordering more than one case should have refused"
+    } catch e {
+      expect e.code equals "pantry.caseSize"
+      expect e.data.caseSize equals 500
+      expect e.data.asked equals 550
+    }
+  }
+
+  step "exactly one case is one case" {
+    run order("lentils", 500) as line
+
+    expect line.grams equals 500
+  }
+
+  step "the catalogue is what the two refusals are read against" {
+    expect CATALOGUE.len equals 4
+  }
+}
+
+flow "Cooking something else instead" {
+  step "a thing that cannot be bought has a stand-in" {
+    expect insteadOf("paneer") equals "chickpeas"
+    expect insteadOf("spinach") equals "chard"
+  }
+
+  step "and a thing nobody has an answer for says so" {
+    expect insteadOf("saffron") contains "nothing"
+  }
+}

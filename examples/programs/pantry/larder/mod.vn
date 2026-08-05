@@ -1,0 +1,9 @@
+## The face of the folder: what `import … from "./larder"` reaches.
+##
+## Three files behind one name. `withMore` and `listing` are not handed on, so
+## either can be rewritten without a caller noticing, which is the only reason
+## a folder has a face at all.
+
+pub import { onShelf, recipeFor, RECIPES, SHELF } from "./shelf.vn"
+pub import { insteadOf, needsFor, shortOf } from "./plan.vn"
+pub import { CATALOGUE, order } from "./supplier.vn"

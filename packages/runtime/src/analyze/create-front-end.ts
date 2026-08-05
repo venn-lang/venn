@@ -4,6 +4,7 @@ import {
   checkTypes,
   type DecoratorSource,
   type Expr,
+  forwardReadProblems,
   importedTypes,
   type Type,
   type TypeCatalog,
@@ -54,6 +55,7 @@ export function createFrontEnd(args: FrontEndArgs): FrontEnd {
  */
 function analyze(args: AnalyzeArgs, loaded: Loaded): Analysis {
   const named = checkDocument(resolution(args, loaded));
+  const early = forwardReadProblems({ document: args.document, uri: args.uri });
   const imported = checkImports({
     document: args.document,
     uri: args.uri,
@@ -64,7 +66,7 @@ function analyze(args: AnalyzeArgs, loaded: Loaded): Analysis {
   });
   const typed = checkTypes(args.document, typing(args, loaded));
   return {
-    problems: loudestFirst([...named, ...imported, ...typed.problems]),
+    problems: loudestFirst([...named, ...early, ...imported, ...typed.problems]),
     types: typed.types as ReadonlyMap<AstNode, Type>,
     slots: typed.slots as ReadonlyMap<AstNode, readonly (Expr | undefined)[]>,
   };

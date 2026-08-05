@@ -464,6 +464,30 @@ segura aquele valor enxerga: um mapa é uma coisa só, nomeada em mais de um lug
 
 Parâmetro é binding como qualquer outro, então também recebe.
 
+**O binding em vista é o que está escrito acima.** Se o nome que uma função lê só
+é ligado por um `let` abaixo dela, não existe binding em vista, e isso é recusado
+ali mesmo:
+
+```venn
+let ve = fn () => depois       # VN2026: `depois` é lido acima do `let` que o liga
+let depois = "ligado depois"
+```
+
+Recusado, e não `null`: as duas respostas possíveis discordavam. O corpo
+compilado achava o slot procurando o nome na hora da chamada, o interpretado
+achava o binding do módulo, e dentro de uma passagem de laço os dois erravam.
+
+Uma `fn` declarada é outra coisa: o nome dela vale para o arquivo inteiro, então
+chamar uma declarada abaixo, ou duas que se chamam, continua sendo como se
+escreve recursão. E o `let` de que a própria função é o valor está acima dela:
+
+```venn
+fn par(n) => n == 0 ? true : impar(n - 1)
+fn impar(n) => n == 0 ? false : par(n - 1)
+
+let fat = fn (n) => n <= 1 ? 1 : n * fat(n - 1)
+```
+
 ### Uma única ausência
 
 `null` é a ausência da linguagem, e é a única. Ler um membro que ninguém pôs,
@@ -703,7 +727,33 @@ flow "Checkout" {
 }
 ```
 
-> **`defer` versus `teardown`.** `defer` roda ao sair do bloco onde foi declarado, na ordem inversa, mesmo em falha, é limpeza local e composta. `teardown` é global da suíte. O protótipo só tinha o segundo, e é aí que nascem os testes que sujam o banco quando quebram no meio.
+> **`defer` versus `teardown`.** `defer` roda ao sair do bloco onde foi declarado, na ordem inversa, mesmo em falha, é limpeza local e composta. `teardown` é declarado: roda uma vez pelo bloco em que foi escrito, no fim dele, antes dos `defer` daquele bloco. O protótipo só tinha o segundo, e só no topo do arquivo, e é aí que nascem os testes que sujam o banco quando quebram no meio.
+
+### Onde cada gancho é escrito
+
+Um gancho pertence ao bloco em que foi escrito, e é ali que ele roda.
+
+| Onde está escrito | `setup` / `teardown` | `beforeEach` / `afterEach` |
+| --- | --- | --- |
+| Topo do arquivo | Uma vez, antes da primeira instrução e na saída do programa | Em volta de cada `flow` |
+| Dentro de um `flow` | Antes dos steps daquele flow e depois deles, mesmo que o flow tenha falhado | Em volta de cada step do flow, inclusive os que estão dentro de um `group` |
+| Dentro de um `group` ou de um `step` | Antes e depois das instruções daquele bloco | Em volta de cada step do bloco |
+| Dentro de `parallel` ou `race` | Antes das ramificações e depois de todas elas | Em volta de cada step das ramificações |
+
+```venn
+flow "Checkout" {
+  setup    { db.seed baseline }      # antes dos steps deste flow
+  step "Pagar" { http.post "/pay" }
+  teardown { db.exec "DELETE FROM carts" }   # depois deles, mesmo em falha
+}
+```
+
+Um gancho não é uma ramificação: escrito dentro de `parallel` ou `race`, ele
+roda em volta das ramificações e não como uma delas. A ordem na saída de
+qualquer bloco é a mesma do arquivo: primeiro o `teardown`, depois os `defer`
+na ordem inversa. E a posição do gancho dentro do bloco não muda quando ele
+roda: um `setup` escrito no meio continua rodando antes das instruções daquele
+bloco, exatamente como no topo de um arquivo.
 
 ### Eventos de `on`
 

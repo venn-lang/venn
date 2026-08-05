@@ -40,4 +40,28 @@ describe("the walk over a file's literals", () => {
 
     expect(quoteInASlot({ text: source, uri: "memory://x.vn" })).toEqual([]);
   });
+
+  /**
+   * A `"""` that never closes is not a block string, because the lexer does not
+   * read it as one: `print """a` reports `VN1001` at the third `"`, having taken
+   * the first two as an empty string. Finding the end of a block by index rather
+   * than by a lazy quantifier has to keep that, so the two spellings were run
+   * against each other over every start position of forty thousand strings built
+   * from these delimiters and answered identically at all of them.
+   *
+   * What the walk itself says here is nothing, and that costs nothing: the file
+   * is refused a line earlier by the pass that owns unreadable characters.
+   */
+  it('leaves an unclosed `"""` to the lexer, which refuses the file for it', () => {
+    const source = ['print """a', 'print "k ${m["a"]}"'].join("\n");
+
+    expect(quoteInASlot({ text: source, uri: "memory://x.vn" })).toEqual([]);
+  });
+
+  /** A block string that does close holds anything, placeholders included. */
+  it("says nothing about a placeholder inside a closed block string", () => {
+    const source = ['print """k ${m["a"]}"""'].join("\n");
+
+    expect(quoteInASlot({ text: source, uri: "memory://x.vn" })).toEqual([]);
+  });
 });

@@ -15,13 +15,22 @@ import type { Problem } from "../problem/index.js";
 import { spanAt } from "./at-an-offset.js";
 
 /**
- * A comment or a string literal, in the order the lexer tries them, so that a
- * `#` inside a string is text and `"""` is one literal rather than two.
+ * A comment or a single-quote string literal, in the order the lexer tries
+ * them, so that a `#` inside a string is text.
  *
  * Sticky rather than global: the walk below anchors it at each delimiter it
  * finds, so a literal nothing closes costs one scan instead of one per quote.
+ *
+ * The block string is not in here. Its end is the next `"""`, which `indexOf`
+ * finds in one pass, where a regex has to spell it `[\s\S]*?"""` and grow a
+ * backtracking construct inside a five-way alternation for a delimiter that
+ * cannot be escaped. The scan was already linear, measured; what the index
+ * spelling buys is that a reader can see it is.
  */
-const LITERAL = /#[^\n\r]*|"""[\s\S]*?"""|r"[^"]*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/y;
+const LITERAL = /#[^\n\r]*|r"[^"]*"|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/y;
+
+/** The delimiter a block string opens and closes with, which holds anything. */
+const BLOCK = '"""';
 
 /** A character that opens one of the forms above. */
 const OPENS = /[#"']/g;
@@ -71,13 +80,28 @@ function literalsIn(text: string): { literal: string; start: number }[] {
   OPENS.lastIndex = 0;
   for (let opener = OPENS.exec(text); opener; opener = OPENS.exec(text)) {
     const start = opener.index - (rawAt(text, opener) ? 1 : 0);
-    LITERAL.lastIndex = start;
-    const match = LITERAL.exec(text);
-    if (!match) return found;
-    found.push({ literal: match[0], start });
-    OPENS.lastIndex = start + match[0].length;
+    const literal = literalAt(text, start);
+    if (literal === undefined) return found;
+    found.push({ literal, start });
+    OPENS.lastIndex = start + literal.length;
   }
   return found;
+}
+
+/**
+ * The one literal that begins here, or nothing when nothing closes it.
+ *
+ * A `"""` wins only when it closes, which is the alternation's own order rather
+ * than a rule added here: `print """a` is read by the lexer as an empty string
+ * and then a quote it cannot place, reporting at the third `"`, so treating an
+ * unclosed `"""` as a block string would put this pass and the lexer in two
+ * minds about where the file's literals are.
+ */
+function literalAt(text: string, start: number): string | undefined {
+  const closed = text.startsWith(BLOCK, start) ? text.indexOf(BLOCK, start + BLOCK.length) : -1;
+  if (closed !== -1) return text.slice(start, closed + BLOCK.length);
+  LITERAL.lastIndex = start;
+  return LITERAL.exec(text)?.[0];
 }
 
 /** Whether this quote is the one a raw string opens with, one character along. */

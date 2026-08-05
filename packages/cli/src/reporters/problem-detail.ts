@@ -1,5 +1,6 @@
 import { type Problem, problemLines } from "@venn-lang/core";
 import { dim } from "./colors.js";
+import type { Stream } from "./colors.types.js";
 
 /**
  * Everything a problem knows beneath its title, as terminal lines.
@@ -15,15 +16,18 @@ import { dim } from "./colors.js";
  * further in than the flat one.
  * @param args.where Whether to print the location. The tree reporter prints its
  * own above this, and saying it twice reads as two places.
+ * @param args.stream Where these lines are going, since colour is a question
+ * about one stream: these are written to standard error as often as not, and
+ * whether standard output is a terminal says nothing about that one.
  * @returns The lines, in the order the questions are asked: where, what to do,
  * why the rule exists, what else to look at, and where to read more.
  */
 export function problemDetail(
   problem: Problem,
-  args: { indent?: string; where?: boolean } = {},
+  args: { indent?: string; where?: boolean; stream?: Stream } = {},
 ): string[] {
   const indent = args.indent ?? "  ";
   const lines = problemLines(problem);
   const wanted = args.where === false ? lines.filter((one) => one.label !== "at") : lines;
-  return wanted.map((one) => `${indent}${dim(one.label.padEnd(4))}  ${one.text}`);
+  return wanted.map((one) => `${indent}${dim(one.label.padEnd(4), args.stream)}  ${one.text}`);
 }

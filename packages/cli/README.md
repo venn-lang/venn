@@ -126,6 +126,10 @@ venn run --bin worker --env staging
 `run` executes the file as a program. `test` runs its flows as a suite. Arguments after the file
 reach the program as `io.args`.
 
+`test` refuses what `venn check` refuses, and for the same reasons: the file's own checks at error
+severity, and the project manifest, so a key nothing reads fails the suite rather than being
+something only one of the two commands ever mentions.
+
 A program that reached its last line is not asked to stop: a server that bound a port keeps
 serving, and the event loop decides when the process ends. A program that said `exit N`, or that
 ended badly, leaves at once, and whatever it opened is closed on the way out. The same closing runs
@@ -224,6 +228,12 @@ several `bin` targets with no `--bin` prints the names to pick from.
 With no `--reporter`, a terminal gets `pretty` and anything piped gets `ndjson`, so scripts and CI
 keep a stream they can parse.
 
+Every reporter is told everything, including what refused the run before it could start: a file
+that does not parse, a check that stopped it, a key in `venn.toml` nothing reads. Those travel on
+the same `failure` envelope a hook or a timeout travels on, so the junit document a CI job reads
+cannot say `failures="0"` for a run the command exited 1 on. `venn test` writes nothing about them
+to standard error: the reporter says it, on whichever surface it draws.
+
 ### What a `dot` character means
 
 | Character | What happened |
@@ -260,12 +270,12 @@ The package also exports the seam the commands are built on, for embedding a run
 
 | Export | What it is |
 | --- | --- |
-| `runFile(args)` | Parse and run one `.vn` source with the full stdlib loaded. Returns `{ problems, result }`. |
+| `runFile(args)` | Parse and run one `.vn` source with the full stdlib loaded. Returns `{ problems, result }`, and puts every one of those problems on `args.sink` as a `failure` envelope, numbered into the run it belongs to. |
 | `RunFileOutcome` | The result type: `Problem[]` plus the runtime's `RunResult`. |
 | `runCommand(options)` | What `venn test` does for one file: collect, run, report, return an exit code. |
 | `verifyPluginCommand({ path })` | What `venn verify-plugin` does. |
 | `createStdoutSink()` | An NDJSON `EventSink` that writes each envelope to stdout. |
-| `reportProblems(problems)` | Print `VNxxxx` problems to stderr with their source location. |
+| `reportProblems(problems)` | Print `VNxxxx` problems to stderr with their source location, coloured only when that stream is a terminal. |
 
 `runFile` takes the ports it should use, so a test can drive it entirely offline:
 

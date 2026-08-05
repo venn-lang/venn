@@ -4,16 +4,17 @@ import { createNodeConsole, createNodeHost, createNodeSignals } from "@venn-lang
 import { createFetchClient } from "@venn-lang/http";
 import { createNodeServer } from "@venn-lang/http/node";
 import type { RunFilter } from "@venn-lang/runtime";
-import { declaredEnv, loadEnv, loadManifest } from "../manifest/index.js";
+import { declaredEnv, loadEnv, loadManifest, manifestProblems } from "../manifest/index.js";
 import type { Reporter, RunTotals } from "../reporters/index.js";
-import { pickReporter, reportProblems } from "../reporters/index.js";
+import { pickReporter } from "../reporters/index.js";
 import { collectSourceFiles } from "../run/collect-files.js";
-import { watchForAStuckRun } from "../run/index.js";
+import { problemStream, watchForAStuckRun } from "../run/index.js";
 import { createNodeModuleIo } from "../run/node-io.js";
 import { createNpmLoader } from "../run/npm-loader.js";
 import { type RunFileArgs, type RunFileOutcome, runFile } from "../run/run-file.js";
 import { createShutdown, installHooks, type Shutdown } from "../shutdown/index.js";
 import { setProgramTitle } from "../title/index.js";
+import { isError, projectsOf } from "./check.js";
 
 /** Everything `venn run` accepts. */
 export interface RunOptions {
@@ -60,6 +61,36 @@ export async function runCommand(options: RunOptions): Promise<number> {
 async function runAll(pass: RunPass): Promise<RunTotals> {
   const totals: RunTotals = { passed: 0, failed: 0, files: 0, ms: 0 };
   const started = Date.now();
+  if (await refusedProject(pass)) totals.failed += 1;
+  await eachFile(pass, totals);
+  totals.ms = Date.now() - started;
+  return totals;
+}
+
+/**
+ * What the project itself is refused for, before a single file runs.
+ *
+ * `venn check` reads the manifest and this did not, so a stray key in
+ * `venn.toml` failed one command and was nothing at all to the other. Errors
+ * only, which is the rule the check stops on, and said on the reporter's
+ * channel, which is where every other refusal goes.
+ *
+ * Counted as a failure and no more than that. Skipping the files as well ran
+ * zero flows for one unrecognised key, with no `run.started` and no summary,
+ * and it made the two commands less alike rather than more: `venn check` says
+ * the manifest is wrong and checks every source anyway.
+ */
+async function refusedProject(pass: RunPass): Promise<boolean> {
+  const errors = (await manifestProblems(await projectsOf(pass.files))).filter(isError);
+  const first = errors[0];
+  if (!first) return false;
+  // Filed under the manifest, because that is the file the mistake is in.
+  pass.reporter.beginFile(first.span.uri);
+  problemStream({ sink: pass.reporter.sink, host: createNodeHost() }).say(errors);
+  return true;
+}
+
+async function eachFile(pass: RunPass, totals: RunTotals): Promise<void> {
   for (const file of pass.files) {
     pass.reporter.beginFile(file);
     await runOne({ pass, file, totals });
@@ -67,8 +98,6 @@ async function runAll(pass: RunPass): Promise<RunTotals> {
     if (totals.exitCode !== undefined) break;
     if (pass.options.bail && totals.failed > 0) break;
   }
-  totals.ms = Date.now() - started;
-  return totals;
 }
 
 /**
@@ -90,8 +119,8 @@ async function runOne(args: { pass: RunPass; file: string; totals: RunTotals }):
 }
 
 function tally(totals: RunTotals, outcome: RunFileOutcome): void {
+  // What refused the file went to the reporter, on the channel a failure uses.
   if (outcome.problems.length > 0) {
-    reportProblems(outcome.problems);
     totals.files += 1;
     totals.failed += 1;
     return;

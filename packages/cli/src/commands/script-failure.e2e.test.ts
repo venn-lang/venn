@@ -86,4 +86,16 @@ describe("what `venn run` says when a program fails", () => {
     expect(said).toContain("crash.vn:2:1");
     expect(code).toBe(1);
   });
+
+  /**
+   * A refusal travels the same way now: `runFile` puts it on the stream and the
+   * sink reads it out, so the command that returns the code says nothing of its
+   * own. It used to print the list itself, which under this sink is twice.
+   */
+  it("says a file it refused to run once, from the one channel", async () => {
+    const { said, code } = await run("const a = (1 + 2");
+
+    expect(said.match(/VN1001 ·/g)).toHaveLength(1);
+    expect(code).toBe(1);
+  });
 });

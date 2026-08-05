@@ -1,4 +1,5 @@
 import { RUN_CODES } from "@venn-lang/runtime";
+import type { Stream } from "./colors.types.js";
 import { problemDetail } from "./problem-detail.js";
 import { problemThrown } from "./problem-thrown.js";
 
@@ -13,11 +14,16 @@ import { problemThrown } from "./problem-thrown.js";
  * message, never `[object Object]`.
  *
  * @param error Whatever was thrown.
+ * @param stream Where the line is going, since colour is decided per stream.
+ * Standard error by default, which is where every failure the CLI writes goes,
+ * and it is a file as often as a terminal.
  * @returns The failure as text, one line unless a problem had more to say.
  */
-export function errorLine(error: unknown): string {
+export function errorLine(error: unknown, stream: Stream = process.stderr): string {
   const problem = problemThrown(error);
-  if (problem) return [`${problem.code}  ${problem.title}`, ...problemDetail(problem)].join("\n");
+  if (problem) {
+    return [`${problem.code}  ${problem.title}`, ...problemDetail(problem, { stream })].join("\n");
+  }
   const tooDeep = wentTooDeep(error);
   if (tooDeep) return tooDeep;
   const message = (error as { message?: unknown } | undefined)?.message;

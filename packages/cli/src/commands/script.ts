@@ -57,7 +57,9 @@ async function script(args: {
 }): Promise<Ending> {
   const outcome = await runFile(await scriptArgs(args));
   args.settled();
-  if (outcome.problems.length > 0) return { code: report(outcome.problems), leave: true };
+  // Said already: `runFile` puts what refused the file on the stream, and the
+  // sink under a script is the one that reads a failure out loud.
+  if (outcome.problems.length > 0) return { code: 1, leave: true };
   return await ending(exitCodeOf(outcome.result), asked(outcome.result), args.shutdown);
 }
 

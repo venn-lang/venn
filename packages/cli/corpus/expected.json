@@ -1239,6 +1239,98 @@
       "refused": null
     }
   },
+  "068-a-closure-made-above-the-let-it-reads": {
+    "top": {
+      "problems": ["VN2026 error@20 `later` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`later` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 20
+      }
+    },
+    "fnDecl": {
+      "problems": ["VN2026 error@20 `later` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`later` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 20
+      }
+    },
+    "fnExpr": {
+      "problems": ["VN2026 error@20 `later` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`later` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 20
+      }
+    },
+    "fragment": {
+      "problems": ["VN2026 error@20 `later` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`later` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 20
+      }
+    }
+  },
+  "069-a-closure-in-a-pass-made-above-its-let": {
+    "top": {
+      "problems": ["VN2026 error@29 `y` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`y` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 29
+      }
+    },
+    "fnDecl": {
+      "problems": ["VN2026 error@29 `y` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`y` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 29
+      }
+    },
+    "fnExpr": {
+      "problems": ["VN2026 error@29 `y` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`y` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 29
+      }
+    },
+    "fragment": {
+      "problems": ["VN2026 error@29 `y` is read here, above the `let` that binds it."],
+      "out": null,
+      "refused": {
+        "code": "VN2026",
+        "title": "`y` is read here, above the `let` that binds it.",
+        "help": "Move the binding above this, or read the name below it. A closure reaches the binding in view where it is written, and there is none yet.",
+        "uri": "memory://corpus.vn",
+        "column": 29
+      }
+    }
+  },
   "070-statements-inside-a-namespace": {
     "top": {
       "problems": ["VN2025 error@3 A namespace groups names, so it cannot hold an assignment."],

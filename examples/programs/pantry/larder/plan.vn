@@ -1,0 +1,56 @@
+## The week's arithmetic: what it takes, what is missing, and what stands in.
+##
+## All of it pure. Nothing here buys anything, so every answer below can be
+## checked by asking rather than by cooking.
+module examples.programs.pantry.plan
+
+import { onShelf, recipeFor } from "./shelf.vn"
+
+## What the whole week takes, one line per ingredient.
+##
+## A list rather than a map, because the order the meals were asked for is the
+## order a person reads the shopping list in, and a map has no order to keep.
+pub fn needsFor(meals) {
+  let total = []
+  forEach meal in meals {
+    const recipe = recipeFor(meal)
+    if recipe != null {
+      forEach part in recipe.takes {
+        total = withMore(total, part)
+      }
+    }
+  }
+  return total
+}
+
+## The same list with one more portion of one ingredient folded into it.
+fn withMore(total, part) {
+  let out = []
+  let found = false
+  forEach one in total {
+    if one.item == part.item {
+      found = true
+      out = out.push({ item: one.item, grams: one.grams + part.grams })
+    } else {
+      out = out.push(one)
+    }
+  }
+  return found ? out : out.push(part)
+}
+
+## What the shelf cannot cover, the biggest gap first.
+pub fn shortOf(needs) {
+  let short = []
+  forEach one in needs {
+    const have = onShelf(one.item)
+    if one.grams > have {
+      short = short.push({ item: one.item, need: one.grams, have: have, gap: one.grams - have })
+    }
+  }
+  return short.sortBy((one) => one.gap).reverse
+}
+
+## What to cook with instead when a thing cannot be bought at all.
+const STANDS_IN = { paneer: "chickpeas", spinach: "chard", tomato: "passata" }
+
+pub fn insteadOf(item) => STANDS_IN[item] ?? "nothing anybody has"

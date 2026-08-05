@@ -9,6 +9,7 @@
  */
 
 import { buildProblem, CODES } from "../codes/index.js";
+import { shownColumn } from "../lang/index.js";
 import type { Problem, Span } from "../problem/index.js";
 
 /**
@@ -29,8 +30,12 @@ const REMOVED = new Map<string, string>([
  * A line that opens a block with a word: the word, a value, and a `{` on the
  * same line. An operator after the word makes it an assignment or a comparison,
  * where the word is a name somebody bound and no statement was removed.
+ *
+ * A byte-order mark counts as indentation, so line one of a file that carries
+ * one is read like any other line and the word is still found. The column it
+ * adds comes back off below.
  */
-const OPENS_A_BLOCK = /^([ \t]*)([A-Za-z_]\w*)[ \t]+(?![=<>!+*/%-])[^\n]*\{/;
+const OPENS_A_BLOCK = /^([ \t\uFEFF]*)([A-Za-z_]\w*)[ \t]+(?![=<>!+*/%-])[^\n]*\{/;
 
 /**
  * Every removed statement in a source, said properly.
@@ -69,7 +74,7 @@ function removedOn(line: Line, uri: string): Problem | undefined {
     offset: line.start + indent,
     length: word.length,
     line: line.number,
-    column: indent + 1,
+    column: shownColumn({ text: line.text, line: line.number, column: indent + 1 }),
   };
   return buildProblem({ spec: CODES.VN5001_REMOVED_KEYWORD, span, title: said });
 }

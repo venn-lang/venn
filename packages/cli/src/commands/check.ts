@@ -70,8 +70,18 @@ export async function checkProblems(
   return { files: files.length, problems: said(problems) };
 }
 
-/** The projects these files belong to, since a manifest governs them all. */
-async function projectsOf(files: readonly string[]): Promise<string[]> {
+/**
+ * The projects these files belong to, since a manifest governs them all.
+ *
+ * `venn test` reads the same list: a stray key in `venn.toml` was an error
+ * under one command and nothing at all under the other, and one list is what
+ * keeps the two answering the same.
+ *
+ * @param files The sources being checked or run.
+ * @returns The directory each file belongs to, repeats and all: the manifest
+ * of one is read once however many files named it.
+ */
+export async function projectsOf(files: readonly string[]): Promise<string[]> {
   const dirs: string[] = [];
   for (const file of files) {
     const project = await loadManifest(file);

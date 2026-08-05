@@ -167,3 +167,46 @@ describe("what the editor reports", () => {
     });
   });
 });
+
+/** What a folder publishes, and the parameter its `deco` adds to what it wraps. */
+const LIB = "pub deco inject(target: Fn, name: string) {\n  target.addParam(name)\n}";
+
+/** The decorated body, written expecting the name the `deco` above adds. */
+const USES_IT = lines('@inject("who")', 'fn greet() => "hello ${who}"');
+
+const ONE_FILE = { "lib.vn": LIB };
+const TWO_FILES = { ...ONE_FILE, "mod.vn": 'pub import { inject } from "./lib.vn"' };
+
+const DIRECT = lines('import { inject } from "./lib.vn"', USES_IT);
+const RE_EXPORTED = lines('import { inject } from "./mod.vn"', USES_IT);
+const WILDCARD = lines('import * as lib from "./lib.vn"', USES_IT);
+
+/**
+ * A `deco` reached through another file.
+ *
+ * `venn check` walks the whole import graph and takes every `pub deco` on it,
+ * so the name `@inject("who")` adds is excused wherever the chain reaches. The
+ * editor matched one level of imports against a neighbour's declarations, and
+ * neither of the two indirect shapes is one: a `pub import` re-export sits in a
+ * file's `imports` and never in its `decls`, and a wildcard names nothing at
+ * all. Both lost the `deco`, and the editor drew VN2018 over a parameter the
+ * CLI accepted. `mod.vn` re-export is the documented folder interface.
+ *
+ * The wildcard keeps one answer: the namespace `lib` really is unused, because
+ * `@inject` is written by its own name. That hint is `venn check`'s too.
+ */
+describe("a decorator the editor reaches through another file", () => {
+  it("says nothing when it is imported straight", async () => {
+    expect(await diagnostics(DIRECT, ONE_FILE)).toEqual([]);
+  });
+
+  it("says nothing when it arrives through a `pub import` re-export", async () => {
+    expect(await diagnostics(RE_EXPORTED, TWO_FILES)).toEqual([]);
+  });
+
+  it("says only that the namespace is unused, through a wildcard", async () => {
+    const said = await diagnostics(WILDCARD, ONE_FILE);
+
+    expect(said.map((one) => one.code)).toEqual(["VN5005"]);
+  });
+});

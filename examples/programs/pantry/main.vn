@@ -1,0 +1,71 @@
+# A week of meals against what is in the cupboard, and what to do about the rest.
+# Run: venn run examples/programs/pantry/main.vn
+#
+# The arithmetic is the easy half. The half worth reading is that ordering can
+# refuse, for two different reasons, and neither of them may stop the week: a
+# cook who cannot buy paneer cooks something else, and a cook who asked for more
+# than one case buys two.
+
+import { json } from "venn/json"
+import { fmt } from "venn/fmt"
+import { insteadOf, needsFor, onShelf, order, shortOf } from "./larder"
+
+## Five dinners. Dal three times, because dal three times is what a week looks
+## like, and because it is what pushes one order past a single case.
+const WEEK = ["khichdi", "dal", "saag paneer", "dal", "dal"]
+
+print "Cooking this week: ${WEEK.join(', ')}"
+print ""
+
+const needs = needsFor(WEEK)
+
+let rows = []
+forEach one in needs {
+  rows = rows.push({ item: one.item, needs: "${one.grams}g", shelf: "${onShelf(one.item)}g" })
+}
+print fmt.table(rows)
+
+const short = shortOf(needs)
+print ""
+print "Short of ${short.len} of the ${needs.len}."
+print ""
+
+## The recovery. Every gap is one order, every order may refuse, and a refusal
+## is answered here rather than carried up: the shopping list is still wanted.
+let buying = []
+let instead = []
+forEach one in short {
+  try {
+    run order(one.item, one.gap) as line
+    buying = buying.push("${line.grams}g of ${line.item}")
+  } catch e {
+    instead = instead.push(answerTo(one, e))
+  }
+}
+
+## Which is only worth doing because the two failures want different answers,
+## and `e.code` is what tells them apart. Reading `e.message` instead would put
+## the supplier's wording in the way of the decision.
+fn answerTo(gap, e) {
+  if e.code == "pantry.unlisted" {
+    return "${gap.item}: nobody carries it, cook with ${insteadOf(gap.item)}"
+  }
+  return "${gap.item}: ${e.message} Order ${(gap.gap / e.data.caseSize).ceil} cases."
+}
+
+print "Ordering:"
+forEach line in buying {
+  print "  ${line}"
+}
+print ""
+print "Not ordering:"
+forEach line in instead {
+  print "  ${line}"
+}
+
+## `try` as an expression, where the fallback is the whole answer: a note the
+## cook typed by hand, and nothing added when they typed nonsense.
+const NOTE = "{ oops"
+const alsoWanted = try json.parse(NOTE).items else []
+print ""
+print "the note by the kettle added ${alsoWanted.len} things"

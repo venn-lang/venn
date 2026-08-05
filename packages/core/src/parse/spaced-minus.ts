@@ -16,6 +16,7 @@
 import { buildProblem, CODES } from "../codes/index.js";
 import type { Document } from "../generated/ast.js";
 import * as ast from "../generated/ast.js";
+import { shownColumn } from "../lang/index.js";
 import type { Problem, Span } from "../problem/index.js";
 import { bracketTheArgument } from "./bracket-the-argument.js";
 
@@ -117,13 +118,15 @@ function problem(args: { at: Placed; text: string; uri: string }): Problem {
  * before the AST exists as anything but a recovery tree, so there is a CST node
  * to read and nothing else.
  */
-function minusSpan(args: { at: Placed; uri: string }): Span {
+function minusSpan(args: { at: Placed; text: string; uri: string }): Span {
+  const line = (args.at.range?.start.line ?? 0) + 1;
+  const column = (args.at.range?.start.character ?? 0) + 1;
   return {
     uri: args.uri,
     offset: args.at.offset,
     length: 1,
-    line: (args.at.range?.start.line ?? 0) + 1,
-    column: (args.at.range?.start.character ?? 0) + 1,
+    line,
+    column: shownColumn({ text: args.text, line, column }),
   };
 }
 

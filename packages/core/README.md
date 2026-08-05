@@ -148,7 +148,7 @@ imported name turned out to be).
 
 | Export | Purpose |
 | --- | --- |
-| `Type`, `FnType`, `RecordType`, `UnionType`, `OpaqueType`, `LiteralType` | The type algebra. |
+| `Type`, `PrimType`, `ExactType`, `ListType`, `RecordType`, `FnType`, `UnionType`, `OpaqueType` | The type algebra. `ExactType` is the type of exactly one value, as `"GET"` is where a type is written. |
 | `DYNAMIC`, `literal`, `opaque`, `union` | Constructors for the ones a caller builds by hand. |
 | `prune` | Follow a type variable to what it has been solved to. |
 | `showType`, `showTypes` | Render types for a hover or a diagnostic. `showTypes` names variables across a group, so two unrelated parameters are not both called `a`. |
@@ -227,7 +227,7 @@ arguments as syntax in `written`, the `parent`, and four verbs: `replace`, `remo
 | `metaOf`, `readMeta`, `writeMeta` | Facts a decorator leaves on a node for the runtime. Non-enumerable, so they never land in a serialised AST. |
 | `readDecorations`, `addDecoration`, `AROUND_KEYS`, `Decorations`, `decorateCallable` | Where `.wrap`, `.before` and `.after` leave their closures, and how a callable picks them up. |
 | `swapNode`, `spanOf` | Replacing a node in its container, and locating one. |
-| `wrongKind`, `wrongKindTitle`, `wrongTargetTitle`, `kindWords`, `nodeWord`, `everyKindWritten` | The prose behind VN2014, phrased in the author's words rather than in node type names. |
+| `wrongPlace`, `wrongKind`, `wrongKindTitle`, `wrongTargetTitle`, `kindWords`, `nodeWord`, `everyKindWritten` | Whether a decorator belongs where it is written, and the prose behind VN2014, phrased in the author's words rather than in node type names. `wrongPlace` is the one question expansion and `venn check` both ask, so the refusal reads the same whichever found it. |
 
 ### Units
 

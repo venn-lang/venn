@@ -31,6 +31,8 @@ export const CODES = {
   VN2024_VERB_IN_A_PURE_BODY: { code: "VN2024", severity: "error" },
   /** A declaration inside a `namespace` that grouping names is no place for. */
   VN2025_NOT_A_NAMESPACE_MEMBER: { code: "VN2025", severity: "error" },
+  /** A closure reading a name the `let` below it binds, which nothing holds yet. */
+  VN2026_READ_BEFORE_BOUND: { code: "VN2026", severity: "error" },
   VN3001_UNKNOWN_OPTION: { code: "VN3001", severity: "error" },
   /** A verb or matcher handed more positional arguments than it takes, or fewer. */
   VN3002_ARGUMENT_COUNT: { code: "VN3002", severity: "error" },

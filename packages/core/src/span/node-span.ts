@@ -1,5 +1,6 @@
 import { EXPRESSION_OFFSET } from "../parse/index.js";
 import type { Span } from "../problem/index.js";
+import { shownPlace } from "./shown-place.js";
 import { slotOrigin } from "./slot-origin.js";
 import type { SlotOrigin, SpanNode } from "./span.types.js";
 
@@ -9,6 +10,10 @@ import type { SlotOrigin, SpanNode } from "./span.types.js";
  * The one answer to that question. An expression parsed out of a `${…}` carries
  * the offsets of the little document it was parsed in, and is put back here, so
  * every check reports a slot at the slot rather than at a constant.
+ *
+ * The offset counts a byte-order mark and the column does not, which is what
+ * {@link shownPlace} answers: the offset is what an editor turns back into a
+ * position, and the column is what a reader sees beside a file name.
  *
  * @param node Any node with a CST, from the file or from inside a placeholder.
  * @param uri The file the span is reported against.
@@ -20,8 +25,7 @@ export function spanOf(node: SpanNode, uri: string): Span {
   const length = cst?.length ?? 0;
   const origin = slotOrigin(node);
   if (origin) return inSlot({ origin, uri, offset, length });
-  const start = cst?.range?.start;
-  return { uri, offset, length, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1 };
+  return { uri, offset, length, ...shownPlace(cst) };
 }
 
 /**

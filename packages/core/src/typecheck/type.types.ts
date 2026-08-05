@@ -6,7 +6,7 @@
  */
 export type Type =
   | PrimType
-  | LiteralType
+  | ExactType
   | ListType
   | RecordType
   | FnType
@@ -32,7 +32,7 @@ export interface PrimType {
 }
 
 /** One value, standing for itself: `"GET"`, `200`, `true`. */
-export interface LiteralType {
+export interface ExactType {
   readonly kind: "literal";
   readonly value: string | number | boolean;
 }
@@ -156,7 +156,7 @@ export function mapOf(value: Type): RecordType {
 }
 
 /** One value standing for itself, as `"GET"` does where a type is written. */
-export function literal(value: string | number | boolean): LiteralType {
+export function literal(value: string | number | boolean): ExactType {
   return { kind: "literal", value };
 }
 
@@ -172,7 +172,7 @@ export function union(members: readonly Type[]): Type {
 }
 
 /** Which primitive a literal is one of: `"GET"` is a string, and unifies as one. */
-export function baseOf(value: LiteralType["value"]): PrimName {
+export function baseOf(value: ExactType["value"]): PrimName {
   if (typeof value === "number") return "number";
   return typeof value === "boolean" ? "bool" : "string";
 }

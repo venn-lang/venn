@@ -1,6 +1,6 @@
 # Programs
 
-Five programs rather than five demonstrations. Each one does a job somebody
+Six programs rather than six demonstrations. Each one does a job somebody
 would otherwise do by hand, each lives in its own folder with its modules and
 its tests beside it, and each was written by writing it: the language was found
 wanting on the way, and every one of those is an issue linked below rather than
@@ -13,8 +13,9 @@ a paragraph explaining why the example is shaped oddly.
 | [`ledger/`](ledger) | an expense report: claims in, what the company pays out | `venn run examples/programs/ledger/main.vn` |
 | [`gradebook/`](gradebook) | weighted marks, grades, and the rows it will not grade | `venn run examples/programs/gradebook/main.vn` |
 | [`standup/`](standup) | a rota across three timezones | `venn run examples/programs/standup/main.vn` |
+| [`pantry/`](pantry) | a week of meals against the cupboard, and what the supplier refuses | `venn run examples/programs/pantry/main.vn` |
 
-Every folder has a `tests.vn`. Together they are 110 assertions written in Venn
+Every folder has a `tests.vn`. Together they are 142 assertions written in Venn
 against programs written in Venn:
 
 ```bash
@@ -23,6 +24,7 @@ venn test examples/programs/watchtower/tests.vn   # 30
 venn test examples/programs/ledger/tests.vn       # 18
 venn test examples/programs/gradebook/tests.vn    # 20
 venn test examples/programs/standup/tests.vn      # 20
+venn test examples/programs/pantry/tests.vn       # 32
 ```
 
 ## One folder each, and the same shape in all of them
@@ -40,7 +42,8 @@ The split inside each one is not a convention somebody chose. A `fn` is pure and
 cannot make a request; a `fragment` can. So the line between "what this knows"
 and "how it finds out" is drawn by the language, and every program here falls
 along it: `pokedex/dex/entry.vn` against `pokedex/dex/fetch.vn`,
-`watchtower/watch/verdict.vn` against `watchtower/watch/probe.vn`.
+`watchtower/watch/verdict.vn` against `watchtower/watch/probe.vn`,
+`pantry/larder/plan.vn` against `pantry/larder/supplier.vn`.
 
 It is also what makes the tests cheap. The pure half needs nothing stood up, and
 the half that reaches the world takes its address as an argument, so a test hands
@@ -58,6 +61,9 @@ program.
 - **Modules and a folder that reads as one name**: [`ledger/`](ledger).
 - **Refusing bad data properly**: [`gradebook/`](gradebook).
 - **Units and time**: [`standup/`](standup).
+- **Failing, and carrying on**: [`pantry/`](pantry). Two failure codes because
+  the caller does two different things about them, and a `try` inside the loop
+  so one refusal costs one item.
 
 ## Everything runs offline except one
 
@@ -69,9 +75,10 @@ arguments stands three services of its own up and watches those.
 
 ## What writing them found
 
-Seventeen bugs, and they are the reason these programs exist. Thirteen of them
-were found by writing the five programs above; four were found by the sweeps that
-fixed those thirteen.
+Seventeen bugs, and they are the reason most of these programs exist. Thirteen
+of them were found by writing the first five; four were found by the sweeps that
+fixed those thirteen. [`pantry/`](pantry) came after all of them and found none,
+which is the only reason it reads straight through.
 
 All thirteen are fixed, and three of them changed how a program here is written:
 

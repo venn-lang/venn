@@ -1,0 +1,36 @@
+## What is in the cupboard, and what each meal takes out of it.
+##
+## Data and two readers, nothing else. `plan.vn` does the arithmetic on top of
+## it and `tests.vn` asks it questions, neither of them needing a kitchen.
+module examples.programs.pantry.shelf
+
+## Grams of everything on the shelf on Monday morning.
+pub const SHELF = {
+  rice: 900,
+  lentils: 400,
+  tomato: 300,
+  spinach: 250,
+  paneer: 0,
+  cumin: 40
+}
+
+## What one portion of each meal takes, in the same grams.
+pub const RECIPES = [
+  { meal: "khichdi", takes: [{ item: "rice", grams: 300 }, { item: "lentils", grams: 200 }, { item: "cumin", grams: 10 }] },
+  { meal: "dal", takes: [{ item: "lentils", grams: 250 }, { item: "tomato", grams: 150 }, { item: "cumin", grams: 10 }] },
+  { meal: "saag paneer", takes: [{ item: "spinach", grams: 300 }, { item: "paneer", grams: 400 }, { item: "cumin", grams: 5 }] }
+]
+
+## How much of one thing the shelf holds. A jar nobody ever bought holds zero,
+## which is a number the arithmetic can use, where null is not.
+pub fn onShelf(item) => SHELF[item] ?? 0
+
+## The recipe by name, or null when nobody wrote that meal down.
+pub fn recipeFor(meal) {
+  forEach one in RECIPES {
+    if one.meal == meal {
+      return one
+    }
+  }
+  return null
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Call, Document, FnExpr, LetStmt, MapLit } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
+import { spanOf } from "../span/index.js";
 
 /** Parse, and report the titles rather than the count when something breaks. */
 function ast(source: string): Document {
@@ -99,6 +100,17 @@ describe("a bracket that drops newlines", () => {
 
 const BOM = "\ufeff";
 
+/** Where every problem in a source is said to be, as `line:column`. */
+function columnsOf(source: string): string[] {
+  return parse(source).problems.map((one) => `${one.span.line}:${one.span.column}`);
+}
+
+/** Where the value of the first declaration is said to be, as `line:column`. */
+function nameColumn(source: string): string {
+  const span = spanOf((ast(source).decls[0] as LetStmt).value, "/main.vn");
+  return `${span.line}:${span.column}`;
+}
+
 /**
  * Windows editors, PowerShell's `Set-Content` and `Out-File`, and several CI
  * checkout paths all write a byte-order mark at the top of a file by default.
@@ -126,6 +138,61 @@ describe("a file that starts with a byte-order mark", () => {
     expect(marked[span?.offset ?? 0]).toBe("+");
     expect(span?.line).toBe(parse(source).problems[0]?.span.line);
     expect(span?.column).toBe(parse(source).problems[0]?.span.column);
+  });
+
+  /**
+   * The mark is not a character an editor draws, so the column beside a file
+   * name is the same one whether the file carries one or not. Line one is
+   * where that is felt: further down only the offset moves, and it should.
+   *
+   * One source per place a column is counted from: the token the lexer read,
+   * the end of a file the parser ran off, and the line a scan matched a
+   * removed word on, which used to match nothing at all through a mark.
+   */
+  it.each([
+    ["a bracket nobody closed", "const a = (1 + 2"],
+    ["a keyword where a name goes", "let in = 1"],
+    ["a character the lexer refuses", "const x = \u00a7"],
+    ["a word the language dropped", "while ok { print 1 }"],
+  ])("names the column an editor shows for %s", (_what, source) => {
+    expect(columnsOf(BOM + source)).toEqual(columnsOf(source));
+    expect(columnsOf(source).length).toBeGreaterThan(0);
+  });
+
+  /**
+   * And the offset still counts it, because that is what the editor turns into
+   * a range against the very text it has open, mark and all.
+   */
+  it("still points the offset at the character it means", () => {
+    const marked = `${BOM}const a = (1 + 2`;
+    const span = parse(marked).problems[0]?.span;
+
+    expect(marked[span?.offset ?? 0]).toBe("(");
+    expect(span?.line).toBe(1);
+  });
+
+  /**
+   * The other place a column comes from: a node a check points at, rather than
+   * a token the parser stopped at. It is proved apart because it is the one an
+   * editor also builds ranges from.
+   */
+  it("names the column an editor shows for a node a check points at", () => {
+    const source = "const alpha = 1\n";
+
+    expect(nameColumn(BOM + source)).toEqual(nameColumn(source));
+  });
+
+  /**
+   * On line one a `character` and an offset are the same number, so a node
+   * whose two disagree is a contradiction inside one CST node. Taking the mark
+   * off the token used to make every line-one node one of those, and rename,
+   * which reads the range and not the offset, rewrote the wrong characters.
+   */
+  it("leaves a node's range and its offset agreeing on line one", () => {
+    const cst = ast(`${BOM}const alpha = 1\n`).decls[0]?.$cstNode;
+
+    expect(cst?.range.start.line).toBe(0);
+    expect(cst?.range.start.character).toBe(cst?.offset);
   });
 });
 

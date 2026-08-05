@@ -62,6 +62,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "fast-xml-parser": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

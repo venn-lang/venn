@@ -3,7 +3,8 @@ import { stepEmitter } from "../emit/index.js";
 import type { Scope } from "../scope/index.js";
 import { hasAnnotation, readLock } from "./annotations.js";
 import { AssertionFailed } from "./assertion-failed.js";
-import type { Engine } from "./engine.types.js";
+import { cleanupEngine } from "./branch-engine.js";
+import type { EachHooks, Engine } from "./engine.types.js";
 import { matchesTitle } from "./filter.js";
 import { recordFlaky } from "./flaky.js";
 import { nodeSpan } from "./node-span.js";
@@ -11,6 +12,7 @@ import { release, reportFailure } from "./report-failure.js";
 import { runAround } from "./run-around.js";
 import { runWithAnnotations, withLock } from "./run-attempts.js";
 import { runBlock } from "./run-block.js";
+import { runHooks } from "./run-lifecycle.js";
 import { isControlSignal } from "./signals.js";
 import { scopeTally } from "./tally.js";
 import type { Tally } from "./tally.types.js";
@@ -34,6 +36,45 @@ import type { Tally } from "./tally.types.js";
 export async function runStep(engine: Engine, step: StepDecl, parent: Scope): Promise<void> {
   const title = await interpolateText({ text: step.title, env: parent });
   if (!included(engine, step, title)) return;
+  const each = engine.each;
+  // Cleared for everything underneath: the hooks wrap the steps of the block
+  // that wrote them, and a step written inside this one is that step's own.
+  const inner = each ? { ...engine, each: undefined } : engine;
+  const open = (): Promise<void> => opened({ engine: inner, step, parent, title });
+  if (!each) return open();
+  return withEach({ engine: inner, each, scope: parent, open });
+}
+
+/** One step of a block, and the `beforeEach`/`afterEach` that block wrote. */
+interface Wrapping {
+  engine: Engine;
+  each: EachHooks;
+  scope: Scope;
+  open: () => Promise<void>;
+}
+
+/** The block's `beforeEach` and `afterEach`, around one step of that block. */
+async function withEach(args: Wrapping): Promise<void> {
+  await runHooks({ engine: args.engine, hooks: args.each.before, scope: args.scope });
+  try {
+    await args.open();
+  } finally {
+    // However the step ended, and a step called off mid-flight is the case an
+    // `afterEach` was written for: on an engine detached from whatever ended it,
+    // since the hook's own first statement would otherwise throw that reason.
+    const engine = cleanupEngine(args.engine);
+    await runHooks({ engine, hooks: args.each.after, scope: args.scope });
+  }
+}
+
+/** The step itself: opened, run on a tally of its own, and closed with a verdict. */
+async function opened(args: {
+  engine: Engine;
+  step: StepDecl;
+  parent: Scope;
+  title: string;
+}): Promise<void> {
+  const { engine, step, parent, title } = args;
   const emitter = stepEmitter(engine.emitter, engine.emitter.nextStep());
   const { engine: scoped, tally } = scopeTally({ ...engine, emitter });
   emitter.emit({ kind: "step.started", data: { title } });

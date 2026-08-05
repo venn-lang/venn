@@ -20,6 +20,8 @@ import {
 } from "@venn-lang/runtime";
 import { allPlugins, stdlibPortBindings } from "@venn-lang/stdlib";
 import { packageTypesFor } from "./package-types.js";
+import { problemStream } from "./problem-stream.js";
+import type { ProblemStream } from "./problem-stream.types.js";
 
 /** What one `.vn` file amounted to. */
 export interface RunFileOutcome {
@@ -75,6 +77,8 @@ interface Pass {
   resolved: ResolvedImports | undefined;
   /** Undefined where the host has no way to read a neighbour. */
   graph: ImportGraph | undefined;
+  /** The channel the reporters read, problems and all. */
+  stream: ProblemStream;
 }
 
 /**
@@ -91,18 +95,37 @@ interface Pass {
  * @throws Whatever an action or a loaded module let escape the runner.
  */
 export async function runFile(args: RunFileArgs): Promise<RunFileOutcome> {
+  const stream = problemStream({ sink: args.sink, host: args.host });
+  try {
+    return await passOver(stream, args);
+  } finally {
+    // Nothing may follow `run.finished`, and a decorator that refused the
+    // program is only known once the runner has handed the result back, so the
+    // ending waits here until the file has nothing left to say.
+    stream.close();
+  }
+}
+
+/** Parse, refuse, run: the file's own steps, all of them on the one stream. */
+async function passOver(stream: ProblemStream, args: RunFileArgs): Promise<RunFileOutcome> {
   const { ast, problems } = parse(args.source, { uri: args.uri });
-  if (problems.length > 0) return { problems };
+  if (problems.length > 0) return said(stream, problems);
   const resolved = args.io
     ? await resolveImports({ document: ast, uri: args.uri, io: args.io, npm: args.npm })
     : undefined;
-  const pass: Pass = { document: ast, args, resolved, graph: graphOf(args, resolved) };
+  const pass: Pass = { document: ast, args, resolved, stream, graph: graphOf(args, resolved) };
   const refused = await refusedBefore(pass);
-  if (refused.length > 0) return { problems: refused };
+  if (refused.length > 0) return said(stream, refused);
   const result = await execute(pass);
   // The result carries its own problems, a decorator that refused the program
   // among them, so both travel back together rather than one replacing the other.
-  return { problems: result.problems ?? [], result };
+  return { ...said(stream, result.problems ?? []), result };
+}
+
+/** Everything refused, on the stream and in the outcome: one channel, two readers. */
+function said(stream: ProblemStream, problems: Problem[]): RunFileOutcome {
+  stream.say(problems);
+  return { problems };
 }
 
 /**
@@ -158,7 +181,7 @@ function execute(pass: Pass): Promise<RunResult> {
   const runner = createRunner({
     host: args.host,
     plugins: allPlugins,
-    sink: args.sink,
+    sink: pass.stream.sink,
     ports: bindings(args),
     uri: args.uri,
     filter: args.filter,

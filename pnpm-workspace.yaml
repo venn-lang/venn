@@ -15,6 +15,9 @@ catalog:
   vitest: ^4.1.10
   "@vitest/coverage-v8": ^4.1.10
   "@fast-check/vitest": ^0.4.1
+  # A real parser for the junit document the CLI writes: a substring match
+  # proves nothing about a file a CI job has to read as XML.
+  fast-xml-parser: ^5.10.1
   "@biomejs/biome": ^2.5.5
   tsdown: ^0.22.14
   "@changesets/cli": ^2.31.1

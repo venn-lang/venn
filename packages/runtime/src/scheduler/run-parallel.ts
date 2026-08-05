@@ -7,6 +7,7 @@ import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
 import { readOptions } from "./read-options.js";
 import { claim, reportFailure } from "./report-failure.js";
+import { runBranches } from "./run-block.js";
 import { runStatement } from "./run-statements.js";
 import { CancelSignal, isControlSignal } from "./signals.js";
 
@@ -25,28 +26,40 @@ export async function runParallel(engine: Engine, stmt: ParallelStmt, scope: Sco
   const cancel = createCancelScope({ parent: engine.cancel, clock: engine.clock });
   const failures: unknown[] = [];
   try {
-    await dispatch({ engine, stmt, scope, cancel, failures, opts });
+    await branches({ engine, stmt, scope, cancel, failures, opts });
   } finally {
     cancel.release();
   }
   report(failures);
 }
 
-interface DispatchArgs {
+/** The branches, with whatever lifetime the block wrote around them. */
+function branches(args: PoolArgs & { stmt: ParallelStmt }): Promise<void> {
+  return runBranches({
+    engine: args.engine,
+    block: args.stmt.body,
+    scope: args.scope,
+    run: (each) => dispatch({ ...args, ...each }),
+  });
+}
+
+interface PoolArgs {
   engine: Engine;
-  stmt: ParallelStmt;
   scope: Scope;
   cancel: CancelScope;
   failures: unknown[];
   opts: Record<string, unknown>;
 }
 
+interface DispatchArgs extends PoolArgs {
+  stmts: readonly Statement[];
+}
+
 /** Every child statement, at most `concurrency` of them in flight. */
 function dispatch(args: DispatchArgs): Promise<void> {
-  const stmts = args.stmt.body.stmts;
   return runPool({
-    items: stmts,
-    limit: (args.opts.concurrency as number | undefined) ?? stmts.length,
+    items: args.stmts,
+    limit: (args.opts.concurrency as number | undefined) ?? args.stmts.length,
     stop: () => args.cancel.stopped() !== undefined,
     task: (child) => branch({ ...args, child, onError: onErrorOf(args.opts) }),
   });

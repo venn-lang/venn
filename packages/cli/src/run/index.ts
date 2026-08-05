@@ -5,6 +5,8 @@ export { watchForAStuckRun } from "./never-finished.js";
 export { createNodeModuleIo } from "./node-io.js";
 export { createNpmLoader } from "./npm-loader.js";
 export { deriveTypes, loadDerivedTypes, packageTypesFor, typesDir } from "./package-types.js";
+export { problemStream } from "./problem-stream.js";
+export type { ProblemStream } from "./problem-stream.types.js";
 export type { RunFileArgs, RunFileOutcome } from "./run-file.js";
 export { runFile } from "./run-file.js";
 export { shouldLeave } from "./should-leave.js";

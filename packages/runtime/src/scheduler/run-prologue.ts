@@ -7,7 +7,7 @@ import {
 } from "@venn-lang/core";
 import { closeAll } from "../cleanup/index.js";
 import type { Scope } from "../scope/index.js";
-import { branchEngine } from "./branch-engine.js";
+import { cleanupEngine } from "./branch-engine.js";
 import type { Engine } from "./engine.types.js";
 import { keepExit, runCleanup } from "./run-cleanup.js";
 import { runStatement } from "./run-statements.js";
@@ -47,8 +47,7 @@ function isDefer(node: Declaration): node is Declaration & LifecycleDecl {
 }
 
 function deferred(args: { engine: Engine; hook: LifecycleDecl; scope: Scope }): Teardown {
-  // Cleanup must complete even when what it tidies was cancelled mid-flight.
-  const engine = branchEngine(args.engine, undefined);
+  const engine = cleanupEngine(args.engine);
   return () => runCleanup(engine, args.hook, args.scope);
 }
 

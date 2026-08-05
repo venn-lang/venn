@@ -1,0 +1,6 @@
+let made = []
+forEach n in [1, 2] {
+  made = made.push(fn () => y)
+  let y = n
+}
+seen = "${made.map((f) => f())}"

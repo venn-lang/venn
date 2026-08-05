@@ -45,5 +45,6 @@ export {
   nodeWord,
   wrongKind,
   wrongKindTitle,
+  wrongPlace,
   wrongTargetTitle,
 } from "./wrong-kind.js";

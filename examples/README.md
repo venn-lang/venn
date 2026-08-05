@@ -4,7 +4,7 @@ Every file here runs. They are checked in CI the same way you would run them, so
 if one stops working it is a bug in Venn, not in the example.
 
 ```bash
-venn check examples/                      # type-check all 78 at once
+venn check examples/                      # type-check all 84 at once
 venn run   examples/basics/01-hello.vn    # a program: statements, top to bottom
 venn test  examples/testing/01-first-flow.vn   # a test: runs the flow blocks
 ```
@@ -24,7 +24,7 @@ Read them in this order. Each assumes the one before it.
 | [`testing/`](testing) | A first `flow` through to lifecycle hooks, expected failure, concurrency and matrices. | `venn test` |
 | [`servers/`](servers) | Starting a real HTTP server and asserting against it in the same file. | `venn run`, one `venn test` |
 | [`algorithms/`](algorithms) | Venn away from testing: fibonacci, sorting, binary search, word frequency, primes. | `venn run` |
-| [`programs/`](programs) | Whole programs rather than features, one folder each with its modules and its tests: a Pokedex, a status board, an expense report, a gradebook, a rota across timezones. | `venn run`, `venn test` |
+| [`programs/`](programs) | Whole programs rather than features, one folder each with its modules and its tests: a Pokedex, a status board, an expense report, a gradebook, a rota across timezones, a pantry. | `venn run`, `venn test` |
 
 ## Where to start
 

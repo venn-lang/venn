@@ -31,6 +31,15 @@ export {
 } from "./expr/index.js";
 // Formatting: shared by `venn fmt` and the editor so both agree.
 export * from "./format/index.js";
+// A closure written above the binding it reads, refused where it is written.
+export type { ForwardRead } from "./forward-read/index.js";
+export {
+  boundBelow,
+  forwardReadProblems,
+  forwardReads,
+  readBeforeBound,
+  refuseForwardReads,
+} from "./forward-read/index.js";
 // The generated AST (Document, FlowDecl, StepDecl, ActionCall, Expr, type guards…).
 export * from "./generated/ast.js";
 // Langium services (for advanced hosts; the CLI/runtime use `parse`).
@@ -91,6 +100,7 @@ export {
   checkTypes,
   createContext,
   DYNAMIC,
+  type ExactType,
   type FnType,
   type ImportedTypes,
   importedTypes,
@@ -98,7 +108,6 @@ export {
   isPrelude,
   KIND_SPECS,
   KIND_TYPES,
-  type LiteralType,
   literal,
   MEMBER_DOCS,
   type MemberDoc,

@@ -1,4 +1,4 @@
-import { durationMs, type RaceStmt } from "@venn-lang/core";
+import { durationMs, type RaceStmt, type Statement } from "@venn-lang/core";
 import { type CancelScope, createCancelScope, unwind } from "../cancel/index.js";
 import type { Scope } from "../scope/index.js";
 import { reportAbandoned } from "./abandoned.js";
@@ -7,6 +7,7 @@ import type { Engine } from "./engine.types.js";
 import { nodeSpan } from "./node-span.js";
 import { readOptions } from "./read-options.js";
 import { withTimeout } from "./run-attempts.js";
+import { runBranches } from "./run-block.js";
 import { runStatement } from "./run-statements.js";
 import { CancelSignal } from "./signals.js";
 
@@ -36,17 +37,39 @@ export async function runRace(engine: Engine, stmt: RaceStmt, scope: Scope): Pro
   });
 }
 
-/** The branches, under a scope of their own, and the wait for the losers to stop. */
-async function branches(engine: Engine, stmt: RaceStmt, scope: Scope): Promise<void> {
+/** The branches, with whatever lifetime the block wrote around them. */
+function branches(engine: Engine, stmt: RaceStmt, scope: Scope): Promise<void> {
+  return runBranches({
+    engine,
+    block: stmt.body,
+    scope,
+    run: (each) => contend({ ...each, stmt, scope }),
+  });
+}
+
+/** The branches themselves, under a scope of their own, and the wait for the losers. */
+async function contend(args: Contest): Promise<void> {
+  // Nothing to race is not a race lost: `Promise.race([])` is pending for ever,
+  // and a body of hooks alone has no branch in it.
+  if (args.stmts.length === 0) return;
+  const { engine, scope } = args;
   const cancel = createCancelScope({ parent: engine.cancel, clock: engine.clock });
-  const running = stmt.body.stmts.map((child) =>
+  const running = args.stmts.map((child) =>
     Promise.resolve(runStatement(branchEngine(engine, cancel), child, scope.child())),
   );
   try {
     await Promise.race(running);
   } finally {
-    await settleLosers({ engine, stmt, cancel, branches: running });
+    await settleLosers({ engine, stmt: args.stmt, cancel, branches: running });
   }
+}
+
+/** One race in flight: the branches it holds, and where they were written. */
+interface Contest {
+  engine: Engine;
+  stmts: readonly Statement[];
+  stmt: RaceStmt;
+  scope: Scope;
 }
 
 /** The losers, called off and then waited for, so the block outlives none of them. */

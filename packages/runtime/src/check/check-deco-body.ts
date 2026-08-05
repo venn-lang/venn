@@ -1,7 +1,6 @@
 import {
   type AstNode,
   acceptedKinds,
-  boundNames,
   CODES,
   type DecoDecl,
   decoCannotCall,
@@ -9,6 +8,7 @@ import {
   isActionCall,
   isDecoDecl,
   isLetStmt,
+  namesBound,
   type Problem,
   verbsOfKind,
 } from "@venn-lang/core";
@@ -72,10 +72,20 @@ function calledTarget(node: AstNode): string | undefined {
 }
 
 /**
- * Why this call cannot be made from here, if it cannot. Only a head the file can
- * already account for is refused: an imported namespace, a bound name, a namespace
- * some loaded plugin owns. Anything else is a name only expansion resolves, and
- * guessing at it would put an error on every well-written decorator.
+ * Why this call cannot be made from here, if it cannot.
+ *
+ * A `deco` body resolves the head of a call against what it has in hand: its
+ * own parameters, whatever it binds, and the prelude's values. Two heads it
+ * cannot have are worth refusing here, because the file already accounts for
+ * them: a prelude verb, and an imported or plugin namespace. Any other name is
+ * one only expansion resolves, and guessing at it would put an error on every
+ * well-written decorator.
+ *
+ * A prelude verb is the scheduler's, and a decorator runs before there is a
+ * scheduler. Excusing the whole prelude here let `venn check` pass a
+ * `deco boom(target: Fn) { fail "…" }` that every run refuses with this code,
+ * which is the disagreement between the two commands that this pass exists to
+ * prevent.
  */
 function pluginVerb(args: {
   deco: DecoDecl;
@@ -83,17 +93,13 @@ function pluginVerb(args: {
   ctx: CheckContext;
 }): string | undefined {
   const { namespace } = splitTarget(args.target);
-  if (PRELUDE.has(args.target) || paramNames(args.deco).has(namespace)) return undefined;
-  if (!reachesTheWorld(namespace, args.ctx)) return undefined;
-  return decoCannotCall(args.target);
+  if (namesBound(args.deco).has(namespace)) return undefined;
+  const refused = PRELUDE.has(args.target) || reachesTheWorld(namespace, args.ctx);
+  return refused ? decoCannotCall(args.target) : undefined;
 }
 
 function reachesTheWorld(namespace: string, ctx: CheckContext): boolean {
   return (
     ctx.imported.has(namespace) || ctx.bound.has(namespace) || ctx.registry.hasNamespace(namespace)
   );
-}
-
-function paramNames(deco: DecoDecl): Set<string> {
-  return new Set((deco.params?.params ?? []).flatMap(boundNames));
 }

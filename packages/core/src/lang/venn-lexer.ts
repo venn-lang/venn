@@ -1,4 +1,5 @@
 import { DefaultLexer, type LexerResult, type TokenizeOptions } from "langium";
+import { BOM } from "./byte-order-mark.js";
 
 /** A single lexed token; NL suppression keys off its token-type name. */
 type Token = LexerResult["tokens"][number];
@@ -11,13 +12,6 @@ const DROPS_NEWLINES = new Set(["(", "["]);
 /** The bracket that gives newlines back: a block, a map, a shape. */
 const KEEPS_NEWLINES = new Set(["{"]);
 const CLOSERS = new Set([")", "]", "}"]);
-
-/**
- * The mark Windows editors, PowerShell's `Set-Content` and several CI checkouts
- * write at the top of a file. It is not a character the grammar has anywhere,
- * so one at offset 0 made the whole file unreadable.
- */
-const BOM = "\uFEFF";
 
 /**
  * Makes `NL` (a newline or `;`) significant between statements, but suppresses
@@ -33,10 +27,15 @@ const BOM = "\uFEFF";
  */
 export class VennLexer extends DefaultLexer {
   override tokenize(text: string, options?: TokenizeOptions): LexerResult {
+    const marked = text.startsWith(BOM);
     // Written over rather than cut out, so every offset after it is where it
-    // was and each span still points where it pointed.
-    const read = text.startsWith(BOM) ? ` ${text.slice(BOM.length)}` : text;
-    const result = super.tokenize(read, options);
+    // was and each span still points where it pointed. The columns it leaves
+    // one place to the right on line one are moved at the Problem boundary, by
+    // `shownColumn`, and never here: Langium builds `$cstNode.range` out of
+    // these very columns and `$cstNode.offset` out of the offsets, so a token
+    // whose column had been shifted gave one CST node a range and an offset
+    // that disagreed, and rename rewrote five characters beside the name.
+    const result = super.tokenize(marked ? ` ${text.slice(BOM.length)}` : text, options);
     const walked = suppressBracketedNewlines(result.tokens);
     result.tokens = walked.tokens;
     result.errors = [...result.errors, ...walked.unclosed];

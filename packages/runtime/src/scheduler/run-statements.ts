@@ -101,7 +101,9 @@ function leaf(stmt: Statement, scope: Scope): Pending {
   if (stmt.$type === "ReturnStmt") return runReturn(stmt as ReturnStmt, scope);
   if (stmt.$type === "BreakStmt") throw new BreakSignal();
   if (stmt.$type === "ContinueStmt") throw continueWith(stmt as ContinueStmt, scope);
-  // LifecycleDecl (on/defer) is handled by runBlock / runFlow, not here.
+  // A LifecycleDecl reaches here only as `on`, which the flow reads off its own
+  // body when it settles. The named hooks and `defer` are the block's, and
+  // `runBlock` has already taken them out of the walk.
   return undefined;
 }
 

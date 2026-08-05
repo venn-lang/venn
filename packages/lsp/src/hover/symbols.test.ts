@@ -1,6 +1,7 @@
 // biome-ignore-all lint/suspicious/noTemplateCurlyInString: Venn source under test.
-import { describe, expect, it } from "vitest";
-import { fixture, positionOf } from "../testing/lsp-fixture.js";
+import { isPrelude } from "@venn-lang/core";
+import { beforeAll, describe, expect, it } from "vitest";
+import { type Fixture, fixture, positionOf } from "../testing/lsp-fixture.js";
 
 const SOURCE = `import { fmt } from "venn/fmt"
 
@@ -17,8 +18,23 @@ flow "f" {
   }
 }`;
 
+/**
+ * One document for the file, because it is the same document seven times.
+ *
+ * Building the Langium services and analysing the source is what this file
+ * costs: seven builds of one constant took seven times as long as one, and the
+ * first of them was paid inside the first `it`, against a five second test
+ * budget, on a machine already running every other project of the workspace.
+ * A hook has ten, and now only one build happens at all. See venn-lang/venn#306.
+ */
+let built: Fixture;
+
+beforeAll(async () => {
+  built = await fixture(SOURCE);
+});
+
 async function hoverAt(needle: string, offset = 0): Promise<string> {
-  const { services, document, uri } = await fixture(SOURCE);
+  const { services, document, uri } = built;
   const position = positionOf(document, needle);
   const hover = await services.lsp.HoverProvider?.getHoverContent(document, {
     textDocument: { uri },
@@ -31,9 +47,18 @@ async function hoverAt(needle: string, offset = 0): Promise<string> {
 }
 
 describe("prelude names", () => {
+  /**
+   * Three reds wear the same colour here, and venn-lang/venn#306 was filed
+   * without knowing which one it saw. No `range` in the prelude table is one
+   * thing; an analysis that produced no types at all answers with nothing, and
+   * is another; the dynamic fence is a third. The first two say so themselves
+   * now, so the next occurrence is a diagnosis rather than a guess.
+   */
   it("documents `range` instead of calling it dynamic", async () => {
     const markdown = await hoverAt("range(3)");
 
+    expect(isPrelude("range"), "the prelude table has no `range` in it").toBe(true);
+    expect(markdown, "the hover answered nothing at all").not.toBe("");
     expect(markdown).toContain("list<number>");
     expect(markdown).toContain("The end is exclusive");
     expect(markdown).toContain("Prelude");

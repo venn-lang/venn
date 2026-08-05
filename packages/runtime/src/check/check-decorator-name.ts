@@ -3,6 +3,7 @@ import {
   type AstNode,
   buildProblem,
   CODES,
+  type DecoDecl,
   isDecoDecl,
   type Problem,
 } from "@venn-lang/core";
@@ -53,6 +54,16 @@ export function decosOf(
   document: { decls: readonly AstNode[] },
   imported: Iterable<string> = [],
 ): Set<string> {
-  const own = document.decls.filter(isDecoDecl).map((decl) => decl.name);
-  return new Set([...own, ...imported]);
+  return new Set([...decoDeclsOf(document).keys(), ...imported]);
+}
+
+/**
+ * The `deco`s this file declares, by name, for a check that has to read one.
+ *
+ * @param document The parsed file.
+ * @returns Each declaration by the name it was given; the last of a repeated
+ * name wins, which is the one expansion resolves to as well.
+ */
+export function decoDeclsOf(document: { decls: readonly AstNode[] }): Map<string, DecoDecl> {
+  return new Map(document.decls.filter(isDecoDecl).map((decl) => [decl.name, decl]));
 }

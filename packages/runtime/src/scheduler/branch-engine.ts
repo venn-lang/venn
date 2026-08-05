@@ -16,3 +16,19 @@ import type { Engine } from "./engine.types.js";
 export function branchEngine(engine: Engine, scope: CancelScope | undefined): Engine {
   return { ...engine, cancel: scope, ctx: { ...engine.ctx, signal: scope?.signal } };
 }
+
+/**
+ * The engine cleanup runs on: this one, with the cancel scope taken off it.
+ *
+ * A `teardown` or a `defer` is written for the case its block did not reach the
+ * end, and cancellation is that case. Left on the engine its block ran on, the
+ * first `checkpoint` in the cleanup body throws the reason the block was called
+ * off, so the very hook that gives the resource back is the one statement that
+ * never runs, and the timeout that stopped the block is counted a second time as
+ * a `VN7004` against the hook. Detaching also takes the aborted signal off the
+ * context an action reads, which is the only way cleanup can still reach the
+ * world it is handing back.
+ */
+export function cleanupEngine(engine: Engine): Engine {
+  return branchEngine(engine, undefined);
+}

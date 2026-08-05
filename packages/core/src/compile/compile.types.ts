@@ -30,8 +30,9 @@ export type Step = (frame: Frame) => number;
  * Where one free name of a closure lives, worked out where the closure is
  * written and answered when it is made.
  *
- * `undefined` for the one name a closure cannot be told about at that point: a
- * name its own body binds further down, which is still asked for by name.
+ * `undefined` for the one name a closure cannot be told about at that point: the
+ * name of the `let` the closure is the value of, which is still asked for by
+ * name because the cell it will hold does not exist yet.
  */
 export type Capture = (env: EvalEnv) => Cell | undefined;
 

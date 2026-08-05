@@ -1,5 +1,13 @@
 # @venn-lang/assert
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/sdk@0.7.1
+  - @venn-lang/types@0.7.1
+
 ## 0.7.0
 
 ### Minor Changes

@@ -2,9 +2,7 @@ import {
   type AstNode,
   acceptedKinds,
   boundNames,
-  buildProblem,
   CODES,
-  type CodeSpec,
   type DecoDecl,
   decoCannotCall,
   decoTarget,
@@ -14,8 +12,9 @@ import {
   type Problem,
   verbsOfKind,
 } from "@venn-lang/core";
-import { actionTarget, nodeSpan, PRELUDE, splitTarget } from "../scheduler/index.js";
+import { actionTarget, PRELUDE, splitTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
+import { problemAt } from "./problem-at.js";
 
 /**
  * Check a node written inside a `deco` body, which is not the program and so is
@@ -33,9 +32,9 @@ export function checkInsideDeco(node: AstNode, ctx: CheckContext): Problem[] | u
   const target = calledTarget(node);
   if (target === undefined) return [];
   const missing = handleVerb({ deco, target });
-  if (missing) return [problem(node, ctx, CODES.VN2017_DECO_VERB, missing)];
+  if (missing) return [problemAt({ node, ctx, spec: CODES.VN2017_DECO_VERB, title: missing })];
   const refused = pluginVerb({ deco, target, ctx });
-  return refused ? [problem(node, ctx, CODES.VN2016_DECO_IMPURE, refused)] : [];
+  return refused ? [problemAt({ node, ctx, spec: CODES.VN2016_DECO_IMPURE, title: refused })] : [];
 }
 
 /**
@@ -97,8 +96,4 @@ function reachesTheWorld(namespace: string, ctx: CheckContext): boolean {
 
 function paramNames(deco: DecoDecl): Set<string> {
   return new Set((deco.params?.params ?? []).flatMap(boundNames));
-}
-
-function problem(node: AstNode, ctx: CheckContext, spec: CodeSpec, title: string): Problem {
-  return buildProblem({ spec, span: nodeSpan(node, ctx.uri), title });
 }

@@ -5,6 +5,7 @@ import {
   closureOfDecl,
   decorateCallable,
   evaluate,
+  fileOf,
   isFnDecl,
   isLetStmt,
   isNamespaceDecl,
@@ -62,7 +63,7 @@ function noPlaceFor(held: AstNode): ProblemError {
   return new ProblemError({
     ...buildProblem({
       spec: CODES.VN2025_NOT_A_NAMESPACE_MEMBER,
-      span: nodeSpan(held, ""),
+      span: nodeSpan(held, fileOf(held)),
       title: `A namespace groups names, so it cannot hold ${wordFor(held)}.`,
     }),
     help: "Move it to the top level of the file.",

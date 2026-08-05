@@ -11,7 +11,6 @@ async function ran(lines: string[]): Promise<string[]> {
   const out: string[] = [];
   const plugin = definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({

@@ -4,6 +4,7 @@ import {
   arg,
   Duration,
   defineAction,
+  unitBase,
 } from "@venn-lang/sdk";
 import { t } from "@venn-lang/types";
 import { getMockState } from "../state/index.js";
@@ -30,7 +31,7 @@ function freezeClock(input: ActionInput<unknown>): number {
 
 function toInstant(value: unknown): number {
   if (typeof value === "number") return value;
-  const epochMs = instantValue(value);
+  const epochMs = unitBase(value, "instant");
   if (epochMs !== undefined) return epochMs;
   const ms = Date.parse(String(value));
   return Number.isNaN(ms) ? 0 : ms;
@@ -60,30 +61,16 @@ function advanceClock(input: ActionInput<unknown>): number {
 /**
  * How far to move, read from the one place the verb declares it.
  *
+ * `Duration` is the whole answer now that it takes the language's own `1h`
+ * literal as well as `"1h"` and a millisecond count. This used to unwrap the
+ * literal itself, which is why `mock.clock.advance(1h)` was the one call of its
+ * kind in the repository that worked.
+ *
  * It used to fall back to an option named `by` that no `params` schema ever
  * declared, so `mock.clock.advance { by: "1h" }` worked when its result was
  * bound and was VN5007 when it was not: two answers to one call.
  */
 function durationMs(input: ActionInput<unknown>): number {
-  const ms = durationValue(input.args[0]);
-  if (ms !== undefined) return ms;
   const parsed = Duration.safeParse(input.args[0]);
   return parsed.success ? parsed.data : 0;
-}
-
-/**
- * The number inside a unit value, when the argument is one.
- *
- * `1h` and `2026-07-23T12:00:00Z` reach an action as `{ kind, ms }` and
- * `{ kind, epochMs }`, the language's own literals rather than strings. Without
- * this unwrapping they parse to `NaN` and the clock silently sits at the epoch.
- */
-function durationValue(value: unknown): number | undefined {
-  const unit = value as { kind?: string; ms?: number } | null | undefined;
-  return unit?.kind === "duration" ? (unit.ms ?? 0) : undefined;
-}
-
-function instantValue(value: unknown): number | undefined {
-  const unit = value as { kind?: string; epochMs?: number } | null | undefined;
-  return unit?.kind === "instant" ? (unit.epochMs ?? 0) : undefined;
 }

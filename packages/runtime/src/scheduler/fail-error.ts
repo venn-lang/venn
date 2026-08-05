@@ -1,5 +1,5 @@
 import { VennError } from "@venn-lang/contracts";
-import { CODES, type Problem, type Span } from "@venn-lang/core";
+import { buildProblem, CODES, type Span } from "@venn-lang/core";
 import { RUN_CODES } from "../codes.js";
 
 /**
@@ -30,14 +30,17 @@ export function failError(args: {
  * uncatalogued code only where the throw vouched for it by carrying a whole
  * problem, and this is the one raiser that can. Without it the flagship code of
  * the error model reached the reporter as `VN7000`.
+ *
+ * Built through `buildProblem` like every other raiser, so a `fail` with no code
+ * of its own carries the same docs link a compile diagnostic does, and a code
+ * the program chose carries none because there is no page to send a reader to.
  */
 function raised(args: { code: string; message: string; data: unknown; where: Span }): VennError {
-  const problem: Problem = {
-    code: args.code,
-    severity: "error",
-    title: args.message,
+  const problem = buildProblem({
+    spec: { code: args.code, severity: "error" },
     span: args.where,
-  };
+    title: args.message,
+  });
   // Where it was raised, which the runtime knows and a `VennError` has nowhere
   // else to put: it carries a code and a message and no span.
   const detail = { data: args.data, where: args.where };

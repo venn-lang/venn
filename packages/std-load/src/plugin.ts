@@ -1,6 +1,5 @@
 import { definePlugin, type PluginDefinition } from "@venn-lang/sdk";
 import { loadActions } from "./actions/index.js";
-import { LoadMetricsSchema } from "./metrics/index.js";
 import { loadTypeDefs } from "./types.js";
 
 /**
@@ -10,10 +9,8 @@ import { loadTypeDefs } from "./types.js";
  */
 export const loadPlugin: PluginDefinition = definePlugin({
   name: "venn/load",
-  version: "0.0.0",
   namespace: "load",
   requires: ["net"],
   actions: loadActions,
-  types: { LoadMetrics: LoadMetricsSchema },
   typeDefs: loadTypeDefs,
 });

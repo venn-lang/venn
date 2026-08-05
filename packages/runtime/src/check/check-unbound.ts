@@ -1,15 +1,15 @@
 import {
   type AstNode,
   CODES,
-  isAnnotation,
+  insideAnnotation,
   isFnDecl,
   isRef,
   type Problem,
   type Ref,
 } from "@venn-lang/core";
 import { isPrelude } from "@venn-lang/prelude";
+import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
-import { nearestName } from "./nearest-name.js";
 import { problemAt } from "./problem-at.js";
 
 /**
@@ -28,7 +28,9 @@ export function checkUnbound(node: AstNode, ctx: CheckContext): Problem[] {
   if (!isRef(node) || insideAnnotation(node) || known(node.name, ctx)) return [];
   if (underADecorator(node)) return [];
   const title = `Nothing is named "${node.name}" here.`;
-  return [{ ...problemAt(node, ctx, CODES.VN2018_UNBOUND_NAME, title), help: help(node, ctx) }];
+  return [
+    { ...problemAt({ node, ctx, spec: CODES.VN2018_UNBOUND_NAME, title }), help: help(node, ctx) },
+  ];
 }
 
 /**
@@ -47,19 +49,6 @@ export function underADecorator(node: AstNode): boolean {
   for (let at: AstNode | undefined = node; at; at = at.$container) {
     if (isFnDecl(at) && at.annotations.length > 0) return true;
   }
-  return false;
-}
-
-/**
- * A bare name inside a decorator is a word, not a reference.
- *
- * `@tags(smoke)` names a tag and `@scope(worker)` names a lifetime. Decorators
- * run before the program exists, so there is nothing yet for one to refer to,
- * and the expander reads a `Ref` there as its own text rather than looking it
- * up.
- */
-function insideAnnotation(node: AstNode): boolean {
-  for (let at = node.$container; at; at = at.$container) if (isAnnotation(at)) return true;
   return false;
 }
 

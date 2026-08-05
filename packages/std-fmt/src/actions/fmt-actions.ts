@@ -25,6 +25,10 @@ function number(value: unknown, fallback: number): number {
  * Every verb is positional and none reads an options map, so none declares a
  * params schema: one would put a `{ … }` in the editor's hover that the verb
  * never looks at, and would quietly strip the keys a caller wrote there.
+ *
+ * Every verb hands `ctx.show` to its renderer. That is the language's own
+ * writer, and it is what makes all five formats and `${}` agree that `250ms`
+ * is called `250ms`.
  */
 export const fmtActions: ActionDefinition[] = [
   defineAction({
@@ -36,7 +40,7 @@ export const fmtActions: ActionDefinition[] = [
       optionalArg("indent", t.number, "Spaces per level. 0 puts it on one line."),
     ],
     result: t.string,
-    run: (_ctx, input) => toJson(input.args[0], number(input.args[1], 2)),
+    run: (ctx, input) => toJson(input.args[0], ctx.show, number(input.args[1], 2)),
   }),
   defineAction({
     name: "table",
@@ -52,7 +56,7 @@ export const fmtActions: ActionDefinition[] = [
     doc: "YAML text, for a map, a list or a scalar.",
     args: [arg("value", t.dynamic, "What to render.")],
     result: t.string,
-    run: (_ctx, input) => toYaml(input.args[0]),
+    run: (ctx, input) => toYaml(input.args[0], ctx.show),
   }),
   defineAction({
     name: "csv",
@@ -62,7 +66,7 @@ export const fmtActions: ActionDefinition[] = [
       optionalArg("separator", t.string, "What goes between fields. A comma by default."),
     ],
     result: t.string,
-    run: (_ctx, input) => toCsv(list(input.args[0]), String(input.args[1] ?? ",")),
+    run: (ctx, input) => toCsv(list(input.args[0]), ctx.show, String(input.args[1] ?? ",")),
   }),
   defineAction({
     name: "xml",
@@ -72,6 +76,7 @@ export const fmtActions: ActionDefinition[] = [
       optionalArg("root", t.string, "What to call the outermost element."),
     ],
     result: t.string,
-    run: (_ctx, input) => toXml(input.args[0], String(input.args[1] ?? "root")),
+    run: (ctx, input) =>
+      toXml({ value: input.args[0], show: ctx.show, tag: String(input.args[1] ?? "root") }),
   }),
 ];

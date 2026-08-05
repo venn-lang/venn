@@ -15,7 +15,6 @@ import { mockTypeDefs } from "./types.js";
  */
 export const mockPlugin: PluginDefinition = definePlugin({
   name: "venn/mock",
-  version: "0.0.0",
   namespace: "mock",
   actions: mockActions,
   typeDefs: mockTypeDefs,

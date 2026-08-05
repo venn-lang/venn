@@ -16,7 +16,6 @@ import { createRunner } from "../run/create-runner.js";
  */
 const SLOW = definePlugin({
   name: "@t/slow",
-  version: "0",
   namespace: "slow",
   actions: [
     defineAction({

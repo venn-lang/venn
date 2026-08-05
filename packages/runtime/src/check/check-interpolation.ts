@@ -4,13 +4,14 @@ import {
   CODES,
   type Expr,
   type InterpolationSlot,
-  isAnnotation,
+  insideAnnotation,
   isStringLit,
   markSlotIn,
   type Problem,
   parseExpression,
   type Span,
   scanInterpolations,
+  slotSpan,
   walkAst,
 } from "@venn-lang/core";
 import type { CheckContext } from "./check.types.js";
@@ -30,18 +31,14 @@ export function checkInterpolation(node: AstNode, ctx: CheckContext): Problem[] 
   // the declaration it sits in. Asked here, where the string still knows.
   const decorated = underADecorator(node);
   return scanInterpolations(cst.text).flatMap((slot) =>
-    inSlot({ slot, host: node, span: spanOf(slot, { cst, uri: ctx.uri }), ctx, decorated }),
+    inSlot({
+      slot,
+      host: node,
+      span: slotSpan({ slot, host: node, uri: ctx.uri }),
+      ctx,
+      decorated,
+    }),
   );
-}
-
-/**
- * A bare name inside a decorator is a word, not a reference, so a string there
- * is decorator arguments rather than code. The AST walk skips those for the
- * same reason.
- */
-function insideAnnotation(node: AstNode): boolean {
-  for (let at = node.$container; at; at = at.$container) if (isAnnotation(at)) return true;
-  return false;
 }
 
 /**
@@ -90,22 +87,4 @@ function unreadable(slot: InterpolationSlot, span: Span): Problem {
     span,
     title: `Cannot read \`\${${slot.source}}\`, that is not an expression.`,
   });
-}
-
-/** The span of the placeholder itself: line and column follow the string's own start. */
-function spanOf(
-  slot: InterpolationSlot,
-  target: {
-    cst: { offset: number; range?: { start: { line: number; character: number } } };
-    uri: string;
-  },
-): Span {
-  const start = target.cst.range?.start;
-  return {
-    uri: target.uri,
-    offset: target.cst.offset + slot.start,
-    length: slot.end - slot.start,
-    line: (start?.line ?? 0) + 1,
-    column: (start?.character ?? 0) + 1 + slot.start,
-  };
 }

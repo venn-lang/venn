@@ -7,7 +7,6 @@ import { createRunner } from "../run/create-runner.js";
 
 const plugin = definePlugin({
   name: "@test/t",
-  version: "0",
   namespace: "t",
   actions: [
     defineAction({ name: "echo", run: (_ctx, input) => input.args[0] }),

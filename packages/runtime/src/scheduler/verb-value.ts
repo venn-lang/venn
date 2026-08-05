@@ -1,4 +1,4 @@
-import { buildProblem, CODES, type Problem, ProblemError, type Span } from "@venn-lang/core";
+import { buildProblem, CODES, type Problem, ProblemError, UNLOCATED } from "@venn-lang/core";
 import type { ActionDefinition, ActionInput, ParamSpec } from "@venn-lang/sdk";
 import { callParams } from "./call-params.js";
 import { optionNames, takes } from "./declared-arity.js";
@@ -89,13 +89,11 @@ function refuseStrays(action: ActionDefinition, opts: Record<string, unknown> | 
 function unknownOption(key: string, specs: readonly ParamSpec[]): Problem {
   return buildProblem({
     spec: CODES.VN3001_UNKNOWN_OPTION,
-    span: SPAN,
+    // No node to point at: the map was a value by the time the verb was reached.
+    span: UNLOCATED,
     title: strayKeyTitle(key, specs),
   });
 }
-
-/** No node to point at: the map was a value by the time the verb was reached. */
-const SPAN: Span = { uri: "", offset: 0, length: 0, line: 1, column: 1 };
 
 /** `callParams` wants a node for a required option nobody wrote; there is none. */
 const NOWHERE = { $type: "Call" } as never;

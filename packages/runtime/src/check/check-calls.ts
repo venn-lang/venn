@@ -1,7 +1,6 @@
 import {
   type ActionCall,
   type AstNode,
-  buildProblem,
   type CaptureStmt,
   CODES,
   isDocument,
@@ -10,9 +9,10 @@ import {
   type MapLit,
   type Problem,
 } from "@venn-lang/core";
-import { actionTarget, nodeSpan, PRELUDE, resolveTarget, splitTarget } from "../scheduler/index.js";
+import { actionTarget, PRELUDE, resolveTarget, splitTarget } from "../scheduler/index.js";
 import type { CheckContext } from "./check.types.js";
 import { checkOptions } from "./check-options.js";
+import { problemAt } from "./problem-at.js";
 
 /** `http.get "…"` written as a statement. */
 export function checkAction(call: ActionCall, ctx: CheckContext): Problem[] {
@@ -30,7 +30,8 @@ export function checkLet(stmt: LetStmt, ctx: CheckContext): Problem[] {
   if (stmt.args.length === 0 && !stmt.opts) return [];
   const target = actionTarget(stmt.value);
   if (target === undefined) {
-    return [problem(stmt, ctx, CODES.VN2003_UNKNOWN_ACTION, "This is not an action to call.")];
+    const title = "This is not an action to call.";
+    return [problemAt({ node: stmt, ctx, spec: CODES.VN2003_UNKNOWN_ACTION, title })];
   }
   return checkTarget({ node: stmt, target, opts: stmt.opts, ctx });
 }
@@ -51,14 +52,14 @@ function checkPub(stmt: LetStmt, ctx: CheckContext): Problem | undefined {
   if (!stmt.export || isDocument(held) || isNamespaceDecl(held)) return undefined;
   const title =
     "`pub` publishes at the top of a file or inside a `namespace`, and this one is somewhere else.";
-  return problem(stmt, ctx, CODES.VN2009_NOT_EXPORTED, title);
+  return problemAt({ node: stmt, ctx, spec: CODES.VN2009_NOT_EXPORTED, title });
 }
 
 /** `capture` is folded into `let`; say so where it is written. */
 export function checkCapture(stmt: CaptureStmt, ctx: CheckContext): Problem {
   const title =
     "`capture` was removed, use `let` for a value that changes, `const` for one that does not.";
-  return problem(stmt, ctx, CODES.VN5001_REMOVED_KEYWORD, title);
+  return problemAt({ node: stmt, ctx, spec: CODES.VN5001_REMOVED_KEYWORD, title });
 }
 
 /**
@@ -78,7 +79,8 @@ function checkTarget(args: {
   if (!ctx.imported.has(written)) return [missingImport(args, written)];
   const resolved = ctx.registry.action(resolveTarget(target, ctx.aliases));
   if (!resolved) {
-    return [problem(node, ctx, CODES.VN2003_UNKNOWN_ACTION, `Unknown action "${target}".`)];
+    const title = `Unknown action "${target}".`;
+    return [problemAt({ node, ctx, spec: CODES.VN2003_UNKNOWN_ACTION, title })];
   }
   return checkOptions({ opts: args.opts, params: resolved.action.params, ctx });
 }
@@ -87,23 +89,12 @@ function missingImport(
   args: { node: AstNode; target: string; ctx: CheckContext },
   namespace: string,
 ): Problem {
-  if (!args.ctx.registry.hasNamespace(namespace)) {
+  const { node, ctx } = args;
+  if (!ctx.registry.hasNamespace(namespace)) {
     const title = `Unknown action "${args.target}": no loaded plugin provides it.`;
-    return problem(args.node, args.ctx, CODES.VN2003_UNKNOWN_ACTION, title);
+    return problemAt({ node, ctx, spec: CODES.VN2003_UNKNOWN_ACTION, title });
   }
   const title = `"${namespace}" is not imported in this file.`;
-  const found = problem(args.node, args.ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
-  return {
-    ...found,
-    help: `Write \`import { ${namespace} } from "…"\` for the package it comes from.`,
-  };
-}
-
-function problem(
-  node: AstNode,
-  ctx: CheckContext,
-  spec: (typeof CODES)[keyof typeof CODES],
-  title: string,
-): Problem {
-  return buildProblem({ spec, span: nodeSpan(node, ctx.uri), title });
+  const help = `Write \`import { ${namespace} } from "…"\` for the package it comes from.`;
+  return { ...problemAt({ node, ctx, spec: CODES.VN2007_NAMESPACE_NOT_IMPORTED, title }), help };
 }

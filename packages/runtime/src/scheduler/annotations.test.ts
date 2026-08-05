@@ -10,7 +10,6 @@ describe("execution annotations", () => {
     let calls = 0;
     const plugin = definePlugin({
       name: "@t/r",
-      version: "0",
       namespace: "t",
       actions: [defineAction({ name: "flaky", run: () => ({ ok: ++calls >= 2 }) })],
     });
@@ -35,7 +34,6 @@ describe("execution annotations", () => {
   it("@lock serializes parallel steps sharing a resource without deadlock", async () => {
     const plugin = definePlugin({
       name: "@t/l",
-      version: "0",
       namespace: "t",
       actions: [defineAction({ name: "noop", run: () => undefined })],
     });

@@ -21,7 +21,6 @@ async function ran(files: Record<string, string>): Promise<string[]> {
   const out: string[] = [];
   const printer = definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({

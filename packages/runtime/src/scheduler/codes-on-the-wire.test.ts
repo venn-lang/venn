@@ -8,7 +8,6 @@ import { createRunner } from "../run/index.js";
 /** A verb that lets a Node error escape, and one that uses `where` for prose. */
 const plugin = definePlugin({
   name: "@t/files",
-  version: "0",
   namespace: "t",
   actions: [
     defineAction({

@@ -8,7 +8,6 @@ function contextFor(driver: FakeBrowserDriver): ActionContext {
     port: () => driver,
     secrets: undefined,
     log: () => undefined,
-    redact: () => undefined,
   } as unknown as ActionContext;
 }
 

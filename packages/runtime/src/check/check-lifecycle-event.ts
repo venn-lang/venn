@@ -1,7 +1,7 @@
 import { type AstNode, buildProblem, CODES, isLifecycleDecl, type Problem } from "@venn-lang/core";
 import { nodeSpan } from "../scheduler/index.js";
+import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
-import { nearestName } from "./nearest-name.js";
 
 /**
  * `on banana { … }`, which is a block nothing will ever run.

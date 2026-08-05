@@ -8,7 +8,6 @@ import { createRunner } from "../run/index.js";
 /** A verb that fails with whatever it was told to say. */
 const plugin = definePlugin({
   name: "@t/pay",
-  version: "0",
   namespace: "t",
   actions: [
     defineAction({

@@ -26,7 +26,7 @@ export function checkNamespaceUse(node: AstNode, ctx: CheckContext): Problem[] {
   if (!head || ctx.bound.has(head) || ctx.imported.has(head)) return [];
   if (!ctx.registry.hasNamespace(head)) return [];
   const title = `"${head}" is not imported in this file.`;
-  const problem = problemAt(node, ctx, CODES.VN2007_NAMESPACE_NOT_IMPORTED, title);
+  const problem = problemAt({ node, ctx, spec: CODES.VN2007_NAMESPACE_NOT_IMPORTED, title });
   return [
     { ...problem, help: `Write \`import { ${head} } from "…"\` for the package it comes from.` },
   ];

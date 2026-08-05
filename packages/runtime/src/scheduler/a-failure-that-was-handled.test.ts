@@ -17,7 +17,7 @@ async function ran(source: string): Promise<Ran> {
     name: "record",
     run: (_ctx, input) => void seen.push(String(input.args[0])),
   });
-  const plugin = definePlugin({ name: "@t/h", version: "0", namespace: "t", actions: [record] });
+  const plugin = definePlugin({ name: "@t/h", namespace: "t", actions: [record] });
   const { ast, problems } = parse(source);
   expect(problems.map((problem) => problem.title)).toEqual([]);
   const sink = createMemorySink();

@@ -7,6 +7,7 @@ import {
   type Span,
 } from "@venn-lang/core";
 import { actionTarget, nodeSpan } from "../scheduler/index.js";
+import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
 
 /** `env.NAME` as it appears inside a `${…}` placeholder. */
@@ -63,35 +64,9 @@ function declared(name: string, env: ReadonlySet<string>): boolean {
 
 /** The undeclared-variable problem, with the nearest declared name as a hint. */
 export function envProblem(name: string, span: Span, ctx: CheckContext): Problem {
-  const hint = nearest(name, [...(ctx.env ?? [])]);
+  const hint = nearestName(name, ctx.env ?? []);
   const title = hint
     ? `"env.${name}" is not declared in venn.toml. Did you mean "env.${hint}"?`
     : `"env.${name}" is not declared in venn.toml.`;
   return buildProblem({ spec: CODES.VN2006_UNKNOWN_ENV, span, title });
-}
-
-function nearest(name: string, known: readonly string[]): string | undefined {
-  const best = known
-    .map((candidate) => ({ candidate, distance: distance(name, candidate) }))
-    .sort((left, right) => left.distance - right.distance)[0];
-  const tolerance = Math.max(2, Math.floor(name.length / 3));
-  return best && best.distance <= tolerance ? best.candidate : undefined;
-}
-
-/** Levenshtein edit distance, kept to two rows because only the score is needed. */
-function distance(left: string, right: string): number {
-  let previous = Array.from({ length: right.length + 1 }, (_value, index) => index);
-  for (let i = 1; i <= left.length; i += 1) {
-    const current = [i];
-    for (let j = 1; j <= right.length; j += 1) {
-      const cost = left[i - 1] === right[j - 1] ? 0 : 1;
-      current[j] = Math.min(
-        (current[j - 1] ?? 0) + 1,
-        (previous[j] ?? 0) + 1,
-        (previous[j - 1] ?? 0) + cost,
-      );
-    }
-    previous = current;
-  }
-  return previous[right.length] ?? 0;
 }

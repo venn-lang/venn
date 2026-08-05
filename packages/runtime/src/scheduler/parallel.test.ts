@@ -16,7 +16,6 @@ function harness() {
   });
   const plugin = definePlugin({
     name: "@t/m",
-    version: "0",
     namespace: "t",
     actions: [
       // Parks until released, or until the branch is cancelled. An action that

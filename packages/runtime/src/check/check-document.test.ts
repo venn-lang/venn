@@ -8,7 +8,6 @@ import { checkDocument } from "./check-document.js";
 
 const plugin = definePlugin({
   name: "@t/m",
-  version: "0",
   namespace: "t",
   actions: [defineAction({ name: "noop", run: () => undefined })],
   matchers: [defineMatcher({ name: "known", test: () => true, message: () => "" })],

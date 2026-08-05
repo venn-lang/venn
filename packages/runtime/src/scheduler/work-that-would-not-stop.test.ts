@@ -26,7 +26,7 @@ function harness(): { release: () => void; plugin: PluginDefinition } {
   ];
   return {
     release,
-    plugin: definePlugin({ name: "@t/stop", version: "0", namespace: "t", actions }),
+    plugin: definePlugin({ name: "@t/stop", namespace: "t", actions }),
   };
 }
 

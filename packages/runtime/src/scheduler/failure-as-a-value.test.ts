@@ -14,7 +14,6 @@ async function ran(lines: string[]): Promise<string[]> {
   const out: string[] = [];
   const printer = definePlugin({
     name: "@t/io",
-    version: "0",
     namespace: "io",
     actions: [
       defineAction({
@@ -106,6 +105,31 @@ describe("raising a failure of one's own", () => {
     const lines = ["try {", '  fail "just no"', "} catch e {", "  io.print(e.code)", "}"];
 
     expect(await ran(lines)).toEqual(["VN6002"]);
+  });
+
+  /**
+   * `docs` was declared on `Problem`, printed by the reporter, published to
+   * programs as `error.docs`, and produced by nobody, so every failure in the
+   * language answered it with nothing. `buildProblem` derives it from the code
+   * it already holds, which is the one place that cannot go stale.
+   */
+  it("says where to read more about the code the language gave it", async () => {
+    const lines = ["try {", '  fail "just no"', "} catch e {", "  io.print(e.docs)", "}"];
+
+    expect(await ran(lines)).toEqual(["https://venn.dev/e/VN6002"]);
+  });
+
+  /** A code the program chose has no page, and a dead link is worse than none. */
+  it("says nothing for a code of the program's own", async () => {
+    const lines = [
+      "try {",
+      '  fail "no" { code: "pay.declined" }',
+      "} catch e {",
+      "  io.print(e.docs)",
+      "}",
+    ];
+
+    expect(await ran(lines)).toEqual(["null"]);
   });
 });
 

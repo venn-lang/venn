@@ -8,8 +8,8 @@ import {
   type Problem,
 } from "@venn-lang/core";
 import { nodeSpan, resolveTarget, splitTarget } from "../scheduler/index.js";
+import { nearestName } from "../suggest/index.js";
 import type { CheckContext } from "./check.types.js";
-import { nearestName } from "./nearest-name.js";
 
 /**
  * A verb a namespace does not publish, written as an expression.

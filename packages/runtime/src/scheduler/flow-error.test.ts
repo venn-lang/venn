@@ -8,7 +8,6 @@ import { createRunner } from "../run/index.js";
 /** A verb that parks until it is called off, and one that cannot reach its host. */
 const plugin = definePlugin({
   name: "@t/net",
-  version: "0",
   namespace: "t",
   actions: [
     defineAction({

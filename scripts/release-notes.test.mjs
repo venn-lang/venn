@@ -101,4 +101,45 @@ describe("the notes for a release", () => {
     expect(written).toContain("The new one.");
     expect(written).not.toContain("The old one.");
   });
+
+  /**
+   * GitHub refuses a release body over 125000 characters with a 422, and the
+   * step that creates the release runs after `changeset publish`. A release
+   * that does not fit therefore fails with every package already on npm, which
+   * is the one failure here that cannot be undone by running it again.
+   *
+   * The v0.7.0 notes wanted 609558: a changeset naming ten packages writes its
+   * prose into ten changelogs, so the size follows the prose and not the number
+   * of changes.
+   */
+  it("drops the folded detail rather than write a release GitHub will refuse", async () => {
+    const prose = "x".repeat(4000);
+    for (const name of Array.from({ length: 40 }, (_, at) => `p${at}`)) {
+      await changelog(
+        name,
+        `# ${name}\n\n## 0.2.0\n\n### Minor Changes\n\n- ${CREDIT} A thing.\n\n  ${prose}\n`,
+      );
+    }
+
+    const written = await notes();
+
+    expect(written.length).toBeLessThanOrEqual(125_000);
+    expect(written).not.toContain("<details>");
+    expect(written).toContain("A thing.");
+    expect(written).toContain("CHANGELOG.md");
+  });
+
+  /** A release that fits keeps its detail, which is every release so far. */
+  it("keeps the folded detail when the page will take it", async () => {
+    await changelog(
+      "cli",
+      `# c\n\n## 0.2.0\n\n### Minor Changes\n\n- ${CREDIT} A thing.\n\n  And why it matters.\n`,
+    );
+
+    const written = await notes();
+
+    expect(written).toContain("<details><summary>Details</summary>");
+    expect(written).toContain("And why it matters.");
+    expect(written).not.toContain("too long to repeat here");
+  });
 });

@@ -18,6 +18,15 @@ import { join } from "node:path";
 
 const PACKAGES = "packages";
 
+/**
+ * What GitHub takes in a release body before it answers 422.
+ *
+ * Documented, and confirmed by `changesets/action#304`, which is this exact
+ * failure. Not reduced for headroom: the number is the number, and a margin
+ * here would be a second limit nobody could look up.
+ */
+const MOST_CHARACTERS = 125_000;
+
 /** What changesets calls each kind of section, and what a reader calls it. */
 const SECTIONS = [
   { heading: "Major Changes", title: "Breaking changes" },
@@ -82,11 +91,11 @@ function split(body) {
   return { lead: body.slice(0, at).trim(), rest: body.slice(at).trim() };
 }
 
-function line(entry) {
+function line(entry, withDetails) {
   const { lead, rest } = split(entry.body);
   const tail = entry.source ? ` (${entry.source})` : "";
   const head = `- **${entry.name}**: ${lead.replace(/\n\s*/g, " ")}${tail}`;
-  return rest ? `${head}\n${folded(rest)}` : head;
+  return rest && withDetails ? `${head}\n${folded(rest)}` : head;
 }
 
 /** Indented to stay inside the bullet, and shut so the page stays short. */
@@ -106,10 +115,10 @@ async function entriesIn(directory, version) {
   );
 }
 
-function group(entries) {
+function group(entries, withDetails) {
   return SECTIONS.map(({ title }) => ({
     title,
-    lines: entries.filter((entry) => entry.title === title).map(line),
+    lines: entries.filter((entry) => entry.title === title).map((one) => line(one, withDetails)),
   })).filter((section) => section.lines.length > 0);
 }
 
@@ -130,12 +139,23 @@ function thanks(entries) {
  * `@venn-lang/venn` is the one to name. It is the command, and it fetches a
  * version of the language for itself. `@venn-lang/cli` is one of those
  * versions, and since 0.2.0 installing it leaves you with no `venn` at all.
+ *
+ * A release too large to carry its own prose says where the prose is, rather
+ * than leaving a reader to notice that the details they saw last time are gone.
  */
 function footer(args) {
+  const elsewhere = args.withDetails
+    ? []
+    : [
+        "",
+        "Each line above is one change. The full account of every one is in that" +
+          " package's `CHANGELOG.md`, which is too long to repeat here.",
+      ];
   return [
     "---",
     "",
     `All ${args.total} packages are published at \`${args.version}\`.`,
+    ...elsewhere,
     "",
     "```bash",
     "npm install -g @venn-lang/venn",
@@ -144,12 +164,35 @@ function footer(args) {
   ].join("\n");
 }
 
+/**
+ * The notes, with the folded detail if the page will take it.
+ *
+ * GitHub refuses a release body over 125000 characters with a 422, and the
+ * step that creates the release runs AFTER `changeset publish`, so a release
+ * that does not fit fails with every package already on npm and the version
+ * tagged. A release of 67 changesets asked for 609558: a changeset naming ten
+ * packages writes its prose into ten changelogs, and the prose is the whole of
+ * the size, not the number of changes.
+ *
+ * So the detail is all-or-nothing per release rather than trimmed at an
+ * arbitrary entry: every line keeps its sentence, its package, its pull request
+ * and its author, and the prose stays in the changelogs, where it is anyway.
+ * The same 67 changesets render at 37087 that way. A release that fits keeps
+ * its detail, which is every release before this one.
+ */
 function render(args) {
-  const { version, entries, total } = args;
-  const sections = group(entries).map((s) => `### ${s.title}\n\n${s.lines.join("\n")}\n`);
+  const full = laidOut({ ...args, withDetails: true });
+  return full.length <= MOST_CHARACTERS ? full : laidOut({ ...args, withDetails: false });
+}
+
+function laidOut(args) {
+  const { version, entries, total, withDetails } = args;
+  const sections = group(entries, withDetails).map(
+    (s) => `### ${s.title}\n\n${s.lines.join("\n")}\n`,
+  );
   const nothing = "Nothing user facing changed. Every package keeps the same version.\n";
   const parts = [sections.length > 0 ? sections.join("\n") : nothing, thanks(entries)];
-  return `${parts.filter(Boolean).join("\n")}\n${footer({ version, total })}\n`;
+  return `${parts.filter(Boolean).join("\n")}\n${footer({ version, total, withDetails })}\n`;
 }
 
 async function publishedCount(directories) {

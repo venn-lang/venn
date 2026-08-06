@@ -185,7 +185,7 @@
     "packages/core/src/typecheck/discriminated-unions.test.ts": 5,
     "packages/core/src/typecheck/generic-members.test.ts": 3,
     "packages/core/src/typecheck/identity-comparison.ts": 1,
-    "packages/core/src/typecheck/imported-shapes.test.ts": 4,
+    "packages/core/src/typecheck/imported-shapes.test.ts": 6,
     "packages/core/src/typecheck/imported-types.ts": 2,
     "packages/core/src/typecheck/infer.ts": 4,
     "packages/core/src/typecheck/inline-shapes.test.ts": 1,

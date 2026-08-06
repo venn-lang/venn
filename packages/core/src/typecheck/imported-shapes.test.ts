@@ -156,6 +156,34 @@ describe("a type handed on by a barrel", () => {
 });
 
 /**
+ * Two packages, one word.
+ *
+ * A name can now be printed, so two of them can print alike, which a shape
+ * never could. `expected Row, found Row` is the worst line a checker can
+ * produce: true, precise, and impossible to act on. The alias is on the import
+ * and not on the type, so both are still called `Row` where it matters.
+ */
+describe("two types that answer to one name", () => {
+  it("says they are two, and shows the shapes that differ", () => {
+    const found = titles({
+      "a1.vn": "pub type Row { id: number }",
+      "a2.vn": "pub type Row { id: string }",
+      "main.vn": [
+        'import { Row } from "./a1.vn"',
+        'import { Row as Other } from "./a2.vn"',
+        "fn take(r: Row) -> number => r.id",
+        'const o: Other = { id: "x" }',
+        "print take(o)",
+      ].join("\n"),
+    });
+
+    expect(found).toEqual([
+      "Type mismatch: two different types are both called Row: expected { id: number }, found { id: string }.",
+    ]);
+  });
+});
+
+/**
  * A generic published by one file and used by another.
  *
  * It has to cross as a generic. Filling its parameters with fresh variables to

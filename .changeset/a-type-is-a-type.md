@@ -1,5 +1,5 @@
 ---
-"@venn-lang/core": minor
+"@venn-lang/core": patch
 ---
 
 A `type` names a type, not an abbreviation for one.

@@ -1,9 +1,17 @@
-import { type AstNode, isAnnotation, isRef, isRunStmt, isValueImport } from "@venn-lang/core";
+import {
+  type AstNode,
+  type Document,
+  isAnnotation,
+  isNamedType,
+  isRef,
+  isRunStmt,
+  isValueImport,
+} from "@venn-lang/core";
 import { CstUtils, type LangiumDocument, type LangiumDocuments, type URI } from "langium";
 import type { DefinitionProvider } from "langium/lsp";
 import type { DefinitionParams, LocationLink } from "vscode-languageserver";
 import { decoNamed } from "../deco/index.js";
-import { findBinding, interpolationAt, resolveFragment } from "../document/index.js";
+import { findBinding, findType, interpolationAt, resolveFragment } from "../document/index.js";
 import type { VennServices } from "../services/lsp.types.js";
 import type { ImportResolver } from "../workspace/index.js";
 
@@ -51,7 +59,16 @@ export class VennDefinitionProvider implements DefinitionProvider {
     if (isAnnotation(node)) return this.decorator(node.name, document);
     if (isRef(node)) return localLink(findBinding(node, node.name), document);
     if (isValueImport(node)) return fileLink(this.imports.resolve(node.path, document.uri));
+    // A type is its own namespace, so this asks the type table rather than the
+    // one a `Ref` reads: `type Sale` and `let Sale` can both be written here.
+    if (isNamedType(node)) return this.type(node.name, document);
     return undefined;
+  }
+
+  /** `list<Sale>` lands on the `type Sale` this file declares. */
+  private type(name: string, document: LangiumDocument): LocationLink | undefined {
+    const root = document.parseResult?.value as Document | undefined;
+    return root ? localLink(findType(root, name), document) : undefined;
   }
 
   // `@memoize` lands on the `deco memoize` that defines it, here or across an

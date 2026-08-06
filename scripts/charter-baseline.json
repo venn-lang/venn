@@ -4,7 +4,7 @@
     "packages/core/src/typecheck/discriminated-unions.test.ts": 358,
     "packages/core/src/typecheck/infer.ts": 654,
     "packages/lsp/src/completion/completion.ts": 418,
-    "packages/lsp/src/hover/hover.ts": 338,
+    "packages/lsp/src/hover/hover.ts": 342,
     "packages/runtime/src/check/the-lint-family.test.ts": 302,
     "packages/runtime/src/run/pattern-matching.test.ts": 304
   },
@@ -256,6 +256,7 @@
     "packages/lsp/src/effects/waiting-fns.test.ts": 1,
     "packages/lsp/src/env/dotenv.test.ts": 1,
     "packages/lsp/src/env/env-vars.test.ts": 2,
+    "packages/lsp/src/hover/a-type-you-declared.test.ts": 2,
     "packages/lsp/src/hover/argument-prose.test.ts": 1,
     "packages/lsp/src/hover/arrow-fn.test.ts": 1,
     "packages/lsp/src/hover/builtin-type.test.ts": 1,

@@ -14,7 +14,9 @@ import {
   isFragmentDecl,
   isLetStmt,
   isRepeatStmt,
+  isTypeDecl,
   type ParamList,
+  type TypeDecl,
 } from "@venn-lang/core";
 
 /** The node that binds `name`, searched from `from` outwards to the document. */
@@ -33,6 +35,18 @@ export function findFragment(document: Document, name: string): FragmentDecl | u
   return document.decls.find(
     (decl): decl is FragmentDecl => isFragmentDecl(decl) && decl.name === name,
   );
+}
+
+/**
+ * The type a document declares under `name`.
+ *
+ * Separate from {@link findDeclaration} because a type and a value are two
+ * namespaces: `type Sale` and `let Sale` can both be written in one file, and a
+ * lookup that answered either from one table would resolve a value reference to
+ * a type as readily as the other way round.
+ */
+export function findType(document: Document, name: string): TypeDecl | undefined {
+  return document.decls.find((decl): decl is TypeDecl => isTypeDecl(decl) && decl.name === name);
 }
 
 /**

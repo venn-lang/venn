@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/venn",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "The venn binary: resolves which version of the language a directory wants, installs it if absent, and hands the command over.",
   "keywords": [
     "venn",

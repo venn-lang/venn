@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/core",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "The Venn compiler: grammar, parser, type checker, expression compiler, decorator expansion, and the Problem model.",
   "keywords": [
     "venn",

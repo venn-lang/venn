@@ -1,5 +1,37 @@
 # @venn-lang/stdlib
 
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/runtime@0.7.2
+  - @venn-lang/sdk@0.7.2
+  - @venn-lang/artifacts@0.7.2
+  - @venn-lang/assert@0.7.2
+  - @venn-lang/auth@0.7.2
+  - @venn-lang/browser@0.7.2
+  - @venn-lang/crypto@0.7.2
+  - @venn-lang/data@0.7.2
+  - @venn-lang/date@0.7.2
+  - @venn-lang/db@0.7.2
+  - @venn-lang/env@0.7.2
+  - @venn-lang/fmt@0.7.2
+  - @venn-lang/fs@0.7.2
+  - @venn-lang/graphql@0.7.2
+  - @venn-lang/grpc@0.7.2
+  - @venn-lang/http@0.7.2
+  - @venn-lang/io@0.7.2
+  - @venn-lang/json@0.7.2
+  - @venn-lang/load@0.7.2
+  - @venn-lang/mail@0.7.2
+  - @venn-lang/math@0.7.2
+  - @venn-lang/mock@0.7.2
+  - @venn-lang/mqtt@0.7.2
+  - @venn-lang/notify@0.7.2
+  - @venn-lang/path@0.7.2
+  - @venn-lang/ws@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes

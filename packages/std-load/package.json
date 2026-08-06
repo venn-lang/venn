@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/load",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "The load namespace: describe a load profile, run it, assert on the metrics.",
   "keywords": [
     "venn",

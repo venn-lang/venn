@@ -1,5 +1,16 @@
 # @venn-lang/runtime
 
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.7.2
+  - @venn-lang/core@0.7.2
+  - @venn-lang/prelude@0.7.2
+  - @venn-lang/sdk@0.7.2
+  - @venn-lang/types@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes

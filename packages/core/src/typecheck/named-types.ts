@@ -111,10 +111,18 @@ function filled(scheme: Scheme | undefined, ctx: TypeContext): Type | undefined 
   return scheme ? instantiate(scheme, ctx) : undefined;
 }
 
-/** A `type` is either a shape of its own or another name for one. */
+/**
+ * A `type` is either a shape of its own or another name for one, and either way
+ * it carries the name it was declared under.
+ *
+ * That name is the whole of what makes `type` a type rather than an
+ * abbreviation. Without it `type Meters = number` and `type Feet = number` were
+ * one type with two spellings, so a function taking `Meters` took a `Feet` and
+ * thirty feet plus ten metres answered forty.
+ */
 function declaredType(args: Scope & { decl: TypeDecl }): Type {
-  if (args.decl.alias) return typeRefToType({ ...args, ref: args.decl.alias });
-  return recordOf(args);
+  const body = args.decl.alias ? typeRefToType({ ...args, ref: args.decl.alias }) : recordOf(args);
+  return { ...body, named: args.decl.name };
 }
 
 interface Scope {

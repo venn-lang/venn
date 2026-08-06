@@ -53,10 +53,24 @@ describe("the kinds are types", () => {
     expect(titles(source)[0]).toContain('has no field "params"');
   });
 
+  /**
+   * Both print as `Fn` now that a name is printed, so the name cannot be the
+   * assertion: the built-in would pass it. What the file's own `Fn` has and the
+   * handle does not is `arity`, and what the handle has and it does not is
+   * `name`, so the two fields tell them apart where the label no longer can.
+   */
   it("is a stdlib and not a reserved word, a file's own `Fn` wins", () => {
-    const source = ["type Fn { arity: number }", "deco m(target: Fn) { }"].join("\n");
+    const source = [
+      "type Fn { arity: number }",
+      "deco m(target: Fn) {",
+      "  const n = target.arity",
+      "}",
+    ].join("\n");
+    const shadowed = source.replace("  const n = target.arity", "  const n = target.name");
 
-    expect(typeOf(source, "target", "Param")).toBe("{ arity: number }");
+    expect(typeOf(source, "target", "Param")).toBe("Fn");
+    expect(codes(source)).toEqual([]);
+    expect(titles(shadowed)[0]).toContain('has no field "name"');
   });
 });
 

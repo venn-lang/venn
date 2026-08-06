@@ -21,9 +21,36 @@ export function fits(actual: Type, expected: Type): boolean {
   const into = prune(expected);
   if (from.kind === "dynamic" || into.kind === "dynamic") return true;
   if (from.kind === "var" || into.kind === "var") return true;
+  // Asked before either side is taken apart, because taking a union apart loses
+  // the name that makes it a type: `Plan` and `Sizes` are both `"a" | "b"`.
+  if (clash(from, into)) return into.kind === "union" && admits(into, from);
   if (from.kind === "union") return from.members.every((member) => fits(member, into));
   if (into.kind === "union") return into.members.some((member) => fits(from, member));
   return through(from, into);
+}
+
+/**
+ * Two names, and not the same one.
+ *
+ * Only when BOTH sides carry a name. A shape nobody named flows into a name,
+ * which is what lets `{ seller: "ana" }` be a `Sale` and a `10` be `Meters`, and
+ * a name flows into the shape under it, which is what lets `Meters` be added and
+ * printed and handed to the standard library. The one thing refused is the one
+ * thing nobody means: a `Feet` where a `Meters` was asked for.
+ */
+function clash(from: Type, into: Type): boolean {
+  return from.named !== undefined && into.named !== undefined && from.named !== into.named;
+}
+
+/**
+ * Whether a named union has a member this fits, tried after the names differ.
+ *
+ * `type Message = Ping | Text | Close` is a name over three names, and a `Ping`
+ * is a `Message` though the two names are not equal. Without this the union a
+ * reader declares would be the one place a name could not be used.
+ */
+function admits(into: Type & { kind: "union" }, from: Type): boolean {
+  return into.members.some((member) => fits(from, member));
 }
 
 /**

@@ -179,16 +179,14 @@ describe("a union somebody declared", () => {
 
   it("is refused at a position", () => {
     expect(said(...PEEK, 'print peek(["a", 1])')[0]).toBe(
-      "VN3010 Type mismatch: expected number, found string | number | null.",
+      "VN3010 Type mismatch: expected number, found Cell | null.",
     );
   });
 
   it("is refused by name, in the sentence it has always used", () => {
     const byName = [...PEEK.slice(0, 2), "  let n: number = xs.first", ...PEEK.slice(3)];
 
-    expect(said(...byName)[0]).toBe(
-      "VN3010 Type mismatch: expected number, found string | number.",
-    );
+    expect(said(...byName)[0]).toBe("VN3010 Type mismatch: expected number, found Cell.");
   });
 });
 

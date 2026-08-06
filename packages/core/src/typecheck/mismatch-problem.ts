@@ -47,7 +47,29 @@ function titleOf(mismatch: TypeMismatch): string {
   // One name map across both sides, or the alphabet restarts between them and
   // two unrelated variables both print as `a`, which says they are one type.
   const [expected, actual] = showTypes([mismatch.expected, mismatch.actual]);
+  if (expected === actual) return sameName(mismatch);
   return apart ?? `Type mismatch: expected ${expected}, found ${actual}.`;
+}
+
+/**
+ * Two types that print the same, which happens once a name can be printed.
+ *
+ * A file may declare a `Fn` of its own beside the built-in handle, or two files
+ * may each publish a `Sale`. `expected Fn, found Fn` is the worst line the
+ * checker can produce: it is true, it names the problem, and a reader cannot
+ * act on it. The shapes are what differ, so the shapes are what it says.
+ */
+function sameName(mismatch: TypeMismatch): string {
+  const shown = showTypes([shapeOnly(mismatch.expected), shapeOnly(mismatch.actual)]);
+  return `Type mismatch: two different types are both called ${showType(
+    mismatch.expected,
+  )}: expected ${shown[0]}, found ${shown[1]}.`;
+}
+
+/** The same type with its name set aside, so the shapes can be told apart. */
+function shapeOnly(type: Type): Type {
+  const { named: _, ...shape } = prune(type);
+  return shape as Type;
 }
 
 /**

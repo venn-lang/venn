@@ -48,7 +48,7 @@ describe("a shape another file published", () => {
   it("refuses a field of the wrong type", () => {
     const said = titles({ ...SHAPES, "main.vn": IMPORT + "const u: User = { name: 42 }" });
 
-    expect(said[0]).toContain("expected { name: string }");
+    expect(said[0]).toContain("expected User, found { name: number }");
   });
 
   it("refuses reading a field the shape does not carry", () => {
@@ -83,7 +83,7 @@ describe("a shape another file published", () => {
       "main.vn": 'import { Team } from "./middle.vn"\nconst t: Team = { lead: { name: 42 } }\n',
     };
 
-    expect(titles(files)[0]).toContain("expected { lead: { name: string } }");
+    expect(titles(files)[0]).toContain("expected Team, found { lead: { name: number } }");
   });
 
   /**
@@ -141,7 +141,7 @@ describe("a type handed on by a barrel", () => {
       "main.vn": 'import { User } from "./mod.vn"\nconst u: User = { name: 1 }\nprint u',
     });
 
-    expect(found).toEqual(["Type mismatch: expected { name: string }, found { name: number }."]);
+    expect(found).toEqual(["Type mismatch: expected User, found { name: number }."]);
   });
 
   it("says nothing when the value fits", () => {

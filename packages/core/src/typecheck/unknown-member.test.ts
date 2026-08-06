@@ -25,8 +25,16 @@ describe("a member the type does not have", () => {
     ]);
   });
 
+  /** Named now, which is what the reader called it everywhere else in the file. */
   it("says so for a map, as it always did", () => {
     const source = ["type P { id: number }", "const p: P = { id: 1 }", "const s = p.naoExiste"];
+
+    expect(problems(source.join("\n"))).toEqual(['Type P has no field "naoExiste".']);
+  });
+
+  /** A map nobody named still shows its shape, since that is all it has. */
+  it("says so for a map with no name of its own", () => {
+    const source = ["const p = { id: 1 }", "const s = p.naoExiste"];
 
     expect(problems(source.join("\n"))).toEqual(['Type { id: number } has no field "naoExiste".']);
   });

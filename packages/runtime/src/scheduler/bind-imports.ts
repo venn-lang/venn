@@ -128,11 +128,33 @@ function wire(args: Wiring): void {
 function takePackage(args: { decl: ValueImport; graph: ImportGraph; into: Scope }): void {
   const module = args.graph.npm?.get(args.decl.path);
   if (!module) return;
-  if (args.decl.wildcard) return void args.into.set(args.decl.wildcard, { ...module });
+  const surface = publishedBy(module);
+  if (args.decl.wildcard) return void args.into.set(args.decl.wildcard, surface);
   if (args.decl.default) return void args.into.set(args.decl.default, module.default);
   for (const one of args.decl.names) {
-    if (one.name in module) args.into.set(one.alias ?? one.name, module[one.name]);
+    if (one.name in surface) args.into.set(one.alias ?? one.name, surface[one.name]);
   }
+}
+
+/**
+ * Every name a module offers, with a CJS one opened up.
+ *
+ * Node hands an ESM namespace for both, and for a CommonJS module that
+ * namespace is `{ default, "module.exports" }` and nothing else: the named
+ * exports are properties of the object inside, not of the namespace. So
+ * `import { chunk } from "lodash"` found no `chunk`, bound nothing, and every
+ * read of it answered `null` while `venn check` said the file was fine.
+ *
+ * The namespace wins where both have a name. A package that is ESM has the
+ * truth at the top, and only a CJS one needs looking into.
+ */
+export function publishedBy(module: Record<string, unknown>): Record<string, unknown> {
+  const inner = module.default;
+  const under = typeof inner === "object" || typeof inner === "function" ? inner : undefined;
+  const opened: Record<string, unknown> = {};
+  for (const [name, value] of Object.entries(under ?? {})) opened[name] = value;
+  for (const [name, value] of Object.entries(module)) opened[name] = value;
+  return opened;
 }
 
 function take(args: { decl: ValueImport; module: Document; source: Scope; into: Scope }): void {

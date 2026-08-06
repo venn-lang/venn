@@ -1,6 +1,6 @@
 export { absorbExit } from "./absorb-exit.js";
 export { collectAliases, collectBoundNames, collectNamespaces } from "./aliases.js";
-export { bindImports, type ImportGraph } from "./bind-imports.js";
+export { bindImports, type ImportGraph, publishedBy } from "./bind-imports.js";
 export { optionRefusal } from "./call-params.js";
 export type { Cleanup, CleanupList, CleanupSink } from "./cleanup.types.js";
 export { collectConfig, collectFragments, collectOn } from "./collect.js";

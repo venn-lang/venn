@@ -7,7 +7,7 @@ import { kindOf } from "../value/index.js";
 import { isClosure } from "./closure.js";
 import type { Closure } from "./closure.types.js";
 import { Frame, writeSlot } from "./frame.js";
-import { type Invoke, isNativeFn, type NativeFn } from "./native.types.js";
+import { type Invoke, isNativeFn, type NativeFn, nativeFn } from "./native.types.js";
 
 /**
  * Call any Venn callable, a `fn` closure or a built-in method, with values.
@@ -21,22 +21,42 @@ import { type Invoke, isNativeFn, type NativeFn } from "./native.types.js";
  * @throws ProblemError VN3013 when the value is not callable.
  */
 export function invoke(callee: unknown, values: readonly unknown[], site?: Expr): unknown {
-  if (isClosure(callee)) {
-    const body = callee.body;
-    if (body.bare) return (body.result as Thunk)(values[0] as never);
-    const frame = new Frame(callee);
-    const arity = callee.params.length;
-    for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
-    fill(callee, frame);
-    return finish(body, frame);
-  }
+  if (isClosure(callee)) return inFrame(callee, values);
   if (isNativeFn(callee)) return site ? placed(callee, values, site) : callee.call(values);
+  // A bare host function, which is what an npm package exports. A member read
+  // wraps one so it keeps its receiver; an import has no receiver to keep, and
+  // wrapping there would hide the properties a callable package carries, since
+  // `lodash` is a function with the whole library set on it.
+  if (typeof callee === "function") return hosted(callee, values, site);
   throw notCallable(callee, site);
+}
+
+/** A body written in Venn, run over a frame of its own. */
+function inFrame(callee: Closure, values: readonly unknown[]): unknown {
+  const body = callee.body;
+  if (body.bare) return (body.result as Thunk)(values[0] as never);
+  const frame = new Frame(callee);
+  const arity = callee.params.length;
+  for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
+  fill(callee, frame);
+  return finish(body, frame);
+}
+
+/** A host function called with the language's values, failing where it stands. */
+function hosted(callee: unknown, values: readonly unknown[], site: Expr | undefined): unknown {
+  const fn = callee as (...args: unknown[]) => unknown;
+  return site
+    ? placed(
+        nativeFn((given) => fn(...given)),
+        values,
+        site,
+      )
+    : fn(...values);
 }
 
 /** Whether {@link invoke} can call this, asked before committing to a call. */
 export function isCallable(value: unknown): boolean {
-  return isClosure(value) || isNativeFn(value);
+  return isClosure(value) || isNativeFn(value) || typeof value === "function";
 }
 
 /** The invoker handed to the built-in methods, fixed arities included. */

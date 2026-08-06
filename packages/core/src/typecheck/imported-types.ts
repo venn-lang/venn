@@ -94,15 +94,30 @@ function bindingsOf(args: {
     // same as publishing nothing. Typing it as an empty shape puts a second
     // error on every use of it, blaming the field for the path.
     if (decl.wildcard) {
-      out.set(decl.wildcard, reached(decl.path, args) ? record(shapes(published)) : DYNAMIC);
+      out.set(
+        decl.wildcard,
+        known(decl.path, published, args) ? record(shapes(published)) : DYNAMIC,
+      );
     } else for (const one of decl.names) take(out, published, one);
   }
   return out;
 }
 
-/** Whether the file behind this specifier was reached at all. */
-function reached(spec: string, args: { uri: string; state: State }): boolean {
-  if (isPackageSpecifier(spec)) return true;
+/**
+ * Whether anything is actually known about what this specifier publishes.
+ *
+ * A file is known once it was reached. A package is known once it published
+ * types: plenty ship none, and `lodash` is one of them, so an empty set there
+ * is the absence of an answer rather than the answer that it is empty. Read the
+ * other way, `import * as l from "lodash"` typed `l` as `{}` and refused
+ * `l.chunk` on a line that runs and prints.
+ */
+function known(
+  spec: string,
+  published: ReadonlyMap<string, ImportedType>,
+  args: { uri: string; state: State },
+): boolean {
+  if (isPackageSpecifier(spec)) return published.size > 0;
   return args.state.modules.has(args.state.resolve(args.uri, spec));
 }
 

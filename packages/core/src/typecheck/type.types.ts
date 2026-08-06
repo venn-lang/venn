@@ -4,7 +4,10 @@
  * with everything and never produces an error, so the effectful world places no
  * annotation burden on the pure one.
  */
-export type Type =
+export type Type = Shape & Declared;
+
+/** The shape a value has, which is what every reader but two asks about. */
+export type Shape =
   | PrimType
   | ExactType
   | ListType
@@ -14,6 +17,23 @@ export type Type =
   | OpaqueType
   | DynamicType
   | TypeVar;
+
+/**
+ * The name a `type` declaration gave a shape, when one did.
+ *
+ * Carried beside the shape rather than wrapping it, so the hundred and six
+ * places that ask `kind === "record"` go on getting the same answer and never
+ * learn that names exist. Two readers ask: `fits`, which refuses one name where
+ * another is wanted, and `showType`, which prints the name a reader wrote
+ * instead of the shape they wrote it to avoid repeating.
+ *
+ * Absent for every shape nobody named: a literal, an inferred record, anything
+ * a plugin projected. That absence is what lets `{ seller: "ana" }` flow into a
+ * `Sale` while a `Feet` does not flow into a `Meters`.
+ */
+export interface Declared {
+  readonly named?: string;
+}
 
 export type PrimName =
   | "number"
@@ -209,7 +229,12 @@ export function opaque(name: string, members?: ReadonlyMap<string, Type>): Opaqu
  * which is every kind but a solved variable.
  */
 export function union(members: readonly Type[]): Type {
-  const flat = members.flatMap((m) => (m.kind === "union" ? m.members : [m]));
+  // A union somebody named is one type, not a bag of members. Flattening it
+  // spills `Plan` back into `"free" | "pro"` and loses the name, which is the
+  // whole of what makes it a type rather than an abbreviation.
+  const flat = members.flatMap((m) =>
+    m.kind === "union" && m.named === undefined ? m.members : [m],
+  );
   if (flat.some((m) => m.kind === "dynamic")) return DYNAMIC;
   const once = distinct(flat);
   return once.length === 1 ? (once[0] as Type) : { kind: "union", members: once };

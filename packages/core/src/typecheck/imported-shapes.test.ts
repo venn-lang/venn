@@ -48,7 +48,7 @@ describe("a shape another file published", () => {
   it("refuses a field of the wrong type", () => {
     const said = titles({ ...SHAPES, "main.vn": IMPORT + "const u: User = { name: 42 }" });
 
-    expect(said[0]).toContain("expected { name: string }");
+    expect(said[0]).toContain("expected User, found { name: number }");
   });
 
   it("refuses reading a field the shape does not carry", () => {
@@ -83,7 +83,7 @@ describe("a shape another file published", () => {
       "main.vn": 'import { Team } from "./middle.vn"\nconst t: Team = { lead: { name: 42 } }\n',
     };
 
-    expect(titles(files)[0]).toContain("expected { lead: { name: string } }");
+    expect(titles(files)[0]).toContain("expected Team, found { lead: { name: number } }");
   });
 
   /**
@@ -141,7 +141,7 @@ describe("a type handed on by a barrel", () => {
       "main.vn": 'import { User } from "./mod.vn"\nconst u: User = { name: 1 }\nprint u',
     });
 
-    expect(found).toEqual(["Type mismatch: expected { name: string }, found { name: number }."]);
+    expect(found).toEqual(["Type mismatch: expected User, found { name: number }."]);
   });
 
   it("says nothing when the value fits", () => {
@@ -152,6 +152,34 @@ describe("a type handed on by a barrel", () => {
     });
 
     expect(found).toEqual([]);
+  });
+});
+
+/**
+ * Two packages, one word.
+ *
+ * A name can now be printed, so two of them can print alike, which a shape
+ * never could. `expected Row, found Row` is the worst line a checker can
+ * produce: true, precise, and impossible to act on. The alias is on the import
+ * and not on the type, so both are still called `Row` where it matters.
+ */
+describe("two types that answer to one name", () => {
+  it("says they are two, and shows the shapes that differ", () => {
+    const found = titles({
+      "a1.vn": "pub type Row { id: number }",
+      "a2.vn": "pub type Row { id: string }",
+      "main.vn": [
+        'import { Row } from "./a1.vn"',
+        'import { Row as Other } from "./a2.vn"',
+        "fn take(r: Row) -> number => r.id",
+        'const o: Other = { id: "x" }',
+        "print take(o)",
+      ].join("\n"),
+    });
+
+    expect(found).toEqual([
+      "Type mismatch: two different types are both called Row: expected { id: number }, found { id: string }.",
+    ]);
   });
 });
 

@@ -4,10 +4,10 @@ The live version of this is the [Venn Roadmap project](https://github.com/orgs/v
 where every item is a real issue and moves as work happens. This page is the
 same plan in one page, for reading rather than navigating.
 
-Venn is pre-1.0. Today it is a good language for describing tests and a
-serviceable one for small programs. What is left before 1.0 is mostly language
-design rather than implementation, and the questions that remain are named
-below rather than left implied.
+Venn is pre-1.0, and it is a general-purpose language. Describing tests as
+flows is what it does well first; it is not what it is. What is left before 1.0
+is mostly language design rather than implementation, and the questions that
+remain are named below rather than left implied.
 
 ## What 1.0 means
 

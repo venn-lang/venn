@@ -37,6 +37,10 @@ export function namedList(names: readonly string[]): string {
 
 function render(type: Type, names: Map<number, string>): string {
   const t = prune(type);
+  // The name a `type` gave it, which is what the reader wrote and what every
+  // other line of their file calls it. The shape is what they declared once, at
+  // the declaration, precisely so they would not have to read it again here.
+  if (t.named !== undefined) return t.named;
   switch (t.kind) {
     case "prim":
       return t.name;

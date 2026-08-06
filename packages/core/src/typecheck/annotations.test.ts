@@ -37,23 +37,33 @@ describe("generic annotations", () => {
     expect(typeOf("fn f(xs: list<list<string>>) => xs", "xs", "Param")).toBe("list<list<string>>");
   });
 
+  /**
+   * The parameter reads as `Cart`, which is what a reader wrote. The generic
+   * inside it is still read, which is what this is about, and the field proves
+   * it: a `Cart` whose body was not read has no `items` to answer for.
+   */
   it("reads a generic inside a type declaration", () => {
     const source = ["type Cart { items: list<string> }", "fn f(c: Cart) => c.items"].join("\n");
 
     expect(() => checkTypes(parse(source).ast)).not.toThrow();
-    expect(typeOf(source, "c", "Param")).toContain("list<string>");
+    expect(typeOf(source, "c", "Param")).toBe("Cart");
+    expect(problems(source)).toEqual([]);
   });
 });
 
 describe("type declarations", () => {
-  // `type Plan = "free" | "pro"` is the spec's own example.
+  /**
+   * `type Plan = "free" | "pro"` is the spec's own example. The name is what a
+   * reader sees now; that the alias was read rather than treated as an empty
+   * shape is what the silence below proves, since a shape with no fields would
+   * refuse the comparison.
+   */
   it("reads an alias, rather than treating it as a shape with no fields", () => {
-    const source = ['type Plan = "free" | "pro"', "fn pick(p: Plan) => p"].join("\n");
+    const source = ['type Plan = "free" | "pro"', 'fn pick(p: Plan) => p == "free"'].join("\n");
 
-    expect(typeOf(source, "p", "Param")).toBe('"free" | "pro"');
+    expect(typeOf(source, "p", "Param")).toBe("Plan");
     expect(problems(source)).toEqual([]);
   });
-
   it("lets an optional field be absent", () => {
     const source = [
       "type User { name: string, nickname?: string }",

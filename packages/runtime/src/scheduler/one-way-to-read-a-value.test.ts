@@ -203,9 +203,7 @@ describe("one way to read a value", () => {
     expect(titles(`${shape}\nconst t: number = p['name']`)).toEqual(
       titles(`${shape}\nconst t: number = p.name`),
     );
-    expect(titles(`${shape}\nconst t = p['nope']`)).toEqual([
-      'Type { name: string } has no field "nope".',
-    ]);
+    expect(titles(`${shape}\nconst t = p['nope']`)).toEqual(['Type P has no field "nope".']);
   });
 
   /** A task had no type at all, so `job.dnoe` was silent and nothing completed. */

@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/mqtt",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "The mqtt namespace: connect to a broker, publish, subscribe, wait for a message on a topic.",
   "keywords": [
     "venn",

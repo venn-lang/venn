@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/runtime",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Executes a parsed Venn document: the scheduler, the plugin registry, the event stream.",
   "keywords": [
     "venn",

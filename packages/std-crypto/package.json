@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/crypto",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "The crypto namespace: digests, HMACs, base64, PBKDF2 password hashing and JSON Web Tokens.",
   "keywords": [
     "venn",

@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/auth",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "The auth namespace: build the header a request needs, or fetch a token for it.",
   "keywords": [
     "venn",

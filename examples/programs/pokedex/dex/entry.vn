@@ -44,5 +44,5 @@ pub fn strongest(entries: list<Entry>, stat: string) -> Entry | null {
   if entries.isEmpty {
     return null
   }
-  return entries.maxBy((entry) => scoreOn(entry, stat))
+  return entries.maxBy((entry) => scoreOn(entry,  stat))
 }

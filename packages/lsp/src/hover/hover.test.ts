@@ -160,11 +160,16 @@ describe("types on declarations", () => {
     expect(await hoverAt("seniors")).toContain("list<number>");
   });
 
+  /**
+   * The language's own spelling, not the type printed twice. It used to read
+   * `fn double(x): fn(number) -> number`, where a colon in front of a `fn(…)`
+   * says the answer is a function and the parameter list is given over again.
+   */
   it("shows a function's inferred signature", async () => {
     const markdown = await hoverAt("double(x)");
 
-    expect(markdown).toContain("fn double");
-    expect(markdown).toContain("fn(number) -> number");
+    expect(markdown).toContain("fn double(x: number) -> number");
+    expect(markdown).not.toContain(": fn(");
   });
 });
 

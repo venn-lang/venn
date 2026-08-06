@@ -39,7 +39,9 @@ describe("telling a verb from a function", () => {
   it("leaves a function saying `fn`, as it always did", async () => {
     const text = await hoverAt("route(req) => req");
 
-    expect(text).toContain("fn route(req)");
+    // The parameter carries its type now, so the name alone is no longer the
+    // whole of what follows the bracket.
+    expect(text).toContain("fn route(req: ");
     expect(text).not.toContain("**Verb**");
   });
 });

@@ -1,4 +1,4 @@
-import { type AstNode, isExpr, prune, showType, type Type } from "@venn-lang/core";
+import { type AstNode, isExpr, prune, showType, showTypes, type Type } from "@venn-lang/core";
 import { AstUtils, type CstNode } from "langium";
 import type { TypeService } from "../types/index.js";
 
@@ -7,6 +7,40 @@ export function typeLabel(node: AstNode | undefined, types: TypeService): string
   if (!node) return undefined;
   const found = types.of(AstUtils.getDocument(node)).types.get(node);
   return found ? spread(found) : undefined;
+}
+
+/**
+ * A `fn`'s signature, spelled the way the language spells it.
+ *
+ * The card used to put the parameter names on the left and the whole function
+ * type on the right, joined by a colon: `fn scoreOn(entry, stat): fn(Entry,
+ * string) -> number`. It said the parameter list twice, and a colon in front of
+ * a `fn(…)` reads as a return, so a function taking two arguments looked like
+ * one handing a function back.
+ *
+ * Names come from the declaration and types from the checker, paired by
+ * position and rendered together, so a variable in two places gets one letter
+ * in both.
+ *
+ * @returns The signature, or nothing when the checker has no `fn` type for the
+ * node, which is the moment before a build finishes rather than an error.
+ */
+export function signatureLabel(args: {
+  node: AstNode;
+  names: readonly string[];
+  types: TypeService;
+}): string | undefined {
+  const found = args.types.of(AstUtils.getDocument(args.node)).types.get(args.node);
+  const fn = found && prune(found);
+  if (!fn || fn.kind !== "fn") return undefined;
+  const shown = showTypes([...fn.params, fn.result]);
+  const taken = args.names.map((name, at) => told(name, shown[at]));
+  return `(${taken.join(", ")}) -> ${shown[fn.params.length]}`;
+}
+
+/** `entry: Entry`, or the bare name where the checker knows nothing about it. */
+function told(name: string, type: string | undefined): string {
+  return type === undefined || type === "dynamic" ? name : `${name}: ${type}`;
 }
 
 /** Past this many fields a shape stops reading as a line and starts reading as a wall. */

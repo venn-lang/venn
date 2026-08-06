@@ -39,7 +39,7 @@ describe("hover on a name in the import list", () => {
   it("describes an imported function, with its signature and docs", async () => {
     const text = await hoverAt("authHeader, login");
 
-    expect(text).toContain("pub fn authHeader(token)");
+    expect(text).toContain("pub fn authHeader(token: string) -> string");
     expect(text).toContain("**Parameters**");
     expect(text).toContain("The session token to send");
   });

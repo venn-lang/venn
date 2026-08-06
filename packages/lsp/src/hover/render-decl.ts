@@ -19,7 +19,7 @@ import { readDoc, renderDoc } from "../docs/index.js";
 import { type FragmentLocation, findBinding } from "../document/index.js";
 import { code, fence, rule, sections } from "../markdown/index.js";
 import type { TypeService } from "../types/index.js";
-import { typeLabel } from "./type-hover.js";
+import { signatureLabel, typeLabel } from "./type-hover.js";
 
 /** Hover for a fragment: its signature, its documentation, and where it lives. */
 export function fragmentHover(location: FragmentLocation): string {
@@ -102,12 +102,26 @@ function signatureOf(binding: AstNode, name: string, types: TypeService, waits =
   const type = waiting(typeLabel(binding, types), waits);
   const typed = type ? `: ${type}` : "";
   if (isFnDecl(binding))
-    return `${binding.export ? "pub " : ""}fn ${written(binding, name)}${typed}`;
+    return `${binding.export ? "pub " : ""}fn ${name}${fnLine(binding, types, waits)}`;
   if (isLetStmt(binding)) return `${binding.kind} ${name}${typed}`;
   if (isCaptureStmt(binding)) return `capture ${name}`;
   if (isFragmentDecl(binding)) return `fragment ${written(binding, name)}`;
   if (isParam(binding)) return `${name}${typed || ": parameter"}`;
   return name;
+}
+
+/**
+ * `(entry: Entry, stat: string) -> number`, which is how the file writes it.
+ *
+ * Falls back to the names alone where the checker has no `fn` type yet, since a
+ * list of names is still the half a caller has to get right.
+ */
+function fnLine(binding: FnDecl, types: TypeService, waits: boolean): string {
+  // `_` for a parameter the parse has no name for, which happens mid-edit. The
+  // position still counts, so dropping it would misalign every type after it.
+  const names = (binding.params?.params ?? []).map((param) => param.name ?? "_");
+  const line = signatureLabel({ node: binding, names, types });
+  return waiting(line, waits) ?? `(${names.join(", ")})`;
 }
 
 /**

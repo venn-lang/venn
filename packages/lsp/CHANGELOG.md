@@ -1,5 +1,18 @@
 # @venn-lang/lsp
 
+## 0.7.5
+
+### Patch Changes
+
+- Updated dependencies [[`a6b6ded`](https://github.com/venn-lang/venn/commit/a6b6dedc1c204930cf27e07520e732c6ecebc9c5)]:
+  - @venn-lang/core@0.7.5
+  - @venn-lang/runtime@0.7.5
+  - @venn-lang/stdlib@0.7.5
+  - @venn-lang/contracts@0.7.5
+  - @venn-lang/project@0.7.5
+  - @venn-lang/sdk@0.7.5
+  - @venn-lang/types@0.7.5
+
 ## 0.7.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/date",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "The date namespace: building a moment, formatting one, and reading it where somebody stands.",
   "keywords": [
     "venn",

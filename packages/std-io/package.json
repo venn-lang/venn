@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/io",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "The io namespace: standard output, standard error, standard input and the process arguments.",
   "keywords": [
     "venn",

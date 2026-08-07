@@ -1,5 +1,13 @@
 # @venn-lang/venn
 
+## 0.7.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.7.5
+  - @venn-lang/toolchain@0.7.5
+
 ## 0.7.4
 
 ### Patch Changes

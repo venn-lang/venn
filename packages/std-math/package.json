@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/math",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "The math namespace: the constants and functions a number has no member for.",
   "keywords": [
     "venn",

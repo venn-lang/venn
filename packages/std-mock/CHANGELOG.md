@@ -1,5 +1,13 @@
 # @venn-lang/mock
 
+## 0.7.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/sdk@0.7.5
+  - @venn-lang/types@0.7.5
+
 ## 0.7.4
 
 ### Patch Changes

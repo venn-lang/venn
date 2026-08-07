@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/grpc",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "The grpc namespace: unary calls, server streams and server reflection as Venn verbs.",
   "keywords": [
     "venn",

@@ -2883,7 +2883,10 @@ FnDecl:
 
 FnBody:
     '=>' result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)*
+  | BracedBody;
+
+BracedBody infers FnBody:
+    '{' NL* (stmts+=FnStmt NL+)*
       ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
 /**
@@ -3120,8 +3123,7 @@ BareParamName infers Param: name=ID;
 
 ArrowBody infers FnBody:
     result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)*
-      ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
+  | BracedBody;
 
 ListLit infers ListLit:
     '[' (items+=ListItem (',' items+=ListItem)* ','?)? ']';

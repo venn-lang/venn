@@ -86,7 +86,14 @@ FnDecl:
 // which reads the callee rather than the token and so speaks at every layout.
 FnBody:
     '=>' result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)*
+  | BracedBody;
+
+// The braces, written once and called from both bodies that wear them. Inlining
+// it twice cost the editor half again as long per keystroke: the completion
+// parser explores every alternative reachable from the cursor, and a second
+// copy of every statement form is reachable from every arrow in the file.
+BracedBody infers FnBody:
+    '{' NL* (stmts+=FnStmt NL+)*
       ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
 /**
@@ -505,8 +512,7 @@ BareParamName infers Param: name=ID;
 // for it with `=> ({ … })` forever; here nobody pays anything.
 ArrowBody infers FnBody:
     result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)*
-      ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
+  | BracedBody;
 
 // `...` in a literal is the other side of `...` in a pattern: there it keeps
 // what was left, here it pours what is there into what is being written.

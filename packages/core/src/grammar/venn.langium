@@ -494,10 +494,19 @@ Atom infers Expr:
 BareParam infers ParamList: params+=BareParamName;
 BareParamName infers Param: name=ID;
 
-// An arrow's body is one expression. A block would read as a map literal, so
-// `{ … }` bodies keep the `fn` spelling, where the braces can't be mistaken.
+// An arrow's body is one expression, or a block of statements ending in the
+// value it gives back.
+//
+// The two are told apart at the token after `{`, and they can be because a map
+// entry is always `key: value` or `...spread`: nothing a statement can start
+// with. So `n => { total: 1 }` is the map it looks like, and `n => { const t =
+// 1  t }` is the block it looks like, which is the opposite trade from
+// JavaScript and the better one. There, every arrow returning an object pays
+// for it with `=> ({ … })` forever; here nobody pays anything.
 ArrowBody infers FnBody:
-    result=Expr;
+    result=Expr
+  | '{' NL* (stmts+=FnStmt NL+)*
+      ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
 // `...` in a literal is the other side of `...` in a pattern: there it keeps
 // what was left, here it pours what is there into what is being written.

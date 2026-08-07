@@ -32,13 +32,20 @@ describe("a verb handed to a lambda", () => {
     expect(found[0]?.help).toBe("Write the statement instead: `forEach r in rows { print r }`.");
   });
 
-  /** The braces read as a map literal, not as a body, so this fails the same way. */
-  it("says the same about the braced spelling", () => {
+  /**
+   * The braces are a body now, so the line parses and this recovery stays out
+   * of it: the recovery only reads lines the parser stopped on, which is what
+   * keeps a working file silent.
+   *
+   * The verb is still refused, one stage later and by the rule that actually
+   * applies to it. `check-document.test.ts` in `@venn-lang/runtime` owns that
+   * half, because the pure-body check lives there and `core` cannot import it.
+   */
+  it("leaves the braced spelling alone, because it is a body and it parses", () => {
     const source = ['let rows = ["a"]', "rows.forEach(r => { print r })"].join(NEWLINE);
 
     const found = parse(source).problems;
-    expect(found.map((problem) => problem.code)).toEqual(["VN5010"]);
-    expect(found[0]?.help).toBe("Write the statement instead: `forEach r in rows { print r }`.");
+    expect(found.map((problem) => problem.code)).toEqual([]);
   });
 
   it("points at the method spelling, not at the token recovery reached", () => {
@@ -142,5 +149,60 @@ describe("what VN5010's help promises", () => {
 
     expect(promised.length).toBeGreaterThan(0);
     for (const snippet of promised) expect(parse(snippet).problems, snippet).toEqual([]);
+  });
+});
+/**
+ * Every `$type` in a tree, in reading order.
+ *
+ * The tree cannot be stringified: `$container` points back at the parent, so
+ * `JSON.stringify` closes a circle. Walking it and skipping the `$` keys is the
+ * whole difference, and it reads the shape rather than a rendering of it.
+ */
+function typesIn(node: unknown, found: string[] = []): string[] {
+  if (!node || typeof node !== "object") return found;
+  const kind = (node as { $type?: string }).$type;
+  if (typeof kind === "string") found.push(kind);
+  for (const [key, value] of Object.entries(node)) {
+    if (key.startsWith("$")) continue;
+    if (Array.isArray(value)) for (const one of value) typesIn(one, found);
+    else typesIn(value, found);
+  }
+  return found;
+}
+
+describe("an arrow carrying a block", () => {
+  /**
+   * What those braces build, so "it parses" cannot mean it parsed as a map.
+   *
+   * A block holds a `LetStmt` and a map cannot; a map holds a `MapLit` and this
+   * block does not. Asserting both ways round is what makes the test fail if
+   * the two alternatives are ever ordered the other way.
+   *
+   * Neither source binds the arrow to a name, because `const f = …` is a
+   * `LetStmt` itself and would answer the question before the body was read.
+   */
+  it("reads the braces as statements rather than as a map literal", () => {
+    const source = ["print [1].map(n => {", "  const doubled = n * 2", "  doubled + 1", "})"].join(
+      NEWLINE,
+    );
+
+    const parsed = parse(source);
+    const kinds = typesIn(parsed.ast);
+
+    expect(parsed.problems).toEqual([]);
+    expect(kinds).toContain("LetStmt");
+    expect(kinds).not.toContain("MapLit");
+  });
+
+  /** And the other way round, so the map spelling is not what this cost. */
+  it("still reads a map literal as a map, which is what an arrow used to give", () => {
+    const source = 'print [1].map(n => { kind: "ping", at: n })';
+
+    const parsed = parse(source);
+    const kinds = typesIn(parsed.ast);
+
+    expect(parsed.problems).toEqual([]);
+    expect(kinds).toContain("MapLit");
+    expect(kinds).not.toContain("LetStmt");
   });
 });

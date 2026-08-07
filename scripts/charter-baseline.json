@@ -148,7 +148,7 @@
     "packages/core/src/parse/spaced-minus.test.ts": 2,
     "packages/core/src/parse/string-forms.test.ts": 2,
     "packages/core/src/parse/title-is-a-line.test.ts": 1,
-    "packages/core/src/parse/verb-in-a-lambda.test.ts": 1,
+    "packages/core/src/parse/verb-in-a-lambda.test.ts": 2,
     "packages/core/src/pattern/negative-pattern.test.ts": 1,
     "packages/core/src/pattern/pattern-slots.ts": 1,
     "packages/core/src/pattern/pattern-tests.ts": 1,

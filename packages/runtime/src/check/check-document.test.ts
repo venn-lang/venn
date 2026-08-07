@@ -201,6 +201,11 @@ describe("a fn that fails", () => {
  * And the same three spellings for a verb that does reach the world, so the
  * clause above cannot be read as an opening. `wire.send` is the only verb here
  * whose plugin asked the host for anything.
+ *
+ * The fourth is the arrow carrying a block, which parses as a body rather than
+ * as a map literal. It reaches this rule because it is a `fn` like the others,
+ * and it is written down because the spelling is new: before, the braces read
+ * as a map and the parser refused the line, so no pure-body check ever saw one.
  */
 const A_VERB_IS_STILL_REFUSED: Record<string, string> = {
   "bound with a trailing argument, which is what makes a `let` a call":
@@ -209,6 +214,8 @@ const A_VERB_IS_STILL_REFUSED: Record<string, string> = {
     'import { wire } from "@t/net"\nfn f() {\n  wire.send "x"\n  return 1\n}\nprint f()\n',
   "read where a value is wanted":
     'import { wire } from "@t/net"\nfn f() {\n  let a = wire.send("x")\n  return a\n}\nprint f()\n',
+  "written in the block an arrow now carries":
+    'import { wire } from "@t/net"\nconst f = r => {\n  wire.send r\n  1\n}\nprint f("x")\n',
 };
 
 describe("a verb that reaches the world, in each spelling", () => {

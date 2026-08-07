@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/stdlib",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "The one list of standard-library plugins, plus the fake port implementations the tooling runs them with.",
   "keywords": [
     "venn",

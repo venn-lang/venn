@@ -53,3 +53,8 @@ overrides:
   # never a reason to take a version nothing here was written against.
   fast-uri: ">=3.1.5 <4"
   undici: ">=7.29.0 <8"
+  # Both majors are in the tree, under two different dev tools, so both need a
+  # floor. GHSA-5p4m-2wfm-xmqj: quadratic CPU on `!!omap`, which a lockfile
+  # scanner reads whatever the dependency kind.
+  "js-yaml@^3": ">=3.15.1 <4"
+  "js-yaml@^4": ">=4.3.1 <5"

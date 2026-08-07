@@ -61,6 +61,7 @@ function analyze(args: AnalyzeArgs, loaded: Loaded): Analysis {
     uri: args.uri,
     graph: args.graph,
     registry: loaded.registry,
+    packages: args.packages,
     unreadable: args.unreadable,
     cycles: args.cycles,
   });

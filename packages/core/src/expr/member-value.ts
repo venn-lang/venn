@@ -32,7 +32,19 @@ export function memberValue(receiver: unknown, member: string): unknown {
   }
   const built = builtinMember(receiver, member, INVOKE);
   if (built !== NO_METHOD) return built;
-  return kind === "handle" ? published(receiver, member) : null;
+  return carries(kind) ? published(receiver, member) : null;
+}
+
+/**
+ * The kinds whose members the host decides rather than the language.
+ *
+ * A function is one of them. An npm package's default export is very often a
+ * callable carrying its whole surface as properties, which is what `lodash` is,
+ * so refusing to read through it answered `null` for `lodash.chunk` and the
+ * program carried the nothing forward.
+ */
+function carries(kind: string): boolean {
+  return kind === "handle" || kind === "fn";
 }
 
 /**
@@ -86,17 +98,33 @@ function orNothing(held: unknown): unknown {
   return held === undefined ? null : held;
 }
 
+/** What the engine writes on every function, which no package chose to publish. */
+const EVERY_FUNCTION: Readonly<Record<string, true>> = {
+  length: true,
+  name: true,
+  prototype: true,
+};
+
 /**
- * What a handle published, which is the one kind whose members the host decides.
+ * What a handle or a host function published, which the host decides.
  *
- * A plugin's handle is a host object whose verbs are exactly what it answers to,
- * so the read goes through to it. What *every* object inherits is not published
- * by anybody: `constructor` and `toString` are the host's, they are on the
- * language's own values too, and handing them over is how a program reaches the
- * prototype chain.
+ * A plugin's handle is a host object whose verbs are exactly what it answers
+ * to, so the read goes through to it. What *every* object inherits is not
+ * published by anybody: `constructor` and `toString` are the host's, they are
+ * on the language's own values too, and handing them over is how a program
+ * reaches the prototype chain.
+ *
+ * A function is two steps worse. `call`, `apply` and `bind` turn any value into
+ * a receiver of the reader's choosing, so only what is set on it directly
+ * counts: `lodash.chunk` is the package's and `lodash.call` is the prototype
+ * chain wearing the package's name. And `name`, `length` and `prototype` are
+ * set directly, by the engine rather than by anybody, so being own is not
+ * enough to be published.
  */
 function published(receiver: unknown, member: string): unknown {
   if (Object.hasOwn(Object.prototype, member)) return null;
+  if (typeof receiver !== "function") return orNothing(own(receiver, member));
+  if (EVERY_FUNCTION[member] || !Object.hasOwn(receiver, member)) return null;
   return orNothing(own(receiver, member));
 }
 

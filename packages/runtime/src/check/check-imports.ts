@@ -19,6 +19,7 @@ import type { Registry } from "../registry/index.js";
 import type { ImportCycle, UnreadableImport } from "../run/index.js";
 import type { ImportGraph } from "../scheduler/index.js";
 import { nodeSpan } from "../scheduler/index.js";
+import { checkPackageNames } from "./a-package-and-its-names.js";
 import { checkPackageImport } from "./check-package-import.js";
 
 /**
@@ -44,6 +45,8 @@ export function checkImports(args: {
    * be read.
    */
   registry: Registry;
+  /** What each imported package's types declare, for the command that has them. */
+  packages?: ReadonlyMap<string, Record<string, unknown>>;
   /**
    * Imports whose path was tried and answered nothing.
    *
@@ -67,6 +70,12 @@ export function checkImports(args: {
   return [
     ...problems,
     ...fromPackages(args),
+    ...checkPackageNames({
+      document: args.document,
+      uri: args.uri,
+      npm: args.graph.npm,
+      packages: args.packages,
+    }),
     ...checkPackageImport({ ...args, npm: args.graph.npm }),
     ...wentNowhere(args),
     ...wentInCircles(args),

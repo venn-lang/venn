@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/graphql",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "description": "The gql namespace: GraphQL queries, mutations and subscriptions as Venn verbs.",
   "keywords": [
     "venn",

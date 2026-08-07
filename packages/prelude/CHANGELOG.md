@@ -1,5 +1,12 @@
 # @venn-lang/prelude
 
+## 0.8.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/types@0.8.0
+
 ## 0.7.5
 
 ### Patch Changes

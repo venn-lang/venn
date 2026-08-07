@@ -1,5 +1,14 @@
 # @venn-lang/mail
 
+## 0.8.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.8.0
+  - @venn-lang/sdk@0.8.0
+  - @venn-lang/types@0.8.0
+
 ## 0.7.5
 
 ### Patch Changes

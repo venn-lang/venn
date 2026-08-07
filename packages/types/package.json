@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/types",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "description": "The language's type vocabulary as plain data: ten shapes, no dependencies, no compiler.",
   "keywords": [
     "venn",

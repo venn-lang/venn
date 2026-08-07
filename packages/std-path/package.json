@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/path",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "description": "The path namespace: joining a path, taking one apart, and asking where it leads.",
   "keywords": [
     "venn",

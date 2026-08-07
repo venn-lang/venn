@@ -1,5 +1,90 @@
 # @venn-lang/core
 
+## 0.8.0
+
+### Minor Changes
+
+- [#326](https://github.com/venn-lang/venn/pull/326) [`15abec4`](https://github.com/venn-lang/venn/commit/15abec452e2d1135e3885a09a5fbbc2b4b323584) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - An arrow can carry a block, so a callback with two lines in it has a spelling.
+
+  ```venn
+  const rotulos = notas.map(n => {
+    const media = n.soma / n.total
+    media > 7 ? "aprovado" : "reprovado"
+  })
+  ```
+
+  ```
+  VN1002 · Expected the end of the file here, found an opening bracket.
+  ```
+
+  The block existed and the arrow existed; they did not combine. Writing it meant
+  falling back to `fn (n) { … }` mid-expression, which is the long spelling of the
+  thing the short spelling was for.
+
+  `ArrowBody` was one expression by design, and the design had a reason: `{ … }`
+  after `=>` was already a map literal, which is how twenty-five places in this
+  repo are written and how the nicest of them read.
+
+  ```venn
+  graded.map((one) => {
+    student: one.who,
+    average: (one.average ?? 0).toFixed(1),
+    grade: one.grade
+  })
+  ```
+
+  JavaScript made the other trade, and every arrow returning an object pays
+  `=> ({ … })` for it forever. Venn keeps both, because the two are told apart at
+  the token after `{` and always can be: a map entry is `key: value` or
+  `...spread`, and no statement starts that way. So `n => { total: 1 }` is the map
+  it looks like, and a block is the block it looks like. The grammar generator
+  reports no ambiguity, and the eighty-four recorded examples are untouched.
+
+  One thing moved rather than broke. `rows.forEach(r => { print r })` used to earn
+  `VN5010`, whose sentence is "a lambda body is one value", and that stopped being
+  true. The line now parses, and the verb inside it is refused one stage later by
+  the rule that actually applies: `VN2024`, a `fn` is pure. The parse-stage
+  recovery reads only lines the parser stopped on, so it stays out of a file that
+  works.
+
+### Patch Changes
+
+- [#326](https://github.com/venn-lang/venn/pull/326) [`5815eb1`](https://github.com/venn-lang/venn/commit/5815eb182b2fb02c388db7481320e40b89c5bdff) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - A function written in Venn can be called from JavaScript.
+
+  ```venn
+  import { map } from "lodash"
+  print map([1, 2, 3], fn (n) => n * 2)
+  ```
+
+  ```
+  [false, false, false]
+  ```
+
+  No error, no diagnostic, three wrong numbers. `[2, 4, 6]` now.
+
+  `nativeFn` wraps a host function so the language can call it, and nothing did
+  the reverse. A Venn callable is a `Closure`, a record the interpreter reads, so
+  a library handed one called it anyway and got whatever falls out of calling a
+  record.
+
+  Every `.map`, `.filter`, `.sort` and `.reduce` of every npm package was broken
+  this way, and so was every event handler, which between them is most of what a
+  program does with a library at all. The import worked, the value arrived, and
+  the answer was silently wrong.
+
+  ## Structural, because a callback is often written inside something
+
+  `{ filter: fn (m) => … }` is the ordinary shape of an options object, so a plain
+  map and a list are walked rather than only the arguments themselves. Nothing
+  else is: a handle, a date, a regex is the host's already and crosses as it is.
+
+  A value carrying no callable is handed over **as itself**, never as a copy, so a
+  library that holds one and reads it back gets the object it was given.
+
+- Updated dependencies []:
+  - @venn-lang/prelude@0.8.0
+  - @venn-lang/types@0.8.0
+
 ## 0.7.5
 
 ### Patch Changes

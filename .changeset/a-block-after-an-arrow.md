@@ -39,7 +39,8 @@ it looks like, and a block is the block it looks like. The grammar generator
 reports no ambiguity, and the eighty-four recorded examples are untouched.
 
 One thing moved rather than broke. `rows.forEach(r => { print r })` used to earn
-`VN5010`, whose sentence is "a lambda body is one value" — no longer true. The
-line now parses, and the verb inside it is refused one stage later by the rule
-that actually applies: `VN2024`, a `fn` is pure. The parse-stage recovery reads
-only lines the parser stopped on, so it stays out of a file that works.
+`VN5010`, whose sentence is "a lambda body is one value", and that stopped being
+true. The line now parses, and the verb inside it is refused one stage later by
+the rule that actually applies: `VN2024`, a `fn` is pure. The parse-stage
+recovery reads only lines the parser stopped on, so it stays out of a file that
+works.

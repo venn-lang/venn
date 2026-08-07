@@ -86,7 +86,14 @@ FnDecl:
 // which reads the callee rather than the token and so speaks at every layout.
 FnBody:
     '=>' result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)*
+  | BracedBody;
+
+// The braces, written once and called from both bodies that wear them. Inlining
+// it twice cost the editor half again as long per keystroke: the completion
+// parser explores every alternative reachable from the cursor, and a second
+// copy of every statement form is reachable from every arrow in the file.
+BracedBody infers FnBody:
+    '{' NL* (stmts+=FnStmt NL+)*
       ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
 /**
@@ -494,10 +501,18 @@ Atom infers Expr:
 BareParam infers ParamList: params+=BareParamName;
 BareParamName infers Param: name=ID;
 
-// An arrow's body is one expression. A block would read as a map literal, so
-// `{ … }` bodies keep the `fn` spelling, where the braces can't be mistaken.
+// An arrow's body is one expression, or a block of statements ending in the
+// value it gives back.
+//
+// The two are told apart at the token after `{`, and they can be because a map
+// entry is always `key: value` or `...spread`: nothing a statement can start
+// with. So `n => { total: 1 }` is the map it looks like, and `n => { const t =
+// 1  t }` is the block it looks like, which is the opposite trade from
+// JavaScript and the better one. There, every arrow returning an object pays
+// for it with `=> ({ … })` forever; here nobody pays anything.
 ArrowBody infers FnBody:
-    result=Expr;
+    result=Expr
+  | BracedBody;
 
 // `...` in a literal is the other side of `...` in a pattern: there it keeps
 // what was left, here it pours what is there into what is being written.

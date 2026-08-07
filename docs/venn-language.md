@@ -1537,7 +1537,21 @@ const somar    = (a, b) => a + b
 const dobrar   = fn (x) => x * 2          # a forma longa, idêntica
 ```
 
-O corpo é **uma expressão**. Um corpo em bloco se leria como literal de mapa, então `{ … }` fica com a forma `fn`, onde as chaves não deixam dúvida.
+O corpo é uma expressão, ou um bloco que termina no valor que devolve: as duas
+formas que a `fn` já tinha, agora também depois de uma seta.
+
+```venn
+const rotulos = notas.map(n => {
+  const media = n.soma / n.total
+  media > 7 ? "aprovado" : "reprovado"
+})
+```
+
+Bloco e literal de mapa distinguem-se no token depois de `{`, e distinguem-se
+sempre: uma entrada de mapa é `chave: valor` ou `...espalha`, e nenhuma declaração
+começa assim. Então `n => { total: 1 }` é o mapa que parece, e o bloco acima é o
+bloco que parece. É a troca ao contrário da do JavaScript, e a melhor: lá, toda
+seta que devolve um objeto paga `=> ({ … })` para sempre; aqui ninguém paga nada.
 
 Um parâmetro sem parênteses não leva tipo: `f(x: number => …)` já significa um **argumento nomeado** chamado `x`, e argumento nomeado ganha. Quer anotar o tipo, use os parênteses: `(x: number) -> number => x + 1`.
 
@@ -2869,7 +2883,10 @@ FnDecl:
 
 FnBody:
     '=>' result=Expr
-  | '{' NL* (stmts+=FnStmt NL+)*
+  | BracedBody;
+
+BracedBody infers FnBody:
+    '{' NL* (stmts+=FnStmt NL+)*
       ('return'? result=Expr NL* | stmts+=FnStmt NL*)? '}';
 
 /**
@@ -3105,7 +3122,8 @@ BareParam infers ParamList: params+=BareParamName;
 BareParamName infers Param: name=ID;
 
 ArrowBody infers FnBody:
-    result=Expr;
+    result=Expr
+  | BracedBody;
 
 ListLit infers ListLit:
     '[' (items+=ListItem (',' items+=ListItem)* ','?)? ']';

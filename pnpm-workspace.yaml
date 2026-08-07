@@ -58,3 +58,6 @@ overrides:
   # scanner reads whatever the dependency kind.
   "js-yaml@^3": ">=3.15.1 <4"
   "js-yaml@^4": ">=4.3.1 <5"
+  # GHSA-2v37-7h3g-55p8: a predictable id when the alphabet is short. Reached
+  # through vite, so nothing here generates one, and the fix is a patch.
+  nanoid: ">=3.3.17 <4"

@@ -1,6 +1,6 @@
 import { kindOf, positionKey } from "../value/index.js";
 import { position } from "./counted-argument.js";
-import { INVOKE } from "./invoke.js";
+import { forHost, INVOKE } from "./invoke.js";
 import { builtinMember, NO_METHOD } from "./methods/index.js";
 import { nativeFn } from "./native.types.js";
 import { isWaiting, whenBothReady } from "./pending.js";
@@ -139,5 +139,5 @@ function own(receiver: unknown, member: string): unknown {
   const value = (receiver as Record<string, unknown>)[member];
   if (typeof value !== "function") return value;
   const method = value as (...args: unknown[]) => unknown;
-  return nativeFn((values) => method.apply(receiver, [...values]));
+  return nativeFn((values) => method.apply(receiver, values.map(forHost)));
 }

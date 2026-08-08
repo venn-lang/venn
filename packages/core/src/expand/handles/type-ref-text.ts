@@ -1,10 +1,4 @@
-import {
-  isLiteralType,
-  isNamedType,
-  isNullType,
-  type SingleType,
-  type TypeRef,
-} from "../../generated/ast.js";
+import type { TypeRef } from "../../generated/ast.js";
 
 /**
  * A written annotation, read back as the text that was written.
@@ -14,24 +8,16 @@ import {
  * so the only type there is to read is the one the reader wrote, and this reads
  * it off the annotation's own tree.
  *
+ * The source's own text, so a generic like `list<number>` survives the trip and
+ * a literal keeps the quotes the grammar gave it. A member with no source is a
+ * member nothing wrote: `addParam` is the only verb that grows a parameter list
+ * and it adds a name without a type, so the empty answer is the true one rather
+ * than a gap to fill in.
+ *
  * @param ref The annotation, or nothing where none was written.
- * @returns The type as written: a union joined by ` | ` in the order its
- * alternatives were written, a literal with the quotes the grammar gave it, and
- * `""` when there is no annotation at all.
+ * @returns The type as written, a union joined by ` | ` in the order its
+ * alternatives were written, and `""` when there is no annotation at all.
  */
 export function typeRefText(ref: TypeRef | undefined): string {
-  // The source's own text, so a generic like `list<number>` survives the trip.
-  return (ref?.members ?? [])
-    .map((member) => member.$cstNode?.text.trim() ?? synthesized(member))
-    .join(" | ");
-}
-
-/** A member a decorator built has no source to quote, so it is written out. */
-function synthesized(member: SingleType): string {
-  if (isNullType(member)) return "null";
-  // `value` is the token the grammar matched, quotes included.
-  if (isLiteralType(member)) return member.value;
-  if (!isNamedType(member)) return "";
-  const args = member.args.map(typeRefText).join(", ");
-  return args ? `${member.name}<${args}>` : member.name;
+  return (ref?.members ?? []).map((member) => member.$cstNode?.text.trim() ?? "").join(" | ");
 }

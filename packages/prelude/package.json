@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/prelude",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "What Venn brings with it: the names in scope before anything is imported.",
   "keywords": [
     "venn",

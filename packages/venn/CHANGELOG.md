@@ -1,5 +1,13 @@
 # @venn-lang/venn
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.8.1
+  - @venn-lang/toolchain@0.8.1
+
 ## 0.8.0
 
 ### Patch Changes

@@ -1,5 +1,5 @@
 import type { Cell, CellEnv, EvalEnv } from "../../expr/index.js";
-import { hasCells, PRELUDE_VALUES } from "../../expr/index.js";
+import { PRELUDE_VALUES } from "../../expr/index.js";
 
 /**
  * What a decorator body can see: its own parameters, its own `let`s, and the
@@ -38,18 +38,9 @@ export class DecoEnv implements EvalEnv {
     this.cells.set(name, { value });
   }
 
-  /** Whether this body bound the name itself, which decides who a write reaches. */
-  binds(name: string): boolean {
-    return this.cells.has(name);
-  }
-
-  /** Where this body keeps the name, for a hook writing what it read. */
-  place(name: string): Cell {
-    const held = this.cells.get(name);
-    if (held) return held;
-    const made: Cell = { value: undefined };
-    this.cells.set(name, made);
-    return made;
+  /** Where this body keeps the name, or nothing when it never bound one. */
+  place(name: string): Cell | undefined {
+    return this.cells.get(name);
   }
 }
 
@@ -70,7 +61,7 @@ export class DecoEnv implements EvalEnv {
 export class HookEnv implements CellEnv {
   constructor(
     private readonly body: DecoEnv,
-    private readonly program: EvalEnv,
+    private readonly program: CellEnv,
   ) {}
 
   lookup(name: string): unknown {
@@ -86,7 +77,6 @@ export class HookEnv implements CellEnv {
    * `let` at the top of the file already has.
    */
   cell(name: string): Cell {
-    if (this.body.binds(name)) return this.body.place(name);
-    return hasCells(this.program) ? this.program.cell(name) : this.body.place(name);
+    return this.body.place(name) ?? this.program.cell(name);
   }
 }

@@ -1,4 +1,4 @@
-import type { Closure, EvalEnv } from "../expr/index.js";
+import type { CellEnv, Closure } from "../expr/index.js";
 import { invoke, isClosure, nativeFn } from "../expr/index.js";
 import { DecoEnv, HookEnv } from "./deco/index.js";
 import { type Decorations, readDecorations } from "./decorations.js";
@@ -26,7 +26,7 @@ type Call = (values: readonly unknown[]) => unknown;
 export function decorateCallable(args: {
   node: object;
   base: unknown;
-  program?: EvalEnv;
+  program?: CellEnv;
 }): unknown {
   const found = readDecorations(args.node);
   if (!found) return args.base;
@@ -36,7 +36,7 @@ export function decorateCallable(args: {
 }
 
 /** Every hook, each seeing the program it is about to run in. */
-function seated(around: Decorations, program: EvalEnv | undefined): Decorations {
+function seated(around: Decorations, program: CellEnv | undefined): Decorations {
   if (!program) return around;
   const inside = (hook: unknown) => reseat(hook, program);
   return {
@@ -53,7 +53,7 @@ function seated(around: Decorations, program: EvalEnv | undefined): Decorations 
  * came from somewhere with its own idea of what a name means, and putting the
  * program behind it would change that.
  */
-function reseat(hook: unknown, program: EvalEnv): unknown {
+function reseat(hook: unknown, program: CellEnv): unknown {
   if (!isClosure(hook)) return hook;
   const closure = hook as Closure;
   if (!(closure.env instanceof DecoEnv)) return hook;

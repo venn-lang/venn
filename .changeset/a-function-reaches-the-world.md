@@ -1,7 +1,7 @@
 ---
-"@venn-lang/core": major
-"@venn-lang/runtime": major
-"@venn-lang/cli": minor
+"@venn-lang/core": patch
+"@venn-lang/runtime": patch
+"@venn-lang/cli": patch
 ---
 
 A `fn` reaches the world. `VN2024` is gone, and with it the rule that no

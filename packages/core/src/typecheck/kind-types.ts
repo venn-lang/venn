@@ -40,6 +40,7 @@ export const KIND_SPECS: Readonly<Record<TargetKind, TypeSpec>> = {
   Fn: t.record({
     ...COMMON,
     params: t.list(t.string),
+    paramTypes: t.list(t.string),
     addParam: t.fn([t.string], NOTHING),
     removeParam: t.fn([t.string], NOTHING),
     rename: t.fn([t.string], NOTHING),

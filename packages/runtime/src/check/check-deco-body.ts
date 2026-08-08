@@ -7,6 +7,7 @@ import {
   decoTarget,
   isActionCall,
   isDecoDecl,
+  isFnExpr,
   isLetStmt,
   namesBound,
   type Problem,
@@ -68,6 +69,7 @@ function handleVerb(args: { deco: DecoDecl; target: string }): string | undefine
  */
 export function enclosingDeco(node: AstNode): DecoDecl | undefined {
   for (let at: AstNode | undefined = node; at; at = at.$container) {
+    if (isFnExpr(at)) return undefined;
     if (isDecoDecl(at)) return at;
   }
   return undefined;

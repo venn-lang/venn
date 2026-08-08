@@ -21,7 +21,11 @@ import { bindDeclaredNamespaces } from "./declared-namespaces.js";
  */
 export function bindFunctions(doc: Document, scope: Scope): void {
   for (const decl of doc.decls) {
-    if (isFnDecl(decl)) scope.set(decl.name, decorateCallable(decl, closureOfDecl(decl, scope)));
+    if (isFnDecl(decl))
+      scope.set(
+        decl.name,
+        decorateCallable({ node: decl, base: closureOfDecl(decl, scope), program: scope }),
+      );
   }
 }
 

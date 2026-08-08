@@ -520,7 +520,9 @@
     "packages/vscode/src/extension.test.ts": 1,
     "packages/vscode/src/extension.ts": 1,
     "packages/vscode/src/find-server.test.ts": 1,
-    "packages/vscode/src/grammar.test.ts": 1
+    "packages/vscode/src/grammar.test.ts": 1,
+    "packages/core/src/expand/handles/param-types.test.ts": 2,
+    "packages/runtime/src/run/a-decorator-that-does-something.test.ts": 4
   },
   "types outside a .types.ts": {
     "packages/cli/src/commands/build.ts": 1,

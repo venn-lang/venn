@@ -1,6 +1,6 @@
 export type { DecoBodyArgs, DecoSignature, ImportedDeco, SignatureResult } from "./deco.types.js";
 export { decoDecorator } from "./deco-decorator.js";
-export { DecoEnv } from "./deco-env.js";
+export { DecoEnv, HookEnv } from "./deco-env.js";
 export type { DocumentDecoArgs } from "./document-decos.js";
 export { withDocumentDecos } from "./document-decos.js";
 export type { NameRead } from "./reach/index.js";

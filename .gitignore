@@ -27,3 +27,6 @@ benchmarks/tmp-*/
 __pycache__/
 *.pyc
 coverage/
+
+# Harness state, never the repo's.
+.zcode/

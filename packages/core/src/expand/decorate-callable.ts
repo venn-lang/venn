@@ -1,4 +1,6 @@
-import { invoke, nativeFn } from "../expr/index.js";
+import type { CellEnv, Closure } from "../expr/index.js";
+import { invoke, isClosure, nativeFn } from "../expr/index.js";
+import { DecoEnv, HookEnv } from "./deco/index.js";
 import { type Decorations, readDecorations } from "./decorations.js";
 
 /** A call, reduced to the one thing a middleware needs: values in, value out. */
@@ -10,12 +12,52 @@ type Call = (values: readonly unknown[]) => unknown;
  *
  * An untouched function is handed straight back, so nothing pays for a feature
  * it did not use.
+ *
+ * Each hook is re-seated here rather than where it was written, because this is
+ * the first moment both halves of what it can see exist: the `deco` body it
+ * closed over, and the program it will run in. Written, it had only the first.
+ *
+ * @param args.node The declaration, for the hooks a decorator left on it.
+ * @param args.base What the declaration means undecorated.
+ * @param args.program The scope the call happens in, which is what lets a hook
+ * reach a verb. Absent where there is no program yet, and then a hook sees only
+ * the body it was written in, as it always did.
  */
-export function decorateCallable(node: object, base: unknown): unknown {
-  const around = readDecorations(node);
-  if (!around) return base;
-  const chain = wrapChain(around.wrap, base);
+export function decorateCallable(args: {
+  node: object;
+  base: unknown;
+  program?: CellEnv;
+}): unknown {
+  const found = readDecorations(args.node);
+  if (!found) return args.base;
+  const around = seated(found, args.program);
+  const chain = wrapChain(around.wrap, args.base);
   return nativeFn((values) => aroundCall({ chain, around, values }));
+}
+
+/** Every hook, each seeing the program it is about to run in. */
+function seated(around: Decorations, program: CellEnv | undefined): Decorations {
+  if (!program) return around;
+  const inside = (hook: unknown) => reseat(hook, program);
+  return {
+    wrap: around.wrap.map(inside),
+    before: around.before.map(inside),
+    after: around.after.map(inside),
+  };
+}
+
+/**
+ * One hook, with the program behind the body it closed over.
+ *
+ * Only a closure a `deco` body made is re-seated. Anything else on the list
+ * came from somewhere with its own idea of what a name means, and putting the
+ * program behind it would change that.
+ */
+function reseat(hook: unknown, program: CellEnv): unknown {
+  if (!isClosure(hook)) return hook;
+  const closure = hook as Closure;
+  if (!(closure.env instanceof DecoEnv)) return hook;
+  return { ...closure, env: new HookEnv(closure.env, program) };
 }
 
 function aroundCall(args: {

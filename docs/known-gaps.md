@@ -812,6 +812,78 @@ It closes one of two ways, and either is an answer: a `fragment` becomes a
 value, or `venn check` refuses one written where a value goes. Accepting it and
 handing back `null` is the only option that is not.
 
+## 23. Closed: a decorator's own `let` is storage a hook can write
+
+A `deco` body's binding was read where it was written and gone when the hook
+that captured it ran, so `venn check` said `✓ no problems found` and `venn run`
+answered `VN3021 · Nothing here binds "n"` at the call site, three lines below
+anything the reader wrote about `n`.
+
+A `deco` body now keeps its bindings in cells, which is the storage a captured
+`let` has anywhere else, so the read and the write reach one place.
+
+```ruby
+deco cooldown(target: Fn, times: number) {
+  let calls = 0
+  target.wrap(fn (call, args) {
+    calls = calls + 1
+    if calls > times { fail "on cooldown" { code: "cd" } }
+    call(args)
+  })
+}
+@cooldown(2)
+fn ping() => "pong"
+print ping()
+print ping()
+print (try ping() catch e => e.code)
+```
+```
+pong
+pong
+cd
+```
+
+A name the program bound rather than the decorator is written too, and lands in
+the program, so two decorations of one `deco` share a count when the count is
+the file's.
+
+## 24. Closed: a hook runs in the program, and is read as running there
+
+`VN2016` asked where a call was written rather than when it runs, so a verb
+inside a `wrap` was refused about a moment the hook was not running in. A hook
+is a value handed over, kept, and called once the program exists.
+
+Two boundaries moved and one did not. The checker stops at a hook rather than at
+the `deco`, and the reach check does the same, so a name a hook reads is the
+program's to answer. What the body itself reads or calls is still expansion and
+still refused, which is the rule and which stays.
+
+```ruby
+const site = "eu-west"
+deco logged(target: Fn) {
+  target.wrap(fn (call, args) {
+    print "calling ${target.name} at ${site}"
+    call(args)
+  })
+}
+@logged
+fn ping() => "pong"
+print ping()
+```
+```
+calling ping at eu-west
+pong
+```
+
+What is left of the list this pair belonged to: a decorator can log, check a
+permission, hold a cooldown, read a name the program bound and write one, and
+read what its target's parameters were declared as, through `target.paramTypes`
+beside `target.params`. What it still cannot do is hand what it decorated to a
+program that could collect it: `target.meta` writes a key only the host reads,
+so a `@slash` still has no way to register a command in Venn alone. That one is
+not written up as a gap because nothing about it is a surprise: there is no verb
+for it, and a missing verb refuses by name.
+
 ---
 
 Nothing here is a promise that the list is complete, and an empty list would not

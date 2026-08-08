@@ -348,7 +348,7 @@
     "packages/runtime/src/imports/importing.test.ts": 5,
     "packages/runtime/src/imports/read-imports.ts": 1,
     "packages/runtime/src/registry/build-registry.ts": 2,
-    "packages/runtime/src/run/a-function-reaches-the-world.test.ts": 3,
+    "packages/runtime/src/run/a-function-reaches-the-world.test.ts": 9,
     "packages/runtime/src/run/both-spellings.test.ts": 2,
     "packages/runtime/src/run/create-runner.test.ts": 3,
     "packages/runtime/src/run/create-runner.ts": 2,

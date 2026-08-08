@@ -170,3 +170,119 @@ describe("statements of a body that reaches the world", () => {
     expect(marks).toEqual(["slow", "fast"]);
   });
 });
+
+/**
+ * Where a slow statement meets the control flow around it.
+ *
+ * These are the edges the wait had to be threaded through rather than the
+ * feature itself: a loop that leaves on a slow pass, a `try` whose attempt was
+ * still running when it failed, and a `finally` that used to fire underneath
+ * one instead of after it.
+ */
+describe("a body that leaves while something slow is in flight", () => {
+  it("breaks out of a loop on a slow pass, and runs no more of them", async () => {
+    marks.length = 0;
+    const source = [
+      "fn once() {",
+      '  forEach one in ["a", "b"] {',
+      "    world.mark one 3",
+      "    break",
+      "  }",
+      "  0",
+      "}",
+      "print once()",
+    ];
+
+    expect(await run(source.join(NEWLINE))).toEqual(["0"]);
+    expect(marks).toEqual(["a"]);
+  });
+
+  it("returns out of a loop on a slow pass, with the value it was given", async () => {
+    marks.length = 0;
+    const source = [
+      "fn first() {",
+      '  forEach one in ["a", "b"] {',
+      "    world.mark one 3",
+      "    return one",
+      "  }",
+      '  "none"',
+      "}",
+      "print first()",
+    ];
+
+    expect(await run(source.join(NEWLINE))).toEqual(["a"]);
+    expect(marks).toEqual(["a"]);
+  });
+
+  /** A slow attempt fails as a rejection, not as a throw the `try` can see. */
+  it("catches a failure raised after a slow statement", async () => {
+    const source = [
+      "fn guarded() {",
+      "  try {",
+      '    world.mark "tried" 3',
+      '    fail "after the wait" { code: "late" }',
+      "  } catch e {",
+      '    print "caught ${e.code}"',
+      "  }",
+      "  0",
+      "}",
+      "print guarded()",
+    ];
+
+    expect(await run(source.join(NEWLINE))).toEqual(["caught late", "0"]);
+  });
+
+  /** The bug this one pins: a `finally` used to run while the attempt was in flight. */
+  it("runs a finally after a slow attempt, not beside it", async () => {
+    marks.length = 0;
+    const source = [
+      "fn cleaned() {",
+      "  try {",
+      '    world.mark "work" 3',
+      "  } finally {",
+      '    world.mark "cleanup" 0',
+      "  }",
+      "  0",
+      "}",
+      "print cleaned()",
+    ];
+
+    await run(source.join(NEWLINE));
+
+    expect(marks).toEqual(["work", "cleanup"]);
+  });
+
+  it("waits for a slow finally before the body answers", async () => {
+    marks.length = 0;
+    const source = [
+      "fn cleaned() {",
+      "  try {",
+      '    world.mark "work" 0',
+      "  } finally {",
+      '    world.mark "cleanup" 3',
+      "  }",
+      "  0",
+      "}",
+      "print cleaned()",
+      'print "after"',
+    ];
+
+    expect(await run(source.join(NEWLINE))).toEqual(["0", "after"]);
+    expect(marks).toEqual(["work", "cleanup"]);
+  });
+
+  /** The bracketed spelling of a verb, which puts its arguments elsewhere. */
+  it("takes a verb written with brackets, and binds what it answered", async () => {
+    marks.length = 0;
+    const source = [
+      "fn tell() {",
+      '  const gone = world.mark("bracketed", 3)',
+      "  1",
+      "}",
+      "print tell()",
+    ];
+
+    expect(await run(source.join(NEWLINE))).toEqual(["1"]);
+    expect(marks).toEqual(["bracketed"]);
+  });
+});

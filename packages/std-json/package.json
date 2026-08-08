@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/json",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "The json namespace: text in, a value out, with the position when it is not JSON.",
   "keywords": [
     "venn",

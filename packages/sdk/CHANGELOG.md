@@ -1,5 +1,13 @@
 # @venn-lang/sdk
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.8.1
+  - @venn-lang/types@0.8.1
+
 ## 0.8.0
 
 ### Patch Changes

@@ -3,7 +3,9 @@ import { noNumericAnswer, notACount, notANumber } from "../argument-refusal.js";
 import { counted } from "../counted-argument.js";
 import type { Counted } from "../counted-argument.types.js";
 import { type Invoke, type Method, nativeFn } from "../native.types.js";
+import { isWaiting, whenReady } from "../pending.js";
 import { fromEntries } from "./map-extras.js";
+import { perItem } from "./over-items.js";
 
 /**
  * A value being added up or compared, which has to be a number.
@@ -37,25 +39,17 @@ export const LIST_SELECTION: Record<string, Method> = {
     nativeFn((args) => list.slice(Math.max(0, list.length - counted(args[0], TAKE_LAST)))),
   dropLast: (list: readonly unknown[]) =>
     nativeFn((args) => list.slice(0, Math.max(0, list.length - counted(args[0], DROP_LAST)))),
-  takeWhile: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.slice(0, edge(list, args[0], invoke))),
-  dropWhile: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.slice(edge(list, args[0], invoke))),
-  distinct: (list: readonly unknown[]) => distinct(list, (item) => item),
-  distinctBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => distinct(list, (item, i) => invoke.two(args[0], item, i))),
-  sortBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => sortBy(list, (item, i) => invoke.two(args[0], item, i))),
-  minBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => best(list, (item, i) => num(invoke.two(args[0], item, i), "minBy"), -1)),
-  maxBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => best(list, (item, i) => num(invoke.two(args[0], item, i), "maxBy"), 1)),
-  sumBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) =>
-      list.reduce((total: number, x, i) => total + num(invoke.two(args[0], x, i), "sumBy"), 0),
-    ),
-  flatMap: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.flatMap((item, i) => flatten(invoke.two(args[0], item, i)))),
+  takeWhile: cutAtEdge((list, at) => list.slice(0, at)),
+  dropWhile: cutAtEdge((list, at) => list.slice(at)),
+  distinct: (list: readonly unknown[]) => distinct(list, (at) => list[at]),
+  distinctBy: perItem((list, keys) => distinct(list, (at) => keys[at])),
+  sortBy: perItem(orderedBy),
+  minBy: bestBy("minBy", -1),
+  maxBy: bestBy("maxBy", 1),
+  sumBy: perItem((_list, scores) =>
+    scores.reduce((total: number, one) => total + num(one, "sumBy"), 0),
+  ),
+  flatMap: perItem((_list, results) => results.flatMap(flatten)),
   sum: (list: readonly unknown[]) => list.reduce((total: number, x) => total + num(x, "sum"), 0),
   average: (list: readonly unknown[]) => average(list),
   // Folded rather than spread: `Math.min(...list)` passes every element as an
@@ -105,21 +99,45 @@ function extreme(list: readonly unknown[], direction: 1 | -1, verb: string): num
   return best;
 }
 
-/** Where the run of items satisfying the predicate ends. */
-function edge(list: readonly unknown[], fn: unknown, invoke: Invoke): number {
-  let index = 0;
-  while (index < list.length && truthy(invoke.two(fn, list[index], index))) index += 1;
-  return index;
+/**
+ * Where the run of items satisfying the predicate ends.
+ *
+ * This is the one predicate that cannot be asked about every item at once: a
+ * prefix stops where it stops, and asking past the end would run the predicate
+ * on items the caller never meant it to see. So the walk chains on the first
+ * verdict that has not arrived and resumes at the item after it.
+ */
+function edge(
+  list: readonly unknown[],
+  ask: (item: unknown, index: number) => unknown,
+  from: number,
+): number | Promise<number> {
+  for (let at = from; at < list.length; at += 1) {
+    const verdict = ask(list[at], at);
+    if (isWaiting(verdict)) {
+      return verdict.then((settled) => (truthy(settled) ? edge(list, ask, at + 1) : at));
+    }
+    if (!truthy(verdict)) return at;
+  }
+  return list.length;
 }
 
-function distinct(
-  list: readonly unknown[],
-  keyOf: (item: unknown, i: number) => unknown,
-): unknown[] {
+/** `takeWhile` and `dropWhile`: the same edge, cut on either side of it. */
+function cutAtEdge(cut: (list: readonly unknown[], at: number) => unknown[]): Method {
+  return (list: readonly unknown[], invoke: Invoke) =>
+    nativeFn((args) =>
+      whenReady(
+        edge(list, (item, i) => invoke.two(args[0], item, i), 0),
+        (at) => cut(list, Number(at)),
+      ),
+    );
+}
+
+function distinct(list: readonly unknown[], keyOf: (index: number) => unknown): unknown[] {
   const seen = new Set<string>();
   const out: unknown[] = [];
   list.forEach((item, index) => {
-    const key = JSON.stringify(keyOf(item, index)) ?? "";
+    const key = JSON.stringify(keyOf(index)) ?? "";
     if (seen.has(key)) return;
     seen.add(key);
     out.push(item);
@@ -128,20 +146,17 @@ function distinct(
 }
 
 /**
- * Sort by a derived key, ordering positions rather than the items themselves.
+ * Sort by a key derived per item, ordering positions rather than the items.
  *
- * The keys go in one array and the positions in another, so the sort moves
- * numbers and nothing is allocated per item. It stays stable, which is what
- * leaves items whose keys tie in the order they came.
+ * The keys arrive already worked out, one per position, and the positions go in
+ * an array of their own, so the sort moves numbers and nothing is allocated per
+ * item. It stays stable, which is what leaves items whose keys tie in the order
+ * they came.
  */
-function sortBy(list: readonly unknown[], keyOf: (item: unknown, i: number) => unknown): unknown[] {
+function orderedBy(list: readonly unknown[], keys: readonly unknown[]): unknown[] {
   const size = list.length;
-  const keys = new Array<unknown>(size);
   const order = new Array<number>(size);
-  for (let at = 0; at < size; at += 1) {
-    keys[at] = keyOf(list[at], at);
-    order[at] = at;
-  }
+  for (let at = 0; at < size; at += 1) order[at] = at;
   order.sort((left, right) => compare(keys[left], keys[right]));
   const out = new Array<unknown>(size);
   for (let at = 0; at < size; at += 1) out[at] = list[order[at] as number];
@@ -156,15 +171,20 @@ function compare(left: unknown, right: unknown): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
+/** `minBy` and `maxBy`, which differ only in the direction they look. */
+function bestBy(verb: string, direction: number): Method {
+  return perItem((list, scores) => best(list, (at) => num(scores[at], verb), direction));
+}
+
 function best(
   list: readonly unknown[],
-  scoreOf: (item: unknown, i: number) => number,
+  scoreOf: (index: number) => number,
   direction: number,
 ): unknown {
   let winner: unknown = null;
   let score = Number.NaN;
   list.forEach((item, index) => {
-    const value = scoreOf(item, index);
+    const value = scoreOf(index);
     if (Number.isNaN(score) || (value - score) * direction > 0) {
       winner = item;
       score = value;

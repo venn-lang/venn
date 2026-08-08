@@ -745,55 +745,44 @@ just been shown `pi` exists is refused when they ask for it. That is the gap
 rather than the discovery: two answers about one name in one file, and the
 shorter question is the one that works.
 
-## 21. `VN2024` names two ways out, and a lambda can be in neither
+## 21. Closed: a `fn` reaches the world, so the sentence has nothing to say
 
-**Severity: low. The refusal is right; the sentence after it is what cannot be
-followed.** The way out is chosen by asking whether the nearest body is a lambda
-written as an argument of a call. That splits every program in two, and there
-are three cases.
+`VN2024` refused a verb inside a `fn`, and the two ways out it offered were the
+subject of this entry: a callback was told to write a loop over a list that does
+not exist, and a lambda used as a value was told to become a `fragment`, which
+entry 22 shows it cannot.
 
-A callback to something that does not iterate is told to write a loop over a
-list that does not exist:
-
-```ruby
-fn apply(f) => f(1)
-let r = apply(fn (x) { print x })
-print r
-```
-```
-VN2024 · A `fn` is pure, so it cannot call `print`. A verb needs a statement of its own. To keep what it answers, write `let xs = []` and then `forEach n in ns { xs = xs.push(…) }`.
-  at    …\a.vn:2:24
-```
-
-There is no `ns`: `apply` calls the lambda once, with `1`. And a lambda used as
-a value, in a map entry, a list element or a `fn`'s answer, gets the other
-sentence, which is no better:
+The rule is gone rather than the sentence reworded. What it protected was the
+promise that a graph drawn from a program shows everything the program reaches,
+and what it cost was every higher-order function over an effect: a `map` that
+fetches, a handler that queries before it answers, a `print` inside a function.
+There was no third sentence to write, because there was no way out.
 
 ```ruby
-let handlers = { greet: fn (name) { print name } }
-print handlers.greet("ada")
+fn shout(word) {
+  print "saying ${word}"
+  word.upper
+}
+print shout("hi")
 ```
 ```
-VN2024 · A `fn` is pure, so it cannot call `print`. A verb belongs in a `fragment`, or at the top level of a file.
-  at    …\b.vn:1:37
+saying hi
+HI
 ```
 
-A lambda in a map is a real value and it runs: the same program with
-`fn (name) => name` prints `ada`. A `fragment` cannot stand there, which entry
-22 shows costs more than a wrong sentence.
-
-The two shapes are one mechanism. `isArg || isActionCall` asks whether the
-lambda is a callback, and answers the iteration advice for every callback and
-the lifting advice for everything else, when the truth is that a lambda has a
-third way out neither names: answer the value and let the caller do the verb.
-That works for both programs above. It is left here rather than written because
-a third sentence wants the same evidence the first two now have, which is a
-program per shape rather than a plausible rule.
+`fail` is still built into the body rather than called, because raising is
+control flow: it leaves instead of answering. Statements run in the order they
+are written even when they reach the world, so the line under a slow one sees
+what it did.
 
 ## 22. A `fragment` passes as a value and is refused when it is called
 
-**Severity: medium, and it is a `venn check` that blesses a program `venn run`
-will not take.** Found while checking whether entry 21's advice can be followed.
+**Severity: high, and it rose when entry 21 closed.** It was medium while a
+`fragment` was the only body that could reach the world, because the reader had
+another spelling to reach for. Now a `fn` reaches the world too, so the one
+thing left that only a `fragment` does is carry steps, and the one thing it
+still cannot do is be a value. This is a `venn check` that blesses a program
+`venn run` will not take.
 
 ```ruby
 fragment greet(name) { print name }
@@ -814,11 +803,14 @@ VN2003 · Unknown action "handlers.greet".
 mistake; nothing says so until the call is reached, and by then the reader has
 been told twice that the file is fine.
 
-Measured on this branch and on `origin/main`, built from `ae69f51`, with the
-same three lines and the same two exit codes. It is not a regression and it is
-not new. It is written down because the sentence in entry 21 sends a reader
-here, and because "the checker said the file was fine" is the most expensive
-thing this language can be wrong about.
+The same hole under a different roof: `http.on gateway answer`, with `answer` a
+`fragment`, checks clean and answers `null` to every request, because
+`typeOf(answer)` is `null`. A long-lived handler that carries steps is exactly
+what somebody would write a `fragment` for.
+
+It closes one of two ways, and either is an answer: a `fragment` becomes a
+value, or `venn check` refuses one written where a value goes. Accepting it and
+handing back `null` is the only option that is not.
 
 ---
 

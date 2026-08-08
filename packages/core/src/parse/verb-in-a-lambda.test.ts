@@ -35,11 +35,8 @@ describe("a verb handed to a lambda", () => {
   /**
    * The braces are a body now, so the line parses and this recovery stays out
    * of it: the recovery only reads lines the parser stopped on, which is what
-   * keeps a working file silent.
-   *
-   * The verb is still refused, one stage later and by the rule that actually
-   * applies to it. `check-document.test.ts` in `@venn-lang/runtime` owns that
-   * half, because the pure-body check lives there and `core` cannot import it.
+   * keeps a working file silent. What the body then does with the verb is the
+   * runtime's question, not this pass's.
    */
   it("leaves the braced spelling alone, because it is a body and it parses", () => {
     const source = ['let rows = ["a"]', "rows.forEach(r => { print r })"].join(NEWLINE);
@@ -86,10 +83,9 @@ describe("a verb handed to a lambda", () => {
   });
 
   /**
-   * `io.print(r)` is a call, so it is a value, so the grammar takes it. Whether
-   * a lambda may reach the world is `check-pure-verb.ts`'s question and is
-   * asked later off the AST; what this holds is that nothing is said HERE,
-   * because what the grammar refuses is a statement where a value goes.
+   * `io.print(r)` is a call, so it is a value, so the grammar takes it. What
+   * this holds is that nothing is said HERE, because what the grammar refuses
+   * is a statement written where a value goes.
    */
   it("says nothing about a namespaced verb, which is a value and parses", () => {
     const source = ['let rows = ["a"]', "rows.forEach(r => io.print(r))"].join(NEWLINE);

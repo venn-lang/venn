@@ -102,26 +102,15 @@ plugin can shadow another.
 offer `net` fails to load `@venn-lang/http` with a readable diagnostic, not with a `TypeError` halfway
 through a test.
 
-**It is also what decides whether a `fn` may call a verb.** A `fn` is pure, and the checker reads this
-column to know what "pure" means: a namespace with an empty cell may be called from a `fn`, and one
-with a capability may not. So `fn portOf(text) => try json.parse(text).port else 8080` compiles, while
-the same body reaching `date.now` or `math.randomInt` is refused with `VN2024`. Every verb of `assert`,
-`env`, `fmt`, `json`, `path` and `mock` is callable that way.
+That column is load-bearing, so four of its cells being wrong mattered: `math`, `date`, `crypto`
+and `auth` each reached a port whose capability they did not declare, and on a host without
+`random` those plugins loaded clean and then died at port bind partway through a run.
 
-Because one column answers two questions, an empty cell is load-bearing twice over, and four of them
-were wrong until recently: `math`, `date`, `crypto` and `auth` each reached a port whose capability
-they did not declare. That is not only a purity hole. It also broke the promise above, since on a host
-without `random` those plugins loaded clean and then died at port bind partway through a run.
-
-**A capability belongs to a plugin and purity belongs to a verb**, so a single verb may say it does not
-use what its namespace asked for, with `pure: true` on the action. `date.format` is handed the moment it
-writes and `math.isClose` compares two numbers you already have, and both are callable from a `fn`
-though `date.now` and `math.randomInt` beside them are not. That is the exception and not the rule:
-leaving it out inherits the plugin's answer, which is what keeps an author who says nothing from
-accidentally getting permission to do I/O inside something the language calls pure. Without it a
-namespace with no pure path forces working code to be rewritten into `fragment`s to satisfy a rule
-about effects it does not have, which is what `examples/programs/standup/rota/schedule.vn` would have
-cost.
+**A capability belongs to a plugin and reaching belongs to a verb**, so a single verb may say it
+does not use what its namespace asked for, with `pure: true` on the action. `date.format` is handed
+the moment it writes and `math.isClose` compares two numbers you already have, while `date.now` and
+`math.randomInt` beside them draw on the world. Leaving the field out inherits the plugin's answer,
+which keeps an author who says nothing from claiming more than they checked.
 
 `mock` is the case neither mechanism reaches: its verbs ask for no port, so nothing is declared, and yet
 they keep state in a module-level store, so `mock.flag("x")` answers differently depending on what ran
@@ -166,8 +155,8 @@ computation over its input rather than a call out to anything. That much is stil
 written here, and on the port and the plugin beside it, was the stronger claim that crypto is therefore
 pure and needs no capability, and that claim was wrong: `CryptoEnginePort` also publishes `randomBytes`,
 which `crypto.uuid` and `crypto.password.hash` draw from. Whether the code to do it exists on every
-target is not what a capability asks. So the port and the plugin both declare `random` now, and
-`crypto` is refused inside a `fn`, digests included, because a port binds as a whole.
+target is not what a capability asks. So the port and the plugin both declare `random` now, digests
+included, because a port binds as a whole.
 
 `HttpClientPort` is deliberately absent. The one plugin with a real client leaves the choice to the
 host, so a test can inject a fake and the CLI can inject `fetch`.

@@ -30,29 +30,25 @@ export interface ActionDefinition {
    */
   signature?: FnSpec;
   /**
-   * That this verb touches nothing, so a `fn` may call it.
+   * That this verb reaches nothing, whatever its plugin had to ask the host for.
    *
-   * Purity is decided from the plugin's `requires`, because a plugin that had to
-   * ask the host for something can reach the world. That answer is right per
-   * plugin and too coarse per verb: `date.now` reads the clock while
-   * `date.format` writes out a moment it was handed, and `math.randomInt` draws
-   * while `math.sqrt` computes. Refusing the second of each pair refuses a
-   * correct program, and a namespace with no pure path leaves the author
-   * rewriting working code into `fragment`s to satisfy a rule about effects it
-   * does not have.
+   * A capability is declared per plugin, which is the right grain for load-time
+   * negotiation and too coarse to describe one verb: `date.now` reads the clock
+   * while `date.format` writes out a moment it was handed, and `math.randomInt`
+   * draws while `math.sqrt` computes. Reading the plugin's answer onto both of
+   * each pair overstates the second one.
    *
    * So this is the exception, not the rule. Absent means the verb inherits its
-   * plugin's answer, which is what keeps the default safe: a plugin author who
-   * says nothing never accidentally gets permission to do I/O inside something
-   * the language calls pure.
+   * plugin's answer, which is what keeps the default honest: a plugin author who
+   * says nothing never claims more than they checked.
    *
    * `true` is the only value. "Not pure" has one spelling, which is leaving this
    * out, so there is no second way to say it and no way to say it by accident.
    *
    * It is checked rather than trusted. `requires` was a promise nobody verified
-   * and was silently wrong in four plugins; this would be the same shape with a
-   * worse failure direction, since an over-claimed `pure` admits a verb
-   * deliberately. `a-verb-may-claim-purity.test.ts` in `@venn-lang/stdlib` drives
+   * and was silently wrong in four plugins; this is the same shape with a worse
+   * failure direction, since an over-claimed `pure` is a declaration that lies
+   * about the verb it sits on. `a-verb-may-claim-purity.test.ts` in `@venn-lang/stdlib` drives
    * every verb and refuses any that claims this while asking for a port.
    */
   pure?: true;

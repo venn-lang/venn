@@ -47,8 +47,6 @@ export const CODES = {
   VN2022_CONST_ASSIGNED: { code: "VN2022", severity: "error" },
   /** A name inside a `deco` body that expansion time cannot reach yet. */
   VN2023_OUT_OF_REACH: { code: "VN2023", severity: "error" },
-  /** A verb called from a `fn` body, which is pure and cannot reach the world. */
-  VN2024_VERB_IN_A_PURE_BODY: { code: "VN2024", severity: "error" },
   /** A declaration inside a `namespace` that grouping names is no place for. */
   VN2025_NOT_A_NAMESPACE_MEMBER: { code: "VN2025", severity: "error" },
   /** A closure reading a name the `let` below it binds, which nothing holds yet. */

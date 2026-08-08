@@ -521,31 +521,41 @@ const motivo = try metade(-1) catch e => e.code
 print motivo
 ```
 
-O que **não** cabe é um verbo que alcança o mundo, e a linguagem já dizia quais
-são: um plugin declara em `requires` de que portas do host precisa, e é essa
-declaração que a regra lê. Um plugin que não precisa de nada não alcança nada, e
-os verbos dele são conta, não efeito: `try json.parse(texto).porta else 8080`
-dentro de uma `fn` é exatamente a forma que um programa mais quer, receber,
-transformar e recusar o que está errado.
+**E uma `fn` alcança o mundo.** Um verbo cabe onde a conta cabe: `print` numa
+linha, `http.get` ligado a um nome, `db.query` dentro de um `if`. A regra que
+recusava isso saiu.
 
-`print 1` dentro de uma `fn` é `VN2024 · A `fn` is pure, so it cannot call
-`print`. A verb belongs in a `fragment`, or at the top level of a file.` E vale
-escrito de qualquer jeito, porque a regra pergunta quem é o chamado e não como a
-linha foi digitada: `io.eprint(m)` é a mesma recusa que `print m`. Antes ela
-morava na forma da gramática, que só conseguia ver a segunda, e uma regra que
-valia para uma grafia e não para a outra não era uma regra.
+```venn
+fn resumo(url) {
+  const res = http.get(url)
+  print "buscou ${url}"
+  { status: res.status, bytes: res.body.len }
+}
+```
 
-A capacidade pertence ao plugin e a pureza pertence ao verbo, então um verbo pode
-se declarar puro e isso vence a declaração do pacote dele. O padrão não muda: sem
-dizer nada, um verbo herda o que o plugin pediu, e um verbo de um pacote que pede
-uma porta continua recusado. Quem se declara é a exceção, não a regra, e é assim
-que `date.format`, que só trabalha no instante que recebeu, cabe numa `fn` sem que
-`venn/date` deixe de pedir o relógio.
+Ela custava mais do que dava. Uma `fn` que não alcança o mundo não pode ser um
+callback que alcança, e é aí que quase todo o programa vive: um `map` que busca,
+um `filter` que consulta, um handler que responde depois de perguntar a alguém.
+Não havia grafia nenhuma para isso. Um `fragment` sabia fazê-lo e não é um valor,
+então não podia ser passado; a saída que a mensagem de recusa oferecia não
+existia.
 
-Um step e um `expect` continuam fora pela gramática, porque nenhum dos dois tem
-sentido sem um `flow` em volta. E vale em qualquer profundidade: os blocos que o
-`if` e os laços de um corpo seguram são feitos das mesmas declarações, então um
-verbo dentro de um `if` é a mesma recusa que um verbo na primeira linha.
+O preço está pago do outro lado: o que uma `fn` alcança deixa de aparecer no
+grafo só por estar escrito nela. Quem desenha o grafo continua a ver o `flow`, o
+`step` e o `fragment`, e passa a não ver a chamada que uma função escondeu. Foi
+uma troca, e é esta: uma linguagem em que a metade interessante dos programas
+não se escreve não tem grafo nenhum para desenhar.
+
+As linhas que continuam de pé: um step e um `expect` ficam fora de uma `fn` pela
+gramática, porque nenhum dos dois tem sentido sem um `flow` em volta. E `fail`
+continua a ser controle de fluxo, não efeito, portanto o compilador constrói-o no
+corpo em vez de o chamar: um `raise` sai antes de haver o que ligar.
+
+A ordem também é uma promessa. Statements de um corpo correm na ordem em que
+estão escritos mesmo quando alcançam o mundo, portanto a linha debaixo de
+`const r = http.get(u)` já vê o que a chamada mudou. Nada disto precisa de
+`await`, que a linguagem não tem: quem quer duas coisas ao mesmo tempo escreve
+`spawn`, `parallel` ou `race`.
 
 Um corpo é um escopo só. Um `let` dentro de um `if` é um nome da função, porque
 uma chamada tem um frame e não uma corrente deles.
@@ -1436,17 +1446,26 @@ fragment get(url) {
 
 |   | fn | fragment |
 | --- | --- | --- |
-| Contém | expressões, `let`, atribuição, `if`, os laços, `try` de bloco e `fail` | tudo isso mais steps, `expect` e verbos |
-| Alcance | decide, liga, itera, devolve, levanta, e chama verbo que não precisa do host | chega ao mundo: rede, disco, browser, relógio |
+| Contém | expressões, `let`, atribuição, `if`, os laços, `try` de bloco, `fail` e verbos | tudo isso mais steps e `expect` |
+| É um valor | sim: passa-se, liga-se, devolve-se | não: tem nome e chama-se pelo nome |
 | Chamada | dentro de expressão | `run nome(args)` |
 | No grafo | invisível | nó-container colapsável |
 
-A linha entre as duas é o mundo, e só ele. Uma `fn` que falha continua pura,
-porque levantar é decidir não devolver, e uma `fn` que chama `json.parse` também,
-porque um plugin que não pede nenhuma porta ao host não alcança nada. Uma `fn`
-que chama um verbo que pede uma porta é `VN2024`, onde estiver escrita. Um
-`fragment` é onde esse verbo mora, e é por isso que ele aparece no grafo: o que
-sai do processo é o que vale desenhar.
+A linha entre as duas era o mundo. Deixou de ser: as duas alcançam-no. O que
+resta é uma diferença de forma, e são duas.
+
+Um `fragment` **carrega steps**. É a peça reutilizável de um flow, e é por isso
+que aparece no grafo: um `run checkout(cart, payer) as receipt` desenha-se e
+reporta os passos que correu. Uma `fn` não tem onde os pôr.
+
+Uma `fn` **é um valor**. Passa-se a um `map`, guarda-se num mapa de handlers,
+devolve-se de outra função. Um `fragment` não, e é a coisa que hoje falta:
+`http.on gateway answer` com um `fragment` chamado `answer` passa no `venn check`
+e dá `null` ao correr. Está escrito em [`known-gaps.md`](known-gaps.md) como a
+entrada 22 e continua aberto.
+
+Escolher entre as duas é escolher entre essas duas coisas, não entre poder e não
+poder fazer.
 
 Os dois leem o arquivo em que foram escritos, e nada mais. Um fragment importado
 lê o arquivo **dele**, não o de quem o chama, exatamente como uma `pub fn`:

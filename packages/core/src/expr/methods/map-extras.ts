@@ -1,15 +1,16 @@
 import { type Invoke, type Method, nativeFn } from "../native.types.js";
+import { whenAllReady } from "../pending.js";
 
 type Dict = Record<string, unknown>;
 
 /** Reshaping a map without a loop: rename, project, combine, walk a path. */
 export const MAP_EXTRAS: Record<string, Method> = {
   mapValues: (map: Dict, invoke: Invoke) =>
-    nativeFn((args) => rebuild(map, ([k, v]) => [k, invoke.two(args[0], v, k)])),
+    nativeFn((args) => perEntry(map, ([k, v]) => invoke.two(args[0], v, k), withValues)),
   mapKeys: (map: Dict, invoke: Invoke) =>
-    nativeFn((args) => rebuild(map, ([k, v]) => [String(invoke.two(args[0], k, v)), v])),
+    nativeFn((args) => perEntry(map, ([k, v]) => invoke.two(args[0], k, v), withKeys)),
   filterValues: (map: Dict, invoke: Invoke) =>
-    nativeFn((args) => keepIf(map, ([k, v]) => Boolean(invoke.two(args[0], v, k)))),
+    nativeFn((args) => perEntry(map, ([k, v]) => invoke.two(args[0], v, k), kept)),
   pick: (map: Dict) => nativeFn((args) => keepIf(map, ([k]) => names(args).includes(k))),
   omit: (map: Dict) => nativeFn((args) => keepIf(map, ([k]) => !names(args).includes(k))),
   mergeDeep: (map: Dict) => nativeFn((args) => mergeDeep(map, asDict(args[0]))),
@@ -48,6 +49,38 @@ function rebuild(map: Dict, step: (entry: [string, unknown]) => [string, unknown
 
 function keepIf(map: Dict, keep: (entry: [string, unknown]) => boolean): Dict {
   return Object.fromEntries(Object.entries(map).filter(keep));
+}
+
+/** A field as the callbacks see it: its name, and what is under it. */
+type Entry = [string, unknown];
+
+/**
+ * Run the callback over every field, then rebuild from the settled answers.
+ *
+ * A callback reaching for something slow hands back the promise it is running
+ * on, so the answers are gathered and the map is built once they are all in.
+ * `answers[at]` belongs to `entries[at]` and is read by position: a callback
+ * that renames a field leaves no name to look its answer up by.
+ */
+function perEntry(
+  map: Dict,
+  ask: (entry: Entry) => unknown,
+  join: (entries: readonly Entry[], answers: readonly unknown[]) => Dict,
+): unknown {
+  const entries = Object.entries(map);
+  return whenAllReady(entries.map(ask), (answers) => join(entries, answers));
+}
+
+function withValues(entries: readonly Entry[], answers: readonly unknown[]): Dict {
+  return Object.fromEntries(entries.map(([name], at) => [name, answers[at]]));
+}
+
+function withKeys(entries: readonly Entry[], answers: readonly unknown[]): Dict {
+  return Object.fromEntries(entries.map(([, value], at) => [String(answers[at]), value]));
+}
+
+function kept(entries: readonly Entry[], answers: readonly unknown[]): Dict {
+  return Object.fromEntries(entries.filter((_entry, at) => Boolean(answers[at])));
 }
 
 /** Flatten the argument list: `pick("a", "b")` and `pick(["a", "b"])` both work. */

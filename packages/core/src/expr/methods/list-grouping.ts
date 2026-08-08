@@ -1,6 +1,7 @@
 import { counted } from "../counted-argument.js";
 import type { Counted } from "../counted-argument.types.js";
-import { type Invoke, type Method, nativeFn } from "../native.types.js";
+import { type Method, nativeFn } from "../native.types.js";
+import { perItem } from "./over-items.js";
 
 type Dict = Record<string, unknown>;
 
@@ -30,14 +31,10 @@ function key(value: unknown): string {
  * partitioning, keying, counting. Each returns a new value and never mutates.
  */
 export const LIST_GROUPING: Record<string, Method> = {
-  groupBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => group(list, (item, i) => key(invoke.two(args[0], item, i)))),
-  countBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => counts(list, (item, i) => key(invoke.two(args[0], item, i)))),
-  keyBy: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => keyed(list, (item, i) => key(invoke.two(args[0], item, i)))),
-  partition: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => split(list, (item, i) => Boolean(invoke.two(args[0], item, i)))),
+  groupBy: perItem((list, keys) => group(list, (at) => key(keys[at]))),
+  countBy: perItem((list, keys) => counts(list, (at) => key(keys[at]))),
+  keyBy: perItem((list, keys) => keyed(list, (at) => key(keys[at]))),
+  partition: perItem((list, verdicts) => split(list, (at) => Boolean(verdicts[at]))),
   chunk: (list: readonly unknown[]) => nativeFn((args) => chunk(list, counted(args[0], CHUNK))),
   windows: (list: readonly unknown[]) =>
     nativeFn((args) => windows(list, counted(args[0], WINDOWS))),
@@ -67,38 +64,38 @@ function tray(): Dict {
   return Object.create(null) as Dict;
 }
 
-function group(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
+function group(list: readonly unknown[], keyOf: (index: number) => string): Dict {
   const out = tray();
   list.forEach((item, index) => {
-    const name = keyOf(item, index);
+    const name = keyOf(index);
     out[name] = [...((out[name] as unknown[]) ?? []), item];
   });
   return { ...out };
 }
 
-function counts(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
+function counts(list: readonly unknown[], keyOf: (index: number) => string): Dict {
   const out = tray();
-  list.forEach((item, index) => {
-    const name = keyOf(item, index);
+  list.forEach((_item, index) => {
+    const name = keyOf(index);
     out[name] = Number(out[name] ?? 0) + 1;
   });
   return { ...out };
 }
 
 /** Like `groupBy`, but the last item under a key wins: an index, not buckets. */
-function keyed(list: readonly unknown[], keyOf: (item: unknown, i: number) => string): Dict {
+function keyed(list: readonly unknown[], keyOf: (index: number) => string): Dict {
   const out = tray();
   list.forEach((item, index) => {
-    out[keyOf(item, index)] = item;
+    out[keyOf(index)] = item;
   });
   return { ...out };
 }
 
-function split(list: readonly unknown[], keep: (item: unknown, i: number) => boolean): unknown[][] {
+function split(list: readonly unknown[], keep: (index: number) => boolean): unknown[][] {
   const yes: unknown[] = [];
   const no: unknown[] = [];
   list.forEach((item, index) => {
-    (keep(item, index) ? yes : no).push(item);
+    (keep(index) ? yes : no).push(item);
   });
   return [yes, no];
 }

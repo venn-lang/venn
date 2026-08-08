@@ -71,25 +71,23 @@ const PORTS_REACHED: Readonly<Record<string, readonly string[]>> = {
 };
 
 /**
- * The namespaces every verb of which a `fn` may call, being those declaring nothing.
+ * The namespaces declaring no capability at all, which is what lets them load on
+ * a host that offers nothing.
  *
- * This is the purity rule's data, read the way `check-pure-verb.ts` reads it, so a
- * declaration added or removed anywhere in the stdlib has to come past this list.
- * Adding a capability to a plugin on it takes its verbs out of every `fn` in every
- * program, and that is a language change rather than a packaging detail. Verbs of
- * OTHER namespaces may also be callable, one at a time, by declaring `pure`; those
- * are listed in `a-verb-may-claim-purity.test.ts`.
+ * A declaration added or removed anywhere in the stdlib has to come past this
+ * list. Adding a capability to a plugin on it makes that plugin unloadable
+ * wherever the host cannot supply it, and that is a language change rather than
+ * a packaging detail.
  *
  * `path` is here while reaching `PathsPort`, correctly: that port declares no
- * capability, on the documented ground that working out where a path leads is text
- * rather than I/O. `mock` is here and should not be, and no capability fixes it: its
- * verbs reach no port at all and keep state in a module-level store, so
- * `mock.flag("x")` answers differently depending on what ran before it. `requires`
- * cannot express state, `atFlowStart` is the field that could and is declared by
- * nobody, and inventing a capability `mock` does not ask the host for would be a
- * purity flag wearing a capability's name.
+ * capability, on the documented ground that working out where a path leads is
+ * text rather than I/O. `mock` is here and should not be, and no capability
+ * fixes it: its verbs reach no port at all and keep state in a module-level
+ * store, so `mock.flag("x")` answers differently depending on what ran before
+ * it. `requires` cannot express state, and `atFlowStart` is the field that
+ * could and is declared by nobody.
  */
-const CALLABLE_IN_A_FN = ["assert", "env", "fmt", "json", "mock", "path"];
+const DECLARES_NOTHING = ["assert", "env", "fmt", "json", "mock", "path"];
 
 /** The capability every declaring namespace is expected to hold. */
 const DECLARED: Readonly<Record<string, readonly string[]>> = {
@@ -122,16 +120,16 @@ describe("what the stdlib reaches is written down", () => {
   });
 });
 
-describe("the purity rule's data", () => {
-  it("lets a fn call every verb of exactly the namespaces declaring no capability", () => {
+describe("what each namespace declares", () => {
+  it("asks the host for nothing in exactly the namespaces written down", () => {
     const free = allPlugins
       .filter((plugin) => (plugin.requires ?? []).length === 0)
       .map((plugin) => plugin.namespace);
 
-    expect(free.sort()).toEqual(CALLABLE_IN_A_FN);
+    expect(free.sort()).toEqual(DECLARES_NOTHING);
   });
 
-  it.each(Object.entries(DECLARED))("keeps %s out of a fn by default", (namespace, caps) => {
+  it.each(Object.entries(DECLARED))("%s asks for exactly what it reaches", (namespace, caps) => {
     const plugin = allPlugins.find((one) => one.namespace === namespace);
 
     expect([...(plugin?.requires ?? [])].sort()).toEqual([...caps]);

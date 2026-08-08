@@ -23,8 +23,14 @@ export type Compile = (expr: Expr) => Thunk;
  * Answers whether the body has left, and how: a number rather than a thrown
  * signal, because a `break` in a loop of fifty thousand would otherwise build
  * fifty thousand stack traces.
+ *
+ * A promise of that number is the same answer, arriving later. A statement that
+ * reached the world hands one back, and the walker chains the statements behind
+ * it onto it, so a body runs in the order it is written whether or not anything
+ * in it is slow. Nothing pays for this until a statement is actually slow: the
+ * check is one `instanceof` past the path an ordinary statement takes.
  */
-export type Step = (frame: Frame) => number;
+export type Step = (frame: Frame) => number | Promise<number>;
 
 /**
  * Where one free name of a closure lives, worked out where the closure is
@@ -72,4 +78,15 @@ export interface CompiledLocal {
   /** Which slot of the frame this local writes to. */
   readonly slot: number;
   readonly value: Thunk;
+  /**
+   * How a captured binding holds what it was given, absent when nothing
+   * captured it and the value goes into the slot as it is.
+   *
+   * Held apart from {@link value} because a binding whose value has not arrived
+   * is settled before it is boxed: a closure that captured the name must find
+   * what was bound in the cell, not the wait for it. The names a pattern reads
+   * out of a whole need none of this and carry none: they are read after the
+   * whole has landed, so they are never themselves still arriving.
+   */
+  readonly box?: (value: unknown) => unknown;
 }

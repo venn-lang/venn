@@ -26,22 +26,19 @@ export function program(...lines: string[]): string {
  * @param source The program.
  * @returns One string per problem, empty when it checks clean.
  */
-export function said(source: string): string[] {
+function said(source: string): string[] {
   return checkTypes(parsed(source)).problems.map((one) => `${one.code} ${one.title}`);
 }
 
 /**
  * Call one of a program's `fn`s without asking the checker anything.
  *
- * For the bodies the compiler is meant to refuse: the checker refuses them too,
- * so a helper that insisted on silence first could never reach the compiler.
- *
  * @param args.source The program.
  * @param args.name The `fn` to call.
  * @param args.args What to call it with.
  * @returns Whatever it answered, letting whatever it raised out.
  */
-export function evaluated(args: { source: string; name: string; args?: unknown[] }): unknown {
+function evaluated(args: { source: string; name: string; args?: unknown[] }): unknown {
   const bindings: Record<string, Closure> = {};
   const env: EvalEnv = { lookup: (bound) => bindings[bound] };
   for (const decl of parsed(args.source).decls) {

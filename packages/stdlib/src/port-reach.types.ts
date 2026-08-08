@@ -22,13 +22,12 @@ export interface ReachedPort {
  * exactly that, and so did `crypto` and `auth` through a port that declared
  * nothing itself.
  *
- * The cost was not theoretical. `requires` is what `check-pure-verb.ts` reads to
- * decide whether a `fn` may call a verb, so an empty declaration made
- * `math.randomInt` and `crypto.uuid` legal inside something the language calls
- * pure. It also broke the promise `std-io`'s README makes for the whole capability
- * model, that a host which cannot supply a capability is refused at load rather
- * than dying mid-run: on a host without `random`, `math` loaded clean and failed
- * at port bind partway through.
+ * The cost was not theoretical. It broke the promise `std-io`'s README makes for
+ * the whole capability model, that a host which cannot supply a capability is
+ * refused at load rather than dying mid-run: on a host without `random`, `math`
+ * loaded clean and failed at port bind partway through. `requires` is also what
+ * an editor and a `venn.toml` read to say what a program needs, so an empty
+ * declaration understated four plugins wherever it was quoted.
  */
 export interface Reach {
   /** Ports some action asked for, by id, so two asks of one port count once. */
@@ -44,8 +43,11 @@ export interface Reach {
   /**
    * Verbs that declared `pure` and then asked for a port, which must be none.
    *
-   * `pure` overrides the plugin's capability, so an over-claimed one admits a verb
-   * into a pure body deliberately, at the moment its author was most confident.
+   * `pure` is a verb's own claim that it reaches nothing, written where the
+   * plugin's capability would otherwise speak for it, so an over-claimed one is
+   * a declaration that lies about the verb it sits on, at the moment its author
+   * was most confident.
+   *
    * `requires` was a promise nobody verified and was silently wrong in four
    * plugins; this is the same shape with a worse failure direction, so the same
    * walk checks it rather than leaving it to care.

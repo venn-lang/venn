@@ -1,6 +1,7 @@
 import { kindOf, positionKey } from "../value/index.js";
 import { position } from "./counted-argument.js";
-import { forHost, INVOKE } from "./invoke.js";
+import { forHost } from "./for-host.js";
+import { INVOKE } from "./invoke.js";
 import { builtinMember, NO_METHOD } from "./methods/index.js";
 import { nativeFn } from "./native.types.js";
 import { isWaiting, whenBothReady } from "./pending.js";

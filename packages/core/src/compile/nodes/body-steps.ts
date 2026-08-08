@@ -1,20 +1,19 @@
 import type { Frame } from "../../expr/frame.js";
 import { readSlot, writeSlot } from "../../expr/frame.js";
-import type { Cell } from "../../expr/index.js";
+import { type Cell, isWaiting } from "../../expr/index.js";
 import type { Statement } from "../../generated/ast.js";
 import * as ast from "../../generated/ast.js";
 import { truthy } from "../../value/index.js";
-import { boundValue, slotBinder } from "../box.js";
-import type { Step } from "../compile.types.js";
+import { boxer, slotBinder } from "../box.js";
+import type { Step, Thunk } from "../compile.types.js";
 import { allocate, blockScope, boxed, declare, type LexScope, slotOf } from "../lex-scope.js";
 import { unpack } from "../unpack.js";
 import { assignStep } from "./assign-step.js";
 import type { CompileIn } from "./fn.js";
 import { checkedCount, checkedList } from "./loop-bound.js";
-import { refuseACall } from "./pure-body.js";
 import { BROKE, LEFT, RAN, WENT_ON } from "./stopped.js";
 import { tryStep } from "./try-step.js";
-import { compileBoundRaise, compileVerb } from "./verb-step.js";
+import { compileBoundCall, compileBoundRaise, compileVerb } from "./verb-step.js";
 import { overCount, overItems, overPasses, runSteps } from "./walk-steps.js";
 
 /**
@@ -83,27 +82,61 @@ export function stepsIn(
 }
 
 function letStep(stmt: ast.LetStmt, scope: LexScope, compile: CompileIn): Step {
-  refuseACall(stmt);
   // The value first and the name after, so `let x = x` reads the one already in
   // view, which is what the same line does everywhere else.
-  const value = compileBoundRaise(stmt, scope, compile) ?? compile(stmt.value, scope);
-  if (!stmt.pattern) {
-    const slot = declare(scope, stmt.name as string);
-    // A captured binding is a cell, minted here, so this `let` inside a loop
-    // gives this pass a place of its own and the pass before keeps its answer.
-    const bound = boundValue(value, scope, slot);
-    return (frame) => {
-      writeSlot(frame, slot, bound(frame));
-      return RAN;
-    };
-  }
-  const whole = allocate(scope);
-  const parts = unpack(stmt.pattern, scope, whole);
+  const value =
+    compileBoundRaise(stmt, scope, compile) ??
+    compileBoundCall(stmt, scope, compile) ??
+    compile(stmt.value, scope);
+  return stmt.pattern ? unpacked(stmt.pattern, scope, value) : oneName(stmt, scope, value);
+}
+
+/**
+ * `let x = …`, which waits when the value has not arrived.
+ *
+ * A captured binding is a cell, minted here, so this `let` inside a loop gives
+ * this pass a place of its own and the pass before keeps its answer. The cell
+ * is minted around the settled value rather than around the wait, or a reader
+ * of the name would find a promise sitting in the box.
+ */
+function oneName(stmt: ast.LetStmt, scope: LexScope, value: Thunk): Step {
+  const slot = declare(scope, stmt.name as string);
+  const box = boxer(scope, slot);
   return (frame) => {
-    writeSlot(frame, whole, value(frame));
-    for (const part of parts) writeSlot(frame, part.slot, part.value(frame));
-    return RAN;
+    const held = value(frame);
+    if (!isWaiting(held)) return fill(frame, slot, box(held));
+    return held.then((settled) => fill(frame, slot, box(settled)));
   };
+}
+
+/** `let { a, b } = …`, which waits before it takes the shape apart. */
+function unpacked(pattern: ast.ShapePattern, scope: LexScope, value: Thunk): Step {
+  const whole = allocate(scope);
+  const parts = unpack(pattern, scope, whole);
+  return (frame) => {
+    const held = value(frame);
+    if (!isWaiting(held)) return spread({ frame, whole, held, parts });
+    return held.then((settled) => spread({ frame, whole, held: settled, parts }));
+  };
+}
+
+/** One name filled, and the statement done. */
+function fill(frame: Frame, slot: number, value: unknown): number {
+  writeSlot(frame, slot, value);
+  return RAN;
+}
+
+/** The whole, then each name the pattern read out of it. */
+function spread(args: {
+  frame: Frame;
+  whole: number;
+  held: unknown;
+  parts: readonly { slot: number; value: Thunk }[];
+}): number {
+  const { frame, whole, held, parts } = args;
+  writeSlot(frame, whole, held);
+  for (const part of parts) writeSlot(frame, part.slot, part.value(frame));
+  return RAN;
 }
 
 function returnStep(stmt: ast.ReturnStmt, scope: LexScope, compile: CompileIn): Step {

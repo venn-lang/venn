@@ -2,12 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Closure } from "../expr/closure.types.js";
 import type { EvalEnv } from "../expr/eval-env.types.js";
 import { callClosure } from "../expr/invoke.js";
-import type { Document, FnDecl, FragmentDecl, Statement } from "../generated/ast.js";
+import type { Document, FnDecl } from "../generated/ast.js";
 import { isFnDecl } from "../generated/ast.js";
 import { parse } from "../parse/index.js";
 import { closureOfDecl } from "./compile.js";
-import { rootScope } from "./lex-scope.js";
-import { compileStep } from "./nodes/index.js";
 
 const NEWLINE = String.fromCharCode(10);
 
@@ -33,24 +31,20 @@ function call(source: string, name: string, args: unknown[]): unknown {
 }
 
 /**
- * A `fn` body is pure all the way down.
+ * A compiled body runs all the way down.
  *
- * What a pure body may hold was listed once, at the top of the body, and the
- * blocks those statements held were any block at all. So a verb one level in
- * parsed: the body compiler had no case for it, the block read the answer as
- * "stopped here", and the function ended where it stood. It printed nothing and
- * handed back `null`, and the file checked clean the whole time.
+ * What a body may hold was listed once, at the top of it, and the blocks those
+ * statements held were any block at all. So a statement one level in parsed and
+ * the body compiler had no case for it: the block read the answer as "stopped
+ * here", and the function ended where it stood. It handed back `null`, and the
+ * file checked clean the whole time.
  *
- * The blocks inside a body are made of the body's own statements now, so a verb
- * is refused wherever it is written, which is the one rule said once instead of
- * once per depth. Where that refusal comes from is no longer here: the grammar
- * parses the verb and the checker names it, and the compiler's own floor under
- * both is exercised in `a-fn-may-fail.test.ts`. What is left here is the other
- * half of the same rule, that everything a pure body MAY hold still runs at
- * every depth.
+ * The blocks inside a body are made of the body's own statements now, so what
+ * runs at the top of a body runs at every depth of it. These are the rows that
+ * hold that, from a raise through to a `continue` three blocks in.
  */
-describe("a fn body that is pure all the way down", () => {
-  it("fails from inside an if, where a verb is still refused", () => {
+describe("a compiled body, all the way down", () => {
+  it("fails from inside an if, and answers when it does not", () => {
     const source = program(
       "fn average(mark) {",
       "  if mark > 100 {",
@@ -64,7 +58,7 @@ describe("a fn body that is pure all the way down", () => {
     expect(call(source, "average", [50])).toBe(50);
   });
 
-  it("still runs the statements a pure body may hold, however deep they sit", () => {
+  it("still runs the statements a body holds, however deep they sit", () => {
     const source = program(
       "fn firstOver(rows, floor) {",
       "  repeat 2 as pass {",
@@ -105,26 +99,5 @@ describe("a fn body that is pure all the way down", () => {
     ];
 
     expect(call(source, "oddsOnly", [rows])).toBe(9);
-  });
-});
-
-/**
- * The floor under the rule: a statement the body compiler has no case for is
- * refused where it is compiled, rather than standing still.
- *
- * Standing still is what it used to do, and it is what made a verb inside an
- * `if` compile to nothing: the block carried on, the body reported success, and
- * nothing anywhere said a word. Loud at compile time instead, so the next person
- * to widen `FnStmt` meets it where they are working.
- */
-describe("a statement the body compiler does not know", () => {
-  it("refuses a verb rather than compiling it to nothing", () => {
-    const source = program("fragment shouts() {", '  print "loud"', "}");
-    const body = (parse(source).ast as Document).decls[0] as FragmentDecl;
-    const stmt = body.body.stmts[0] as Statement;
-
-    expect(() => compileStep(stmt, rootScope(), () => () => null)).toThrow(
-      "it cannot call `print`",
-    );
   });
 });

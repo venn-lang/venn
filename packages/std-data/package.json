@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/data",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "The data namespace: 96 deterministic faker verbs, plus picking, shuffling and parsing.",
   "keywords": [
     "venn",

@@ -1,6 +1,6 @@
 {
   "name": "@venn-lang/fmt",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "The fmt namespace: a value in, formatted text out. JSON, tables, YAML, CSV and XML.",
   "keywords": [
     "venn",

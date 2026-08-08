@@ -1,5 +1,37 @@
 # @venn-lang/stdlib
 
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies [[`2c4bca4`](https://github.com/venn-lang/venn/commit/2c4bca49caa3515018c224ff2addc2087021ca5d)]:
+  - @venn-lang/runtime@0.9.0
+  - @venn-lang/sdk@0.9.0
+  - @venn-lang/artifacts@0.9.0
+  - @venn-lang/assert@0.9.0
+  - @venn-lang/auth@0.9.0
+  - @venn-lang/browser@0.9.0
+  - @venn-lang/crypto@0.9.0
+  - @venn-lang/data@0.9.0
+  - @venn-lang/date@0.9.0
+  - @venn-lang/db@0.9.0
+  - @venn-lang/env@0.9.0
+  - @venn-lang/fmt@0.9.0
+  - @venn-lang/fs@0.9.0
+  - @venn-lang/graphql@0.9.0
+  - @venn-lang/grpc@0.9.0
+  - @venn-lang/http@0.9.0
+  - @venn-lang/io@0.9.0
+  - @venn-lang/json@0.9.0
+  - @venn-lang/load@0.9.0
+  - @venn-lang/mail@0.9.0
+  - @venn-lang/math@0.9.0
+  - @venn-lang/mock@0.9.0
+  - @venn-lang/mqtt@0.9.0
+  - @venn-lang/notify@0.9.0
+  - @venn-lang/path@0.9.0
+  - @venn-lang/ws@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes

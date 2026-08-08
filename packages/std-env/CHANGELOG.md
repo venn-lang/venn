@@ -1,5 +1,12 @@
 # @venn-lang/env
 
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/sdk@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes

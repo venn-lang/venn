@@ -1,5 +1,14 @@
 # @venn-lang/artifacts
 
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @venn-lang/contracts@0.9.0
+  - @venn-lang/sdk@0.9.0
+  - @venn-lang/types@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes

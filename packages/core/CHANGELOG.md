@@ -1,5 +1,112 @@
 # @venn-lang/core
 
+## 0.9.0
+
+### Minor Changes
+
+- [#332](https://github.com/venn-lang/venn/pull/332) [`2c4bca4`](https://github.com/venn-lang/venn/commit/2c4bca49caa3515018c224ff2addc2087021ca5d) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - A decorator reads what its target's parameters were declared as, not only what
+  they are called.
+
+  ```venn
+  deco slash(target: Fn, describe: string) {
+    const names = target.params
+    const types = target.paramTypes
+    target.wrap(fn (call, args) => "[${names} | ${types}] ${call(args)}")
+  }
+  @slash("Replies")
+  fn ping(at: string, loud: bool) => "pong at ${at}"
+  ```
+
+  ```
+  [["at", "loud"] | ["string", "bool"]] pong at noon
+  ```
+
+  `params` answered the names and nothing answered the types, so a `@slash` that
+  turns a function into a command could name its options and not say what any of
+  them takes. A string parameter is a string option and a number is a number one,
+  and that is the whole of what was missing.
+
+  `paramTypes` is a `list<string>` beside `params`, one entry per name, in the
+  same order. A verb answering one parameter would read better in a loop, and a
+  decorator body has no loop: it has `let`, `const`, `if` and verbs on what it was
+  given. A decorator that knew the name to ask about would have to have that name
+  written into it, which is the one case that did not need the verb. The signature
+  travels whole, to `meta` and from there to whoever builds the options.
+
+  The text is the annotation as written. A union is its alternatives joined by
+  `|`, so `string | null` answers `"string | null"`. A literal keeps the quotes
+  the grammar gave it, so a program can tell the type named `GET` from the one
+  value `"GET"`. A generic stays whole, `list<string>`.
+
+  A parameter written without an annotation answers `""`, the same empty text
+  `name` answers for a declaration that has no name: nothing was written, and a
+  program tests that with `== ""` rather than being stopped mid-expansion. A name
+  a shape pattern binds answers `""` too, since the annotation on that parameter
+  describes the shape and not the names taken out of it.
+
+  A verb an `Fn` still does not have is still refused where it is written, with
+  the new one among the surface the refusal reports:
+
+  ```
+  VN2017 · A Fn has no `wobble`. It has addParam, after, before, meta, name,
+  paramTypes, params, remove, removeParam, rename, wrap.
+  ```
+
+### Patch Changes
+
+- [#332](https://github.com/venn-lang/venn/pull/332) [`2c4bca4`](https://github.com/venn-lang/venn/commit/2c4bca49caa3515018c224ff2addc2087021ca5d) Thanks [@viniciusborgeis](https://github.com/viniciusborgeis)! - A decorator's hook runs in the program, so a decorator can do something.
+
+  ```venn
+  deco cooldown(target: Fn, times: number) {
+    let calls = 0
+    target.wrap(fn (call, args) {
+      calls = calls + 1
+      if calls > times { fail "on cooldown" { code: "cd" } }
+      call(args)
+    })
+  }
+  ```
+
+  Every line of that was refused. `VN2016` for the `fail`, `VN2023` for a name at
+  the top of the file, and `VN3021` at the call site for the counter, which
+  `venn check` had passed clean.
+
+  A `deco` body runs at expansion and cannot reach the world. That is right and it
+  stays. A hook is not the body: `target.wrap(fn (call, args) { … })` hands a value
+  over, and the value is called once the program is running. The rule asked
+  **where** a call was written rather than **when** it runs, so it answered about a
+  moment the hook was not in.
+
+  Three boundaries moved and one did not.
+
+  **The checker stops at a hook.** `enclosingDeco` walks out to the `deco`, and now
+  stops at the lambda in between, so the document's ordinary checks apply inside a
+  hook and a plugin verb written there is not refused.
+
+  **The reach check stops at a hook.** A name read inside one is the program's to
+  answer, so a hook reads a top-level `const` and calls a top-level `fn`. What the
+  body itself reads is still refused, with the same sentence and span.
+
+  **A hook is re-seated where both halves exist.** It closed over the `deco` body
+  and needs the program too, and the first moment both are in hand is where the
+  runtime binds the decorated function. `HookEnv` puts the body first and the
+  program behind it, so a decorator's own name wins over one the file happens to
+  share.
+
+  State follows from the same place. A `deco` body keeps its bindings in cells, so
+  a hook writes what it reads: a counter in the decorator, or one in the file that
+  two decorations share. The body's storage is deliberately not called `cell`,
+  because an environment that answers `cell` is read as the end of the chain and
+  every free name would take an empty one minted at expansion and never ask the
+  program again.
+
+  What did not move: a verb or a top-level name written in the `deco` body itself
+  is still refused, and `known-gaps.md` entries 23 and 24 close.
+
+- Updated dependencies []:
+  - @venn-lang/prelude@0.9.0
+  - @venn-lang/types@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes

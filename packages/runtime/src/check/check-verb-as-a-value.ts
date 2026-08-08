@@ -129,8 +129,7 @@ function notAValue(arg: BareArg, ctx: CheckContext): boolean {
  *
  * A binding of the same spelling wins, exactly as it does when it runs, so a
  * parameter called `kit` is not the `kit` namespace however many verbs that
- * namespace publishes. Shared with the purity check, which asks the same
- * question of a call's receiver and must answer it the same way.
+ * namespace publishes.
  *
  * @param name The head of the path, before any dot.
  * @param ctx The document's resolved names.

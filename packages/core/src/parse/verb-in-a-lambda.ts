@@ -2,16 +2,14 @@
  * A verb written inside a lambda, which is the method spelling of a loop.
  *
  * `rows.forEach(r => print r)` is the same idea as `forEach r in rows`, wearing
- * a lambda. What refuses it is the GRAMMAR, not purity: a lambda body is one
- * `Expr` and `print r` is a statement, so the parser leaves the call where it
- * stood and every token after it earns its own "expected the end of the file".
- * One wrong idea, three errors, none of them about the word that is wrong.
+ * a lambda. What refuses it is the GRAMMAR: a lambda body is one `Expr` and
+ * `print r` is a statement, so the parser leaves the call where it stood and
+ * every token after it earns its own "expected the end of the file". One wrong
+ * idea, three errors, none of them about the word that is wrong.
  *
- * Whether a lambda may reach the world at all is a different question with a
- * different owner, `check-pure-verb.ts` in the runtime, answered off the AST
- * after this pass has run. This one never asks it, which is why it stays silent
- * on `rows.forEach(r => io.print(r))`: that is an expression either way, so
- * there is nothing here to say about it, whatever purity decides.
+ * `rows.forEach(r => io.print(r))` stays silent here, because that is an
+ * expression either way. A lambda reaching the world is not this pass's
+ * question and never was.
  *
  * Read off the source and only on a line the parser already stopped at, so a
  * file that parses can never earn this.

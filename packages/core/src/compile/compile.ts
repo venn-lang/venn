@@ -145,7 +145,7 @@ function operation(expr: Expr, compile: Compile): Thunk {
  * compiled at the root has no closure at all, and a closure recursing on the
  * `let` that binds it has no cell yet to be given.
  */
-function compileRef(name: string, scope: LexScope): Thunk {
+export function compileRef(name: string, scope: LexScope): Thunk {
   const body = rootOf(scope);
   const slot = slotOf(scope, name);
   // The one name a bare body binds is the value it was handed, unwrapped.

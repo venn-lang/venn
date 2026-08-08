@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { forHost, invoke } from "./invoke.js";
+import { forHost } from "./for-host.js";
+import { invoke } from "./invoke.js";
 import { nativeFn } from "./native.types.js";
 
 /** A Venn callable, as the language holds one. */

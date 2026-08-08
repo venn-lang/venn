@@ -7,7 +7,6 @@ export type { CompiledBody, StopCheck, Thunk } from "./compile/index.js";
 export {
   closureOfDecl,
   compileExpr,
-  pureBodyCannotCall,
   RAISES,
   setStopCheck,
 } from "./compile/index.js";

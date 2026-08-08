@@ -28,6 +28,21 @@ export function boundValue(value: Thunk, scope: LexScope, at: number): Thunk {
 }
 
 /**
+ * The same decision, over a value rather than over a thunk.
+ *
+ * A binding whose value has not arrived is settled before it is boxed, so the
+ * cell a closure captures holds what was bound rather than the wait for it.
+ * That is why the choice has to be askable apart from the thunk that made it.
+ *
+ * @param scope The block the binding is written in.
+ * @param at The slot it binds.
+ * @returns How to hold one value, which is unchanged when nothing captured it.
+ */
+export function boxer(scope: LexScope, at: number): (value: unknown) => unknown {
+  return boxed(scope, at) ? (value) => ({ value }) : (value) => value;
+}
+
+/**
  * How a binding fills a slot whose value the compiler has no thunk for: the
  * item of a `forEach` pass, a `repeat` index, what a `match` arm named.
  *

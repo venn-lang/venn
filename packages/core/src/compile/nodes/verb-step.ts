@@ -1,38 +1,103 @@
 import type { AstNode } from "langium";
 import { dottedPath } from "../../ast/index.js";
-import type { EvalEnv } from "../../expr/index.js";
+import { type EvalEnv, invoke, isWaiting, memberValue } from "../../expr/index.js";
 import { failError } from "../../fail/index.js";
 import type { ActionCall, Expr, LetStmt, MapLit } from "../../generated/ast.js";
 import { fileOf } from "../../parse/index.js";
 import { spanOf } from "../../span/index.js";
+import { compileRef } from "../compile.js";
 import type { Step, Thunk } from "../compile.types.js";
 import type { LexScope } from "../lex-scope.js";
 import type { CompileIn } from "./fn.js";
-import { RAISES, refuseTheVerb } from "./pure-body.js";
+import { RAN } from "./stopped.js";
 
 /**
- * A verb written as a statement of a pure body.
+ * The one verb that is control flow rather than an effect.
  *
- * `fail` is the one a `fn` may run. Raising is not an effect on the world: a
- * pure body still compiles to thunks, still touches nothing, and still answers
- * the same way for the same arguments, and "validate and refuse" is the most
- * common shape a real function has. It used to cost the author a `fragment` and
- * a `run … as` to say no to an argument.
+ * A raise ends the body instead of reaching out of it, so it answers the same
+ * way for the same arguments wherever it is written. That is why the compiler
+ * builds it into the body rather than calling it: there is no value for the
+ * statement after it to wait on, and no call for a stack to unwind through.
+ */
+export const RAISES = "fail";
+
+/**
+ * A verb written as a statement of a body.
  *
- * Every other verb reaches the world and is refused here, in the sentence the
- * checker gives it, because there is no scheduler in a compiled body to run one
- * with and compiling it to nothing is how a `print` in a `fn` printed nothing
- * and reported success.
+ * `fail` is compiled here rather than called, because raising is control flow:
+ * it ends the body instead of answering, so it has no value for the statement
+ * after it to wait on and no call for a stack to unwind through.
+ *
+ * Every other verb is the value its name resolves to, called with the arguments
+ * written after it. `io.print "x"` reads `print` off the `io` namespace the way
+ * `io.print("x")` in an expression already did, and a bare `print "x"` reads the
+ * name the runtime bound for it. Nothing about the dispatch is new: what used to
+ * be missing was a compiled body admitting it could reach the world at all.
+ *
+ * What the verb answers is dropped, and waited for first when it has not
+ * arrived. Dropping it without waiting is how two lines of a body would run at
+ * once and the second would read the world before the first had changed it.
  *
  * @param call The call, as the grammar read it.
  * @param scope The block it is written in, for the arguments it evaluates.
  * @param compile How to compile those arguments.
- * @returns A step that raises, since a `fail` never carries on.
- * @throws ProblemError `VN2024` at compile time for any verb but `fail`.
+ * @returns A step that raises for `fail`, and one that runs the verb otherwise.
  */
 export function compileVerb(call: ActionCall, scope: LexScope, compile: CompileIn): Step {
-  if (call.target !== RAISES) refuseTheVerb(call);
-  return raiseStep({ at: call, said: messageOf(call), opts: call.opts, scope, compile });
+  if (call.target === RAISES) {
+    return raiseStep({ at: call, said: messageOf(call), opts: call.opts, scope, compile });
+  }
+  const run = calling({
+    callee: verbValue(call.target, scope),
+    args: argsOf(call).map((arg) => compile(arg, scope)),
+    site: call.args[0],
+  });
+  return (frame) => dropped(run(frame));
+}
+
+/**
+ * One verb call, over arguments compiled where they were written.
+ *
+ * Shared by the statement and the bound spelling so the two cannot drift: what
+ * `io.print "x"` does and what `let said = io.print "x"` does differ only in
+ * whether the answer is kept.
+ */
+function calling(args: { callee: Thunk; args: readonly Thunk[]; site: Expr | undefined }): Thunk {
+  const { callee, args: written, site } = args;
+  return (frame) =>
+    invoke(
+      callee(frame),
+      written.map((one) => one(frame)),
+      site,
+    );
+}
+
+/**
+ * The verb as a value: the name it starts with, then the members after it.
+ *
+ * `compileRef` is what an ordinary name in an expression compiles to, so a verb
+ * reaches its namespace by the one path the language already had rather than by
+ * a second one that could disagree with it.
+ */
+function verbValue(target: string, scope: LexScope): Thunk {
+  const [head, ...members] = target.split(".");
+  let so = compileRef(head as string, scope);
+  for (const member of members) {
+    const read = so;
+    so = (frame) => memberValue(read(frame), member);
+  }
+  return so;
+}
+
+/** Both spellings of a verb's arguments: `close()` puts them somewhere else. */
+function argsOf(call: ActionCall): Expr[] {
+  if (call.args.length > 0) return call.args;
+  return (call.call?.args ?? []).map((one) => one.value);
+}
+
+/** A verb statement keeps nothing, and answers only once the verb has finished. */
+function dropped(answer: unknown): number | Promise<number> {
+  return isWaiting(answer) ? answer.then(() => RAN) : RAN;
 }
 
 /**
@@ -57,6 +122,37 @@ export function compileBoundRaise(
   if (stmt.args.length === 0 && !stmt.opts) return undefined;
   if (dottedPath(stmt.value) !== RAISES) return undefined;
   return raiseStep({ at: stmt, said: stmt.args[0], opts: stmt.opts, scope, compile });
+}
+
+/**
+ * `let said = io.print "hello"`, which is a verb with a name in front of it.
+ *
+ * The trailing arguments are what make a `let` a call. Compiling the value
+ * alone bound the callee and ran nothing, which is why this used to be refused
+ * rather than left alone. It is compiled now, and what the verb answers is what
+ * the name holds.
+ *
+ * A bound `fail` is not one of these: {@link compileBoundRaise} takes it first,
+ * because a raise leaves before there is anything to bind.
+ *
+ * @param stmt The binding, as the grammar read it.
+ * @param scope The block it is written in, for the arguments it evaluates.
+ * @param compile How to compile those arguments.
+ * @returns The call, or nothing when this binding is not one.
+ */
+export function compileBoundCall(
+  stmt: LetStmt,
+  scope: LexScope,
+  compile: CompileIn,
+): Thunk | undefined {
+  if (stmt.args.length === 0) return undefined;
+  const target = dottedPath(stmt.value);
+  if (target === undefined || target === RAISES) return undefined;
+  return calling({
+    callee: verbValue(target, scope),
+    args: stmt.args.map((arg) => compile(arg, scope)),
+    site: stmt.args[0],
+  });
 }
 
 /** One raise, whether a name was written in front of it or not. */

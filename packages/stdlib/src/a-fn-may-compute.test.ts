@@ -7,12 +7,11 @@ import { allPlugins } from "./plugins.js";
 /**
  * What a `fn` may call, asked of the real stdlib rather than of a test double.
  *
- * The purity rule reads `PluginDefinition.requires`, so the rule and the data are
- * only one answer together: `check-pure-verb.ts` can be perfect and still admit
- * `crypto.uuid` into a pure body if the plugin behind it declares nothing. Every
- * other test of the rule builds a plugin to suit itself, which proves the
- * mechanism and nothing about the twenty-four plugins a program actually
- * imports. This one loads all of them.
+ * The answer is now every verb of every namespace, and that is worth asking of
+ * the twenty-four plugins a program actually imports rather than of a plugin a
+ * test built to suit itself: a namespace that resolves under a double can still
+ * be unreachable under the real registry, and a body that reaches one is where
+ * that would show. This one loads all of them.
  */
 function codes(source: string): string[] {
   const { ast, problems } = parse(source);
@@ -23,18 +22,13 @@ function codes(source: string): string[] {
 }
 
 /**
- * Bodies that compute, and are left alone, each named for why it touches nothing.
+ * Bodies that compute, each named for the corner of the stdlib it touches.
  *
  * The first two are committed programs, `examples/basics/16-failure.vn:21` and
- * `examples/programs/ledger/main.vn:26`, and they are the shape this rule exists
- * for: take input, transform it, refuse what is wrong. `json.parse` reads no
- * clock, no socket, no disk and no randomness, and raising is control flow rather
- * than an effect on the world, so that shape costs no `fragment`.
- *
- * `path` is the interesting one. It reaches `PathsPort` and stays callable,
- * because that port declares no capability on the documented ground that working
- * out where a path leads is text rather than I/O. It is the one namespace where
- * "reaches a port" and "touches the world" come apart.
+ * `examples/programs/ledger/main.vn:26`: take input, transform it, refuse what
+ * is wrong. `path` is the interesting one, because it reaches `PathsPort` on
+ * the documented ground that working out where a path leads is text rather
+ * than I/O.
  */
 const COMPUTES: Record<string, string> = {
   "parsing text in a fn, with no fragment and no run": `import { json } from "venn/json"
@@ -64,14 +58,12 @@ print corner()`,
 };
 
 /**
- * Bodies that reach the world, each refused with `VN2024` and named by verb.
+ * Bodies that reach the world, each named by what it draws on.
  *
- * `data.json` and `crypto.hash` are the cost of declaring per plugin rather than
- * per verb: both are deterministic computations over their argument, and both are
- * refused because a namespace-mate draws. That is over-claiming, taken
- * deliberately, because the alternative admits `crypto.uuid` into something the
- * language calls pure, and a silently non-deterministic pure function is worse
- * than a refused digest. The answer is to split those namespaces.
+ * Every row cost a `fragment` and a `run … as` before this release, and the two
+ * crypto rows cost one twice over: `crypto.hash` is a deterministic digest that
+ * was refused for sharing a namespace with `crypto.uuid`. They check clean in a
+ * `fn` now, which is what makes them worth keeping written down.
  */
 const REACHES_THE_WORLD: Record<string, string> = {
   "a draw, which answers differently for the same arguments": `import { math } from "venn/math"
@@ -89,31 +81,28 @@ print f()`,
   "a random identifier, which an empty port once admitted": `import { crypto } from "venn/crypto"
 fn f() { crypto.uuid() }
 print f()`,
-  "a digest, refused with its namespace": `import { crypto } from "venn/crypto"
+  "a digest, once refused with its namespace": `import { crypto } from "venn/crypto"
 fn f() { crypto.hash("x") }
 print f()`,
 };
 
-describe("a fn may compute", () => {
-  it.each(Object.entries(COMPUTES))("allows %s", (_name, source) => {
-    expect(codes(source)).toEqual([]);
-  });
-});
-
-describe("a fn may not touch the world", () => {
-  it.each(Object.entries(REACHES_THE_WORLD))("refuses %s", (_name, source) => {
-    expect(codes(source)).toEqual(["VN2024"]);
-  });
+describe("a fn may call any verb the stdlib publishes", () => {
+  it.each([...Object.entries(COMPUTES), ...Object.entries(REACHES_THE_WORLD)])(
+    "allows %s",
+    (_name, source) => {
+      expect(codes(source)).toEqual([]);
+    },
+  );
 });
 
 /**
- * The same verb without brackets is refused by the rule that owns that spelling:
- * reading a verb as a value hands back the verb itself, which is VN2008 and says
- * so in those terms rather than talking about purity. Two rules, one namespace,
- * and each says the thing it is about.
+ * A verb without brackets is not a call: the words hand back the verb itself,
+ * which is VN2008 and says so in those terms. Reaching the world is now allowed
+ * everywhere and this rule is untouched by that, because it is about the
+ * brackets rather than about where the call stands.
  */
-describe("a verb read as a value in a pure body", () => {
-  it("is refused in the words that fit it, not in purity's words", () => {
+describe("a verb read as a value in a body", () => {
+  it("is refused in the words that fit it, which are about the brackets", () => {
     const source = `import { data } from "venn/data"
 fn f() { data.json }
 print f()`;

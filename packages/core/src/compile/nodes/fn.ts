@@ -14,14 +14,13 @@ import {
   type LetStmt,
   type ParamList,
 } from "../../generated/ast.js";
-import { boundValue } from "../box.js";
+import { boxer } from "../box.js";
 import { capturePlan } from "../capture.js";
 import type { CompiledBody, CompiledLocal, Step, Thunk } from "../compile.types.js";
 import { allocate, declare, type LexScope, scopeOf, stayedBare } from "../lex-scope.js";
 import { boxedParams, paramLocals, paramSlotName, unpack } from "../unpack.js";
 import { compileStep } from "./body-steps.js";
-import { refuseACall } from "./pure-body.js";
-import { compileBoundRaise } from "./verb-step.js";
+import { compileBoundCall, compileBoundRaise } from "./verb-step.js";
 
 /** How the dispatcher compiles a sub-expression in a given scope. */
 export type CompileIn = (expr: Expr, scope: LexScope) => Thunk;
@@ -181,13 +180,22 @@ function localsOf(args: {
   scope: LexScope;
   compileIn: CompileIn;
 }): CompiledLocal[] {
-  const { local, scope, compileIn } = args;
-  refuseACall(local);
-  const value = compileBoundRaise(local, scope, compileIn) ?? compileIn(local.value, scope);
-  if (!local.pattern) {
-    const slot = declare(scope, local.name as string);
-    return [{ slot, value: boundValue(value, scope, slot) }];
+  const { local, scope } = args;
+  const value = whatItHolds(args);
+  if (local.pattern) {
+    const whole = allocate(scope);
+    return [{ slot: whole, value }, ...unpack(local.pattern, scope, whole)];
   }
-  const whole = allocate(scope);
-  return [{ slot: whole, value }, ...unpack(local.pattern, scope, whole)];
+  const slot = declare(scope, local.name as string);
+  return [{ slot, value, box: boxer(scope, slot) }];
+}
+
+/** What the binding holds: a raise, a verb it called, or an ordinary value. */
+function whatItHolds(args: { local: LetStmt; scope: LexScope; compileIn: CompileIn }): Thunk {
+  const { local, scope, compileIn } = args;
+  return (
+    compileBoundRaise(local, scope, compileIn) ??
+    compileBoundCall(local, scope, compileIn) ??
+    compileIn(local.value, scope)
+  );
 }

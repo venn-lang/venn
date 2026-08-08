@@ -1,4 +1,4 @@
-import type { Frame } from "../../expr/index.js";
+import { type Frame, isWaiting } from "../../expr/index.js";
 import type { Statement, TryStmt } from "../../generated/ast.js";
 import { caughtValue, isFailure } from "../../problem/index.js";
 import { slotBinder } from "../box.js";
@@ -16,7 +16,7 @@ type StepsIn = (
 ) => Step[];
 
 /** What a handler does with the failure it caught: bind the name, run the block. */
-type Handler = (frame: Frame, failure: unknown) => number;
+type Handler = (frame: Frame, failure: unknown) => number | Promise<number>;
 
 /** Everything the compiler hands down to reach a block from here. */
 interface TryArgs {
@@ -43,40 +43,97 @@ interface TryArgs {
  * @returns A step answering why the body ended, the handler's answer included.
  */
 export function tryStep(stmt: TryStmt, scope: LexScope, args: TryArgs): Step {
-  const attempt = args.stepsIn(stmt.body, blockScope(scope), args.compile);
-  const caught = handlerOf(stmt, scope, args);
-  const after = finallyOf(stmt, scope, args);
-  return (frame) => {
-    try {
-      return recovering({ attempt, caught }, frame);
-    } finally {
-      if (after) runSteps(after, frame);
-    }
+  const blocks = {
+    attempt: args.stepsIn(stmt.body, blockScope(scope), args.compile),
+    caught: handlerOf(stmt, scope, args),
   };
+  const after = finallyOf(stmt, scope, args);
+  return (frame) => withFinally(() => recovering(blocks, frame), after, frame);
 }
 
 /**
  * The `finally` block, when there is one.
  *
  * Its answer is never read: a `finally` runs for its effect, and honouring a
- * `return` written there would mean swallowing whatever was unwinding.
+ * `return` written there would mean swallowing whatever was unwinding. Being
+ * slow is different from answering: a finalizer that reaches the world is
+ * waited for, or the value it was cleaning up after would leave before it.
  */
 function finallyOf(stmt: TryStmt, scope: LexScope, args: TryArgs): Step[] | undefined {
   if (!stmt.finalizer) return undefined;
   return args.stepsIn(stmt.finalizer, blockScope(scope), args.compile);
 }
 
+/**
+ * Run the attempt, then the `finally`, whichever way the attempt ended.
+ *
+ * The finalizer is chained onto the attempt's answer rather than run in a
+ * JavaScript `finally`, which would fire while a slow attempt was still in
+ * flight and clean up underneath it.
+ */
+function withFinally(
+  attempt: () => number | Promise<number>,
+  after: readonly Step[] | undefined,
+  frame: Frame,
+): number | Promise<number> {
+  if (!after) return attempt();
+  try {
+    return settled(attempt(), after, frame);
+  } catch (failure) {
+    return past(after, frame, () => {
+      throw failure;
+    });
+  }
+}
+
+/** The attempt's answer, with the finalizer chained onto whichever way it lands. */
+function settled(
+  ran: number | Promise<number>,
+  after: readonly Step[],
+  frame: Frame,
+): number | Promise<number> {
+  if (!isWaiting(ran)) return past(after, frame, () => ran);
+  return ran.then(
+    (stopped) => past(after, frame, () => stopped),
+    (failure: unknown) =>
+      past(after, frame, () => {
+        throw failure;
+      }),
+  );
+}
+
+/** The answer, held back until the finalizer has finished with it. */
+function past(
+  after: readonly Step[],
+  frame: Frame,
+  answer: () => number,
+): number | Promise<number> {
+  const ran = runSteps(after, frame);
+  return isWaiting(ran) ? ran.then(answer) : answer();
+}
+
 /** The attempt, and the handler when it was the attempt that failed. */
 function recovering(
   blocks: { attempt: readonly Step[]; caught: Handler | undefined },
   frame: Frame,
-): number {
+): number | Promise<number> {
   try {
-    return runSteps(blocks.attempt, frame);
+    const ran = runSteps(blocks.attempt, frame);
+    if (!isWaiting(ran)) return ran;
+    return ran.catch((failure: unknown) => handled(blocks.caught, failure, frame));
   } catch (failure) {
-    if (!blocks.caught || !isFailure(failure)) throw failure;
-    return blocks.caught(frame, failure);
+    return handled(blocks.caught, failure, frame);
   }
+}
+
+/** What the handler makes of a failure, or the failure again when none catches it. */
+function handled(
+  caught: Handler | undefined,
+  failure: unknown,
+  frame: Frame,
+): number | Promise<number> {
+  if (!caught || !isFailure(failure)) throw failure;
+  return caught(frame, failure);
 }
 
 /**

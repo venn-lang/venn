@@ -4,6 +4,7 @@ import type { Registry } from "../registry/index.js";
 import { createScope, type Scope } from "../scope/index.js";
 import { bindNamespaces } from "./bind-namespaces.js";
 import { bindPrelude } from "./bind-prelude.js";
+import { bindPreludeVerbs } from "./bind-prelude-verbs.js";
 import type { Engine } from "./engine.types.js";
 
 /**
@@ -38,6 +39,7 @@ export function createBaseScope(args: {
 }): Scope {
   const scope = createScope();
   bindPrelude(scope);
+  bindPreludeVerbs({ engine: args.engine, scope });
   const named = args.document ? namespacesInFile(args.document, args.engine.registry) : undefined;
   bindNamespaces({ engine: args.engine, scope, named });
   if (args.document) bindImportedValues(args.document, args.engine.registry, scope);

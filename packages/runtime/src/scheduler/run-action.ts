@@ -173,16 +173,36 @@ function unknownAction(args: { target: string; where: Span }): VennError {
  */
 async function runPrelude(engine: Engine, call: Invocation, scope: Scope): Promise<void> {
   const args = await Promise.all(call.args.map((arg) => settle(evaluate(arg, scope))));
-  if (call.target === "print") return printLine(engine, args);
-  if (call.target === "log") return logLine(engine, args);
-  const message = String(args[0] ?? "");
-  if (call.target === "wait") await waitFor(engine, durationMs(args[0]) ?? 0);
-  else if (call.target === "skip") skipLog(engine, message);
-  else if (call.target === "exit") throw new ExitSignal(exitCode(args[0]));
-  else if (call.target === "fail") {
+  if (call.target === "fail") {
     const opts = await failOpts(call, scope);
-    throw failError({ message, opts, where: nodeSpan(siteOf(call), engine.uri) });
+    throw failError({
+      message: String(args[0] ?? ""),
+      opts,
+      where: nodeSpan(siteOf(call), engine.uri),
+    });
   }
+  return preludeVerb({ engine, name: call.target, args });
+}
+
+/**
+ * One prelude verb, over arguments somebody else already evaluated.
+ *
+ * Split out because a compiled `fn` body reaches these through a value in scope
+ * rather than through the scheduler, and both must be the same verb: two
+ * printers is two languages. `fail` stays with its caller, which has the options
+ * node and the span a raise needs.
+ */
+export async function preludeVerb(args: {
+  engine: Engine;
+  name: string;
+  args: readonly unknown[];
+}): Promise<void> {
+  const { engine, name } = args;
+  if (name === "print") return printLine(engine, args.args);
+  if (name === "log") return logLine(engine, args.args);
+  if (name === "wait") return waitFor(engine, durationMs(args.args[0]) ?? 0);
+  if (name === "skip") return skipLog(engine, String(args.args[0] ?? ""));
+  if (name === "exit") throw new ExitSignal(exitCode(args.args[0]));
 }
 
 /** The `{ code, data }` a `fail` carries, evaluated where it is written. */

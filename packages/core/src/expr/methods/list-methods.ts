@@ -2,6 +2,9 @@ import { truthy } from "../../value/index.js";
 import { counted, countedOr } from "../counted-argument.js";
 import type { Counted } from "../counted-argument.types.js";
 import { type Invoke, type Method, nativeFn } from "../native.types.js";
+import { isWaiting } from "../pending.js";
+import { sortedBy } from "./list-sorting.js";
+import { perItem } from "./over-items.js";
 
 const FROM: Counted = { verb: "slice", what: "position to start at", least: 0 };
 const TO: Counted = { verb: "slice", what: "position to stop at", least: 0 };
@@ -19,25 +22,16 @@ export const LIST_METHODS: Record<string, Method> = {
   len: (list: readonly unknown[]) => list.length,
   first: (list: readonly unknown[]) => at(list, 0),
   last: (list: readonly unknown[]) => at(list, list.length - 1),
-  map: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.map((item, i) => invoke.two(args[0], item, i))),
-  filter: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.filter((item, i) => truthy(invoke.two(args[0], item, i)))),
+  map: perItem((_list, results) => results),
+  filter: perItem((list, verdicts) => list.filter((_item, index) => truthy(verdicts[index]))),
   reduce: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.reduce((acc, item, i) => invoke.three(args[0], acc, item, i), args[1])),
-  forEach: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => {
-      list.forEach((item, i) => {
-        invoke.two(args[0], item, i);
-      });
-      return null;
-    }),
-  find: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.find((item, i) => truthy(invoke.two(args[0], item, i))) ?? null),
-  some: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.some((item, i) => truthy(invoke.two(args[0], item, i)))),
-  every: (list: readonly unknown[], invoke: Invoke) =>
-    nativeFn((args) => list.every((item, i) => truthy(invoke.two(args[0], item, i)))),
+    nativeFn((args) =>
+      folded(list, args[1], (acc, item, index) => invoke.three(args[0], acc, item, index)),
+    ),
+  forEach: perItem(() => null),
+  find: perItem((list, verdicts) => list.find((_item, index) => truthy(verdicts[index])) ?? null),
+  some: perItem((_list, verdicts) => verdicts.some(truthy)),
+  every: perItem((_list, verdicts) => verdicts.every(truthy)),
   contains: (list: readonly unknown[]) => nativeFn((args) => list.includes(args[0])),
   indexOf: (list: readonly unknown[]) => nativeFn((args) => list.indexOf(args[0])),
   reverse: (list: readonly unknown[]) => [...list].reverse(),
@@ -46,9 +40,7 @@ export const LIST_METHODS: Record<string, Method> = {
     nativeFn((args) => list.map(String).join(args[0] === undefined ? "," : String(args[0]))),
   sort: (list: readonly unknown[], invoke: Invoke) =>
     nativeFn((args) =>
-      args[0]
-        ? [...list].sort((a, b) => Number(invoke.two(args[0], a, b)))
-        : [...list].sort(compare),
+      args[0] ? sortedBy(list, (a, b) => invoke.two(args[0], a, b)) : [...list].sort(compare),
     ),
   // Clamping is deliberate and stays: `xs.slice(1, 99)` asking past the end is
   // how a caller says "from here on", and every language answers what is there.
@@ -61,3 +53,27 @@ export const LIST_METHODS: Record<string, Method> = {
     nativeFn((args) => [...list, ...(Array.isArray(args[0]) ? args[0] : [args[0]])]),
   push: (list: readonly unknown[]) => nativeFn((args) => [...list, ...args]),
 };
+
+/** One step of a fold: what has been folded so far, and the item to fold in. */
+type Step = (acc: unknown, item: unknown, index: number) => unknown;
+
+/**
+ * Fold from the left, waiting for an accumulator that has not arrived.
+ *
+ * This is the one verb that cannot gather its results: the accumulator is what
+ * the next step is handed, so a step still on its way has to settle before the
+ * step after it runs at all. The loop runs straight through while the steps
+ * answer at once, and chains from the first one that does not, picking up at
+ * the item it stopped on.
+ */
+function folded(list: readonly unknown[], seed: unknown, step: Step): unknown {
+  const carry = (acc: unknown, from: number): unknown => {
+    let carried = acc;
+    for (let at = from; at < list.length; at += 1) {
+      if (isWaiting(carried)) return carried.then((settled) => carry(settled, at));
+      carried = step(carried, list[at], at);
+    }
+    return carried;
+  };
+  return carry(seed, 0);
+}

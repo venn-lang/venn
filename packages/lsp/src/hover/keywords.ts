@@ -49,7 +49,7 @@ const KEYWORD_DOCS: Record<string, KeywordDoc> = {
   },
   fn: {
     summary:
-      "A pure function returning a value, first-class, callable anywhere. `=> expr` for one line; a `{ … }` block returns its last expression. No steps, no I/O.",
+      "A function returning a value, first-class, callable anywhere. `=> expr` for one line; a `{ … }` block returns its last expression. Statements and verbs, but no steps.",
     example: "fn double(x) => x * 2\nconst add = fn (a, b) => a + b",
   },
   deco: {

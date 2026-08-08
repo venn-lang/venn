@@ -4,6 +4,7 @@ export { childEnv, closureWith, isClosure, makeClosure } from "./closure.js";
 export type { Closure, ClosureParts } from "./closure.types.js";
 export type { EvalEnv } from "./eval-env.types.js";
 export { evaluate } from "./evaluate.js";
+export { forHost } from "./for-host.js";
 export { Frame, INLINE_SLOTS, readSlot, writeNamed, writeSlot } from "./frame.js";
 export { callClosure, invoke, invoke1, isCallable } from "./invoke.js";
 export { indexValue, memberValue } from "./member-value.js";

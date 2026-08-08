@@ -816,30 +816,14 @@
       "refused": null
     },
     "fnDecl": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
-      "out": null,
-      "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
-        "help": null,
-        "uri": "memory://corpus.vn",
-        "column": 1
-      }
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
     },
     "fnExpr": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
-      "out": null,
-      "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
-        "help": null,
-        "uri": "memory://corpus.vn",
-        "column": 1
-      }
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
     },
     "fragment": {
       "problems": [],
@@ -900,30 +884,14 @@
       "refused": null
     },
     "fnDecl": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
-      "out": null,
-      "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
-        "help": null,
-        "uri": "memory://corpus.vn",
-        "column": 1
-      }
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
     },
     "fnExpr": {
-      "problems": [
-        "VN2024 error@1 A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file."
-      ],
-      "out": null,
-      "refused": {
-        "code": "VN2024",
-        "title": "A `fn` is pure, so it cannot call `io.print`. A verb belongs in a `fragment`, or at the top level of a file.",
-        "help": null,
-        "uri": "memory://corpus.vn",
-        "column": 1
-      }
+      "problems": [],
+      "out": "the verb ran|after",
+      "refused": null
     },
     "fragment": {
       "problems": [],

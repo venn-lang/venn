@@ -1,13 +1,15 @@
 import { buildProblem, CODES } from "../codes/index.js";
-import type { CompiledBody, Thunk } from "../compile/compile.types.js";
+import type { CompiledBody, CompiledLocal, Thunk } from "../compile/compile.types.js";
 import { LEFT, raisedAt, runSteps } from "../compile/nodes/index.js";
 import type { Expr } from "../generated/ast.js";
 import { ProblemError, UNLOCATED } from "../problem/index.js";
 import { kindOf } from "../value/index.js";
 import { isClosure } from "./closure.js";
 import type { Closure } from "./closure.types.js";
+import { forHost } from "./for-host.js";
 import { Frame, writeSlot } from "./frame.js";
 import { type Invoke, isNativeFn, type NativeFn, nativeFn } from "./native.types.js";
+import { isWaiting } from "./pending.js";
 
 /**
  * Call any Venn callable, a `fn` closure or a built-in method, with values.
@@ -38,7 +40,8 @@ function inFrame(callee: Closure, values: readonly unknown[]): unknown {
   const frame = new Frame(callee);
   const arity = callee.params.length;
   for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
-  fill(callee, frame);
+  const filled = fill(callee, frame);
+  if (isWaiting(filled)) return afterFilling(filled, body, frame);
   return finish(body, frame);
 }
 
@@ -53,49 +56,6 @@ function hosted(callee: unknown, values: readonly unknown[], site: Expr | undefi
         site,
       )
     : fn(...given);
-}
-
-/**
- * A value as the host holds it, which for a callable means a real function.
- *
- * The mirror of `nativeFn`, and it was missing. A Venn callable is a `Closure`,
- * which is a record the interpreter reads, not something JavaScript can call.
- * Handing one to `lodash.map` gave the library a value it called anyway, and
- * `map([1, 2, 3], fn (n) => n * 2)` answered `[false, false, false]`: no error,
- * no diagnostic, three wrong numbers.
- *
- * Structural, because a callback is as often written inside something as it is
- * passed alone: `{ filter: fn (m) => … }` is the ordinary shape of a Discord
- * collector and of half the options objects in npm. Only a plain object or an
- * array is walked, and only a rebuilt one is returned, so a value carrying no
- * callable comes back as itself and keeps its identity.
- */
-export function forHost(value: unknown): unknown {
-  if (isClosure(value) || isNativeFn(value)) return (...args: unknown[]) => invoke(value, args);
-  if (Array.isArray(value)) return sameOr(value, value.map(forHost));
-  return isPlain(value) ? plainForHost(value) : value;
-}
-
-/** Only a map a program wrote. A handle, a date, a regex is the host's already. */
-function isPlain(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== "object" || value === null) return false;
-  const under = Object.getPrototypeOf(value) as object | null;
-  return under === Object.prototype || under === null;
-}
-
-function plainForHost(value: Record<string, unknown>): unknown {
-  const out: Record<string, unknown> = {};
-  let moved = false;
-  for (const [name, held] of Object.entries(value)) {
-    out[name] = forHost(held);
-    moved = moved || out[name] !== held;
-  }
-  return moved ? out : value;
-}
-
-/** The original where nothing inside moved, so identity survives the crossing. */
-function sameOr(value: readonly unknown[], mapped: readonly unknown[]): unknown {
-  return mapped.some((one, at) => one !== value[at]) ? mapped : value;
 }
 
 /** Whether {@link invoke} can call this, asked before committing to a call. */
@@ -127,7 +87,8 @@ export function invoke1(callee: unknown, arg: unknown, site?: Expr): unknown {
     if (body.bare) return (body.result as Thunk)(arg as never);
     const frame = new Frame(callee);
     if (callee.params.length > 0) frame.s0 = arg;
-    fill(callee, frame);
+    const filled = fill(callee, frame);
+    if (isWaiting(filled)) return afterFilling(filled, body, frame);
     return finish(body, frame);
   }
   if (isNativeFn(callee)) return site ? placed(callee, [arg], site) : callee.call([arg]);
@@ -166,7 +127,8 @@ export function callClosure(closure: Closure, values: readonly unknown[]): unkno
   const frame = new Frame(closure);
   const arity = closure.params.length;
   for (let at = 0; at < arity; at += 1) writeSlot(frame, at, values[at]);
-  fill(closure, frame);
+  const filled = fill(closure, frame);
+  if (isWaiting(filled)) return afterFilling(filled, closure.body, frame);
   return finish(closure.body, frame);
 }
 
@@ -178,7 +140,8 @@ function callClosure2(closure: Closure, a: unknown, b: unknown): unknown {
   const arity = closure.params.length;
   if (arity > 0) frame.s0 = a;
   if (arity > 1) frame.s1 = b;
-  fill(closure, frame);
+  const filled = fill(closure, frame);
+  if (isWaiting(filled)) return afterFilling(filled, closure.body, frame);
   return finish(closure.body, frame);
 }
 
@@ -189,7 +152,8 @@ function callClosure3(closure: Closure, a: unknown, b: unknown, c: unknown): unk
   if (arity > 0) frame.s0 = a;
   if (arity > 1) frame.s1 = b;
   if (arity > 2) frame.s2 = c;
-  fill(closure, frame);
+  const filled = fill(closure, frame);
+  if (isWaiting(filled)) return afterFilling(filled, closure.body, frame);
   return finish(closure.body, frame);
 }
 
@@ -200,13 +164,39 @@ function callClosure3(closure: Closure, a: unknown, b: unknown, c: unknown): unk
  * way in is a frame recursion cannot use: a Venn call that goes through one
  * extra JS function divides the depth a program can reach. Four sites is the
  * price of the depth, and the loop is three lines.
+ *
+ * A binding that reached the world is settled before the one after it is
+ * evaluated. Without that, `const r = http.get(u)` and the line under it run at
+ * the same time and the second reads the world before the first changed it. The
+ * wait costs one comparison per binding and allocates nothing until something
+ * is actually slow.
  */
-function fill(closure: Closure, frame: Frame): void {
+function fill(closure: Closure, frame: Frame, from = 0): void | Promise<void> {
   const locals = closure.body.locals;
-  for (let at = 0; at < locals.length; at += 1) {
+  for (let at = from; at < locals.length; at += 1) {
     const local = locals[at] as (typeof locals)[number];
-    writeSlot(frame, local.slot, local.value(frame));
+    const held = local.value(frame);
+    if (isWaiting(held)) return held.then((settled) => behind({ closure, frame, at, settled }));
+    writeSlot(frame, local.slot, local.box ? local.box(held) : held);
   }
+}
+
+/** The binding that was slow, written, and then the ones behind it. */
+function behind(args: {
+  closure: Closure;
+  frame: Frame;
+  at: number;
+  settled: unknown;
+}): void | Promise<void> {
+  const { closure, frame, at, settled } = args;
+  const local = closure.body.locals[at] as CompiledLocal;
+  writeSlot(frame, local.slot, local.box ? local.box(settled) : settled);
+  return fill(closure, frame, at + 1);
+}
+
+/** The body's answer once its slow bindings have landed. Off the fast path. */
+function afterFilling(filled: Promise<void>, body: CompiledBody, frame: Frame): Promise<unknown> {
+  return filled.then(() => finish(body, frame));
 }
 
 /**
@@ -215,9 +205,22 @@ function fill(closure: Closure, frame: Frame): void {
  * A body with no statements is every body written before one could hold them,
  * and it pays for one comparison against `undefined` here rather than for a
  * loop over an empty array.
+ *
+ * Statements that reached the world answer later, and the value the body ends
+ * in is read after them, never beside them. Handing that promise back is what
+ * makes the whole call slow rather than the one line inside it: whoever wrote
+ * the call is a statement too, and waits there.
  */
 function finish(body: CompiledBody, frame: Frame): unknown {
-  if (body.steps && runSteps(body.steps, frame) === LEFT) return frame.left;
+  if (!body.steps) return body.result ? body.result(frame) : null;
+  const ran = runSteps(body.steps, frame);
+  if (!isWaiting(ran)) return ended(ran, body, frame);
+  return ran.then((stopped) => ended(stopped, body, frame));
+}
+
+/** What the body answers, once every statement in it has finished. */
+function ended(stopped: number, body: CompiledBody, frame: Frame): unknown {
+  if (stopped === LEFT) return frame.left;
   return body.result ? body.result(frame) : null;
 }
 

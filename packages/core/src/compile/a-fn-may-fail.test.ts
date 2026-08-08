@@ -1,42 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { ProblemError } from "../problem/index.js";
-import { call, evaluated, program, raised, said } from "./a-fn-may-fail.suite.js";
-
-/**
- * What a verb in a pure body draws here: the type checker's sentences, then the
- * compiler's refusal.
- *
- * The type checker is `core`'s and says nothing about a verb, because the check
- * that does lives in `@venn-lang/runtime`, which this package cannot import: a
- * `core` test reaches the compiler half only. That is why the list below holds
- * one sentence rather than two, and why `check-pure-verb.test.ts` next door owns
- * proving the other half says the same words. Both are asked here anyway, so a
- * type error raised beside the refusal would show up rather than be filtered.
- */
-function refusal(source: string): string[] {
-  try {
-    evaluated({ source, name: "f" });
-  } catch (thrown) {
-    if (!(thrown instanceof ProblemError)) throw thrown;
-    return [...said(source), `${thrown.problem.code} ${thrown.problem.title}`];
-  }
-  return said(source);
-}
-
-/** The one sentence a verb in a pure body earns from the compiler. */
-function refused(verb: string): string[] {
-  return [
-    `VN2024 A \`fn\` is pure, so it cannot call \`${verb}\`. A verb belongs in a \`fragment\`, or at the top level of a file.`,
-  ];
-}
+import { call, program, raised } from "./a-fn-may-fail.suite.js";
 
 /**
  * A `fn` may fail.
  *
- * Raising is not an effect on the world, so the guarantee worth keeping is that
- * a `fn` does no I/O rather than that it always returns. Before this, refusing
- * an argument cost the author a `fragment` and a `run … as`, which is the first
- * wall a program hits: "validate and refuse" is the most common shape there is.
+ * Raising is control flow rather than an effect on the world, so `fail` is
+ * compiled as a raise rather than as a call to the verb of that name. Before
+ * this, refusing an argument cost the author a `fragment` and a `run … as`,
+ * which is the first wall a program hits: "validate and refuse" is the most
+ * common shape there is.
  */
 describe("a fn that fails", () => {
   it("raises the code the program chose", () => {
@@ -88,7 +60,7 @@ describe("a fn that fails", () => {
 /**
  * A function that can fail and cannot catch is half a feature.
  *
- * Both spellings work in a pure body: the braced one holds an expression per
+ * Both spellings work in a compiled body: the braced one holds an expression per
  * brace and gives a value back, and the statement one holds statements, which is
  * where a `return` belongs.
  */
@@ -163,61 +135,6 @@ describe("a fn that catches", () => {
     );
 
     expect(call(source, "f", [""])).toBe("after VN6002");
-  });
-});
-
-/**
- * Everything else a verb does reaches the world, so a pure body may not run it.
- *
- * The grammar parses one now, which is what lets the checker name it at the line
- * that wrote it. The compiler refuses the same shape in the same words, so a body
- * that reached the compiler without being checked cannot quietly drop the line,
- * which is what it used to do.
- */
-describe("a verb that touches the world", () => {
-  it("is refused in a body written on one line", () => {
-    expect(refusal('fn f() { print "x" }')).toEqual(refused("print"));
-  });
-
-  it("is refused in a body written over several", () => {
-    const source = program("fn f() {", '  print "x"', "  return 1", "}");
-
-    expect(refusal(source)).toEqual(refused("print"));
-  });
-
-  it("is refused one level into the body", () => {
-    const source = program("fn f(c) {", '  if c { log "x" }', "  return c", "}");
-
-    expect(refusal(source)).toEqual(refused("log"));
-  });
-
-  it("is refused inside a forEach, and inside an else", () => {
-    const looped = program(
-      "fn f(xs) {",
-      "  forEach x in xs {",
-      "    print x",
-      "  }",
-      "  return xs",
-      "}",
-    );
-    const otherwise = program(
-      "fn f(n) {",
-      "  if n > 10 {",
-      "    return n",
-      "  } else {",
-      '    print "small"',
-      "  }",
-      "  return 0",
-      "}",
-    );
-
-    expect([refusal(looped), refusal(otherwise)]).toEqual([refused("print"), refused("print")]);
-  });
-
-  it("is refused when its result is bound", () => {
-    const source = program("fn f() {", '  let a = print "x"', "  return a", "}");
-
-    expect(refusal(source)).toEqual(refused("print"));
   });
 });
 

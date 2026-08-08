@@ -13,22 +13,10 @@ const plugin = definePlugin({
   matchers: [defineMatcher({ name: "known", test: () => true, message: () => "" })],
 });
 
-/**
- * A plugin that asked the host for something, which is what makes its verbs
- * unavailable to a pure body. `@t/m` asks for nothing, so its `noop` is a
- * computation as far as the language can tell, and a `fn` may call it.
- */
-const reaching = definePlugin({
-  name: "@t/net",
-  namespace: "wire",
-  requires: ["net"],
-  actions: [defineAction({ name: "send", run: () => undefined })],
-});
-
 function check(source: string) {
   const { ast, problems } = parse(source);
   expect(problems).toEqual([]);
-  const registry = buildRegistry({ plugins: [plugin, reaching], caps: createTestHost().caps });
+  const registry = buildRegistry({ plugins: [plugin], caps: createTestHost().caps });
   const fragments = new Set(collectFragments(ast).keys());
   return checkDocument({ document: ast, registry, fragments });
 }
@@ -117,8 +105,6 @@ describe("a verb named but never called", () => {
     expect(codes(`${BRINGS_T}fn id() => t.noop\nprint id()\n`)).toContain("VN2008");
   });
 
-  // In a `fragment`, because a `fn` may not call a verb at all now and the
-  // question here is the brackets rather than where the call stands.
   it("says nothing when it is called", () => {
     expect(check(`${BRINGS_T}fragment id() { return t.noop() }\nrun id()\n`)).toEqual([]);
   });
@@ -129,13 +115,13 @@ describe("a verb named but never called", () => {
 });
 
 /**
- * What a pure body may still do, which is everything that reaches nothing.
+ * What a body may do without drawing a word out of the checker.
  *
- * A lambda is a `fn`, so the purity rule walks its body too, and the ordinary
- * shapes a program is made of go through it: a method on a list, a call of a
- * name the file binds itself, a verb of a plugin that asked the host for
- * nothing. Every one of those was refused at some point while this rule was
- * being moved out of the grammar, so each has a row.
+ * A lambda is a `fn`, so a rule that walks a body walks its body too, and the
+ * ordinary shapes a program is made of go through it: a method on a list, a
+ * call of a name the file binds itself, a verb of a plugin. Every one of those
+ * was refused at some point while the purity rule was being moved out of the
+ * grammar, and then the rule went too, so each keeps a row.
  */
 const REACHES_NOTHING: Record<string, string> = {
   "a lambda over a list": "const xs = [1, 2]\nprint xs.map(i => i + 1)\n",
@@ -146,31 +132,21 @@ const REACHES_NOTHING: Record<string, string> = {
     'import { t } from "@t/m"\nfn id() => t.noop()\nprint id()\n',
 };
 
-describe("a pure body that reaches nothing", () => {
+describe("a body that only computes", () => {
   it.each(Object.entries(REACHES_NOTHING))("leaves %s alone", (_name, source) => {
     expect(check(source)).toEqual([]);
   });
 });
 
-/** And the one that did ask, which is the whole of what a pure body may not do. */
-describe("a pure body that reaches the world", () => {
-  it("refuses a fn calling a plugin that declared a capability", () => {
-    const source = 'import { wire } from "@t/net"\nfn send() => wire.send()\nprint send()\n';
-
-    expect(codes(source)).toEqual(["VN2024"]);
-  });
-});
-
 /**
- * A raise is control flow rather than an effect on the world, so a pure body may
- * run one at any depth and in every spelling that reaches this rule.
+ * A raise is control flow rather than an effect on the world, so `fail` is
+ * compiled as a raise rather than as a call to the verb of that name, at any
+ * depth and in every spelling that reaches this rule.
  *
  * Two of the three spellings knew that and the third did not, so
  * `let stop = fail "the guard"` was refused inside a `fn` while the same line
  * checked clean at the top level, inside a `fragment`, and one line over as
- * `if n < 0 { fail "negative" }`. The sentence it was refused under said a `fn`
- * cannot `fail`, which is this release's headline inverted, and the way out it
- * named was a `fragment`, where the line was already legal exactly as written.
+ * `if n < 0 { fail "negative" }`.
  *
  * The binding is dead, because nothing comes back from a raise. It is dead in
  * the same way at the top level, so it is left legal there and here alike:
@@ -194,32 +170,5 @@ const A_FN_MAY_FAIL: Record<string, string> = {
 describe("a fn that fails", () => {
   it.each(Object.entries(A_FN_MAY_FAIL))("says nothing about %s", (_name, source) => {
     expect(check(source)).toEqual([]);
-  });
-});
-
-/**
- * And the same three spellings for a verb that does reach the world, so the
- * clause above cannot be read as an opening. `wire.send` is the only verb here
- * whose plugin asked the host for anything.
- *
- * The fourth is the arrow carrying a block, which parses as a body rather than
- * as a map literal. It reaches this rule because it is a `fn` like the others,
- * and it is written down because the spelling is new: before, the braces read
- * as a map and the parser refused the line, so no pure-body check ever saw one.
- */
-const A_VERB_IS_STILL_REFUSED: Record<string, string> = {
-  "bound with a trailing argument, which is what makes a `let` a call":
-    'import { wire } from "@t/net"\nfn f() {\n  let a = wire.send "x"\n  return a\n}\nprint f()\n',
-  "called as a statement, whose value nothing keeps":
-    'import { wire } from "@t/net"\nfn f() {\n  wire.send "x"\n  return 1\n}\nprint f()\n',
-  "read where a value is wanted":
-    'import { wire } from "@t/net"\nfn f() {\n  let a = wire.send("x")\n  return a\n}\nprint f()\n',
-  "written in the block an arrow now carries":
-    'import { wire } from "@t/net"\nconst f = r => {\n  wire.send r\n  1\n}\nprint f("x")\n',
-};
-
-describe("a verb that reaches the world, in each spelling", () => {
-  it.each(Object.entries(A_VERB_IS_STILL_REFUSED))("refuses one %s", (_name, source) => {
-    expect(codes(source)).toEqual(["VN2024"]);
   });
 });

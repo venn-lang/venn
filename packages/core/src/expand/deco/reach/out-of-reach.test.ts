@@ -18,13 +18,17 @@ const codes = (problems: readonly Problem[]) => problems.map((one) => one.code);
  * has no value for it to read. That is the language, and it stays. What was
  * wrong was the silence: the name read as nothing, an interpolation printed
  * empty, and a call on it arrived later as a message from the machine.
+ *
+ * A hook is not the body. `target.wrap(fn (call, args) { … })` hands a value
+ * over and the value is called once the program is running, so a name it reads
+ * is the program's to answer. The line between the two is what these hold.
  */
 describe("a name a `deco` body cannot reach is refused where it is written", () => {
-  it("refuses a top-level `const` read from a closure the body makes", () => {
+  it("refuses a top-level `const` the body itself reads", () => {
     const problems = run([
       "const outer = 5",
       "deco a(target: Fn) {",
-      '  target.wrap(fn (call, args) => "outer is [${outer}]")',
+      '  target.meta "seen" outer',
       "}",
       "@a",
       "fn double(n) => n * 2",
@@ -40,7 +44,7 @@ describe("a name a `deco` body cannot reach is refused where it is written", () 
     const problems = run([
       "const outer = 5",
       "deco a(target: Fn) {",
-      '  target.wrap(fn (call, args) => "outer is [${outer}]")',
+      '  target.meta "seen" "outer is [${outer}]"',
       "}",
     ]);
 
@@ -49,7 +53,20 @@ describe("a name a `deco` body cannot reach is refused where it is written", () 
     expect(problems[0]?.span.length).toBe(8);
   });
 
-  it("refuses a top-level function the closure would have called", () => {
+  it("says nothing about a top-level `const` a hook reads", () => {
+    const problems = run([
+      "const outer = 5",
+      "deco a(target: Fn) {",
+      '  target.wrap(fn (call, args) => "outer is [${outer}]")',
+      "}",
+      "@a",
+      "fn double(n) => n * 2",
+    ]);
+
+    expect(problems).toEqual([]);
+  });
+
+  it("says nothing about a top-level function a hook would call", () => {
     const problems = run([
       "fn shout(x) => x",
       "deco a(target: Fn) {",
@@ -57,9 +74,7 @@ describe("a name a `deco` body cannot reach is refused where it is written", () 
       "}",
     ]);
 
-    expect(codes(problems)).toEqual(["VN2023"]);
-    expect(problems[0]?.title).toContain("`shout`");
-    expect(problems[0]?.span.line).toBe(3);
+    expect(problems).toEqual([]);
   });
 
   it("says nothing about the decorator's own parameters", () => {
@@ -116,7 +131,12 @@ describe("a name a `deco` body cannot reach is refused where it is written", () 
     expect(codes(problems)).toEqual(["VN2016"]);
   });
 
-  it("refuses each place a name is written, and says how a body reads names", () => {
+  /**
+   * The line, in one program. The same name is written twice, once where the
+   * body reads it and once where a hook does, and exactly one of them is a
+   * mistake about when it runs.
+   */
+  it("refuses the read the body makes and leaves the one a hook makes", () => {
     const problems = run([
       "const outer = 5",
       "deco a(target: Fn) {",
@@ -125,7 +145,8 @@ describe("a name a `deco` body cannot reach is refused where it is written", () 
       "}",
     ]);
 
-    expect(codes(problems)).toEqual(["VN2023", "VN2023"]);
+    expect(codes(problems)).toEqual(["VN2023"]);
+    expect(problems[0]?.span.line).toBe(4);
     expect(problems[0]?.help).toContain("its own parameters");
   });
 });

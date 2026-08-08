@@ -81,4 +81,26 @@ describe("a deco body's calls", () => {
 
     expect(check(source)).toEqual([]);
   });
+
+  /**
+   * The line is a moment, not a place. A hook is a value the body hands over
+   * and the program calls, so a verb written in one is refused about a moment
+   * it is not running in. The body around it is still expansion and still
+   * refused, which the cases above hold.
+   */
+  it("leaves a verb a hook will call once the program is running", () => {
+    const source = [
+      'import { t } from "@t/m"',
+      "deco traced(target: Fn) {",
+      "  target.wrap(fn (call, args) {",
+      '    t.noop "x"',
+      "    call(args)",
+      "  })",
+      "}",
+      "@traced",
+      'fn ping() => "pong"',
+    ].join("\n");
+
+    expect(check(source)).toEqual([]);
+  });
 });

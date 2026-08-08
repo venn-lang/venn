@@ -9,12 +9,12 @@ const base = nativeFn((values) => `base(${values.join(",")})`);
 function decorated(write: (node: object) => void): unknown {
   const node = {};
   write(node);
-  return decorateCallable(node, base);
+  return decorateCallable({ node, base });
 }
 
 describe("the callable a decorated function binds to", () => {
   it("is the function itself when nothing asked for anything", () => {
-    expect(decorateCallable({}, base)).toBe(base);
+    expect(decorateCallable({ node: {}, base })).toBe(base);
   });
 
   it("runs `.before` and `.after` around the call, with the arguments", () => {

@@ -812,50 +812,57 @@ It closes one of two ways, and either is an answer: a `fragment` becomes a
 value, or `venn check` refuses one written where a value goes. Accepting it and
 handing back `null` is the only option that is not.
 
-## 23. A decorator's own `let` checks clean and is gone when it runs
+## 23. Closed: a decorator's own `let` is storage a hook can write
 
-**Severity: high, and it is a `venn check` that blesses a program `venn run`
-will not take.** Found while asking whether a library could ship `@cooldown`.
+A `deco` body's binding was read where it was written and gone when the hook
+that captured it ran, so `venn check` said `✓ no problems found` and `venn run`
+answered `VN3021 · Nothing here binds "n"` at the call site, three lines below
+anything the reader wrote about `n`.
+
+A `deco` body now keeps its bindings in cells, which is the storage a captured
+`let` has anywhere else, so the read and the write reach one place.
 
 ```ruby
-deco counted(target: Fn) {
-  let n = 0
+deco cooldown(target: Fn, times: number) {
+  let calls = 0
   target.wrap(fn (call, args) {
-    n = n + 1
-    "${call(args)} #${n}"
+    calls = calls + 1
+    if calls > times { fail "on cooldown" { code: "cd" } }
+    call(args)
   })
 }
-@counted
+@cooldown(2)
 fn ping() => "pong"
 print ping()
+print ping()
+print (try ping() catch e => e.code)
 ```
 ```
-✓ no problems found
-```
-```
-VN3021 · Nothing here binds "n", so there is nowhere to write it.
-  at    …\h2.vn:10:7
+pong
+pong
+cd
 ```
 
-The refusal points at `print ping()`, three lines below anything the reader
-wrote about `n`. The closure `wrap` was handed is spliced into the program and
-loses the body it was written in, so the name it captured is not there when the
-call reaches it. The checker reads the `deco` body, sees the binding, and says
-nothing.
+A name the program bound rather than the decorator is written too, and lands in
+the program, so two decorations of one `deco` share a count when the count is
+the file's.
 
-Either the closure keeps what it captured, or the checker refuses a `deco` body
-that binds a name a hook reads. Accepting it and failing at the call site is the
-only answer that is not one.
+## 24. Closed: a hook runs in the program, and is read as running there
 
-## 24. A decorator's hooks are refused for reaching the world, and they do not
+`VN2016` asked where a call was written rather than when it runs, so a verb
+inside a `wrap` was refused about a moment the hook was not running in. A hook
+is a value handed over, kept, and called once the program exists.
 
-**Severity: medium.** `VN2016` asks where a call is written rather than when it
-runs, and a `wrap` is written at expansion time and runs at call time.
+Two boundaries moved and one did not. The checker stops at a hook rather than at
+the `deco`, and the reach check does the same, so a name a hook reads is the
+program's to answer. What the body itself reads or calls is still expansion and
+still refused, which is the rule and which stays.
 
 ```ruby
+const site = "eu-west"
 deco logged(target: Fn) {
   target.wrap(fn (call, args) {
-    print "calling ${target.name}"
+    print "calling ${target.name} at ${site}"
     call(args)
   })
 }
@@ -864,24 +871,18 @@ fn ping() => "pong"
 print ping()
 ```
 ```
-VN2016 · A decorator runs before the program exists, so it cannot call `print`.
-  at    …\h1.vn:3:5
+calling ping at eu-west
+pong
 ```
 
-The sentence is true about the `deco` body and false about the closure inside
-it. Expansion has no run to belong to, so refusing a verb written directly in a
-`deco` body is right. A hook is not written for expansion: it is a value handed
-to `wrap`, kept, and called once the program is running, by which time every
-verb is as available as it is anywhere else.
-
-Between this and entry 23, a decorator written in Venn is a rewriter of syntax
-and nothing more. The four things a library's decorators are usually for are all
-out of reach: it cannot log or check permissions (this entry), it cannot hold a
-counter or a cooldown (entry 23), it cannot register what it decorated anywhere
-a program could read back, since `target.meta` writes a key only the host can
-read, and it cannot see a parameter's type, only its name. A decorator a plugin
-ships in TypeScript has all four, which is the measure of the gap rather than an
-argument that the gap is fine.
+What is left of the list this pair belonged to: a decorator can log, check a
+permission, hold a cooldown, read a name the program bound and write one, and
+read what its target's parameters were declared as, through `target.paramTypes`
+beside `target.params`. What it still cannot do is hand what it decorated to a
+program that could collect it: `target.meta` writes a key only the host reads,
+so a `@slash` still has no way to register a command in Venn alone. That one is
+not written up as a gap because nothing about it is a surprise: there is no verb
+for it, and a missing verb refuses by name.
 
 ---
 

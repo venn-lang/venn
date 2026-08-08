@@ -11,6 +11,7 @@ import type {
 import {
   isActionCall,
   isBlock,
+  isFnExpr,
   isIfStmt,
   isLetStmt,
   isRef,
@@ -68,7 +69,24 @@ function inExpr(expr: Expr, uri: string): NameRead[] {
 }
 
 function atNode(node: AstNode, uri: string): NameRead[] {
+  if (insideAHook(node)) return [];
   if (isStringLit(node)) return slotReads(node, uri);
   if (!isRef(node) || insideAnnotation(node)) return [];
   return [{ name: node.name, span: spanOf(node, uri) }];
+}
+
+/**
+ * Whether this read sits inside a hook rather than in the body around it.
+ *
+ * A hook is a value the body hands over: `target.wrap(fn (call, args) { … })`
+ * runs once the program is running, not while it is being written. So a name it
+ * reads may be one the program binds, and refusing it here reported the wrong
+ * moment. What the body itself reads is still refused, and a name a hook reads
+ * that nothing binds anywhere is the document's ordinary business.
+ */
+function insideAHook(node: AstNode): boolean {
+  for (let at: AstNode | undefined = node; at; at = at.$container) {
+    if (isFnExpr(at)) return true;
+  }
+  return false;
 }

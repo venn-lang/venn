@@ -42,14 +42,21 @@ function faceOf(decl: NamespaceDecl, outer: Scope): Record<string, unknown> {
   const inside = outer.child();
   for (const held of decl.decls) if (!heldByANamespace(held)) throw noPlaceFor(held);
   claim(decl, inside);
-  for (const held of decl.decls) {
-    if (isFnDecl(held)) inside.set(held.name, decorateCallable(held, closureOfDecl(held, inside)));
-  }
+  bindHeldFunctions(decl, inside);
   bindDeclaredNamespaces(decl.decls, inside);
   for (const held of decl.decls) {
     if (isLetStmt(held)) binderFor(held)(evaluate(held.value, inside), inside);
   }
   return published(decl, inside);
+}
+
+/** The block's own functions, each with whatever decorated it already around it. */
+function bindHeldFunctions(decl: NamespaceDecl, inside: Scope): void {
+  for (const held of decl.decls) {
+    if (!isFnDecl(held)) continue;
+    const base = closureOfDecl(held, inside);
+    inside.set(held.name, decorateCallable({ node: held, base, program: inside }));
+  }
 }
 
 /**

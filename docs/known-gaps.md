@@ -812,6 +812,77 @@ It closes one of two ways, and either is an answer: a `fragment` becomes a
 value, or `venn check` refuses one written where a value goes. Accepting it and
 handing back `null` is the only option that is not.
 
+## 23. A decorator's own `let` checks clean and is gone when it runs
+
+**Severity: high, and it is a `venn check` that blesses a program `venn run`
+will not take.** Found while asking whether a library could ship `@cooldown`.
+
+```ruby
+deco counted(target: Fn) {
+  let n = 0
+  target.wrap(fn (call, args) {
+    n = n + 1
+    "${call(args)} #${n}"
+  })
+}
+@counted
+fn ping() => "pong"
+print ping()
+```
+```
+✓ no problems found
+```
+```
+VN3021 · Nothing here binds "n", so there is nowhere to write it.
+  at    …\h2.vn:10:7
+```
+
+The refusal points at `print ping()`, three lines below anything the reader
+wrote about `n`. The closure `wrap` was handed is spliced into the program and
+loses the body it was written in, so the name it captured is not there when the
+call reaches it. The checker reads the `deco` body, sees the binding, and says
+nothing.
+
+Either the closure keeps what it captured, or the checker refuses a `deco` body
+that binds a name a hook reads. Accepting it and failing at the call site is the
+only answer that is not one.
+
+## 24. A decorator's hooks are refused for reaching the world, and they do not
+
+**Severity: medium.** `VN2016` asks where a call is written rather than when it
+runs, and a `wrap` is written at expansion time and runs at call time.
+
+```ruby
+deco logged(target: Fn) {
+  target.wrap(fn (call, args) {
+    print "calling ${target.name}"
+    call(args)
+  })
+}
+@logged
+fn ping() => "pong"
+print ping()
+```
+```
+VN2016 · A decorator runs before the program exists, so it cannot call `print`.
+  at    …\h1.vn:3:5
+```
+
+The sentence is true about the `deco` body and false about the closure inside
+it. Expansion has no run to belong to, so refusing a verb written directly in a
+`deco` body is right. A hook is not written for expansion: it is a value handed
+to `wrap`, kept, and called once the program is running, by which time every
+verb is as available as it is anywhere else.
+
+Between this and entry 23, a decorator written in Venn is a rewriter of syntax
+and nothing more. The four things a library's decorators are usually for are all
+out of reach: it cannot log or check permissions (this entry), it cannot hold a
+counter or a cooldown (entry 23), it cannot register what it decorated anywhere
+a program could read back, since `target.meta` writes a key only the host can
+read, and it cannot see a parameter's type, only its name. A decorator a plugin
+ships in TypeScript has all four, which is the measure of the gap rather than an
+argument that the gap is fine.
+
 ---
 
 Nothing here is a promise that the list is complete, and an empty list would not

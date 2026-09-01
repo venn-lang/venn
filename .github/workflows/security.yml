@@ -62,13 +62,13 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v7
-      - uses: github/codeql-action/init@v4.37.3
+      - uses: github/codeql-action/init@v4.37.9
         with:
           languages: javascript-typescript
           # The compiler is the product here, so query it properly rather than
           # with the default set.
           queries: security-extended
-      - uses: github/codeql-action/analyze@v4.37.3
+      - uses: github/codeql-action/analyze@v4.37.9
 
   osv:
     needs: changes
@@ -76,7 +76,7 @@ jobs:
     if: github.head_ref != 'changeset-release/main' && needs.changes.outputs.code == 'true'
     # Called as a reusable workflow, not as a step: the repository's action.yml
     # carries only metadata and has no `runs:` section, so it cannot be a step.
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.1
     permissions:
       contents: read
       security-events: write

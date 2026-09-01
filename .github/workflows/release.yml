@@ -114,7 +114,7 @@ jobs:
       # release behind it. They are removed after the release instead.
       - name: Version or publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           version: pnpm changeset version
           publish: pnpm release
